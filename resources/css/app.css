@@ -1,0 +1,221 @@
+@import 'tailwindcss';
+
+@source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
+@source '../../storage/framework/views/*.php';
+@source '../**/*.blade.php';
+@source '../**/*.js';
+
+@theme {
+    --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
+        'Segoe UI Symbol', 'Noto Color Emoji';
+}
+
+:root {
+    --ink: #050505;
+    --ink-soft: #0e0e0e;
+    --snow: #f6f6f6;
+    --muted: #9ca3af;
+    --border: rgba(255, 255, 255, 0.1);
+    --glow: radial-gradient(circle at 20% 20%, rgba(255, 255, 255, 0.12), transparent 35%),
+        radial-gradient(circle at 80% 0%, rgba(255, 255, 255, 0.08), transparent 30%),
+        linear-gradient(120deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0));
+}
+
+body {
+    background: radial-gradient(circle at 20% 20%, rgba(255, 255, 255, 0.04), transparent 24%),
+        radial-gradient(circle at 80% 0%, rgba(255, 255, 255, 0.05), transparent 30%),
+        var(--ink);
+    color: var(--snow);
+    font-family: 'Space Grotesk', 'Instrument Sans', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+}
+
+.bg-grid {
+    background-image: linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+    background-size: 38px 38px, 38px 38px;
+    background-position: -10px -10px;
+    position: relative;
+    overflow: hidden;
+}
+
+.bg-ink {
+    background-color: var(--ink);
+}
+
+.card {
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid var(--border);
+    border-radius: 18px;
+    box-shadow: 0 25px 80px rgba(0, 0, 0, 0.35);
+}
+
+.nav-link {
+    color: #d1d5db;
+    letter-spacing: 0.18em;
+    transition: color 150ms ease, border-color 150ms ease;
+    text-transform: uppercase;
+}
+
+.nav-link:hover {
+    color: #ffffff;
+}
+
+.btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.65rem 1.5rem;
+    border-radius: 9999px;
+    font-size: 0.75rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    font-weight: 700;
+    transition: transform 150ms ease, background 150ms ease, color 150ms ease, box-shadow 150ms ease;
+    border: 1px solid transparent;
+}
+
+.btn-primary {
+    background: #ffffff;
+    color: #000000;
+    border-color: #ffffff;
+    box-shadow: 0 12px 30px rgba(255, 255, 255, 0.15);
+}
+
+.btn-primary:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 15px 40px rgba(255, 255, 255, 0.2);
+}
+
+.btn-ghost {
+    background: rgba(255, 255, 255, 0.06);
+    color: #ffffff;
+    border-color: rgba(255, 255, 255, 0.2);
+}
+
+.btn-ghost:hover {
+    transform: translateY(-1px);
+    border-color: #ffffff;
+}
+
+.pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.3rem 0.8rem;
+    border-radius: 999px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    text-transform: uppercase;
+    font-size: 0.65rem;
+    letter-spacing: 0.18em;
+    color: #e5e7eb;
+}
+
+.field {
+    width: 100%;
+    padding: 0.85rem 1rem;
+    border-radius: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    background: rgba(255, 255, 255, 0.03);
+    color: #f9fafb;
+}
+
+.field:focus {
+    outline: none;
+    border-color: #ffffff;
+    background: rgba(255, 255, 255, 0.06);
+}
+
+.line-clamp-2 {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.carousel {
+    display: flex;
+    gap: 1rem;
+    overflow-x: auto;
+    padding-bottom: 0.5rem;
+    scroll-snap-type: x mandatory;
+    scrollbar-color: rgba(255, 255, 255, 0.25) transparent;
+}
+
+.carousel::-webkit-scrollbar {
+    height: 8px;
+}
+
+.carousel::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.25);
+    border-radius: 999px;
+}
+
+.carousel-card {
+    scroll-snap-align: start;
+    min-width: 280px;
+}
+
+.beam {
+    position: absolute;
+    inset: -30% auto auto -10%;
+    width: 70%;
+    height: 70%;
+    background: var(--glow);
+    filter: blur(50px);
+    opacity: 0.35;
+    animation: float 14s ease-in-out infinite alternate;
+    pointer-events: none;
+}
+
+.card-animated {
+    position: relative;
+    overflow: hidden;
+}
+
+.card-animated::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.06), transparent 50%);
+    opacity: 0;
+    transition: opacity 250ms ease, transform 250ms ease;
+    transform: translateY(12%);
+}
+
+.card-animated:hover::after {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.fade-up {
+    animation: fadeUp 0.9s ease forwards;
+    opacity: 0;
+}
+
+.delay-1 {
+    animation-delay: 0.12s;
+}
+
+.delay-2 {
+    animation-delay: 0.24s;
+}
+
+@keyframes float {
+    from {
+        transform: translateY(-10px) translateX(-10px) scale(1);
+    }
+    to {
+        transform: translateY(20px) translateX(20px) scale(1.05);
+    }
+}
+
+@keyframes fadeUp {
+    from {
+        opacity: 0;
+        transform: translateY(16px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
