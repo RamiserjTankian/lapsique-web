@@ -2,6 +2,40 @@
 
 @section('title', __('messages.events_page.pill') . ' | ' . __('messages.site.brand'))
 
+@section('meta_title', 'Eventos - lapsique.media')
+@section('meta_description', 'Shows, colaboraciones y residencias de música electrónica en Riviera Maya. Visuales monocromáticos y producción de alto nivel.')
+@section('meta_keywords', 'eventos electrónicos, shows, música electrónica, Riviera Maya, Playa del Carmen, Tulum, fiestas techno')
+
+@section('og_type', 'website')
+@section('og_title', 'Eventos - lapsique.media')
+@section('og_description', 'Shows, colaboraciones y residencias de música electrónica en Riviera Maya.')
+@php
+    $eventsOgImage = $events->isNotEmpty() && $events->first()->getFirstMediaUrl('cover', 'cover_large') ? 
+        $events->first()->getFirstMediaUrl('cover', 'cover_large') : 
+        asset('images/og-default.jpg');
+@endphp
+@section('og_image', $eventsOgImage)
+@section('og_url', route('events.index'))
+
+@section('twitter_title', 'Eventos - lapsique.media')
+@section('twitter_description', 'Shows, colaboraciones y residencias de música electrónica en Riviera Maya.')
+@section('twitter_image', $eventsOgImage)
+@section('twitter_url', route('events.index'))
+
+@section('canonical_url', route('events.index'))
+
+@push('structured_data')
+<script type="application/ld+json">
+{
+  "@@context": "https://schema.org",
+  "@type": "CollectionPage",
+  "name": "Eventos",
+  "description": "Shows, colaboraciones y residencias de música electrónica",
+  "url": "{{ route('events.index') }}"
+}
+</script>
+@endpush
+
 @section('content')
     <div class="flex flex-col gap-3">
         <p class="pill">{{ __('messages.events_page.pill') }}</p>

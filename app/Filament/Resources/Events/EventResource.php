@@ -15,12 +15,19 @@ use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
+use UnitEnum;
 
 class EventResource extends Resource
 {
     protected static ?string $model = Event::class;
 
-    protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedRectangleStack;
+    protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedCalendar;
+
+    protected static ?string $navigationLabel = 'Events';
+
+    protected static UnitEnum|string|null $navigationGroup = 'Eventos';
+
+    protected static ?int $navigationSort = 0;
 
     public static function form(Schema $schema): Schema
     {

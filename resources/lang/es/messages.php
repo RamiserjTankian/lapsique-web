@@ -49,8 +49,8 @@ return [
         'view_maps' => 'Ver en Maps',
     ],
     'djs_page' => [
-        'pill' => 'Lineup',
-        'title' => 'DJs, hosts y colaboradores',
+        'pill' => 'DJs',
+        'title' => 'DJs',
         'empty' => 'Aún no hay DJs cargados. Agrega uno en el dashboard.',
         'instagram_pending' => 'Instagram pendiente',
     ],

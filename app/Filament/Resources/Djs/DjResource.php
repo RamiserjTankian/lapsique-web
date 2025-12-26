@@ -20,7 +20,11 @@ class DjResource extends Resource
 {
     protected static ?string $model = Dj::class;
 
-    protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedRectangleStack;
+    protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedMusicalNote;
+
+    protected static ?string $navigationLabel = 'Djs';
+
+    protected static ?int $navigationSort = 4;
 
     public static function form(Schema $schema): Schema
     {

@@ -17,13 +17,20 @@ class HomeController extends Controller
             ->orderByDesc('created_at')
             ->first();
 
+        // Obtener el DJ destacado (is_highlighted = true)
+        $highlightedDj = Dj::query()
+            ->where('is_highlighted', true)
+            ->first();
+
         $highlightDj = Dj::query()
             ->orderByDesc('is_featured')
             ->orderBy('priority')
             ->orderByDesc('id')
             ->first();
 
+        // Obtener DJs con el destacado primero
         $djs = Dj::query()
+            ->orderByDesc('is_highlighted')
             ->orderByDesc('is_featured')
             ->orderBy('priority')
             ->orderByDesc('id')
@@ -42,7 +49,17 @@ class HomeController extends Controller
             ->take(20)
             ->get();
 
+        // Obtener videos con los del DJ destacado primero
+        $highlightedDjId = $highlightedDj?->id;
         $videos = Video::query()
+            ->with('djs')
+            ->when($highlightedDjId, function ($query) use ($highlightedDjId) {
+                return $query->orderByRaw("EXISTS(
+                    SELECT 1 FROM dj_video 
+                    WHERE dj_video.video_id = videos.id 
+                    AND dj_video.dj_id = ?
+                ) DESC", [$highlightedDjId]);
+            })
             ->orderByDesc('is_featured')
             ->orderBy('priority')
             ->orderByDesc('published_at')
@@ -52,6 +69,7 @@ class HomeController extends Controller
         return view('home', [
             'featuredEvent' => $featuredEvent,
             'highlightDj' => $highlightDj,
+            'highlightedDj' => $highlightedDj,
             'djs' => $djs,
             'events' => $events,
             'formEvents' => $formEvents,

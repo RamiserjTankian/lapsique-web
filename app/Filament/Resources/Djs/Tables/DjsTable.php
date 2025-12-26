@@ -40,6 +40,13 @@ class DjsTable
                 TextColumn::make('priority')
                     ->label('Orden')
                     ->sortable(),
+                TextColumn::make('guestListEntries_count')
+                    ->label('Guest List')
+                    ->counts('guestListEntries')
+                    ->sortable()
+                    ->badge()
+                    ->color('warning')
+                    ->toggleable(),
                 TextColumn::make('created_at')
                     ->label('Alta')
                     ->date('d M Y')

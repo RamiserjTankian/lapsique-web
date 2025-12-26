@@ -1,0 +1,91 @@
+# URLs para Testing SEO - lapsique.media
+
+## Reemplaza "tudominio.com" con tu dominio real
+
+## Facebook Debugger
+https://developers.facebook.com/tools/debug/
+
+## URLs a Probar:
+
+### Página de Inicio
+https://tudominio.com/
+
+### DJs
+https://tudominio.com/djs
+https://tudominio.com/djs/[slug-del-dj]
+
+### Eventos
+https://tudominio.com/eventos
+https://tudominio.com/eventos/[slug-del-evento]
+
+### Videos
+https://tudominio.com/videos
+https://tudominio.com/videos/[slug-del-video]
+
+### Blog
+https://tudominio.com/blog
+https://tudominio.com/blog/[slug-del-post]
+
+
+## Herramientas de Validación
+
+1. Facebook/WhatsApp:
+   https://developers.facebook.com/tools/debug/
+
+2. Twitter:
+   https://cards-dev.twitter.com/validator
+
+3. LinkedIn:
+   https://www.linkedin.com/post-inspector/
+
+4. Google Rich Results:
+   https://search.google.com/test/rich-results
+
+5. Meta Tags General:
+   https://metatags.io/
+
+6. OpenGraph Checker:
+   https://www.opengraph.xyz/
+
+
+## Ejemplo de Testing en Facebook Debugger:
+
+1. Copia una URL de tu sitio (ej: https://tudominio.com/djs/dj-name)
+2. Pégala en el Facebook Debugger
+3. Haz clic en "Debug"
+4. Revisa:
+   - Título
+   - Descripción
+   - Imagen (debe ser 1200x630px)
+   - URL
+   - Tipo de contenido
+5. Si haces cambios, haz clic en "Scrape Again"
+
+
+## Comandos Útiles de Laravel
+
+# Ver rutas del sitio
+php artisan route:list --except-vendor
+
+# Limpiar caché
+php artisan cache:clear
+php artisan config:clear
+php artisan view:clear
+
+# Optimizar para producción
+php artisan config:cache
+php artisan route:cache
+php artisan view:cache
+
+
+## Notas:
+
+- Asegúrate de tener creadas las imágenes en /public/images/
+  - og-default.jpg (1200x630px)
+  - logo.png (512x512px)
+
+- Verifica APP_URL en .env esté correcto
+
+- Las imágenes de DJs, eventos, videos y posts se obtienen automáticamente
+  de la media library de cada modelo
+

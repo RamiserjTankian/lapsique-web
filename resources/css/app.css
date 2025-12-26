@@ -153,6 +153,9 @@ body {
 .carousel-card {
     scroll-snap-align: start;
     min-width: 280px;
+    max-width: 280px;
+    display: flex;
+    flex-direction: column;
 }
 
 .beam {
@@ -218,4 +221,128 @@ body {
         opacity: 1;
         transform: translateY(0);
     }
+}
+
+/* Prose styles for blog content */
+.prose {
+    color: #e5e7eb;
+    max-width: 65ch;
+}
+
+.prose h1, .prose h2, .prose h3, .prose h4 {
+    color: #ffffff;
+    font-weight: 600;
+    margin-top: 2em;
+    margin-bottom: 1em;
+}
+
+.prose p {
+    margin-top: 1.25em;
+    margin-bottom: 1.25em;
+    line-height: 1.75;
+}
+
+.prose a {
+    color: #ffffff;
+    text-decoration: underline;
+    font-weight: 500;
+}
+
+.prose a:hover {
+    color: #d1d5db;
+}
+
+.prose strong {
+    color: #ffffff;
+    font-weight: 600;
+}
+
+.prose code {
+    color: #fbbf24;
+    background: rgba(251, 191, 36, 0.1);
+    padding: 0.2em 0.4em;
+    border-radius: 0.25rem;
+    font-size: 0.875em;
+}
+
+.prose pre {
+    background: rgba(0, 0, 0, 0.3);
+    padding: 1.5em;
+    border-radius: 0.5rem;
+    overflow-x: auto;
+}
+
+/* Highlighted DJ Card with Golden Glow */
+.card-highlighted {
+    position: relative;
+    z-index: 20;
+    transform: scale(1.02);
+    border-color: rgba(251, 191, 36, 0.5) !important;
+    box-shadow: 0 0 30px rgba(251, 191, 36, 0.4),
+                0 0 60px rgba(251, 191, 36, 0.3),
+                0 0 90px rgba(251, 191, 36, 0.2),
+                0 25px 80px rgba(0, 0, 0, 0.6) !important;
+    animation: goldenGlow 3s ease-in-out infinite alternate;
+}
+
+.card-highlighted::before {
+    content: '';
+    position: absolute;
+    inset: -3px;
+    border-radius: 21px;
+    padding: 3px;
+    background: linear-gradient(135deg, 
+        rgba(251, 191, 36, 0.8),
+        rgba(245, 158, 11, 1),
+        rgba(251, 191, 36, 0.8));
+    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    z-index: -1;
+    opacity: 0.9;
+    animation: borderGlow 3s ease-in-out infinite alternate;
+}
+
+@keyframes goldenGlow {
+    0% {
+        box-shadow: 0 0 30px rgba(251, 191, 36, 0.4),
+                    0 0 60px rgba(251, 191, 36, 0.3),
+                    0 0 90px rgba(251, 191, 36, 0.2),
+                    0 25px 80px rgba(0, 0, 0, 0.6);
+        border-color: rgba(251, 191, 36, 0.5);
+    }
+    100% {
+        box-shadow: 0 0 40px rgba(251, 191, 36, 0.6),
+                    0 0 80px rgba(251, 191, 36, 0.4),
+                    0 0 120px rgba(251, 191, 36, 0.3),
+                    0 25px 80px rgba(0, 0, 0, 0.6);
+        border-color: rgba(251, 191, 36, 0.7);
+    }
+}
+
+@keyframes borderGlow {
+    0% {
+        opacity: 0.7;
+    }
+    100% {
+        opacity: 1;
+    }
+}
+
+.prose ul, .prose ol {
+    padding-left: 1.5em;
+    margin-top: 1.25em;
+    margin-bottom: 1.25em;
+}
+
+.prose li {
+    margin-top: 0.5em;
+    margin-bottom: 0.5em;
+}
+
+.prose blockquote {
+    border-left: 4px solid rgba(255, 255, 255, 0.3);
+    padding-left: 1.5em;
+    font-style: italic;
+    color: #d1d5db;
 }

@@ -19,7 +19,12 @@ class EventController extends Controller
 
     public function show(Event $event): View
     {
-        $event->load(['media', 'guests']);
+        $event->load([
+            'media',
+            'guests',
+            'djs.media',
+            'location.media',
+        ]);
 
         return view('events.show', compact('event'));
     }

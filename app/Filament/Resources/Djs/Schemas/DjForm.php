@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\Djs\Schemas;
 
+use Filament\Forms\Components\CheckboxList;
 use Filament\Forms\Components\SpatieMediaLibraryFileUpload;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
@@ -38,15 +39,30 @@ class DjForm
                     ->collection('profile')
                     ->image()
                     ->imageEditor()
-                    ->required(),
+                    ->imageEditorMode(2)
+                    ->imageEditorViewportWidth(1600)
+                    ->imageEditorViewportHeight(900)
+                    ->imageEditorAspectRatios([
+                        '16:9' => 'Card / Hero (16:9)',
+                        '1:1' => 'Cuadrado (avatar)',
+                    ])
+                    ->required()
+                    ->maxSize(51200)
+                    ->acceptedFileTypes(['image/jpeg', 'image/png', 'image/webp', 'image/jpg'])
+                    ->helperText('Ajusta el recorte en 16:9 para que se vea perfecto en las cards y hero. Máximo 50MB.')
+                    ->columnSpanFull(),
                 SpatieMediaLibraryFileUpload::make('gallery')
                     ->label('Galería')
                     ->collection('gallery')
                     ->multiple()
                     ->reorderable()
                     ->image()
-                    ->maxFiles(12)
-                    ->columnSpan(1),
+                    ->imageEditor()
+                    ->maxFiles(20)
+                    ->maxSize(51200)
+                    ->acceptedFileTypes(['image/jpeg', 'image/png', 'image/webp', 'image/jpg'])
+                    ->helperText('Puedes agregar hasta 20 fotos. Máximo 50MB por imagen.')
+                    ->columnSpanFull(),
 
                 TextInput::make('instagram_handle')
                     ->label('Instagram')
@@ -65,13 +81,49 @@ class DjForm
                     ->url()
                     ->maxLength(255)
                     ->columnSpanFull(),
+
+                CheckboxList::make('tags')
+                    ->label('Tags del DJ')
+                    ->options([
+                        'new' => '🆕 NEW - Nuevo en la escena',
+                        'trending' => '📈 TRENDING - En tendencia',
+                        'hot' => '🔥 HOT - Lo más caliente',
+                        'star' => '⭐ STAR - Artista estrella',
+                        'producer' => '🎛️ PRODUCER - Productor',
+                        'resident' => '🏠 RESIDENT - Residente',
+                        'international' => '🌎 INTERNATIONAL - Internacional',
+                        'local' => '📍 LOCAL - Talento local',
+                        'dj' => '🎧 DJ - Disc Jockey',
+                        'live' => '🎹 LIVE - Performance en vivo',
+                    ])
+                    ->descriptions([
+                        'new' => 'Para artistas nuevos o recién llegados',
+                        'trending' => 'Para artistas que están en tendencia',
+                        'hot' => 'Para los artistas más populares del momento',
+                        'star' => 'Para artistas destacados o headliners',
+                        'producer' => 'Para productores musicales',
+                        'resident' => 'Para DJs residentes',
+                        'international' => 'Para artistas internacionales',
+                        'local' => 'Para talento local de la región',
+                        'dj' => 'Para DJs tradicionales',
+                        'live' => 'Para artistas que hacen performance en vivo',
+                    ])
+                    ->columns(2)
+                    ->gridDirection('row')
+                    ->helperText('Selecciona uno o más tags que describan al DJ')
+                    ->columnSpanFull(),
                 Toggle::make('is_featured')
-                    ->label('Destacado en portada'),
+                    ->label('Destacado en portada')
+                    ->helperText('Aparecerá en la sección principal del sitio'),
+                Toggle::make('is_highlighted')
+                    ->label('DJ Destacado (Prioridad Máxima)')
+                    ->helperText('Este DJ se mostrará como destacado con glow dorado y superpuesto sobre todos los demás en el inicio'),
                 TextInput::make('priority')
                     ->label('Orden de prioridad')
                     ->numeric()
                     ->minValue(0)
-                    ->default(0),
+                    ->default(0)
+                    ->helperText('Número menor = mayor prioridad (0 es el más alto)'),
             ]);
     }
 }

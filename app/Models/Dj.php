@@ -5,11 +5,12 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use Spatie\Image\Manipulations;
+use Spatie\Image\Enums\Fit;
 use Spatie\MediaLibrary\HasMedia;
 use Spatie\MediaLibrary\InteractsWithMedia;
 use Spatie\MediaLibrary\MediaCollections\Models\Media;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Dj extends Model implements HasMedia
 {
@@ -26,26 +27,52 @@ class Dj extends Model implements HasMedia
         'soundcloud_url',
         'website_url',
         'is_featured',
+        'is_highlighted',
         'priority',
+        'tags',
     ];
 
     protected $casts = [
         'is_featured' => 'boolean',
+        'is_highlighted' => 'boolean',
         'priority' => 'integer',
+        'tags' => 'array',
     ];
 
     public function registerMediaCollections(): void
     {
         $this->addMediaCollection('profile')
-            ->singleFile();
+            ->singleFile()
+            ->acceptsMimeTypes(['image/jpeg', 'image/png', 'image/webp', 'image/jpg']);
 
-        $this->addMediaCollection('gallery');
+        $this->addMediaCollection('gallery')
+            ->acceptsMimeTypes(['image/jpeg', 'image/png', 'image/webp', 'image/jpg']);
     }
 
-    public function registerMediaConversions(Media $media = null): void
+    public function registerMediaConversions(?Media $media = null): void
     {
+        // Square thumb for avatars / admin
         $this->addMediaConversion('thumb')
-            ->fit(Manipulations::FIT_CROP, 500, 500)
+            ->fit(Fit::Crop, 500, 500)
+            ->format('jpg')
+            ->quality(85)
+            ->performOnCollections('profile', 'gallery')
+            ->nonQueued();
+
+        // Card crop (16:9) to match lineup cards
+        $this->addMediaConversion('card')
+            ->fit(Fit::Crop, 1200, 675)
+            ->format('jpg')
+            ->quality(88)
+            ->performOnCollections('profile')
+            ->nonQueued();
+
+        // Hero cover (wide) for detail page
+        $this->addMediaConversion('hero')
+            ->fit(Fit::Crop, 1600, 900)
+            ->format('jpg')
+            ->quality(90)
+            ->performOnCollections('profile')
             ->nonQueued();
     }
 
@@ -56,6 +83,53 @@ class Dj extends Model implements HasMedia
 
     public function events(): BelongsToMany
     {
-        return $this->belongsToMany(Event::class);
+        return $this->belongsToMany(Event::class)
+            ->withPivot(['role', 'position', 'time_slot', 'guest_limit']);
+    }
+
+    public function rps(): BelongsToMany
+    {
+        return $this->belongsToMany(Rp::class, 'rp_dj')
+            ->withTimestamps();
+    }
+
+    public function guestListEntries(): HasMany
+    {
+        return $this->hasMany(GuestListEntry::class);
+    }
+
+    public function getGuestListCountForEvent(int $eventId): int
+    {
+        return $this->guestListEntries()
+            ->where('event_id', $eventId)
+            ->whereIn('status', ['pending', 'confirmed', 'attended'])
+            ->count();
+    }
+
+    public function getGuestLimitForEvent(int $eventId): ?int
+    {
+        $pivot = $this->events()
+            ->where('events.id', $eventId)
+            ->first()?->pivot;
+
+        return $pivot?->guest_limit;
+    }
+
+    public function canAddMoreGuests(int $eventId): bool
+    {
+        $limit = $this->getGuestLimitForEvent($eventId);
+        if ($limit === null) {
+            return true; // Sin límite
+        }
+
+        return $this->getGuestListCountForEvent($eventId) < $limit;
+    }
+
+    public function videos(): BelongsToMany
+    {
+        return $this->belongsToMany(Video::class)
+            ->withPivot('position')
+            ->orderByPivot('position')
+            ->orderByDesc('published_at');
     }
 }

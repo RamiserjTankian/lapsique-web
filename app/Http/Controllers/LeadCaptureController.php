@@ -1,0 +1,147 @@
+<?php
+
+namespace App\Http\Controllers;
+
+use App\Models\Customer;
+use App\Jobs\SendWelcomeEmailJob;
+use Illuminate\Http\Request;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Facades\Log;
+
+class LeadCaptureController extends Controller
+{
+    /**
+     * Capturar lead desde popup
+     */
+    public function capture(Request $request): JsonResponse
+    {
+        $validated = $request->validate([
+            'name' => ['required', 'string', 'max:255'],
+            'email' => ['required', 'email', 'max:255'],
+            'phone' => ['nullable', 'string', 'max:30'],
+            'instagram_handle' => ['nullable', 'string', 'max:255'],
+            'interests' => ['nullable', 'array'],
+            'interests.*' => ['string'],
+        ]);
+
+        try {
+            // Verificar si el cliente ya existe
+            $customer = Customer::where('email', $validated['email'])->first();
+
+            if ($customer) {
+                // Cliente existente - actualizar información
+                $customer->update([
+                    'name' => $validated['name'],
+                    'phone' => $validated['phone'] ?? $customer->phone,
+                    'instagram_handle' => $validated['instagram_handle'] ?? $customer->instagram_handle,
+                    'tags' => array_unique(array_merge($customer->tags ?? [], $validated['interests'] ?? [])),
+                    'last_interaction_at' => now(),
+                ]);
+
+                Log::info('Existing customer updated from popup', [
+                    'customer_id' => $customer->id,
+                    'email' => $customer->email,
+                ]);
+
+                return response()->json([
+                    'success' => true,
+                    'message' => '¡Gracias! Ya estás suscrito. Hemos actualizado tu información.',
+                    'new_customer' => false,
+                ]);
+            }
+
+            // Nuevo cliente - crear
+            $customer = Customer::create([
+                'name' => $validated['name'],
+                'email' => $validated['email'],
+                'phone' => $validated['phone'] ?? null,
+                'instagram_handle' => $validated['instagram_handle'] ?? null,
+                'tags' => $validated['interests'] ?? [],
+                'status' => 'lead',
+                'source' => 'popup',
+                'lifecycle_stage' => 'subscriber',
+                'lead_score' => 10, // Score inicial por registrarse
+                'subscribed_newsletter' => true,
+                
+                // Tracking UTM
+                'utm_source' => $request->input('utm_source'),
+                'utm_medium' => $request->input('utm_medium'),
+                'utm_campaign' => $request->input('utm_campaign'),
+                'utm_term' => $request->input('utm_term'),
+                'utm_content' => $request->input('utm_content'),
+                
+                // Info técnica
+                'ip_address' => $request->ip(),
+                'user_agent' => $request->userAgent(),
+                'last_interaction_at' => now(),
+                
+                // Metadata adicional
+                'metadata' => [
+                    'signup_page' => $request->input('current_page'),
+                    'referrer' => $request->input('referrer'),
+                ],
+            ]);
+
+            Log::info('New customer created from popup', [
+                'customer_id' => $customer->id,
+                'email' => $customer->email,
+                'source' => 'popup',
+            ]);
+
+            // Despachar email de bienvenida
+            SendWelcomeEmailJob::dispatch($customer);
+
+            return response()->json([
+                'success' => true,
+                'message' => '¡Bienvenido! Revisa tu email para confirmar tu suscripción.',
+                'new_customer' => true,
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Failed to capture lead from popup', [
+                'email' => $validated['email'],
+                'error' => $e->getMessage(),
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Ocurrió un error. Por favor intenta de nuevo.',
+            ], 500);
+        }
+    }
+
+    /**
+     * Desuscribir cliente
+     */
+    public function unsubscribe(Request $request): mixed
+    {
+        $email = $request->query('email');
+
+        if (!$email) {
+            abort(404);
+        }
+
+        $customer = Customer::where('email', $email)->first();
+
+        if (!$customer) {
+            abort(404);
+        }
+
+        if ($request->isMethod('post')) {
+            $customer->update([
+                'subscribed_newsletter' => false,
+                'subscribed_sms' => false,
+                'subscribed_whatsapp' => false,
+                'status' => 'inactive',
+            ]);
+
+            Log::info('Customer unsubscribed', [
+                'customer_id' => $customer->id,
+                'email' => $customer->email,
+            ]);
+
+            return redirect()->route('customer.unsubscribe', ['email' => $email, 'success' => 1]);
+        }
+
+        return view('customer.unsubscribe', compact('customer'));
+    }
+}
