@@ -97,6 +97,8 @@ class ProcessCampaignJob implements ShouldQueue
         switch ($this->campaign->type) {
             case 'email':
                 $content = $this->campaign->content['email'] ?? [];
+                $options['button_text'] = $content['button_text'] ?? null;
+                $options['button_url'] = $content['button_url'] ?? null;
                 SendMarketingEmailJob::dispatch(
                     $customer,
                     $content['subject'] ?? 'Newsletter',
@@ -127,6 +129,8 @@ class ProcessCampaignJob implements ShouldQueue
                 // Enviar por múltiples canales
                 if (!empty($this->campaign->content['email'])) {
                     $content = $this->campaign->content['email'];
+                    $options['button_text'] = $content['button_text'] ?? null;
+                    $options['button_url'] = $content['button_url'] ?? null;
                     SendMarketingEmailJob::dispatch(
                         $customer,
                         $content['subject'] ?? 'Newsletter',

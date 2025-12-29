@@ -89,22 +89,36 @@ class ContactLog extends Model
 
     public function markAsOpened(): void
     {
+        $wasOpened = $this->opened_at !== null;
+        
         $this->update([
             'status' => 'opened',
             'opened_at' => $this->opened_at ?? now(),
         ]);
         
         $this->customer->updateLastInteraction();
+        
+        // Actualizar métricas de la campaña si es la primera apertura
+        if (!$wasOpened && $this->campaign_id) {
+            $this->campaign?->incrementOpened();
+        }
     }
 
     public function markAsClicked(): void
     {
+        $wasClicked = $this->clicked_at !== null;
+        
         $this->update([
             'status' => 'clicked',
             'clicked_at' => $this->clicked_at ?? now(),
         ]);
         
         $this->customer->updateLastInteraction();
+        
+        // Actualizar métricas de la campaña si es el primer click
+        if (!$wasClicked && $this->campaign_id) {
+            $this->campaign?->incrementClicked();
+        }
     }
 
     public function markAsFailed(string $error): void

@@ -34,6 +34,17 @@ class Campaign extends Model
         'created_by',
     ];
 
+    // Campos virtuales para el formulario
+    protected $appends = [
+        'email_subject',
+        'email_body',
+        'button_text',
+        'button_url',
+        'target_tags',
+        'target_lifecycle_stages',
+        'target_statuses',
+    ];
+
     protected $casts = [
         'target_audience' => 'array',
         'content' => 'array',
@@ -60,6 +71,53 @@ class Campaign extends Model
     {
         return $this->belongsTo(User::class, 'created_by');
     }
+
+    public function emailTrackings(): HasMany
+    {
+        return $this->hasManyThrough(
+            EmailTracking::class,
+            ContactLog::class,
+            'campaign_id',
+            'contact_log_id'
+        );
+    }
+
+    // Accessors para campos virtuales del formulario
+    public function getEmailSubjectAttribute(): ?string
+    {
+        return $this->content['email']['subject'] ?? null;
+    }
+
+    public function getEmailBodyAttribute(): ?string
+    {
+        return $this->content['email']['body'] ?? null;
+    }
+
+    public function getButtonTextAttribute(): ?string
+    {
+        return $this->content['email']['button_text'] ?? null;
+    }
+
+    public function getButtonUrlAttribute(): ?string
+    {
+        return $this->content['email']['button_url'] ?? null;
+    }
+
+    public function getTargetTagsAttribute(): ?array
+    {
+        return $this->target_audience['tags'] ?? null;
+    }
+
+    public function getTargetLifecycleStagesAttribute(): ?array
+    {
+        return $this->target_audience['lifecycle_stages'] ?? null;
+    }
+
+    public function getTargetStatusesAttribute(): ?array
+    {
+        return $this->target_audience['statuses'] ?? null;
+    }
+
 
     // Métodos de utilidad
     public function getRecipientsQuery()

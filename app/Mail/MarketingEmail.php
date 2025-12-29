@@ -20,7 +20,9 @@ class MarketingEmail extends Mailable
         public Customer $customer,
         public string $subject,
         public string $emailContent,
-        public string $trackingToken
+        public string $trackingToken,
+        public ?string $buttonText = null,
+        public ?string $buttonUrl = null
     ) {
         //
     }
@@ -40,16 +42,61 @@ class MarketingEmail extends Mailable
      */
     public function content(): Content
     {
+        // Función helper para trackear links en el contenido HTML
+        $trackedContent = $this->trackLinksInContent($this->emailContent, $this->trackingToken);
+
         return new Content(
             view: 'emails.marketing',
             with: [
                 'customer' => $this->customer,
-                'emailContent' => $this->emailContent,
+                'emailContent' => $trackedContent,
                 'trackingToken' => $this->trackingToken,
                 'trackingPixelUrl' => route('email.track.open', ['token' => $this->trackingToken]),
                 'unsubscribeUrl' => route('customer.unsubscribe', ['email' => $this->customer->email]),
+                'buttonText' => $this->buttonText,
+                'buttonUrl' => $this->buttonUrl ? route('email.track.click', [
+                    'token' => $this->trackingToken,
+                    'url' => $this->buttonUrl
+                ]) : null,
             ],
         );
+    }
+
+    /**
+     * Track all links in HTML content
+     */
+    protected function trackLinksInContent(string $content, string $trackingToken): string
+    {
+        // Pattern to match <a> tags with href
+        $pattern = '/<a\s+([^>]*href=["\']([^"\']*)["\'][^>]*)>/i';
+        
+        return preg_replace_callback($pattern, function ($matches) use ($trackingToken) {
+            $fullTag = $matches[0];
+            $attributes = $matches[1];
+            $url = $matches[2];
+            
+            // Skip if it's already a tracking URL or mailto/tel link
+            if (str_contains($url, route('email.track.click')) || 
+                str_starts_with($url, 'mailto:') || 
+                str_starts_with($url, 'tel:')) {
+                return $fullTag;
+            }
+            
+            // Create tracked URL
+            $trackedUrl = route('email.track.click', [
+                'token' => $trackingToken,
+                'url' => $url
+            ]);
+            
+            // Replace href in attributes
+            $newAttributes = preg_replace(
+                '/href=["\']([^"\']*)["\']/i',
+                'href="' . $trackedUrl . '"',
+                $attributes
+            );
+            
+            return '<a ' . $newAttributes . '>';
+        }, $content);
     }
 
     /**

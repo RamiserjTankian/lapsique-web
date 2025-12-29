@@ -77,7 +77,9 @@ class SendMarketingEmailJob implements ShouldQueue
                     $this->customer,
                     $this->subject,
                     $this->content,
-                    $trackingToken
+                    $trackingToken,
+                    $this->options['button_text'] ?? null,
+                    $this->options['button_url'] ?? null
                 ),
                 $this->customer->email,
                 $this->customer->name ?? null,
