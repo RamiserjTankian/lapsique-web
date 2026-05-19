@@ -80,6 +80,8 @@
         }
         $technicalRider = $event->technical_rider ?? [];
         $eventTags = $event->tags ?? [];
+        $hasInternalTickets = $event->ticketProducts && $event->ticketProducts->isNotEmpty();
+        $inviteToken = $inviteToken ?? request()->query('invite');
     @endphp
 
     <div class="card relative overflow-hidden">
@@ -114,7 +116,13 @@
                 </p>
             </div>
             <div class="flex flex-wrap gap-2">
-                @if ($event->ticket_url)
+                @if ($hasInternalTickets)
+                    <a href="#tickets" class="group relative inline-flex items-center gap-2 px-6 py-2.5 rounded-full bg-white text-black font-bold text-sm hover:bg-black hover:text-white transition-all duration-300 shadow-lg hover:shadow-2xl animate-pulse hover:animate-none border-2 border-black hover:border-white overflow-hidden">
+                        <span class="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent translate-x-[-200%] group-hover:translate-x-[200%] transition-transform duration-1000"></span>
+                        <span class="relative z-10">🎫</span>
+                        <span class="relative z-10 uppercase tracking-wider">Comprar tickets</span>
+                    </a>
+                @elseif ($event->ticket_url)
                     <a href="{{ $event->ticket_url }}" target="_blank" class="group relative inline-flex items-center gap-2 px-6 py-2.5 rounded-full bg-white text-black font-bold text-sm hover:bg-black hover:text-white transition-all duration-300 shadow-lg hover:shadow-2xl animate-pulse hover:animate-none border-2 border-black hover:border-white overflow-hidden">
                         <span class="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent translate-x-[-200%] group-hover:translate-x-[200%] transition-transform duration-1000"></span>
                         <span class="relative z-10">🎫</span>
@@ -130,6 +138,34 @@
             </div>
         </div>
     </div>
+
+    @if ($hasInternalTickets)
+        <section id="tickets" class="card p-8 space-y-6 bg-gradient-to-br from-white/5 to-white/0 border-white/20" data-analytics-section="tickets">
+            <div class="space-y-2">
+                <p class="pill border-emerald-400 text-emerald-400">🎟️ Tickets</p>
+                <h2 class="text-2xl font-semibold text-white">Compra tus accesos aqui</h2>
+                <p class="text-gray-300">El registro es individual por persona. Cada acceso requiere nombre, email, WhatsApp e Instagram.</p>
+                @if (!empty($inviteLink))
+                    <p class="text-xs uppercase tracking-[0.18em] text-emerald-300">
+                        Invitacion registrada: {{ $inviteLink->rp?->name ?? $inviteLink->dj?->name ?? $inviteLink->name }}
+                    </p>
+                @endif
+            </div>
+
+            @if ($errors->any())
+                <div class="rounded-xl border border-red-400/40 bg-red-500/10 px-4 py-3 text-sm text-red-100">
+                    {{ $errors->first() }}
+                </div>
+            @endif
+
+            @include('tickets.partials.checkout-form', [
+                'event' => $event,
+                'products' => $event->ticketProducts,
+                'inviteToken' => $inviteToken,
+                'inviteLink' => $inviteLink ?? null,
+            ])
+        </section>
+    @endif
 
     <!-- DESCRIPCIÓN Y LOGÍSTICA -->
     <section class="grid gap-6 lg:grid-cols-3">
@@ -175,15 +211,11 @@
                 'dj' => ['emoji' => '🎧', 'label' => 'DJ', 'class' => 'bg-gray-500/90 text-white border-gray-400'],
                 'live' => ['emoji' => '🎹', 'label' => 'LIVE', 'class' => 'bg-orange-500/90 text-white border-orange-400'],
             ];
-            
-            // Agrupar DJs por rol
-            $headliners = $event->djs->where('pivot.role', 'headliner');
-            $warmups = $event->djs->where('pivot.role', 'warmup');
-            $locals = $event->djs->where('pivot.role', 'local');
-            
-            // Determinar si headliners y warmups van en la misma fila
-            $headlinersCount = $headliners->count();
-            $sameRow = $headlinersCount < 3;
+
+            $headliners = collect($event->getLineupEntriesByRole('headliner'));
+            $warmups = collect($event->getLineupEntriesByRole('warmup'));
+            $locals = collect($event->getLineupEntriesByRole('local'));
+            $sameRow = $headliners->count() < 3;
         @endphp
         <section class="space-y-8">
             <div class="flex items-center justify-between">
@@ -194,7 +226,6 @@
             </div>
 
             @if ($sameRow && ($headliners->isNotEmpty() || $warmups->isNotEmpty()))
-                <!-- HEADLINERS Y WARMUPS EN LA MISMA FILA -->
                 <div class="space-y-4">
                     <div class="flex items-center gap-6">
                         @if ($headliners->isNotEmpty())
@@ -211,95 +242,26 @@
                         @endif
                     </div>
                     <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-                        @foreach ($headliners as $dj)
-                            @php
-                                $profile = $dj->getFirstMediaUrl('profile', 'card') ?: $dj->getFirstMediaUrl('profile', 'thumb') ?: $dj->getFirstMediaUrl('profile');
-                            @endphp
-                            <a href="{{ route('djs.show', $dj) }}" class="card card-animated overflow-hidden group relative shadow-lg shadow-yellow-500/20 hover:shadow-yellow-500/40 transition-shadow duration-300">
-                                <div class="absolute inset-0 bg-gradient-to-r from-yellow-500/10 via-orange-500/10 to-yellow-500/10 rounded-lg blur-xl"></div>
-                                <div class="relative h-64 w-full bg-gradient-to-br from-black to-zinc-900">
-                                    @if ($profile)
-                                        <img src="{{ $profile }}" alt="{{ $dj->name }}" class="h-full w-full object-cover transition duration-300 group-hover:scale-105">
-                                    @endif
-                                    @if ($dj->tags && count($dj->tags) > 0)
-                                        <div class="absolute top-3 left-3 flex flex-wrap gap-1.5">
-                                            @foreach (array_slice($dj->tags, 0, 2) as $tag)
-                                                @php
-                                                    $config = $tagConfig[$tag] ?? ['emoji' => '', 'label' => strtoupper($tag), 'class' => 'bg-white/90 text-black border-white'];
-                                                @endphp
-                                                <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold tracking-wider border backdrop-blur-sm {{ $config['class'] }} shadow-lg">
-                                                    <span>{{ $config['emoji'] }}</span>
-                                                    <span>{{ $config['label'] }}</span>
-                                                </span>
-                                            @endforeach
-                                        </div>
-                                    @endif
-                                    <div class="absolute top-3 right-3">
-                                        <span class="pill border-yellow-400 text-yellow-400 bg-black/50 backdrop-blur text-xs font-bold flex items-center gap-1">
-                                            <span>⭐</span>
-                                            <span>HEADLINER</span>
-                                        </span>
-                                    </div>
-                                </div>
-                                <div class="relative px-4 py-3 space-y-1.5">
-                                    <h3 class="text-base font-bold text-white">{{ $dj->name }}</h3>
-                                    @if ($dj->pivot->time_slot)
-                                        <div class="flex items-center gap-1.5">
-                                            <span class="text-xs">🕒</span>
-                                            <p class="text-xs font-medium text-gray-300">{{ $dj->pivot->time_slot }}</p>
-                                        </div>
-                                    @endif
-                                    @if ($dj->instagram_handle)
-                                        <p class="text-xs uppercase tracking-[0.18em] text-gray-400">{{ '@' . $dj->instagram_handle }}</p>
-                                    @endif
-                                </div>
-                            </a>
+                        @foreach ($headliners as $entry)
+                            <x-lineup-card
+                                :entry="$entry"
+                                :tag-config="$tagConfig"
+                                badge-label="⭐ HEADLINER"
+                                badge-class="pill border-yellow-400 text-yellow-400 bg-black/50 backdrop-blur text-xs font-bold"
+                                :highlight="true"
+                            />
                         @endforeach
-                        
-                        @foreach ($warmups as $dj)
-                            @php
-                                $profile = $dj->getFirstMediaUrl('profile', 'card') ?: $dj->getFirstMediaUrl('profile', 'thumb') ?: $dj->getFirstMediaUrl('profile');
-                            @endphp
-                            <a href="{{ route('djs.show', $dj) }}" class="card card-animated overflow-hidden group relative">
-                                <div class="h-64 w-full bg-gradient-to-br from-black to-zinc-900 relative">
-                                    @if ($profile)
-                                        <img src="{{ $profile }}" alt="{{ $dj->name }}" class="h-full w-full object-cover transition duration-300 group-hover:scale-105">
-                                    @endif
-                                    @if ($dj->tags && count($dj->tags) > 0)
-                                        <div class="absolute top-3 left-3 flex flex-wrap gap-1.5">
-                                            @foreach (array_slice($dj->tags, 0, 2) as $tag)
-                                                @php
-                                                    $config = $tagConfig[$tag] ?? ['emoji' => '', 'label' => strtoupper($tag), 'class' => 'bg-white/90 text-black border-white'];
-                                                @endphp
-                                                <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold tracking-wider border backdrop-blur-sm {{ $config['class'] }} shadow-lg">
-                                                    <span>{{ $config['emoji'] }}</span>
-                                                    <span>{{ $config['label'] }}</span>
-                                                </span>
-                                            @endforeach
-                                        </div>
-                                    @endif
-                                    <div class="absolute top-3 right-3">
-                                        <span class="pill border-white text-white bg-black/50 backdrop-blur text-xs">WARMUP</span>
-                                    </div>
-                                </div>
-                                <div class="px-4 py-3 space-y-1.5">
-                                    <h3 class="text-base font-bold text-white">{{ $dj->name }}</h3>
-                                    @if ($dj->pivot->time_slot)
-                                        <div class="flex items-center gap-1.5">
-                                            <span class="text-xs">🕒</span>
-                                            <p class="text-xs font-medium text-gray-300">{{ $dj->pivot->time_slot }}</p>
-                                        </div>
-                                    @endif
-                                    @if ($dj->instagram_handle)
-                                        <p class="text-xs uppercase tracking-[0.18em] text-gray-400">{{ '@' . $dj->instagram_handle }}</p>
-                                    @endif
-                                </div>
-                            </a>
+
+                        @foreach ($warmups as $entry)
+                            <x-lineup-card
+                                :entry="$entry"
+                                :tag-config="$tagConfig"
+                                badge-label="WARMUP"
+                            />
                         @endforeach
                     </div>
                 </div>
             @else
-                <!-- HEADLINERS EN SU PROPIA FILA (3 o más) -->
                 @if ($headliners->isNotEmpty())
                     <div class="space-y-4">
                         <h3 class="text-xl font-semibold text-white flex items-center gap-2">
@@ -307,55 +269,19 @@
                             <span>Headliners</span>
                         </h3>
                         <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-                            @foreach ($headliners as $dj)
-                                @php
-                                    $profile = $dj->getFirstMediaUrl('profile', 'card') ?: $dj->getFirstMediaUrl('profile', 'thumb') ?: $dj->getFirstMediaUrl('profile');
-                                @endphp
-                                <a href="{{ route('djs.show', $dj) }}" class="card card-animated overflow-hidden group relative shadow-lg shadow-yellow-500/20 hover:shadow-yellow-500/40 transition-shadow duration-300">
-                                    <div class="absolute inset-0 bg-gradient-to-r from-yellow-500/10 via-orange-500/10 to-yellow-500/10 rounded-lg blur-xl"></div>
-                                    <div class="relative h-64 w-full bg-gradient-to-br from-black to-zinc-900">
-                                        @if ($profile)
-                                            <img src="{{ $profile }}" alt="{{ $dj->name }}" class="h-full w-full object-cover transition duration-300 group-hover:scale-105">
-                                        @endif
-                                        @if ($dj->tags && count($dj->tags) > 0)
-                                            <div class="absolute top-3 left-3 flex flex-wrap gap-1.5">
-                                                @foreach (array_slice($dj->tags, 0, 2) as $tag)
-                                                    @php
-                                                        $config = $tagConfig[$tag] ?? ['emoji' => '', 'label' => strtoupper($tag), 'class' => 'bg-white/90 text-black border-white'];
-                                                    @endphp
-                                                    <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold tracking-wider border backdrop-blur-sm {{ $config['class'] }} shadow-lg">
-                                                        <span>{{ $config['emoji'] }}</span>
-                                                        <span>{{ $config['label'] }}</span>
-                                                    </span>
-                                                @endforeach
-                                            </div>
-                                        @endif
-                                        <div class="absolute top-3 right-3">
-                                            <span class="pill border-yellow-400 text-yellow-400 bg-black/50 backdrop-blur text-xs font-bold flex items-center gap-1">
-                                                <span>⭐</span>
-                                                <span>HEADLINER</span>
-                                            </span>
-                                        </div>
-                                    </div>
-                                    <div class="relative px-4 py-3 space-y-1.5">
-                                        <h3 class="text-base font-bold text-white">{{ $dj->name }}</h3>
-                                        @if ($dj->pivot->time_slot)
-                                            <div class="flex items-center gap-1.5">
-                                                <span class="text-xs">🕒</span>
-                                                <p class="text-xs font-medium text-gray-300">{{ $dj->pivot->time_slot }}</p>
-                                            </div>
-                                        @endif
-                                        @if ($dj->instagram_handle)
-                                            <p class="text-xs uppercase tracking-[0.18em] text-gray-400">{{ '@' . $dj->instagram_handle }}</p>
-                                        @endif
-                                    </div>
-                                </a>
+                            @foreach ($headliners as $entry)
+                                <x-lineup-card
+                                    :entry="$entry"
+                                    :tag-config="$tagConfig"
+                                    badge-label="⭐ HEADLINER"
+                                    badge-class="pill border-yellow-400 text-yellow-400 bg-black/50 backdrop-blur text-xs font-bold"
+                                    :highlight="true"
+                                />
                             @endforeach
                         </div>
                     </div>
                 @endif
 
-                <!-- WARMUPS EN SU PROPIA FILA -->
                 @if ($warmups->isNotEmpty())
                     <div class="space-y-4">
                         <h3 class="text-xl font-semibold text-white flex items-center gap-2">
@@ -363,52 +289,18 @@
                             <span>Warmup / Support</span>
                         </h3>
                         <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-                            @foreach ($warmups as $dj)
-                                @php
-                                    $profile = $dj->getFirstMediaUrl('profile', 'card') ?: $dj->getFirstMediaUrl('profile', 'thumb') ?: $dj->getFirstMediaUrl('profile');
-                                @endphp
-                                <a href="{{ route('djs.show', $dj) }}" class="card card-animated overflow-hidden group relative">
-                                    <div class="h-64 w-full bg-gradient-to-br from-black to-zinc-900 relative">
-                                        @if ($profile)
-                                            <img src="{{ $profile }}" alt="{{ $dj->name }}" class="h-full w-full object-cover transition duration-300 group-hover:scale-105">
-                                        @endif
-                                        @if ($dj->tags && count($dj->tags) > 0)
-                                            <div class="absolute top-3 left-3 flex flex-wrap gap-1.5">
-                                                @foreach (array_slice($dj->tags, 0, 2) as $tag)
-                                                    @php
-                                                        $config = $tagConfig[$tag] ?? ['emoji' => '', 'label' => strtoupper($tag), 'class' => 'bg-white/90 text-black border-white'];
-                                                    @endphp
-                                                    <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold tracking-wider border backdrop-blur-sm {{ $config['class'] }} shadow-lg">
-                                                        <span>{{ $config['emoji'] }}</span>
-                                                        <span>{{ $config['label'] }}</span>
-                                                    </span>
-                                                @endforeach
-                                            </div>
-                                        @endif
-                                        <div class="absolute top-3 right-3">
-                                            <span class="pill border-white text-white bg-black/50 backdrop-blur text-xs">WARMUP</span>
-                                        </div>
-                                    </div>
-                                    <div class="px-4 py-3 space-y-1.5">
-                                        <h3 class="text-base font-bold text-white">{{ $dj->name }}</h3>
-                                        @if ($dj->pivot->time_slot)
-                                            <div class="flex items-center gap-1.5">
-                                                <span class="text-xs">🕒</span>
-                                                <p class="text-xs font-medium text-gray-300">{{ $dj->pivot->time_slot }}</p>
-                                            </div>
-                                        @endif
-                                        @if ($dj->instagram_handle)
-                                            <p class="text-xs uppercase tracking-[0.18em] text-gray-400">{{ '@' . $dj->instagram_handle }}</p>
-                                        @endif
-                                    </div>
-                                </a>
+                            @foreach ($warmups as $entry)
+                                <x-lineup-card
+                                    :entry="$entry"
+                                    :tag-config="$tagConfig"
+                                    badge-label="WARMUP"
+                                />
                             @endforeach
                         </div>
                     </div>
                 @endif
             @endif
 
-            <!-- LOCALS SIEMPRE EN SU PROPIA FILA (ABAJO) -->
             @if ($locals->isNotEmpty())
                 <div class="space-y-4">
                     <h3 class="text-xl font-semibold text-white flex items-center gap-2">
@@ -416,45 +308,13 @@
                         <span>Local Artists</span>
                     </h3>
                     <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-                        @foreach ($locals as $dj)
-                            @php
-                                $profile = $dj->getFirstMediaUrl('profile', 'card') ?: $dj->getFirstMediaUrl('profile', 'thumb') ?: $dj->getFirstMediaUrl('profile');
-                            @endphp
-                            <a href="{{ route('djs.show', $dj) }}" class="card card-animated overflow-hidden group relative">
-                                <div class="h-64 w-full bg-gradient-to-br from-black to-zinc-900 relative">
-                                    @if ($profile)
-                                        <img src="{{ $profile }}" alt="{{ $dj->name }}" class="h-full w-full object-cover transition duration-300 group-hover:scale-105">
-                                    @endif
-                                    @if ($dj->tags && count($dj->tags) > 0)
-                                        <div class="absolute top-3 left-3 flex flex-wrap gap-1.5">
-                                            @foreach (array_slice($dj->tags, 0, 2) as $tag)
-                                                @php
-                                                    $config = $tagConfig[$tag] ?? ['emoji' => '', 'label' => strtoupper($tag), 'class' => 'bg-white/90 text-black border-white'];
-                                                @endphp
-                                                <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold tracking-wider border backdrop-blur-sm {{ $config['class'] }} shadow-lg">
-                                                    <span>{{ $config['emoji'] }}</span>
-                                                    <span>{{ $config['label'] }}</span>
-                                                </span>
-                                            @endforeach
-                                        </div>
-                                    @endif
-                                    <div class="absolute top-3 right-3">
-                                        <span class="pill border-pink-400 text-pink-400 bg-black/50 backdrop-blur text-xs">LOCAL</span>
-                                    </div>
-                                </div>
-                                <div class="px-4 py-3 space-y-1.5">
-                                    <h3 class="text-base font-bold text-white">{{ $dj->name }}</h3>
-                                    @if ($dj->pivot->time_slot)
-                                        <div class="flex items-center gap-1.5">
-                                            <span class="text-xs">🕒</span>
-                                            <p class="text-xs font-medium text-gray-300">{{ $dj->pivot->time_slot }}</p>
-                                        </div>
-                                    @endif
-                                    @if ($dj->instagram_handle)
-                                        <p class="text-xs uppercase tracking-[0.18em] text-gray-400">{{ '@' . $dj->instagram_handle }}</p>
-                                    @endif
-                                </div>
-                            </a>
+                        @foreach ($locals as $entry)
+                            <x-lineup-card
+                                :entry="$entry"
+                                :tag-config="$tagConfig"
+                                badge-label="LOCAL"
+                                badge-class="pill border-pink-400 text-pink-400 bg-black/50 backdrop-blur text-xs"
+                            />
                         @endforeach
                     </div>
                 </div>
@@ -576,7 +436,7 @@
 
     <!-- GUEST LIST FORM -->
     @if ($event->starts_at && $event->starts_at > now())
-        <section class="card p-8 bg-gradient-to-br from-white/5 to-white/0 border-white/20">
+        <section class="card p-8 bg-gradient-to-br from-white/5 to-white/0 border-white/20" data-analytics-section="guest-list">
             <div class="grid gap-8 lg:grid-cols-2">
                 <div class="space-y-4">
                     <div class="space-y-2">
@@ -657,3 +517,26 @@
         </section>
     @endif
 @endsection
+
+@push('scripts')
+<script>
+    if (window.trackMetaPixel) {
+        window.trackMetaPixel('ViewContent', {
+            content_type: 'event',
+            content_ids: ['{{ $event->id }}'],
+            content_name: @json($event->title),
+            value: Number('{{ (float) ($event->ticketProducts->min('price') ?? 0) }}'),
+            currency: @json($event->ticketProducts->first()?->currency ?? config('mercadopago.currency', 'MXN')),
+        });
+    }
+
+    window.LapsiqueTracker.track('event_viewed', {
+        category: 'content',
+        label: @json($event->title),
+        metadata: {
+            event_id: '{{ $event->id }}',
+            has_tickets: {{ $hasInternalTickets ? 'true' : 'false' }},
+        },
+    });
+</script>
+@endpush

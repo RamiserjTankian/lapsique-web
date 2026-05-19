@@ -6,6 +6,7 @@ use Illuminate\Mail\Mailable;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
 class MailDeliveryService
@@ -53,16 +54,28 @@ class MailDeliveryService
         $fromConfig = config('mail.from', []);
         $fromEmail = $fromConfig['address'] ?? null;
         $fromName = $fromConfig['name'] ?? config('app.name');
+        $fromAvatar = $fromConfig['avatar'] ?? null;
 
         if (! $fromEmail) {
             throw new \RuntimeException('MAIL_FROM_ADDRESS no configurado.');
         }
 
+        $fromPayload = [
+            'email' => $fromEmail,
+            'name' => $fromName,
+        ];
+
+        // Agregar avatar si está disponible (para Mailtrap)
+        if ($fromAvatar) {
+            // Asegurar que sea una URL absoluta
+            if (!str_starts_with($fromAvatar, 'http')) {
+                $fromAvatar = url($fromAvatar);
+            }
+            $fromPayload['avatar_url'] = $fromAvatar;
+        }
+
         $payload = [
-            'from' => [
-                'email' => $fromEmail,
-                'name' => $fromName,
-            ],
+            'from' => $fromPayload,
             'to' => [
                 array_filter([
                     'email' => $toEmail,
@@ -76,6 +89,12 @@ class MailDeliveryService
 
         if ($category) {
             $payload['category'] = $category;
+        }
+
+        $attachments = $this->extractMailtrapAttachments($mailable);
+
+        if ($attachments !== []) {
+            $payload['attachments'] = $attachments;
         }
 
         $response = Http::withToken($token)
@@ -116,5 +135,76 @@ class MailDeliveryService
         $text = trim(preg_replace('/\s+/', ' ', strip_tags($html)));
 
         return $text !== '' ? $text : ' ';
+    }
+
+    protected function extractMailtrapAttachments(Mailable $mailable): array
+    {
+        $attachments = [];
+
+        foreach ($mailable->rawAttachments as $attachment) {
+            $content = $attachment['data'] ?? null;
+
+            if (! is_string($content) || $content === '') {
+                continue;
+            }
+
+            $attachments[] = [
+                'filename' => $attachment['name'] ?? 'attachment.bin',
+                'content' => base64_encode($content),
+                'mimetype' => $attachment['options']['mime'] ?? 'application/octet-stream',
+                'disposition' => 'attachment',
+            ];
+        }
+
+        foreach ($mailable->attachments as $attachment) {
+            $path = $attachment['file'] ?? null;
+
+            if (! is_string($path) || $path === '' || ! is_file($path)) {
+                continue;
+            }
+
+            $content = @file_get_contents($path);
+
+            if (! is_string($content) || $content === '') {
+                continue;
+            }
+
+            $attachments[] = [
+                'filename' => $attachment['options']['as'] ?? basename($path),
+                'content' => base64_encode($content),
+                'mimetype' => $attachment['options']['mime'] ?? 'application/octet-stream',
+                'disposition' => 'attachment',
+            ];
+        }
+
+        foreach ($mailable->diskAttachments as $attachment) {
+            $disk = $attachment['disk'] ?? null;
+            $path = $attachment['path'] ?? null;
+
+            if (! is_string($path) || $path === '') {
+                continue;
+            }
+
+            $storage = Storage::disk($disk);
+
+            if (! $storage->exists($path)) {
+                continue;
+            }
+
+            $content = $storage->get($path);
+
+            if ($content === '') {
+                continue;
+            }
+
+            $attachments[] = [
+                'filename' => $attachment['name'] ?? basename($path),
+                'content' => base64_encode($content),
+                'mimetype' => $attachment['options']['mime'] ?? $storage->mimeType($path) ?? 'application/octet-stream',
+                'disposition' => 'attachment',
+            ];
+        }
+
+        return $attachments;
     }
 }

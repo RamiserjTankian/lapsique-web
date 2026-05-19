@@ -141,6 +141,7 @@ class Automation extends Model
             'tag_added' => $this->checkTagAddedTrigger($customer, $context),
             'lifecycle_change' => $this->checkLifecycleChangeTrigger($customer, $context),
             'score_threshold' => $this->checkScoreThresholdTrigger($customer, $context),
+            'email_opened' => $this->checkEmailOpenedTrigger($customer, $context),
             default => false,
         };
     }
@@ -216,5 +217,22 @@ class Automation extends Model
             '=' => $customer->lead_score == $threshold,
             default => false,
         };
+    }
+
+    protected function checkEmailOpenedTrigger(Customer $customer, array $context): bool
+    {
+        $config = $this->trigger_config ?? [];
+        $sourceCampaignId = $config['campaign_id'] ?? null;
+        $openedCampaignId = $context['campaign_id'] ?? null;
+
+        if (!$openedCampaignId) {
+            return false;
+        }
+
+        if ($sourceCampaignId) {
+            return (int) $sourceCampaignId === (int) $openedCampaignId;
+        }
+
+        return true;
     }
 }

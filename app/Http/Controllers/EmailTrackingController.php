@@ -7,6 +7,7 @@ use App\Jobs\ProcessEmailClickJob;
 use App\Services\MailtrapEventsService;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
+use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Log;
 
 class EmailTrackingController extends Controller
@@ -61,9 +62,26 @@ class EmailTrackingController extends Controller
      */
     public function mailtrapWebhook(Request $request)
     {
+        $configuredSecret = (string) config('services.mailtrap.webhook_secret', '');
+        $receivedSignature = (string) $request->header('Mailtrap-Signature', '');
+        $rawPayload = $request->getContent();
+
+        if ($configuredSecret !== '') {
+            $expectedSignature = hash_hmac('sha256', $rawPayload, $configuredSecret);
+
+            if ($receivedSignature === '' || ! hash_equals($expectedSignature, $receivedSignature)) {
+                Log::warning('Mailtrap webhook signature invalid', [
+                    'has_signature' => $receivedSignature !== '',
+                ]);
+
+                return response()->json(['success' => false, 'message' => 'Invalid signature'], 401);
+            }
+        }
+
         Log::info('Mailtrap webhook received', $request->all());
 
-        $events = $request->input('events', []);
+        $payload = $request->json()->all();
+        $events = Arr::isAssoc($payload) ? ($payload['events'] ?? []) : $payload;
 
         app(MailtrapEventsService::class)->processEvents($events);
 

@@ -2,6 +2,9 @@
 
 namespace App\Filament\Resources\Events\Schemas;
 
+use App\Models\Dj;
+use App\Models\Location;
+use App\Support\EventLineup;
 use Filament\Forms\Components\DateTimePicker;
 use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\Select;
@@ -12,10 +15,8 @@ use Filament\Forms\Components\Toggle;
 use Filament\Forms\Components\TagsInput;
 use Filament\Schemas\Components\Utilities\Set;
 use Filament\Schemas\Schema;
-use Illuminate\Support\Str;
 use Illuminate\Database\Eloquent\Builder;
-use App\Models\Dj;
-use App\Models\Location;
+use Illuminate\Support\Str;
 
 class EventForm
 {
@@ -239,7 +240,33 @@ class EventForm
                             ->options(fn () => Dj::query()->orderBy('name')->pluck('name', 'id'))
                             ->required()
                             ->searchable()
-                            ->columnSpan(5),
+                            ->live()
+                            ->columnSpan(3),
+                        Toggle::make('is_b2b')
+                            ->label('B2B')
+                            ->default(false)
+                            ->live()
+                            ->afterStateUpdated(function (callable $set, $state): void {
+                                if (! $state) {
+                                    $set('b2b_dj_id', null);
+                                }
+                            })
+                            ->columnSpan(1),
+                        Select::make('b2b_dj_id')
+                            ->label('B2B con')
+                            ->options(function (callable $get) {
+                                $selectedDjId = (int) ($get('dj_id') ?? 0);
+
+                                return Dj::query()
+                                    ->when($selectedDjId > 0, fn ($query) => $query->where('id', '!=', $selectedDjId))
+                                    ->orderBy('name')
+                                    ->pluck('name', 'id');
+                            })
+                            ->searchable()
+                            ->disabled(fn (callable $get): bool => ! (bool) $get('is_b2b'))
+                            ->required(fn (callable $get): bool => (bool) $get('is_b2b'))
+                            ->helperText('Selecciona el segundo DJ cuando actives B2B.')
+                            ->columnSpan(3),
                         Select::make('role')
                             ->label('Rol')
                             ->options([
@@ -249,7 +276,7 @@ class EventForm
                             ])
                             ->default('warmup')
                             ->required()
-                            ->columnSpan(2),
+                            ->columnSpan(1),
                         TextInput::make('time_slot')
                             ->label('Horario')
                             ->placeholder('ej: 11:00 PM - 12:30 AM')
@@ -264,30 +291,23 @@ class EventForm
                         Toggle::make('enabled')
                             ->label('Activo')
                             ->default(true)
-                            ->columnSpan(2),
+                            ->columnSpan(1),
                     ])
                     ->afterStateHydrated(function (callable $set, $record) {
                         if (! $record) {
                             return;
                         }
 
-                        $lineup = $record->djs()
-                            ->orderByRaw("FIELD(dj_event.role, 'headliner', 'warmup') asc")
+                        $lineup = EventLineup::formStateFromDjs(
+                            $record->djs()
                             ->orderBy('dj_event.position')
                             ->get()
-                            ->map(fn ($dj) => [
-                                'dj_id' => $dj->id,
-                                'role' => $dj->pivot->role ?? 'warmup',
-                                'time_slot' => $dj->pivot->time_slot ?? null,
-                                'guest_limit' => $dj->pivot->guest_limit ?? null,
-                                'enabled' => true,
-                            ])
-                            ->toArray();
+                        );
 
                         $set('lineup', $lineup);
                     })
                     ->defaultItems(0)
-                    ->helperText('Reordena para definir el orden en el cartel. Activa/desactiva para incluir/excluir.')
+                    ->helperText('Reordena para definir el orden en el cartel. Activa B2B para unir dos DJs en una sola tarjeta.')
                     ->collapsible(),
                 Select::make('rps')
                     ->label('RPs del Evento')

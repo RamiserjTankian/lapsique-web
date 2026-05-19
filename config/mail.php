@@ -124,6 +124,7 @@ return [
     'from' => [
         'address' => env('MAIL_FROM_ADDRESS', 'hello@example.com'),
         'name' => env('MAIL_FROM_NAME', 'Example'),
+        'avatar' => env('MAIL_FROM_AVATAR', null), // URL del avatar/foto de perfil para Mailtrap
     ],
 
 ];

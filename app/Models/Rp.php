@@ -54,6 +54,16 @@ class Rp extends Model
             ->withTimestamps();
     }
 
+    public function ticketOrders(): HasMany
+    {
+        return $this->hasMany(TicketOrder::class);
+    }
+
+    public function ticketAttendees(): HasMany
+    {
+        return $this->hasMany(TicketAttendee::class);
+    }
+
     // Métodos de utilidad
     public function getTotalGuestListCountAttribute(): int
     {
@@ -98,4 +108,3 @@ class Rp extends Model
             ->count();
     }
 }
-

@@ -1,0 +1,137 @@
+<?php
+
+namespace App\Services;
+
+use App\Models\TicketOrder;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
+use RuntimeException;
+
+class StripeService
+{
+    public function createCheckoutSession(TicketOrder $order): array
+    {
+        $secret = $this->requireSecretKey();
+
+        $lineItems = [];
+        foreach ($order->items as $item) {
+            $lineItems[] = [
+                'price_data' => [
+                    'currency' => strtolower($order->currency),
+                    'product_data' => [
+                        'name' => $item->name,
+                    ],
+                    'unit_amount' => (int) round(((float) $item->unit_price) * 100),
+                ],
+                'quantity' => $item->quantity,
+            ];
+        }
+
+        $payload = [
+            'mode' => 'payment',
+            'client_reference_id' => $order->public_id,
+            'customer_email' => $order->buyer_email,
+            'success_url' => route('tickets.success', $order) . '?session_id={CHECKOUT_SESSION_ID}',
+            'cancel_url' => route('tickets.failure', $order),
+            'payment_method_types' => ['card'],
+            'line_items' => $lineItems,
+            'metadata' => [
+                'ticket_order_id' => $order->id,
+                'ticket_order_public_id' => $order->public_id,
+            ],
+            'payment_intent_data' => [
+                'metadata' => [
+                    'ticket_order_id' => $order->id,
+                    'ticket_order_public_id' => $order->public_id,
+                ],
+            ],
+        ];
+
+        $response = Http::withToken($secret)
+            ->asForm()
+            ->acceptJson()
+            ->post('https://api.stripe.com/v1/checkout/sessions', $payload);
+
+        if (! $response->successful()) {
+            Log::error('Stripe checkout session error', [
+                'status' => $response->status(),
+                'body' => $response->body(),
+                'order_id' => $order->id,
+            ]);
+
+            throw new RuntimeException('No se pudo crear la sesion de pago en Stripe.');
+        }
+
+        return (array) $response->json();
+    }
+
+    public function fetchSession(string $sessionId): array
+    {
+        $secret = $this->requireSecretKey();
+
+        $response = Http::withToken($secret)
+            ->acceptJson()
+            ->get('https://api.stripe.com/v1/checkout/sessions/' . $sessionId, [
+                'expand' => ['payment_intent'],
+            ]);
+
+        if (! $response->successful()) {
+            Log::warning('Stripe session fetch failed', [
+                'session_id' => $sessionId,
+                'status' => $response->status(),
+                'body' => $response->body(),
+            ]);
+
+            throw new RuntimeException('No pudimos consultar la sesion de pago.');
+        }
+
+        return (array) $response->json();
+    }
+
+    public function verifyWebhookSignature(Request $request, string $payload): bool
+    {
+        $secret = (string) config('stripe.webhook_secret');
+
+        if ($secret === '') {
+            return true;
+        }
+
+        $signature = (string) $request->header('stripe-signature', '');
+
+        if ($signature === '') {
+            return false;
+        }
+
+        $parts = [];
+        foreach (explode(',', $signature) as $segment) {
+            [$key, $value] = array_map('trim', explode('=', $segment, 2) + [null, null]);
+            if ($key && $value) {
+                $parts[$key] = $value;
+            }
+        }
+
+        $timestamp = $parts['t'] ?? null;
+        $signatureHash = $parts['v1'] ?? null;
+
+        if (! $timestamp || ! $signatureHash) {
+            return false;
+        }
+
+        $signedPayload = $timestamp . '.' . $payload;
+        $expected = hash_hmac('sha256', $signedPayload, $secret);
+
+        return hash_equals($expected, $signatureHash);
+    }
+
+    protected function requireSecretKey(): string
+    {
+        $secret = (string) config('stripe.secret_key', '');
+
+        if ($secret === '') {
+            throw new RuntimeException('STRIPE_SECRET_KEY no configurado.');
+        }
+
+        return $secret;
+    }
+}

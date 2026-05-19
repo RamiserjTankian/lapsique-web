@@ -11,7 +11,7 @@
     
     @if($buttonUrl && $buttonText)
     <div style="text-align: center; margin: 30px 0;">
-        <a href="{{ $buttonUrl }}" class="button" style="display: inline-block; padding: 12px 30px; background-color: #6366f1; color: #ffffff; text-decoration: none; border-radius: 6px; font-weight: 600;">{{ $buttonText }}</a>
+        <a href="{{ $buttonUrl }}" class="button" style="display: inline-block; padding: 12px 30px; background-color: #ffffff; color: #050505; text-decoration: none; border-radius: 6px; font-weight: 600;">{{ $buttonText }}</a>
     </div>
     @endif
     

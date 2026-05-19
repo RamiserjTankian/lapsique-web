@@ -4,6 +4,7 @@ namespace App\Filament\Resources\Events\Pages;
 
 use App\Filament\Resources\Events\EventResource;
 use App\Models\Event;
+use App\Support\EventLineup;
 use Filament\Resources\Pages\CreateRecord;
 
 class CreateEvent extends CreateRecord
@@ -33,30 +34,7 @@ class CreateEvent extends CreateRecord
             return;
         }
 
-        $lineup = collect($lineupData)
-            ->filter(function ($row) {
-                $enabled = $row['enabled'] ?? true;
-                $hasDj = !empty($row['dj_id']);
-                return $enabled && $hasDj;
-            })
-            ->values();
-
-        $payload = [];
-        $position = 1;
-
-        foreach ($lineup as $row) {
-            $djId = (int) $row['dj_id'];
-            if (isset($payload[$djId])) {
-                continue; // Skip duplicates
-            }
-
-            $payload[$djId] = [
-                'role' => $row['role'] ?? 'warmup',
-                'position' => $position++,
-                'time_slot' => $row['time_slot'] ?? null,
-                'guest_limit' => isset($row['guest_limit']) && $row['guest_limit'] !== '' ? (int) $row['guest_limit'] : null,
-            ];
-        }
+        $payload = EventLineup::payloadFromState($lineupData);
 
         \Log::info('Final payload for new event', [
             'payload' => $payload,

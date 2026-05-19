@@ -23,7 +23,7 @@ class EventResource extends Resource
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedCalendar;
 
-    protected static ?string $navigationLabel = 'Events';
+    protected static ?string $navigationLabel = 'Eventos';
 
     protected static UnitEnum|string|null $navigationGroup = 'Eventos';
 
@@ -61,5 +61,26 @@ class EventResource extends Resource
             ->withoutGlobalScopes([
                 SoftDeletingScope::class,
             ]);
+    }
+
+    public static function getEloquentQuery(): Builder
+    {
+        return parent::getEloquentQuery()
+            ->withCount([
+                'ticketOrders as paid_ticket_orders_count' => fn (Builder $query): Builder => $query->where('status', 'paid'),
+                'ticketAttendees as registered_ticket_accesses' => fn (Builder $query): Builder => $query->whereIn('status', ['registered', 'checked_in']),
+            ])
+            ->withSum([
+                'ticketOrders as paid_ticket_revenue' => fn (Builder $query): Builder => $query->where('status', 'paid'),
+            ], 'total')
+            ->withSum([
+                'ticketOrders as paid_ticket_subtotal' => fn (Builder $query): Builder => $query->where('status', 'paid'),
+            ], 'subtotal')
+            ->withSum([
+                'ticketOrders as paid_ticket_fee' => fn (Builder $query): Builder => $query->where('status', 'paid'),
+            ], 'fee')
+            ->withSum([
+                'ticketOrders as paid_ticket_accesses' => fn (Builder $query): Builder => $query->where('status', 'paid'),
+            ], 'attendees_expected');
     }
 }

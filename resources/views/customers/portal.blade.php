@@ -1,168 +1,332 @@
 @extends('layouts.site')
 
-@section('title', 'Mi Portal | ' . __('messages.site.brand'))
+@section('title', 'Mi portal | ' . __('messages.site.brand'))
+@section('hide_navbar', '1')
+@section('minimal_footer', '1')
 
 @section('content')
-    <div class="space-y-8">
-        <div class="flex flex-col gap-3">
-            <p class="pill">Mi Cuenta</p>
-            <h1 class="text-3xl font-semibold text-white">Portal de Cliente</h1>
-            <p class="text-gray-300">Gestiona tus guest lists y mantente conectado con los eventos.</p>
+@php
+    $bookings = $customer->contentBookings->sortByDesc('created_at');
+    $readyBookings = $bookings->filter(fn ($booking) => $booking->deliverables_ready_at && $booking->getMedia('deliverables')->isNotEmpty());
+    $bookingCount = $bookings->count();
+    $paymentCount = $payments->count();
+    $deliverablesCount = $readyBookings->sum(fn ($booking) => $booking->getMedia('deliverables')->count());
+    $statusStyles = [
+        'confirmed' => 'border-emerald-400/30 bg-emerald-500/10 text-emerald-300',
+        'pending_payment' => 'border-amber-400/30 bg-amber-500/10 text-amber-300',
+        'pending' => 'border-amber-400/30 bg-amber-500/10 text-amber-300',
+        'failed' => 'border-red-400/30 bg-red-500/10 text-red-300',
+        'cancelled' => 'border-zinc-500/40 bg-zinc-500/10 text-zinc-300',
+        'paid' => 'border-emerald-400/30 bg-emerald-500/10 text-emerald-300',
+        'registered' => 'border-emerald-400/30 bg-emerald-500/10 text-emerald-300',
+        'checked_in' => 'border-cyan-400/30 bg-cyan-500/10 text-cyan-300',
+        'rejected' => 'border-red-400/30 bg-red-500/10 text-red-300',
+    ];
+@endphp
+
+<div class="-mx-6 -mt-10 mb-8 border-b border-white/10 bg-black/70 backdrop-blur sticky top-0 z-50">
+    <div class="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
+        <a href="{{ route('home') }}" class="text-sm font-semibold uppercase tracking-[0.3em] text-white/90 hover:text-white">lapsique.media</a>
+        <div class="flex items-center gap-3">
+            <a href="{{ route('home') }}" class="btn btn-ghost text-[11px]">Inicio</a>
+            <form method="POST" action="{{ route('customers.logout') }}">
+                @csrf
+                <button type="submit" class="btn btn-primary text-[11px]">Cerrar sesión</button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<div class="space-y-8">
+    <section class="card overflow-hidden border-white/15 bg-white/[0.04]">
+        <div class="grid gap-8 px-6 py-8 md:grid-cols-[1.3fr_0.7fr] md:px-8">
+            <div class="space-y-5">
+                <div class="flex flex-wrap gap-2">
+                    <span class="pill border-cyan-400/30 bg-cyan-500/10 text-cyan-200">Portal de cliente</span>
+                    <span class="pill border-fuchsia-400/30 bg-fuchsia-500/10 text-fuchsia-200">Sesiones y entregables</span>
+                </div>
+                <div class="space-y-2">
+                    <h1 class="text-4xl font-bold tracking-tight text-white md:text-5xl">{{ $customer->name }}</h1>
+                    <p class="max-w-2xl text-base leading-relaxed text-gray-300">
+                        Aquí puedes revisar tus sesiones registradas, materiales entregados, pagos realizados y la información principal de tu cuenta.
+                    </p>
+                </div>
+                <div class="grid gap-3 sm:grid-cols-3">
+                    <div class="rounded-2xl border border-white/12 bg-white/[0.04] p-4">
+                        <p class="text-xs uppercase tracking-[0.22em] text-gray-500">Sesiones</p>
+                        <p class="mt-2 text-3xl font-bold text-white">{{ $bookingCount }}</p>
+                    </div>
+                    <div class="rounded-2xl border border-white/12 bg-white/[0.04] p-4">
+                        <p class="text-xs uppercase tracking-[0.22em] text-gray-500">Pagos</p>
+                        <p class="mt-2 text-3xl font-bold text-white">{{ $paymentCount }}</p>
+                    </div>
+                    <div class="rounded-2xl border border-white/12 bg-white/[0.04] p-4">
+                        <p class="text-xs uppercase tracking-[0.22em] text-gray-500">Archivos listos</p>
+                        <p class="mt-2 text-3xl font-bold text-white">{{ $deliverablesCount }}</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="rounded-[28px] border border-white/12 bg-gradient-to-br from-cyan-500/10 via-white/[0.04] to-fuchsia-500/10 p-6">
+                <p class="text-xs uppercase tracking-[0.24em] text-gray-500">Información</p>
+                <div class="mt-5 space-y-4 text-sm text-gray-200">
+                    <div>
+                        <p class="text-xs uppercase tracking-[0.18em] text-gray-500">Email</p>
+                        <p class="mt-1 text-base text-white">{{ $customer->email }}</p>
+                    </div>
+                    @if ($customer->phone)
+                        <div>
+                            <p class="text-xs uppercase tracking-[0.18em] text-gray-500">WhatsApp</p>
+                            <p class="mt-1 text-base text-white">{{ $customer->phone }}</p>
+                        </div>
+                    @endif
+                    @if ($customer->instagram_handle)
+                        <div>
+                            <p class="text-xs uppercase tracking-[0.18em] text-gray-500">Instagram</p>
+                            <p class="mt-1 text-base text-white">{{ '@' . ltrim($customer->instagram_handle, '@') }}</p>
+                        </div>
+                    @endif
+                    <div>
+                        <p class="text-xs uppercase tracking-[0.18em] text-gray-500">Última actividad</p>
+                        <p class="mt-1 text-base text-white">{{ optional($customer->last_interaction_at)->translatedFormat('d M Y · H:i') ?? 'Ahora' }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="space-y-4">
+        <div class="flex items-end justify-between gap-4">
+            <div>
+                <p class="text-xs uppercase tracking-[0.24em] text-gray-500">Contenido</p>
+                <h2 class="mt-2 text-2xl font-bold text-white md:text-3xl">Mis sesiones de contenido</h2>
+            </div>
+            <a href="{{ route('booking.show') }}" class="btn btn-ghost text-[11px]">Reservar otra sesión</a>
         </div>
 
-        @if (isset($customer))
-            <!-- Customer Info Card -->
-            <div class="card p-6 space-y-4">
-                <div class="flex items-start justify-between">
-                    <div class="space-y-2">
-                        <h2 class="text-2xl font-semibold text-white">{{ $customer->name }}</h2>
-                        <div class="space-y-1 text-sm text-gray-400">
-                            <p>📧 {{ $customer->email }}</p>
-                            @if ($customer->phone)
-                                <p>📱 {{ $customer->phone }}</p>
-                            @endif
-                            @if ($customer->instagram_handle)
-                                <p>📸 {{ '@' . $customer->instagram_handle }}</p>
-                            @endif
-                        </div>
-                    </div>
-                    @if ($customer->subscribed_newsletter)
-                        <span class="pill border-emerald-400 text-emerald-400">Newsletter Activo</span>
-                    @endif
-                </div>
-
-                <div class="grid gap-4 sm:grid-cols-3 pt-4">
-                    <div class="card bg-white/5 p-4">
-                        <p class="text-xs uppercase tracking-[0.18em] text-gray-400">Guest Lists</p>
-                        <p class="text-2xl font-bold text-white">{{ $customer->guestListEntries->count() }}</p>
-                    </div>
-                    <div class="card bg-white/5 p-4">
-                        <p class="text-xs uppercase tracking-[0.18em] text-gray-400">Eventos Asistidos</p>
-                        <p class="text-2xl font-bold text-white">{{ $customer->guestListEntries->where('status', 'confirmed')->count() }}</p>
-                    </div>
-                    <div class="card bg-white/5 p-4">
-                        <p class="text-xs uppercase tracking-[0.18em] text-gray-400">Desde</p>
-                        <p class="text-lg font-bold text-white">{{ $customer->created_at->format('M Y') }}</p>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Guest List Entries -->
-            <div class="space-y-4">
-                <h2 class="text-2xl font-semibold text-white">Mis Guest Lists</h2>
-                
-                @if ($customer->guestListEntries->isEmpty())
-                    <div class="card p-8 text-center space-y-4">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 mx-auto text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                        </svg>
-                        <p class="text-gray-400">No tienes guest lists todavía.</p>
-                        <a href="{{ route('events.index') }}" class="btn btn-primary">Ver Eventos Disponibles</a>
-                    </div>
-                @else
-                    <div class="space-y-4">
-                        @foreach ($customer->guestListEntries->sortByDesc('created_at') as $entry)
-                            @php
-                                $statusColors = [
-                                    'pending' => 'border-yellow-400 text-yellow-400',
-                                    'confirmed' => 'border-emerald-400 text-emerald-400',
-                                    'rejected' => 'border-red-400 text-red-400',
-                                ];
-                                $statusLabels = [
-                                    'pending' => 'Pendiente',
-                                    'confirmed' => 'Confirmado',
-                                    'rejected' => 'Rechazado',
-                                ];
-                            @endphp
-                            <div class="card p-6">
-                                <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-                                    <div class="space-y-2 flex-1">
-                                        @if ($entry->event)
-                                            <div class="flex items-center gap-2">
-                                                <h3 class="text-xl font-semibold text-white">{{ $entry->event->title }}</h3>
-                                                <span class="pill {{ $statusColors[$entry->status] ?? '' }}">
-                                                    {{ $statusLabels[$entry->status] ?? $entry->status }}
-                                                </span>
-                                            </div>
-                                            <div class="flex flex-wrap gap-4 text-sm text-gray-400">
-                                                <span>📅 {{ optional($entry->event->starts_at)->format('d M Y H:i') ?? 'Fecha por definir' }}</span>
-                                                @if ($entry->event->venue)
-                                                    <span>📍 {{ $entry->event->venue }}, {{ $entry->event->city }}</span>
-                                                @endif
-                                            </div>
-                                        @else
-                                            <div class="flex items-center gap-2">
-                                                <h3 class="text-xl font-semibold text-white">Guest List General</h3>
-                                                <span class="pill {{ $statusColors[$entry->status] ?? '' }}">
-                                                    {{ $statusLabels[$entry->status] ?? $entry->status }}
-                                                </span>
-                                            </div>
-                                        @endif
-                                        <p class="text-xs uppercase tracking-[0.18em] text-gray-500">
-                                            Registrado el {{ $entry->created_at->format('d M Y') }}
-                                        </p>
-                                    </div>
-                                    <div class="flex gap-3">
-                                        @if ($entry->status === 'confirmed' && $entry->event)
-                                            <a href="{{ route('events.show', $entry->event) }}" class="btn btn-ghost">Ver Evento</a>
-                                        @endif
-                                        @if ($entry->event && $entry->event->ticket_url)
-                                            <a href="{{ $entry->event->ticket_url }}" target="_blank" class="btn btn-primary">Tickets</a>
-                                        @endif
-                                    </div>
-                                </div>
-                            </div>
-                        @endforeach
-                    </div>
-                @endif
-            </div>
-
-            <!-- Quick Actions -->
-            <div class="grid gap-4 sm:grid-cols-2">
-                <a href="{{ route('events.index') }}" class="card card-animated p-6 group">
-                    <div class="flex items-center gap-4">
-                        <div class="rounded-full bg-white/10 p-3">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                            </svg>
-                        </div>
-                        <div>
-                            <h3 class="text-lg font-semibold text-white group-hover:text-gray-200 transition">Ver Próximos Eventos</h3>
-                            <p class="text-sm text-gray-400">Explora el calendario</p>
-                        </div>
-                    </div>
-                </a>
-                <a href="{{ route('posts.index') }}" class="card card-animated p-6 group">
-                    <div class="flex items-center gap-4">
-                        <div class="rounded-full bg-white/10 p-3">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z" />
-                            </svg>
-                        </div>
-                        <div>
-                            <h3 class="text-lg font-semibold text-white group-hover:text-gray-200 transition">Lee el Blog</h3>
-                            <p class="text-sm text-gray-400">Noticias y contenido</p>
-                        </div>
-                    </div>
-                </a>
+        @if ($bookings->isEmpty())
+            <div class="card border-white/12 bg-white/[0.04] p-8 text-center">
+                <p class="text-lg font-medium text-white">Todavía no tienes sesiones registradas.</p>
+                <p class="mt-2 text-sm text-gray-400">Cuando reserves una sesión de contenido aparecerá aquí junto con sus pagos y entregables.</p>
             </div>
         @else
-            <!-- Login/Access Form -->
-            <div class="card p-8 max-w-md mx-auto">
-                <div class="space-y-6">
-                    <div class="text-center space-y-2">
-                        <h2 class="text-2xl font-semibold text-white">Accede a tu Portal</h2>
-                        <p class="text-gray-400">Ingresa tu email para ver tus guest lists</p>
-                    </div>
-                    <form method="GET" action="{{ route('customers.portal') }}" class="space-y-4">
-                        <div>
-                            <input type="email" name="email" placeholder="tu@email.com" class="field" required>
+            <div class="space-y-4">
+                @foreach ($bookings as $booking)
+                    @php
+                        $deliverables = $booking->deliverables_ready_at ? $booking->getMedia('deliverables') : collect();
+                    @endphp
+                    <article class="card overflow-hidden border-white/12 bg-white/[0.04]">
+                        <div class="grid gap-0 lg:grid-cols-[0.95fr_1.05fr]">
+                            <div class="border-b border-white/10 p-6 lg:border-b-0 lg:border-r">
+                                <div class="flex flex-wrap items-center gap-2">
+                                    <h3 class="text-xl font-semibold text-white">{{ $booking->slot?->date?->translatedFormat('d \d\e F, Y') ?? 'Sesión sin fecha' }}</h3>
+                                    <span class="rounded-full border px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] {{ $statusStyles[$booking->status] ?? 'border-white/20 bg-white/10 text-white' }}">
+                                        {{ $booking->status_label }}
+                                    </span>
+                                </div>
+                                <div class="mt-4 grid gap-4 sm:grid-cols-2">
+                                    <div>
+                                        <p class="text-xs uppercase tracking-[0.18em] text-gray-500">Horario</p>
+                                        <p class="mt-1 text-base text-white">{{ $booking->slot?->time_label ?? 'Por confirmar' }}</p>
+                                    </div>
+                                    <div>
+                                        <p class="text-xs uppercase tracking-[0.18em] text-gray-500">Pago</p>
+                                        <p class="mt-1 text-base text-white">{{ $booking->formatted_amount }}</p>
+                                        <p class="mt-1 text-xs text-gray-400">{{ $booking->payment_status_label }}</p>
+                                    </div>
+                                    <div>
+                                        <p class="text-xs uppercase tracking-[0.18em] text-gray-500">Instagram</p>
+                                        <p class="mt-1 text-base text-white">{{ $booking->client_instagram ?: 'No registrado' }}</p>
+                                    </div>
+                                    <div>
+                                        <p class="text-xs uppercase tracking-[0.18em] text-gray-500">Locación</p>
+                                        <p class="mt-1 text-base text-white">{{ $booking->shoot_location ?: 'Se define con el equipo' }}</p>
+                                    </div>
+                                </div>
+                                @if ($booking->notes)
+                                    <div class="mt-5 rounded-2xl border border-white/10 bg-black/30 p-4">
+                                        <p class="text-xs uppercase tracking-[0.18em] text-gray-500">Brief compartido</p>
+                                        <p class="mt-2 text-sm leading-relaxed text-gray-300">{{ $booking->notes }}</p>
+                                    </div>
+                                @endif
+                            </div>
+
+                            <div class="p-6">
+                                <div class="flex items-center justify-between gap-3">
+                                    <div>
+                                        <p class="text-xs uppercase tracking-[0.18em] text-gray-500">Entregables</p>
+                                        <h4 class="mt-1 text-lg font-semibold text-white">
+                                            @if ($deliverables->isNotEmpty())
+                                                Material disponible
+                                            @elseif ($booking->getMedia('deliverables')->isNotEmpty())
+                                                Material cargado, pendiente de publicación
+                                            @else
+                                                Material en preparación
+                                            @endif
+                                        </h4>
+                                    </div>
+                                    @if ($booking->deliverables_ready_at)
+                                        <span class="rounded-full border border-cyan-400/30 bg-cyan-500/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] text-cyan-200">
+                                            Publicado {{ $booking->deliverables_ready_at->translatedFormat('d M') }}
+                                        </span>
+                                    @endif
+                                </div>
+
+                                @if ($deliverables->isNotEmpty())
+                                    <div class="mt-5 grid gap-3 sm:grid-cols-2">
+                                        @foreach ($deliverables as $media)
+                                            @php
+                                                $mime = (string) $media->mime_type;
+                                                $isImage = str_starts_with($mime, 'image/');
+                                                $isVideo = str_starts_with($mime, 'video/');
+                                                $previewUrl = $isImage && $media->hasGeneratedConversion('thumb') ? $media->getUrl('thumb') : $media->getUrl();
+                                            @endphp
+                                            <div class="overflow-hidden rounded-2xl border border-white/10 bg-black/30">
+                                                @if ($isImage)
+                                                    <img src="{{ $previewUrl }}" alt="{{ $media->name }}" class="h-44 w-full object-cover">
+                                                @elseif ($isVideo)
+                                                    <video class="h-44 w-full object-cover" preload="metadata" controls>
+                                                        <source src="{{ $media->getUrl() }}" type="{{ $mime }}">
+                                                    </video>
+                                                @else
+                                                    <div class="flex h-44 flex-col items-center justify-center gap-3 bg-white/[0.03] px-4 text-center">
+                                                        <span class="rounded-full border border-white/10 bg-white/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-gray-200">
+                                                            {{ strtoupper(pathinfo($media->file_name, PATHINFO_EXTENSION) ?: 'FILE') }}
+                                                        </span>
+                                                        <p class="text-sm text-gray-300">{{ $media->name }}</p>
+                                                    </div>
+                                                @endif
+                                                <div class="flex items-center justify-between gap-3 p-4">
+                                                    <div class="min-w-0">
+                                                        <p class="truncate text-sm font-medium text-white">{{ $media->name }}</p>
+                                                        <p class="mt-1 text-xs text-gray-500">{{ number_format($media->size / 1024 / 1024, 2) }} MB</p>
+                                                    </div>
+                                                    <a href="{{ $media->getUrl() }}" target="_blank" rel="noopener" download class="btn btn-primary text-[11px]">
+                                                        Descargar
+                                                    </a>
+                                                </div>
+                                            </div>
+                                        @endforeach
+                                    </div>
+                                @else
+                                    <div class="mt-5 rounded-2xl border border-dashed border-white/12 bg-black/30 p-5">
+                                        <p class="text-sm text-gray-300">
+                                            @if ($booking->getMedia('deliverables')->isNotEmpty())
+                                                El equipo ya cargó archivos, pero todavía no los publica en tu portal.
+                                            @else
+                                                Tu material final aparecerá aquí apenas el equipo lo suba y lo publique.
+                                            @endif
+                                        </p>
+                                    </div>
+                                @endif
+                            </div>
                         </div>
-                        <button type="submit" class="btn btn-primary w-full justify-center">Acceder</button>
-                    </form>
-                </div>
+                    </article>
+                @endforeach
             </div>
         @endif
-    </div>
-@endsection
+    </section>
 
+    <section class="space-y-4">
+        <div>
+            <p class="text-xs uppercase tracking-[0.24em] text-gray-500">Finanzas</p>
+            <h2 class="mt-2 text-2xl font-bold text-white md:text-3xl">Pagos recientes</h2>
+        </div>
+
+        @if ($payments->isEmpty())
+            <div class="card border-white/12 bg-white/[0.04] p-6">
+                <p class="text-sm text-gray-400">Aún no hay pagos registrados en tu portal.</p>
+            </div>
+        @else
+            <div class="grid gap-3 md:grid-cols-2">
+                @foreach ($payments as $payment)
+                    <div class="card border-white/12 bg-white/[0.04] p-5">
+                        <div class="flex items-center justify-between gap-3">
+                            <div>
+                                <p class="text-base font-semibold text-white">{{ $payment->label }}</p>
+                                <p class="mt-1 text-sm text-gray-400">{{ $payment->detail }}</p>
+                            </div>
+                            <span class="rounded-full border px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] {{ $statusStyles[$payment->status_key] ?? 'border-white/20 bg-white/10 text-white' }}">
+                                {{ $payment->status }}
+                            </span>
+                        </div>
+                        <div class="mt-4 flex items-end justify-between gap-3">
+                            <p class="text-2xl font-bold text-white">{{ $payment->amount }}</p>
+                            <p class="text-xs uppercase tracking-[0.18em] text-gray-500">{{ optional($payment->date)->translatedFormat('d M Y · H:i') }}</p>
+                        </div>
+                    </div>
+                @endforeach
+            </div>
+        @endif
+    </section>
+
+    @if ($customer->ticketAttendees->isNotEmpty())
+        <section class="space-y-4">
+            <div>
+                <p class="text-xs uppercase tracking-[0.24em] text-gray-500">Eventos</p>
+                <h2 class="mt-2 text-2xl font-bold text-white md:text-3xl">Mis tickets</h2>
+            </div>
+            <div class="space-y-3">
+                @foreach ($customer->ticketAttendees->sortByDesc('created_at') as $attendee)
+                    @php
+                        $isActive = in_array($attendee->status, ['registered', 'checked_in']);
+                    @endphp
+                    <div class="card border-white/12 bg-white/[0.04] p-5">
+                        <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                            <div>
+                                <div class="flex flex-wrap items-center gap-2">
+                                    <p class="text-lg font-semibold text-white">{{ $attendee->event?->title ?? 'Evento' }}</p>
+                                    <span class="rounded-full border px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] {{ $isActive ? 'border-emerald-400/30 bg-emerald-500/10 text-emerald-300' : 'border-amber-400/30 bg-amber-500/10 text-amber-300' }}">
+                                        {{ $isActive ? 'Activo' : 'Pendiente' }}
+                                    </span>
+                                </div>
+                                <p class="mt-2 text-sm text-gray-400">{{ $attendee->product?->name ?? 'Ticket' }}</p>
+                                @if ($attendee->event?->starts_at)
+                                    <p class="mt-1 text-xs text-gray-500">{{ $attendee->event->starts_at->translatedFormat('d M Y · H:i') }}</p>
+                                @endif
+                            </div>
+                            <div class="flex flex-wrap gap-2">
+                                <a href="{{ $attendee->getCheckInUrl() }}" class="btn btn-primary text-[11px]">Ver QR</a>
+                                @if ($attendee->event)
+                                    <a href="{{ route('events.show', $attendee->event) }}" class="btn btn-ghost text-[11px]">Ver evento</a>
+                                @endif
+                            </div>
+                        </div>
+                    </div>
+                @endforeach
+            </div>
+        </section>
+    @endif
+
+    @if ($customer->guestListEntries->isNotEmpty())
+        <section class="space-y-4">
+            <div>
+                <p class="text-xs uppercase tracking-[0.24em] text-gray-500">Eventos</p>
+                <h2 class="mt-2 text-2xl font-bold text-white md:text-3xl">Mis guest lists</h2>
+            </div>
+            <div class="space-y-3">
+                @foreach ($customer->guestListEntries->sortByDesc('created_at') as $entry)
+                    <div class="card border-white/12 bg-white/[0.04] p-5">
+                        <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                            <div>
+                                <div class="flex flex-wrap items-center gap-2">
+                                    <p class="text-lg font-semibold text-white">{{ $entry->event?->title ?? 'Guest List General' }}</p>
+                                    <span class="rounded-full border px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] {{ $statusStyles[$entry->status] ?? 'border-white/20 bg-white/10 text-white' }}">
+                                        {{ ucfirst($entry->status) }}
+                                    </span>
+                                </div>
+                                @if ($entry->event)
+                                    <p class="mt-2 text-xs text-gray-500">{{ optional($entry->event->starts_at)->translatedFormat('d M Y') ?? 'Fecha por definir' }}</p>
+                                @endif
+                            </div>
+                            @if ($entry->status === 'confirmed' && $entry->event)
+                                <a href="{{ route('events.show', $entry->event) }}" class="btn btn-ghost text-[11px]">Ver evento</a>
+                            @endif
+                        </div>
+                    </div>
+                @endforeach
+            </div>
+        </section>
+    @endif
+</div>
+@endsection

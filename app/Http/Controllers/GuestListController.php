@@ -25,6 +25,7 @@ class GuestListController extends Controller
             'notes' => ['nullable', 'string', 'max:500'],
             'accepts_emails' => ['accepted'],
         ]);
+        $filled = static fn ($value): bool => $value !== null && $value !== '';
 
         try {
             // Find or create customer
@@ -44,6 +45,11 @@ class GuestListController extends Controller
                     'source' => 'guestlist',
                     'lifecycle_stage' => 'lead',
                     'lead_score' => 15, // Score inicial más alto por registrarse a evento
+                    'utm_source' => $request->input('utm_source'),
+                    'utm_medium' => $request->input('utm_medium'),
+                    'utm_campaign' => $request->input('utm_campaign'),
+                    'utm_term' => $request->input('utm_term'),
+                    'utm_content' => $request->input('utm_content'),
                     'subscribed_newsletter' => true,
                     'subscribed_sms' => !empty($validated['whatsapp']),
                     'subscribed_whatsapp' => !empty($validated['whatsapp']),
@@ -74,6 +80,32 @@ class GuestListController extends Controller
                     'event_id' => $validated['event_id'],
                 ]);
             }
+
+            $customerMetadata = is_array($customer->metadata) ? $customer->metadata : [];
+            $customerMetadata['guestlist_registration'] = array_filter([
+                'event_id' => $validated['event_id'],
+                'landing_page' => $request->input('landing_page'),
+                'landing_url' => $request->input('landing_url'),
+                'page_type' => $request->input('page_type'),
+                'page_name' => $request->input('page_name'),
+                'referrer' => $request->input('referrer'),
+                'analytics_visitor_id' => $request->input('analytics_visitor_id'),
+                'analytics_session_id' => $request->input('analytics_session_id'),
+                'fbp' => $request->input('fbp'),
+                'fbc' => $request->input('fbc'),
+                'captured_at' => now()->toIso8601String(),
+            ], $filled);
+
+            $customer->forceFill([
+                'utm_source' => $customer->utm_source ?: $request->input('utm_source'),
+                'utm_medium' => $customer->utm_medium ?: $request->input('utm_medium'),
+                'utm_campaign' => $customer->utm_campaign ?: $request->input('utm_campaign'),
+                'utm_term' => $customer->utm_term ?: $request->input('utm_term'),
+                'utm_content' => $customer->utm_content ?: $request->input('utm_content'),
+                'ip_address' => $customer->ip_address ?: $request->ip(),
+                'user_agent' => $customer->user_agent ?: $request->userAgent(),
+                'metadata' => $customerMetadata,
+            ])->save();
 
             // Verificar si ya está registrado en este evento
             $existingEntry = GuestListEntry::where('customer_id', $customer->id)

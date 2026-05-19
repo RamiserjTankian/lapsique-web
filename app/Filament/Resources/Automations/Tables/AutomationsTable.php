@@ -31,7 +31,7 @@ class AutomationsTable
                     ->colors([
                         'success' => ['signup', 'event_registration'],
                         'warning' => ['event_reminder', 'birthday', 'anniversary'],
-                        'info' => ['tag_added', 'lifecycle_change', 'score_threshold'],
+                        'info' => ['tag_added', 'lifecycle_change', 'score_threshold', 'email_opened'],
                         'secondary' => 'abandoned_cart',
                     ]),
                     
@@ -85,6 +85,7 @@ class AutomationsTable
                         'tag_added' => 'Tag Added',
                         'lifecycle_change' => 'Lifecycle Change',
                         'score_threshold' => 'Score Threshold',
+                        'email_opened' => 'Email Opened',
                     ]),
                     
                 SelectFilter::make('status')

@@ -5,6 +5,7 @@ namespace App\Filament\Resources\Events\Pages;
 use App\Filament\Resources\Events\EventResource;
 use App\Models\Event;
 use App\Models\GuestListInviteLink;
+use App\Support\EventLineup;
 use Filament\Actions\Action;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\ForceDeleteAction;
@@ -87,7 +88,7 @@ class EditEvent extends EditRecord
             return;
         }
 
-        $lineup = collect($lineupData)
+        collect($lineupData)
             ->filter(function ($row) {
                 $enabled = $row['enabled'] ?? true;
                 $hasDj = !empty($row['dj_id']);
@@ -104,22 +105,7 @@ class EditEvent extends EditRecord
             })
             ->values();
 
-        $payload = [];
-        $position = 1;
-
-        foreach ($lineup as $row) {
-            $djId = (int) $row['dj_id'];
-            if (isset($payload[$djId])) {
-                continue; // Skip duplicates
-            }
-
-            $payload[$djId] = [
-                'role' => $row['role'] ?? 'warmup',
-                'position' => $position++,
-                'time_slot' => $row['time_slot'] ?? null,
-                'guest_limit' => isset($row['guest_limit']) && $row['guest_limit'] !== '' ? (int) $row['guest_limit'] : null,
-            ];
-        }
+        $payload = EventLineup::payloadFromState($lineupData);
 
         \Log::info('Final payload to sync', [
             'payload' => $payload,

@@ -9,6 +9,8 @@ use Livewire\Attributes\Computed;
 
 class CampaignStatsWidget extends BaseWidget
 {
+    public ?Campaign $record = null;
+
     protected function getStats(): array
     {
         $record = $this->getRecord();
@@ -39,14 +41,26 @@ class CampaignStatsWidget extends BaseWidget
                 ->color('info'),
         ];
     }
-    
+
     protected function getRecord(): ?Campaign
     {
-        // Obtener el record del contexto de la página
-        $livewire = $this->getLivewire();
-        if (method_exists($livewire, 'getRecord')) {
-            return $livewire->getRecord();
+        if ($this->record) {
+            return $this->record;
         }
+
+        // Intentar obtener del componente padre (ViewRecord)
+        try {
+            $owner = $this->getOwner();
+            if ($owner && method_exists($owner, 'getRecord')) {
+                return $owner->getRecord();
+            }
+            if ($owner && property_exists($owner, 'record')) {
+                return $owner->record;
+            }
+        } catch (\Exception $e) {
+            // Ignorar errores
+        }
+
         return null;
     }
 }

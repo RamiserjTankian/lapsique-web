@@ -73,8 +73,12 @@
     </style>
 </head>
 <body style="margin: 0; padding: 0; background-color: #050505; color: #f6f6f6; font-family: 'Space Grotesk', 'Instrument Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; line-height: 1.6;">
+    @php($profileImageUrl = $profileImageUrl ?? null)
     <div class="email-wrapper" style="max-width: 600px; margin: 0 auto; background-color: #050505; color: #f6f6f6;">
         <div class="email-header" style="background-color: #050505; padding: 28px 30px 20px; text-align: center; border-bottom: 1px solid rgba(255, 255, 255, 0.12);">
+            @if($profileImageUrl)
+                <img src="{{ $profileImageUrl }}" width="64" height="64" alt="Profile" style="display: block; margin: 0 auto 12px; border-radius: 999px; border: 1px solid rgba(255, 255, 255, 0.2);" />
+            @endif
             <h1 style="color: #ffffff; margin: 0; font-size: 28px; letter-spacing: 0.18em;">🎬 LAPSIQUE.MEDIA</h1>
         </div>
         
@@ -94,7 +98,7 @@
             </p>
             
             <p style="font-size: 11px; color: #8f8f8f; margin: 0;">
-                Este email fue enviado a {{ $customer->email }}<br>
+                Este email fue enviado a {{ $recipientEmail ?? (isset($customer) ? $customer->email : '') }}<br>
                 © {{ date('Y') }} Lapsique. Todos los derechos reservados.
             </p>
             <div style="text-align: right; font-size: 18px; margin-top: 8px;">🇲🇽</div>

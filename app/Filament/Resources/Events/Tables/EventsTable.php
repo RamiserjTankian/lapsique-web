@@ -58,6 +58,23 @@ class EventsTable
                     ->badge()
                     ->color('success')
                     ->toggleable(),
+                TextColumn::make('paid_ticket_accesses')
+                    ->label('Tickets vendidos')
+                    ->sortable()
+                    ->badge()
+                    ->color('info')
+                    ->toggleable(),
+                TextColumn::make('registered_ticket_accesses')
+                    ->label('Registrados')
+                    ->sortable()
+                    ->badge()
+                    ->color('warning')
+                    ->toggleable(),
+                TextColumn::make('paid_ticket_revenue')
+                    ->label('Ventas')
+                    ->money('MXN')
+                    ->sortable()
+                    ->description(fn (Event $record): string => 'Consumible ' . number_format((float) ($record->paid_ticket_subtotal ?? 0), 2) . ' · Servicio ' . number_format((float) ($record->paid_ticket_fee ?? 0), 2)),
                 IconColumn::make('is_featured')
                     ->label('Destacado')
                     ->boolean(),

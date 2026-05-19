@@ -4,10 +4,13 @@ namespace App\Filament\Resources\Campaigns\Pages;
 
 use App\Filament\Resources\Campaigns\CampaignResource;
 use App\Jobs\ProcessCampaignJob;
+use App\Jobs\SendMarketingEmailJob;
+use App\Models\Customer;
 use Filament\Actions\Action;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\ForceDeleteAction;
 use Filament\Actions\RestoreAction;
+use Filament\Forms\Components\Select;
 use Filament\Notifications\Notification;
 use Filament\Resources\Pages\EditRecord;
 use Illuminate\Support\Facades\DB;
@@ -138,6 +141,83 @@ class EditCampaign extends EditRecord
                     } catch (\Exception $e) {
                         Notification::make()
                             ->title('Error al Enviar')
+                            ->body('Ocurrió un error: ' . $e->getMessage())
+                            ->danger()
+                            ->send();
+                    }
+                }),
+            Action::make('test_send')
+                ->label('Enviar Prueba')
+                ->icon('heroicon-o-paper-clip')
+                ->color('warning')
+                ->form([
+                    Select::make('customer_id')
+                        ->label('Enviar a Cliente')
+                        ->options(fn () => Customer::query()
+                            ->where('subscribed_newsletter', true)
+                            ->get()
+                            ->mapWithKeys(fn ($customer) => [
+                                $customer->id => ($customer->name ?? 'Sin nombre') . ' (' . $customer->email . ')'
+                            ])
+                            ->toArray())
+                        ->searchable()
+                        ->required()
+                        ->helperText('Selecciona un cliente para enviar una prueba del email'),
+                ])
+                ->action(function (array $data, $record) {
+                    try {
+                        $customer = Customer::find($data['customer_id']);
+                        
+                        if (!$customer) {
+                            Notification::make()
+                                ->title('Error')
+                                ->body('Cliente no encontrado')
+                                ->danger()
+                                ->send();
+                            return;
+                        }
+
+                        if (!$customer->subscribed_newsletter) {
+                            Notification::make()
+                                ->title('Error')
+                                ->body('El cliente no está suscrito al newsletter')
+                                ->danger()
+                                ->send();
+                            return;
+                        }
+
+                        // Preparar el contenido de la campaña
+                        $content = [
+                            'email' => [
+                                'subject' => $record->email_subject ?? 'Newsletter',
+                                'body' => $record->email_body ?? '',
+                                'button_text' => $record->button_text ?? 'Ver Más',
+                                'button_url' => $record->button_url ?? null,
+                            ],
+                        ];
+
+                        // Enviar email de prueba directamente
+                        $options = [
+                            'campaign_id' => $record->id,
+                            'button_text' => $content['email']['button_text'],
+                            'button_url' => $content['email']['button_url'],
+                        ];
+
+                        SendMarketingEmailJob::dispatch(
+                            $customer,
+                            $content['email']['subject'],
+                            $content['email']['body'],
+                            $options
+                        );
+
+                        Notification::make()
+                            ->title('Email de Prueba Enviado')
+                            ->body("Se envió una prueba a {$customer->name} ({$customer->email})")
+                            ->success()
+                            ->send();
+                    } catch (\Exception $e) {
+                        Notification::make()
+                            ->title('Error al Enviar Prueba')
                             ->body('Ocurrió un error: ' . $e->getMessage())
                             ->danger()
                             ->send();

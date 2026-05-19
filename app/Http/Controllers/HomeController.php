@@ -17,6 +17,10 @@ class HomeController extends Controller
             ->orderByDesc('created_at')
             ->first();
 
+        if ($featuredEvent) {
+            $featuredEvent->load(['ticketProducts' => fn ($query) => $query->active()->orderBy('price')]);
+        }
+
         // Obtener el DJ destacado (is_highlighted = true)
         $highlightedDj = Dj::query()
             ->where('is_highlighted', true)

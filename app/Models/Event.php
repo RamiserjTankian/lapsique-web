@@ -2,12 +2,14 @@
 
 namespace App\Models;
 
+use App\Support\EventLineup;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Support\Facades\Schema;
 use Spatie\Image\Enums\Fit;
 use Spatie\MediaLibrary\HasMedia;
 use Spatie\MediaLibrary\InteractsWithMedia;
@@ -18,6 +20,8 @@ class Event extends Model implements HasMedia
     use HasFactory;
     use InteractsWithMedia;
     use SoftDeletes;
+
+    protected static ?array $djEventPivotColumns = null;
 
     protected $fillable = [
         'title',
@@ -105,8 +109,7 @@ class Event extends Model implements HasMedia
     public function djs(): BelongsToMany
     {
         return $this->belongsToMany(Dj::class)
-            ->withPivot(['role', 'position', 'time_slot'])
-            ->orderByRaw("FIELD(dj_event.role, 'headliner', 'warmup') asc")
+            ->withPivot($this->availableDjEventPivotColumns())
             ->orderBy('dj_event.position')
             ->orderBy('djs.name');
     }
@@ -121,6 +124,26 @@ class Event extends Model implements HasMedia
         return $this->belongsToMany(Rp::class, 'rp_event')
             ->withPivot(['commission_rate', 'notes'])
             ->withTimestamps();
+    }
+
+    public function ticketProducts(): HasMany
+    {
+        return $this->hasMany(TicketProduct::class);
+    }
+
+    public function ticketOrders(): HasMany
+    {
+        return $this->hasMany(TicketOrder::class);
+    }
+
+    public function ticketAttendees(): HasMany
+    {
+        return $this->hasMany(TicketAttendee::class);
+    }
+
+    public function customerBalances(): HasMany
+    {
+        return $this->hasMany(CustomerEventBalance::class);
     }
 
     public function getGuestListCountForDj(int $djId): int
@@ -138,6 +161,13 @@ class Event extends Model implements HasMedia
             ->first()?->pivot;
 
         return $pivot?->guest_limit;
+    }
+
+    public function getLineupEntriesByRole(string $role): array
+    {
+        return EventLineup::displayEntries(
+            $this->djs->where('pivot.role', $role)->values()
+        )->all();
     }
 
     /**
@@ -171,5 +201,27 @@ class Event extends Model implements HasMedia
     public function getRouteKeyName(): string
     {
         return 'slug';
+    }
+
+    public function getSalesBalanceAttribute(): array
+    {
+        return [
+            'paid_orders' => (int) ($this->paid_ticket_orders_count ?? 0),
+            'gross_revenue' => (float) ($this->paid_ticket_revenue ?? 0),
+            'net_revenue' => (float) ($this->paid_ticket_subtotal ?? 0),
+            'service_fees' => (float) ($this->paid_ticket_fee ?? 0),
+            'tickets_sold' => (int) ($this->paid_ticket_accesses ?? 0),
+            'tickets_registered' => (int) ($this->registered_ticket_accesses ?? 0),
+        ];
+    }
+
+    protected function availableDjEventPivotColumns(): array
+    {
+        $available = self::$djEventPivotColumns ??= Schema::getColumnListing('dj_event');
+
+        return array_values(array_intersect(
+            ['role', 'position', 'time_slot', 'guest_limit', 'b2b_with_dj_id'],
+            $available
+        ));
     }
 }

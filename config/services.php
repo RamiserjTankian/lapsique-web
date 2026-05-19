@@ -39,6 +39,7 @@ return [
         'api_token' => env('MAILTRAP_API_TOKEN'),
         'api_endpoint' => env('MAILTRAP_API_ENDPOINT', 'https://send.api.mailtrap.io/api/send'),
         'api_timeout' => env('MAILTRAP_API_TIMEOUT', 15),
+        'webhook_secret' => env('MAILTRAP_WEBHOOK_SECRET'),
         'account_id' => $mailtrapAccountId,
         'events_endpoint' => $mailtrapEventsEndpoint
             ?: ($mailtrapAccountId ? "https://mailtrap.io/api/accounts/{$mailtrapAccountId}/events" : ''),
@@ -52,6 +53,11 @@ return [
             'bot_user_oauth_token' => env('SLACK_BOT_USER_OAUTH_TOKEN'),
             'channel' => env('SLACK_BOT_USER_DEFAULT_CHANNEL'),
         ],
+    ],
+
+    'google' => [
+        'client_id' => env('GOOGLE_CLIENT_ID'),
+        'client_secret' => env('GOOGLE_CLIENT_SECRET'),
     ],
 
 ];

@@ -11,12 +11,15 @@ use Spatie\MediaLibrary\InteractsWithMedia;
 use Spatie\MediaLibrary\MediaCollections\Models\Media;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Facades\Schema;
 
 class Dj extends Model implements HasMedia
 {
     use HasFactory;
     use InteractsWithMedia;
     use SoftDeletes;
+
+    protected static ?array $eventPivotColumns = null;
 
     protected $fillable = [
         'name',
@@ -84,7 +87,7 @@ class Dj extends Model implements HasMedia
     public function events(): BelongsToMany
     {
         return $this->belongsToMany(Event::class)
-            ->withPivot(['role', 'position', 'time_slot', 'guest_limit']);
+            ->withPivot($this->availableEventPivotColumns());
     }
 
     public function rps(): BelongsToMany
@@ -131,5 +134,15 @@ class Dj extends Model implements HasMedia
             ->withPivot('position')
             ->orderByPivot('position')
             ->orderByDesc('published_at');
+    }
+
+    protected function availableEventPivotColumns(): array
+    {
+        $available = self::$eventPivotColumns ??= Schema::getColumnListing('dj_event');
+
+        return array_values(array_intersect(
+            ['role', 'position', 'time_slot', 'guest_limit', 'b2b_with_dj_id'],
+            $available
+        ));
     }
 }

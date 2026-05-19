@@ -7,6 +7,7 @@ use App\Models\Event;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
 
 class CustomerController extends Controller
@@ -69,17 +70,61 @@ class CustomerController extends Controller
         }
     }
 
-    public function portal(Request $request)
+    public function portal(Request $request): View
     {
-        $customer = null;
+        $customer = Auth::guard('customer')->user();
+        $customer?->load([
+            'contentBookings.slot',
+            'contentBookings.media',
+            'eventBalances.event',
+            'guestListEntries.event',
+            'ticketAttendees.event',
+            'ticketAttendees.product',
+            'ticketOrders.event',
+            'ticketOrders.items',
+            'ticketOrders.attendees',
+        ]);
 
-        if ($request->has('email')) {
-            $customer = Customer::query()
-                ->where('email', $request->email)
-                ->with(['guestListEntries.event'])
-                ->first();
+        $payments = collect();
+
+        if ($customer) {
+            $bookingPayments = $customer->contentBookings->map(function ($booking) {
+                return (object) [
+                    'type' => 'booking',
+                    'label' => 'Sesión de contenido',
+                    'status' => $booking->payment_status_label,
+                    'status_key' => $booking->status,
+                    'amount' => $booking->formatted_amount,
+                    'date' => $booking->updated_at ?? $booking->created_at,
+                    'detail' => $booking->slot_summary,
+                ];
+            });
+
+            $ticketPayments = $customer->ticketOrders->map(function ($order) {
+                return (object) [
+                    'type' => 'ticket_order',
+                    'label' => $order->event?->title ?? 'Compra de tickets',
+                    'status' => match ($order->status) {
+                        'paid' => 'Pagado',
+                        'pending' => 'Pendiente',
+                        'failed' => 'Fallido',
+                        'cancelled' => 'Cancelado',
+                        'refunded' => 'Reembolsado',
+                        default => ucfirst($order->status),
+                    },
+                    'status_key' => $order->status,
+                    'amount' => '$' . number_format((float) $order->total, 0) . ' ' . $order->currency,
+                    'date' => $order->paid_at ?? $order->created_at,
+                    'detail' => $order->buyer_email,
+                ];
+            });
+
+            $payments = $bookingPayments
+                ->merge($ticketPayments)
+                ->sortByDesc(fn ($payment) => $payment->date)
+                ->values();
         }
 
-        return view('customers.portal', compact('customer'));
+        return view('customers.portal', compact('customer', 'payments'));
     }
 }

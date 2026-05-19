@@ -2,7 +2,10 @@
 
 namespace App\Filament\Resources\Campaigns\Schemas;
 
+use App\Filament\Forms\Components\RichEditor\Actions\AttachFilesWithEditorAction;
+use App\Services\ImageCompressionService;
 use Filament\Forms\Components\DateTimePicker;
+use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\RichEditor;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
@@ -12,6 +15,7 @@ use Filament\Forms\Components\TagsInput;
 use Filament\Schemas\Components\Utilities\Set;
 use Filament\Schemas\Schema;
 use Illuminate\Support\Facades\Auth;
+use Livewire\Features\SupportFileUploads\TemporaryUploadedFile;
 
 class CampaignForm
 {
@@ -75,7 +79,32 @@ class CampaignForm
                     ->required(fn ($get) => $get('type') === 'email' || $get('type') === 'multi_channel')
                     ->visible(fn ($get) => in_array($get('type'), ['email', 'multi_channel']))
                     ->fileAttachmentsDisk('public')
-                    ->fileAttachmentsDirectory('campaign-attachments')
+                    ->fileAttachmentsDirectory('campaigns/attachments')
+                    ->fileAttachmentsVisibility('public')
+                    ->fileAttachmentsMaxSize(10240) // 10MB máximo antes de comprimir
+                    ->registerActions([
+                        AttachFilesWithEditorAction::make(),
+                    ])
+                    ->saveUploadedFileAttachmentUsing(function (TemporaryUploadedFile $file) {
+                        $service = app(ImageCompressionService::class);
+                        $path = $service->compressAndSave($file, 'public', 'campaigns/attachments');
+                        
+                        if ($path) {
+                            return $path;
+                        }
+                        
+                        // Fallback: guardar sin comprimir si falla
+                        return $file->storeAs('campaigns/attachments', $file->getClientOriginalName(), 'public');
+                    })
+                    ->getFileAttachmentUrlUsing(function (string $file): string {
+                        // Construir la URL absoluta para el archivo
+                        // El archivo está en storage/app/public/campaigns/attachments/
+                        // Y se accede a través de /storage/campaigns/attachments/
+                        $relativePath = '/storage/' . ltrim($file, '/');
+                        $absoluteUrl = config('app.url') . $relativePath;
+                        
+                        return $absoluteUrl;
+                    })
                     ->toolbarButtons([
                         'bold',
                         'italic',
@@ -87,11 +116,12 @@ class CampaignForm
                         'bulletList',
                         'orderedList',
                         'blockquote',
+                        'attachFiles',
                         'undo',
                         'redo',
                     ])
                     ->columnSpanFull()
-                    ->helperText('Escribe el contenido del email. Puedes usar enlaces que se trackearán automáticamente.'),
+                    ->helperText('Escribe el contenido del email. Las imágenes se ajustan a 600px de ancho y puedes recortarlas desde el botón de adjuntar archivos.'),
 
                 TextInput::make('button_text')
                     ->label('Texto del Botón')

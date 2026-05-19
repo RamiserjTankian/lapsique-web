@@ -23,6 +23,7 @@ class LeadCaptureController extends Controller
             'interests' => ['nullable', 'array'],
             'interests.*' => ['string'],
         ]);
+        $filled = static fn ($value): bool => $value !== null && $value !== '';
 
         try {
             // Verificar si el cliente ya existe
@@ -33,10 +34,37 @@ class LeadCaptureController extends Controller
                 $customer->update([
                     'name' => $validated['name'],
                     'phone' => $validated['phone'] ?? $customer->phone,
+                    'whatsapp' => $validated['phone'] ?? $customer->whatsapp,
                     'instagram_handle' => $validated['instagram_handle'] ?? $customer->instagram_handle,
                     'tags' => array_unique(array_merge($customer->tags ?? [], $validated['interests'] ?? [])),
                     'last_interaction_at' => now(),
                 ]);
+
+                $metadata = is_array($customer->metadata) ? $customer->metadata : [];
+                $metadata['popup_capture'] = array_filter([
+                    'signup_page' => $request->input('current_page'),
+                    'landing_page' => $request->input('landing_page'),
+                    'landing_url' => $request->input('landing_url'),
+                    'page_type' => $request->input('page_type'),
+                    'page_name' => $request->input('page_name'),
+                    'referrer' => $request->input('referrer'),
+                    'analytics_visitor_id' => $request->input('analytics_visitor_id'),
+                    'analytics_session_id' => $request->input('analytics_session_id'),
+                    'fbp' => $request->input('fbp'),
+                    'fbc' => $request->input('fbc'),
+                    'captured_at' => now()->toIso8601String(),
+                ], $filled);
+
+                $customer->forceFill([
+                    'utm_source' => $customer->utm_source ?: $request->input('utm_source'),
+                    'utm_medium' => $customer->utm_medium ?: $request->input('utm_medium'),
+                    'utm_campaign' => $customer->utm_campaign ?: $request->input('utm_campaign'),
+                    'utm_term' => $customer->utm_term ?: $request->input('utm_term'),
+                    'utm_content' => $customer->utm_content ?: $request->input('utm_content'),
+                    'ip_address' => $customer->ip_address ?: $request->ip(),
+                    'user_agent' => $customer->user_agent ?: $request->userAgent(),
+                    'metadata' => $metadata,
+                ])->save();
 
                 Log::info('Existing customer updated from popup', [
                     'customer_id' => $customer->id,
@@ -78,7 +106,15 @@ class LeadCaptureController extends Controller
                 // Metadata adicional
                 'metadata' => [
                     'signup_page' => $request->input('current_page'),
+                    'landing_page' => $request->input('landing_page'),
+                    'landing_url' => $request->input('landing_url'),
+                    'page_type' => $request->input('page_type'),
+                    'page_name' => $request->input('page_name'),
                     'referrer' => $request->input('referrer'),
+                    'analytics_visitor_id' => $request->input('analytics_visitor_id'),
+                    'analytics_session_id' => $request->input('analytics_session_id'),
+                    'fbp' => $request->input('fbp'),
+                    'fbc' => $request->input('fbc'),
                 ],
             ]);
 

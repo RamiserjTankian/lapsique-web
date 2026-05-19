@@ -50,17 +50,20 @@ class SendMarketingEmailJob implements ShouldQueue
             $trackingToken = EmailTracking::generateToken();
 
             // Crear log de contacto
+            $metadata = array_merge($this->options['metadata'] ?? [], [
+                'template' => 'marketing',
+                'tracking_token' => $trackingToken,
+            ]);
+
             $contactLog = ContactLog::create([
                 'customer_id' => $this->customer->id,
                 'campaign_id' => $this->options['campaign_id'] ?? null,
+                'automation_id' => $this->options['automation_id'] ?? null,
                 'channel' => 'email',
                 'type' => 'marketing',
                 'subject' => $this->subject,
                 'message' => $this->content,
-                'metadata' => [
-                    'template' => 'marketing',
-                    'tracking_token' => $trackingToken,
-                ],
+                'metadata' => $metadata,
                 'status' => 'pending',
             ]);
 

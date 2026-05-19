@@ -2,6 +2,7 @@
 
 namespace App\Jobs;
 
+use App\Models\Automation;
 use App\Models\EmailTracking;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -43,6 +44,8 @@ class ProcessEmailOpenJob implements ShouldQueue
                 return;
             }
 
+            $isFirstOpen = $emailTracking->opens_count === 0;
+
             // Registrar la apertura
             $emailTracking->recordOpen($this->ipAddress, $this->userAgent);
 
@@ -51,6 +54,35 @@ class ProcessEmailOpenJob implements ShouldQueue
                 'customer_id' => $emailTracking->customer_id,
                 'opens_count' => $emailTracking->opens_count,
             ]);
+
+            if (! $isFirstOpen) {
+                return;
+            }
+
+            $contactLog = $emailTracking->contactLog;
+            $campaignId = $contactLog?->campaign_id;
+
+            $context = [
+                'campaign_id' => $campaignId,
+                'tracking_token' => $emailTracking->tracking_token,
+                'contact_log_id' => $contactLog?->id,
+            ];
+
+            if (! $campaignId) {
+                return;
+            }
+
+            $automations = Automation::active()
+                ->where('trigger_type', 'email_opened')
+                ->get();
+
+            foreach ($automations as $automation) {
+                if (! $automation->shouldTriggerFor($emailTracking->customer, $context)) {
+                    continue;
+                }
+
+                RunAutomationForCustomerJob::dispatch($automation->id, $emailTracking->customer_id, $context);
+            }
         } catch (\Exception $e) {
             Log::error('Failed to process email open', [
                 'tracking_token' => $this->trackingToken,

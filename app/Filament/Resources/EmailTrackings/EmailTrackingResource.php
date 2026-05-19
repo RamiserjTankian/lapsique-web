@@ -26,6 +26,9 @@ class EmailTrackingResource extends Resource
     protected static UnitEnum|string|null $navigationGroup = 'Analytics';
 
     protected static ?int $navigationSort = 0;
+    
+    // Ocultar del menú de navegación - la información se puede ver desde Contact Logs
+    protected static bool $shouldRegisterNavigation = false;
 
     public static function form(Schema $schema): Schema
     {

@@ -3,14 +3,16 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Foundation\Auth\User as Authenticatable;
+use Illuminate\Notifications\Notifiable;
 
-class Customer extends Model
+class Customer extends Authenticatable
 {
     use HasFactory;
+    use Notifiable;
     use SoftDeletes;
 
     protected $fillable = [
@@ -39,6 +41,8 @@ class Customer extends Model
         'ip_address',
         'user_agent',
         'last_interaction_at',
+        'password',
+        'remember_token',
     ];
 
     protected $casts = [
@@ -51,6 +55,12 @@ class Customer extends Model
         'phone_verified_at' => 'datetime',
         'last_interaction_at' => 'datetime',
         'lead_score' => 'integer',
+        'password' => 'hashed',
+    ];
+
+    protected $hidden = [
+        'password',
+        'remember_token',
     ];
 
     // Relaciones
@@ -73,6 +83,26 @@ class Customer extends Model
     {
         return $this->belongsToMany(Rp::class, 'rp_customer')
             ->withTimestamps();
+    }
+
+    public function ticketOrders(): HasMany
+    {
+        return $this->hasMany(TicketOrder::class);
+    }
+
+    public function ticketAttendees(): HasMany
+    {
+        return $this->hasMany(TicketAttendee::class);
+    }
+
+    public function eventBalances(): HasMany
+    {
+        return $this->hasMany(CustomerEventBalance::class);
+    }
+
+    public function contentBookings(): HasMany
+    {
+        return $this->hasMany(ContentBooking::class);
     }
 
     // Métodos de utilidad

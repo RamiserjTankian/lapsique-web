@@ -5,6 +5,7 @@ namespace App\Filament\Resources\ContactLogs;
 use App\Filament\Resources\ContactLogs\Pages\CreateContactLog;
 use App\Filament\Resources\ContactLogs\Pages\EditContactLog;
 use App\Filament\Resources\ContactLogs\Pages\ListContactLogs;
+use App\Filament\Resources\ContactLogs\Pages\ViewContactLog;
 use App\Filament\Resources\ContactLogs\Schemas\ContactLogForm;
 use App\Filament\Resources\ContactLogs\Tables\ContactLogsTable;
 use App\Models\ContactLog;
@@ -13,6 +14,7 @@ use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Model;
 use UnitEnum;
 
 class ContactLogResource extends Resource
@@ -49,7 +51,18 @@ class ContactLogResource extends Resource
         return [
             'index' => ListContactLogs::route('/'),
             'create' => CreateContactLog::route('/create'),
+            'view' => ViewContactLog::route('/{record}'),
             'edit' => EditContactLog::route('/{record}/edit'),
         ];
+    }
+
+    public static function canCreate(): bool
+    {
+        return false;
+    }
+
+    public static function canEdit(Model $record): bool
+    {
+        return false;
     }
 }

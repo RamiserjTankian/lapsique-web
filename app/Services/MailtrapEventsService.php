@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\ContactLog;
+use App\Models\EmailTracking;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
@@ -136,6 +137,22 @@ class MailtrapEventsService
         }
 
         $log->markAsOpened();
+
+        // También actualizar el EmailTracking con detalles de apertura
+        $emailTracking = $this->resolveEmailTracking($log);
+
+        if ($emailTracking) {
+            $ip = $event['ip'] ?? null;
+            $userAgent = $event['user_agent'] ?? null;
+
+            $emailTracking->recordOpen($ip, $userAgent);
+
+            Log::info('Email open processed from Mailtrap webhook', [
+                'tracking_token' => $emailTracking->tracking_token,
+                'customer_id' => $emailTracking->customer_id,
+                'opens_count' => $emailTracking->fresh()->opens_count,
+            ]);
+        }
     }
 
     protected function handleClicked(array $event): void
@@ -147,6 +164,26 @@ class MailtrapEventsService
         }
 
         $log->markAsClicked();
+
+        // También actualizar el EmailTracking con detalles del click
+        $emailTracking = $this->resolveEmailTracking($log);
+
+        if ($emailTracking) {
+            $url = $event['url'] ?? null;
+            $ip = $event['ip'] ?? null;
+            $userAgent = $event['user_agent'] ?? null;
+
+            if ($url) {
+                $emailTracking->recordClick($url, $ip, $userAgent);
+
+                Log::info('Email click processed from Mailtrap webhook', [
+                    'tracking_token' => $emailTracking->tracking_token,
+                    'customer_id' => $emailTracking->customer_id,
+                    'url' => $url,
+                    'clicks_count' => $emailTracking->fresh()->clicks_count,
+                ]);
+            }
+        }
     }
 
     protected function handleBounced(array $event): void
@@ -186,6 +223,7 @@ class MailtrapEventsService
         $messageId = $event['message_id'] ?? null;
         $email = $event['email'] ?? null;
 
+        // Primero intentar por message_id (más preciso)
         if ($messageId) {
             $log = ContactLog::query()
                 ->where('channel', 'email')
@@ -198,16 +236,24 @@ class MailtrapEventsService
             }
         }
 
+        // Si no se encuentra por message_id, buscar por email en estados válidos
         if ($email) {
             return ContactLog::query()
                 ->where('channel', 'email')
-                ->whereIn('status', ['pending', 'sent'])
+                ->whereIn('status', ['pending', 'sent', 'delivered', 'opened', 'clicked'])
                 ->whereHas('customer', fn ($query) => $query->where('email', $email))
                 ->latest('created_at')
                 ->first();
         }
 
         return null;
+    }
+
+    protected function resolveEmailTracking(ContactLog $contactLog): ?EmailTracking
+    {
+        return EmailTracking::query()
+            ->where('contact_log_id', $contactLog->id)
+            ->first();
     }
 
     protected function normalizeEvents(mixed $payload): array

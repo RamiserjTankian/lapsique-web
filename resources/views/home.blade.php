@@ -200,17 +200,24 @@
                                 @endif
                             </div>
 
+                            @php
+                                $hasInternalTickets = $featuredEvent->ticketProducts && $featuredEvent->ticketProducts->isNotEmpty();
+                                $eventTicketsUrl = $hasInternalTickets
+                                    ? route('events.show', $featuredEvent) . '#tickets'
+                                    : $featuredEvent->ticket_url;
+                            @endphp
+
                             <!-- CTA Buttons -->
                             <div class="flex flex-wrap gap-4 pt-4">
                                 <a href="{{ route('events.show', $featuredEvent) }}" class="btn btn-primary text-base px-8 py-4">
                                     Ver Detalles del Evento
                                 </a>
-                                @if ($featuredEvent->ticket_url)
-                                    <a href="{{ $featuredEvent->ticket_url }}" target="_blank" class="btn btn-ghost text-base px-8 py-4 border-2">
+                                @if ($eventTicketsUrl)
+                                    <a href="{{ $eventTicketsUrl }}" @if (! $hasInternalTickets) target="_blank" @endif class="btn btn-ghost text-base px-8 py-4 border-2">
                                         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 5v2m0 4v2m0 4v2M5 5a2 2 0 00-2 2v3a2 2 0 110 4v3a2 2 0 002 2h14a2 2 0 002-2v-3a2 2 0 110-4V7a2 2 0 00-2-2H5z" />
                                         </svg>
-                                        Comprar Tickets
+                                        Comprar tickets / mesas
                                     </a>
                                 @endif
                             </div>
@@ -237,8 +244,8 @@
                                     <p class="text-xs uppercase tracking-[0.2em] text-gray-300">Evento</p>
                                     <p class="text-xl font-bold text-white">{{ optional($featuredEvent->starts_at)->format('d M Y') ?? 'Próximamente' }}</p>
                                 </div>
-                                @if ($featuredEvent->ticket_url)
-                                    <span class="pill border-white text-white bg-white/20 backdrop-blur">Tickets Disponibles</span>
+                                @if ($hasInternalTickets || $featuredEvent->ticket_url)
+                                    <span class="pill border-white text-white bg-white/20 backdrop-blur">Tickets y mesas disponibles</span>
                                 @endif
                             </div>
                         </div>

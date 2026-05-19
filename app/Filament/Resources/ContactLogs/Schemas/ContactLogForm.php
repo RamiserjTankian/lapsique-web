@@ -2,10 +2,10 @@
 
 namespace App\Filament\Resources\ContactLogs\Schemas;
 
-use Filament\Forms\Components\Section;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
+use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
 
 class ContactLogForm
@@ -22,11 +22,6 @@ class ContactLogForm
                             ->relationship('customer', 'name')
                             ->disabled()
                             ->dehydrated(false),
-                        TextInput::make('customer_email')
-                            ->label('Email')
-                            ->state(fn ($record) => $record?->customer?->email)
-                            ->disabled()
-                            ->dehydrated(false),
                         Select::make('event_id')
                             ->label('Evento')
                             ->relationship('event', 'title')
@@ -34,17 +29,14 @@ class ContactLogForm
                             ->dehydrated(false),
                         TextInput::make('channel')
                             ->label('Canal')
-                            ->state(fn ($record) => $record?->channel ? ucfirst($record->channel) : '-')
                             ->disabled()
                             ->dehydrated(false),
                         TextInput::make('type')
                             ->label('Tipo')
-                            ->state(fn ($record) => $record?->type ? ucfirst($record->type) : '-')
                             ->disabled()
                             ->dehydrated(false),
                         TextInput::make('status')
                             ->label('Estado')
-                            ->state(fn ($record) => $record?->status ? ucfirst($record->status) : '-')
                             ->disabled()
                             ->dehydrated(false),
                     ]),
@@ -61,49 +53,36 @@ class ContactLogForm
                             ->disabled()
                             ->dehydrated(false),
                     ]),
-                Section::make('Estado de Entrega')
+                Section::make('Fechas')
                     ->columns(2)
                     ->schema([
-                        TextInput::make('sent_at_display')
+                        TextInput::make('sent_at')
                             ->label('Enviado')
-                            ->state(fn ($record) => $record?->sent_at?->format('d/m/Y H:i') ?? '-')
                             ->disabled()
                             ->dehydrated(false),
-                        TextInput::make('delivered_at_display')
+                        TextInput::make('delivered_at')
                             ->label('Entregado')
-                            ->state(fn ($record) => $record?->delivered_at?->format('d/m/Y H:i') ?? '-')
                             ->disabled()
                             ->dehydrated(false),
-                        TextInput::make('opened_at_display')
+                        TextInput::make('opened_at')
                             ->label('Abierto')
-                            ->state(fn ($record) => $record?->opened_at?->format('d/m/Y H:i') ?? '-')
                             ->disabled()
                             ->dehydrated(false),
-                        TextInput::make('clicked_at_display')
+                        TextInput::make('clicked_at')
                             ->label('Clic')
-                            ->state(fn ($record) => $record?->clicked_at?->format('d/m/Y H:i') ?? '-')
                             ->disabled()
                             ->dehydrated(false),
-                        TextInput::make('failed_at_display')
+                        TextInput::make('failed_at')
                             ->label('Fallido')
-                            ->state(fn ($record) => $record?->failed_at?->format('d/m/Y H:i') ?? '-')
                             ->disabled()
                             ->dehydrated(false),
-                        TextInput::make('created_at_display')
+                        TextInput::make('created_at')
                             ->label('Creado')
-                            ->state(fn ($record) => $record?->created_at?->format('d/m/Y H:i') ?? '-')
                             ->disabled()
                             ->dehydrated(false),
                         Textarea::make('error_message')
-                            ->label('Error')
+                            ->label('Mensaje de Error')
                             ->rows(3)
-                            ->disabled()
-                            ->dehydrated(false)
-                            ->columnSpanFull(),
-                        Textarea::make('metadata')
-                            ->label('Metadata')
-                            ->rows(6)
-                            ->state(fn ($record) => $record?->metadata ? json_encode($record->metadata, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES) : '-')
                             ->disabled()
                             ->dehydrated(false)
                             ->columnSpanFull(),

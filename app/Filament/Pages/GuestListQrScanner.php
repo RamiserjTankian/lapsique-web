@@ -4,6 +4,8 @@ namespace App\Filament\Pages;
 
 use App\Models\GuestListEntry;
 use App\Models\GuestListScan;
+use App\Models\TicketAttendee;
+use App\Models\TicketScan;
 use BackedEnum;
 use Filament\Notifications\Notification;
 use Filament\Pages\Page;
@@ -25,6 +27,7 @@ class GuestListQrScanner extends Page
     public string $manualPayload = '';
     public ?array $scanOverlay = null;
     public ?int $pendingEntryId = null;
+    public ?string $pendingEntryType = null;
 
     public function handleScan(string $payload): void
     {
@@ -46,23 +49,31 @@ class GuestListQrScanner extends Page
             return;
         }
 
-        $entry = $this->findEntry($tokenOrCode);
+        $scanTarget = $this->findScanTarget($tokenOrCode);
 
-        if (! $entry) {
-            $this->notifyError('No encontramos al invitado en la guest list.');
+        if (! $scanTarget) {
+            $this->notifyError('No encontramos al invitado.');
             return;
         }
 
+        $entry = $scanTarget['record'];
+        $type = $scanTarget['type'];
+
         $canCheckIn = $entry->canCheckIn();
-        $usesCounters = $entry->supportsCheckInCounters();
+        $usesCounters = $type === 'guestlist' ? $entry->supportsCheckInCounters() : true;
         $scanStatus = $canCheckIn ? 'pending' : ($usesCounters ? 'limit_reached' : 'duplicate');
 
-        $entry->loadMissing(['event', 'customer', 'dj', 'rp', 'inviteLink']);
+        if ($type === 'guestlist') {
+            $entry->loadMissing(['event', 'customer', 'dj', 'rp', 'inviteLink']);
+        } else {
+            $entry->loadMissing(['event', 'product', 'order']);
+        }
 
-        $listOwner = $this->resolveListOwner($entry);
+        $listOwner = $this->resolveListOwner($entry, $type);
         $checkedInAt = $entry->check_in_at?->format('H:i') ?? '—';
 
         $this->pendingEntryId = $entry->id;
+        $this->pendingEntryType = $type;
 
         $this->showScanOverlay([
             'status' => $scanStatus,
@@ -71,7 +82,7 @@ class GuestListQrScanner extends Page
                 'duplicate' => 'Reescaneado',
                 default => 'Lectura confirmada',
             },
-            'guest' => $entry->customer?->name ?? 'Invitado',
+            'guest' => $type === 'guestlist' ? ($entry->customer?->name ?? 'Invitado') : ($entry->name ?? 'Invitado'),
             'event' => $entry->event?->title ?? 'Evento',
             'list_owner' => $listOwner,
             'checked_in_at' => $checkedInAt,
@@ -126,7 +137,22 @@ class GuestListQrScanner extends Page
         return null;
     }
 
-    protected function findEntry(string $tokenOrCode): ?GuestListEntry
+    protected function findScanTarget(string $tokenOrCode): ?array
+    {
+        $entry = $this->findGuestListEntry($tokenOrCode);
+        if ($entry) {
+            return ['type' => 'guestlist', 'record' => $entry];
+        }
+
+        $attendee = $this->findTicketAttendee($tokenOrCode);
+        if ($attendee) {
+            return ['type' => 'ticket', 'record' => $attendee];
+        }
+
+        return null;
+    }
+
+    protected function findGuestListEntry(string $tokenOrCode): ?GuestListEntry
     {
         if ($this->isInviteToken($tokenOrCode)) {
             return GuestListEntry::with(['event', 'customer', 'dj', 'rp', 'inviteLink'])
@@ -137,6 +163,32 @@ class GuestListQrScanner extends Page
         if ($this->isCheckInCode($tokenOrCode)) {
             $code = strtolower($tokenOrCode);
             $matches = GuestListEntry::with(['event', 'customer', 'dj', 'rp', 'inviteLink'])
+                ->where('invite_token', 'like', '%' . $code)
+                ->get();
+
+            if ($matches->count() === 1) {
+                return $matches->first();
+            }
+
+            if ($matches->count() > 1) {
+                $this->notifyWarning('Código duplicado. Valida el nombre en la lista.');
+            }
+        }
+
+        return null;
+    }
+
+    protected function findTicketAttendee(string $tokenOrCode): ?TicketAttendee
+    {
+        if ($this->isInviteToken($tokenOrCode)) {
+            return TicketAttendee::with(['event', 'product', 'order'])
+                ->where('invite_token', strtolower($tokenOrCode))
+                ->first();
+        }
+
+        if ($this->isCheckInCode($tokenOrCode)) {
+            $code = strtolower($tokenOrCode);
+            $matches = TicketAttendee::with(['event', 'product', 'order'])
                 ->where('invite_token', 'like', '%' . $code)
                 ->get();
 
@@ -170,6 +222,7 @@ class GuestListQrScanner extends Page
     {
         $this->scanOverlay = null;
         $this->pendingEntryId = null;
+        $this->pendingEntryType = null;
         $this->dispatch('qr-overlay:resume');
     }
 
@@ -186,17 +239,19 @@ class GuestListQrScanner extends Page
             return;
         }
 
-        $entry = GuestListEntry::with(['event', 'customer', 'dj', 'rp', 'inviteLink'])
-            ->find($this->pendingEntryId);
+        $entryType = $this->pendingEntryType ?? 'guestlist';
+        $entry = $entryType === 'ticket'
+            ? TicketAttendee::with(['event', 'product', 'order'])->find($this->pendingEntryId)
+            : GuestListEntry::with(['event', 'customer', 'dj', 'rp', 'inviteLink'])->find($this->pendingEntryId);
 
         if (! $entry) {
-            $this->notifyError('No encontramos al invitado en la guest list.');
+            $this->notifyError('No encontramos al invitado.');
             $this->dismissScanOverlay();
             return;
         }
 
         $canCheckIn = $entry->canCheckIn();
-        $usesCounters = $entry->supportsCheckInCounters();
+        $usesCounters = $entryType === 'guestlist' ? $entry->supportsCheckInCounters() : true;
         $scanStatus = $canCheckIn ? 'checked_in' : ($usesCounters ? 'limit_reached' : 'duplicate');
 
         if ($canCheckIn) {
@@ -204,32 +259,53 @@ class GuestListQrScanner extends Page
             $entry->refresh();
         }
 
-        GuestListScan::create([
-            'guest_list_entry_id' => $entry->id,
-            'user_id' => auth()->id(),
-            'scan_status' => $scanStatus,
-            'scanned_at' => now(),
-        ]);
+        if ($entryType === 'ticket') {
+            TicketScan::create([
+                'ticket_attendee_id' => $entry->id,
+                'user_id' => auth()->id(),
+                'scan_status' => $scanStatus,
+                'scanned_at' => now(),
+            ]);
+        } else {
+            GuestListScan::create([
+                'guest_list_entry_id' => $entry->id,
+                'user_id' => auth()->id(),
+                'scan_status' => $scanStatus,
+                'scanned_at' => now(),
+            ]);
+        }
 
-        $this->setLastScanFromEntry($entry, $scanStatus);
+        $this->setLastScanFromEntry($entry, $scanStatus, $entryType);
         $this->dismissScanOverlay();
     }
 
     public function rejectScan(): void
     {
+        $entryType = $this->pendingEntryType ?? 'guestlist';
         $entry = $this->pendingEntryId
-            ? GuestListEntry::with(['event', 'customer', 'dj', 'rp', 'inviteLink'])->find($this->pendingEntryId)
+            ? ($entryType === 'ticket'
+                ? TicketAttendee::with(['event', 'product', 'order'])->find($this->pendingEntryId)
+                : GuestListEntry::with(['event', 'customer', 'dj', 'rp', 'inviteLink'])->find($this->pendingEntryId))
             : null;
 
         if ($entry) {
-            GuestListScan::create([
-                'guest_list_entry_id' => $entry->id,
-                'user_id' => auth()->id(),
-                'scan_status' => 'rejected',
-                'scanned_at' => now(),
-            ]);
+            if ($entryType === 'ticket') {
+                TicketScan::create([
+                    'ticket_attendee_id' => $entry->id,
+                    'user_id' => auth()->id(),
+                    'scan_status' => 'rejected',
+                    'scanned_at' => now(),
+                ]);
+            } else {
+                GuestListScan::create([
+                    'guest_list_entry_id' => $entry->id,
+                    'user_id' => auth()->id(),
+                    'scan_status' => 'rejected',
+                    'scanned_at' => now(),
+                ]);
+            }
 
-            $this->setLastScanFromEntry($entry, 'rejected');
+            $this->setLastScanFromEntry($entry, 'rejected', $entryType);
         }
 
         $this->dismissScanOverlay();
@@ -237,43 +313,67 @@ class GuestListQrScanner extends Page
 
     public function markScanAsRead(): void
     {
+        $entryType = $this->pendingEntryType ?? 'guestlist';
         $entry = $this->pendingEntryId
-            ? GuestListEntry::with(['event', 'customer', 'dj', 'rp', 'inviteLink'])->find($this->pendingEntryId)
+            ? ($entryType === 'ticket'
+                ? TicketAttendee::with(['event', 'product', 'order'])->find($this->pendingEntryId)
+                : GuestListEntry::with(['event', 'customer', 'dj', 'rp', 'inviteLink'])->find($this->pendingEntryId))
             : null;
 
         if ($entry) {
-            GuestListScan::create([
-                'guest_list_entry_id' => $entry->id,
-                'user_id' => auth()->id(),
-                'scan_status' => 'read',
-                'scanned_at' => now(),
-            ]);
+            if ($entryType === 'ticket') {
+                TicketScan::create([
+                    'ticket_attendee_id' => $entry->id,
+                    'user_id' => auth()->id(),
+                    'scan_status' => 'read',
+                    'scanned_at' => now(),
+                ]);
+            } else {
+                GuestListScan::create([
+                    'guest_list_entry_id' => $entry->id,
+                    'user_id' => auth()->id(),
+                    'scan_status' => 'read',
+                    'scanned_at' => now(),
+                ]);
+            }
 
-            $this->setLastScanFromEntry($entry, 'read');
+            $this->setLastScanFromEntry($entry, 'read', $entryType);
         }
 
         $this->dismissScanOverlay();
     }
 
-    protected function setLastScanFromEntry(GuestListEntry $entry, string $status): void
+    protected function setLastScanFromEntry($entry, string $status, string $entryType = 'guestlist'): void
     {
-        $entry->loadMissing(['event', 'customer', 'dj', 'rp', 'inviteLink']);
+        if ($entryType === 'ticket') {
+            $entry->loadMissing(['event', 'product', 'order']);
+        } else {
+            $entry->loadMissing(['event', 'customer', 'dj', 'rp', 'inviteLink']);
+        }
 
         $this->lastScan = [
             'status' => $status,
-            'guest' => $entry->customer?->name ?? 'Invitado',
-            'email' => $entry->customer?->email,
+            'guest' => $entryType === 'ticket' ? ($entry->name ?? 'Invitado') : ($entry->customer?->name ?? 'Invitado'),
+            'email' => $entryType === 'ticket' ? $entry->email : $entry->customer?->email,
             'event' => $entry->event?->title ?? 'Evento',
             'checked_in_at' => $entry->check_in_at?->format('d/m/Y H:i'),
-            'list_owner' => $this->resolveListOwner($entry),
+            'list_owner' => $this->resolveListOwner($entry, $entryType),
             'check_in_count' => $entry->getCheckInCount(),
             'check_in_limit' => $entry->getCheckInLimit(),
             'remaining_uses' => $entry->getRemainingCheckIns(),
         ];
     }
 
-    protected function resolveListOwner(GuestListEntry $entry): string
+    protected function resolveListOwner($entry, string $entryType = 'guestlist'): string
     {
+        if ($entryType === 'ticket') {
+            if ($entry->product?->name) {
+                return 'Ticket ' . $entry->product->name;
+            }
+
+            return 'Ticket';
+        }
+
         if ($entry->dj?->name) {
             return 'DJ ' . $entry->dj->name;
         }

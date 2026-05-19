@@ -5,6 +5,20 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Cancelar Suscripción - Lapsique</title>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
+    @php
+        $analyticsConfig = [
+            'enabled' => config('analytics.enabled'),
+            'endpoint' => route('analytics.collect'),
+            'sampleRate' => config('analytics.sample_rate'),
+            'sessionTimeout' => config('analytics.session_timeout'),
+            'trackClicks' => config('analytics.track_clicks'),
+            'trackForms' => config('analytics.track_forms'),
+            'trackEngagement' => config('analytics.track_engagement'),
+        ];
+    @endphp
+    <script>
+        window.LapsiqueAnalytics = @json($analyticsConfig);
+    </script>
 </head>
 <body class="bg-gray-100 dark:bg-gray-900">
     <div class="min-h-screen flex items-center justify-center px-4">
@@ -69,4 +83,3 @@
     </div>
 </body>
 </html>
-

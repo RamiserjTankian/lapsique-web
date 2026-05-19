@@ -56,6 +56,16 @@ class GuestListInviteLink extends Model
         return $this->hasMany(GuestListEntry::class, 'invite_link_id');
     }
 
+    public function ticketOrders(): HasMany
+    {
+        return $this->hasMany(TicketOrder::class, 'invite_link_id');
+    }
+
+    public function ticketAttendees(): HasMany
+    {
+        return $this->hasMany(TicketAttendee::class, 'invite_link_id');
+    }
+
     // Métodos de utilidad
     public static function generateToken(): string
     {
@@ -96,4 +106,3 @@ class GuestListInviteLink extends Model
         }
     }
 }
-

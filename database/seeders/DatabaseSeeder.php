@@ -27,6 +27,7 @@ class DatabaseSeeder extends Seeder
             DjSeeder::class,
             LocationSeeder::class,
             VideoSeeder::class,
+            CampaignSeeder::class,
         ]);
     }
 }
