@@ -1,4 +1,5 @@
-import { Head, Link, usePage } from '@inertiajs/react';
+import { Link, usePage } from '@inertiajs/react';
+import { SeoHead } from '@/components/lapsique/SeoHead';
 import { useCallback, useEffect, useState, type RefObject } from 'react';
 import { trackBookingEvent } from '@/hooks/useBookingAnalytics';
 import SiteLayout from '@/layouts/SiteLayout';
@@ -73,12 +74,7 @@ export default function Home({
 
     return (
         <SiteLayout>
-            <Head title="Agenda tu sesión de contenido">
-                <meta
-                    name="description"
-                    content={`${subtitle} Desde $${price.toLocaleString('es-MX')} MXN. Filmado con Sony α7.`}
-                />
-            </Head>
+            <SeoHead />
 
             <CinematicHero
                 title={title}

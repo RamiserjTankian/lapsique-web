@@ -14,6 +14,7 @@ class SiteSetting extends Model
         'meta_pixel_id',
         'booking_title',
         'booking_subtitle',
+        'booking_og_image',
         'booking_price',
         'booking_whatsapp',
         'booking_team_name',

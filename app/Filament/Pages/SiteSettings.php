@@ -73,6 +73,7 @@ class SiteSettings extends Page implements HasSchemas
             'meta_pixel_id' => $settings->meta_pixel_id,
             'booking_title' => $this->booking_title,
             'booking_subtitle' => $this->booking_subtitle,
+            'booking_og_image' => $settings->booking_og_image,
             'booking_price' => $this->booking_price,
             'booking_whatsapp' => $this->booking_whatsapp,
         ]);
@@ -125,6 +126,21 @@ class SiteSettings extends Page implements HasSchemas
                             ->placeholder('Ej: 2 Reels + 20 Fotos editadas en una sola sesión')
                             ->maxLength(255),
 
+                        FileUpload::make('booking_og_image')
+                            ->label('Imagen para compartir en redes (Open Graph)')
+                            ->helperText('Recomendado 1200×630 px (JPG o PNG). Se usa al compartir el enlace del home / sesión de contenido en WhatsApp, Facebook, etc.')
+                            ->acceptedFileTypes(['image/jpeg', 'image/png', 'image/webp'])
+                            ->maxSize(2048)
+                            ->image()
+                            ->imageEditor()
+                            ->imageEditorAspectRatios(['1.91:1', '16:9'])
+                            ->disk('public')
+                            ->directory('images/og')
+                            ->visibility('public')
+                            ->downloadable()
+                            ->previewable()
+                            ->openable(),
+
                         TextInput::make('booking_price')
                             ->label('Precio (MXN)')
                             ->numeric()
@@ -141,6 +157,19 @@ class SiteSettings extends Page implements HasSchemas
                             ->maxLength(30),
                     ]),
             ]);
+    }
+
+    protected static function normalizeUploadPath(mixed $value): ?string
+    {
+        if (blank($value)) {
+            return null;
+        }
+
+        if (is_array($value)) {
+            $value = $value[0] ?? null;
+        }
+
+        return filled($value) ? (string) $value : null;
     }
 
     protected function getLogoPath(): ?string
@@ -223,6 +252,7 @@ class SiteSettings extends Page implements HasSchemas
             'meta_pixel_id' => filled($data['meta_pixel_id'] ?? null) ? $data['meta_pixel_id'] : null,
             'booking_title' => $data['booking_title'] ?? null,
             'booking_subtitle' => $data['booking_subtitle'] ?? null,
+            'booking_og_image' => self::normalizeUploadPath($data['booking_og_image'] ?? null),
             'booking_price' => (int) ($data['booking_price'] ?? 5000),
             'booking_whatsapp' => $data['booking_whatsapp'] ?? null,
         ]);

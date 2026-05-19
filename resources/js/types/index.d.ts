@@ -128,6 +128,19 @@ export interface ContentBookingData {
     } | null;
 }
 
+export interface SeoMeta {
+    title: string;
+    metaTitle: string;
+    description: string;
+    canonicalUrl: string;
+    ogType: string;
+    ogImage: string | null;
+    ogImageAlt: string;
+    keywords: string;
+    noindex: boolean;
+    jsonLd?: Record<string, unknown> | null;
+}
+
 export interface SiteProps {
     name: string;
     bookingPrice: number;
@@ -157,6 +170,7 @@ export interface SharedPageProps {
     };
     customer: { id: number; name: string; email: string } | null;
     locale: string;
+    seo: SeoMeta;
     ziggy: import('ziggy-js').Config & { location: string };
 }
 

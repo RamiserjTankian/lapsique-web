@@ -3,6 +3,10 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    @php
+        $pageMeta = \App\Support\PageMeta::forRequest(request());
+    @endphp
+    @include('partials.meta-tags', ['meta' => $pageMeta])
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <meta name="theme-color" content="#f7f5f0" id="theme-color-meta">
     <script>
