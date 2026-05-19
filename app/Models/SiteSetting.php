@@ -16,8 +16,15 @@ class SiteSetting extends Model
         'booking_subtitle',
         'booking_price',
         'booking_whatsapp',
+        'booking_team_name',
+        'booking_team_bio',
         'google_calendar_id',
+        'booking_calendar_notify_email',
+        'booking_studio_location',
         'booking_weeks_ahead',
+        'booking_availability_days',
+        'booking_start_time',
+        'booking_end_time',
         'booking_advance_hours',
         'booking_duration_minutes',
     ];
@@ -25,6 +32,7 @@ class SiteSetting extends Model
     protected $casts = [
         'booking_price' => 'integer',
         'booking_weeks_ahead' => 'integer',
+        'booking_availability_days' => 'integer',
         'booking_advance_hours' => 'integer',
         'booking_duration_minutes' => 'integer',
     ];
@@ -46,5 +54,25 @@ class SiteSetting extends Model
     public static function metaPixelId(): ?string
     {
         return static::current()?->meta_pixel_id;
+    }
+
+    public function bookingAvailabilityDays(): int
+    {
+        return $this->booking_availability_days ?: (int) config('booking.availability_days', 11);
+    }
+
+    public function bookingStartTime(): string
+    {
+        return substr($this->booking_start_time ?: (string) config('booking.default_start_time', '14:00'), 0, 5);
+    }
+
+    public function bookingEndTime(): string
+    {
+        return substr($this->booking_end_time ?: (string) config('booking.default_end_time', '17:00'), 0, 5);
+    }
+
+    public function bookingDurationMinutes(): int
+    {
+        return $this->booking_duration_minutes ?: (int) config('booking.default_duration_minutes', 120);
     }
 }

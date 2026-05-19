@@ -85,4 +85,23 @@ class CustomerPortalAccessService
 
         return true;
     }
+
+    public function regeneratePortalAccessAndNotify(
+        Customer $customer,
+        ?ContentBooking $booking = null,
+    ): bool {
+        $password = Str::random(10);
+
+        $customer->forceFill([
+            'password' => $password,
+        ])->save();
+
+        SendCustomerPortalAccessEmailJob::dispatchAfterResponse(
+            $customer->fresh(),
+            $password,
+            booking: $booking,
+        );
+
+        return true;
+    }
 }

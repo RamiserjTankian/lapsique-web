@@ -2,9 +2,11 @@
 
 namespace App\Models;
 
+use Illuminate\Contracts\Encryption\DecryptException;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Log;
 
 class PaymentGatewayConnection extends Model
 {
@@ -47,7 +49,29 @@ class PaymentGatewayConnection extends Model
 
     public function isConnected(): bool
     {
-        return $this->status === 'connected' && filled($this->access_token);
+        if ($this->status !== 'connected') {
+            return false;
+        }
+
+        return $this->hasDecryptableAccessToken();
+    }
+
+    public function hasDecryptableAccessToken(): bool
+    {
+        if (blank($this->getRawOriginal('access_token'))) {
+            return false;
+        }
+
+        try {
+            return filled($this->access_token);
+        } catch (DecryptException $e) {
+            Log::warning('Payment gateway token could not be decrypted', [
+                'provider' => $this->provider,
+                'connection_id' => $this->id,
+            ]);
+
+            return false;
+        }
     }
 
     public function isExpired(?Carbon $reference = null): bool

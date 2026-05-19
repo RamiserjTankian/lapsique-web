@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\Djs\Schemas;
 
 use Filament\Forms\Components\CheckboxList;
+use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\SpatieMediaLibraryFileUpload;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
@@ -112,6 +113,23 @@ class DjForm
                     ->gridDirection('row')
                     ->helperText('Selecciona uno o más tags que describan al DJ')
                     ->columnSpanFull(),
+
+                Repeater::make('technical_rider')
+                    ->label('Rider técnico')
+                    ->schema([
+                        TextInput::make('label')
+                            ->label('Equipo / requisito')
+                            ->required()
+                            ->maxLength(255),
+                        Textarea::make('value')
+                            ->label('Detalle')
+                            ->rows(2)
+                            ->columnSpanFull(),
+                    ])
+                    ->columns(1)
+                    ->collapsible()
+                    ->columnSpanFull(),
+
                 Toggle::make('is_featured')
                     ->label('Destacado en portada')
                     ->helperText('Aparecerá en la sección principal del sitio'),

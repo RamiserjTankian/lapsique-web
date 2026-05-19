@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Models\ContentBooking;
 use App\Models\TicketOrder;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
@@ -32,7 +33,7 @@ class StripeService
             'mode' => 'payment',
             'client_reference_id' => $order->public_id,
             'customer_email' => $order->buyer_email,
-            'success_url' => route('tickets.success', $order) . '?session_id={CHECKOUT_SESSION_ID}',
+            'success_url' => route('tickets.success', $order).'?session_id={CHECKOUT_SESSION_ID}',
             'cancel_url' => route('tickets.failure', $order),
             'payment_method_types' => ['card'],
             'line_items' => $lineItems,
@@ -66,13 +67,73 @@ class StripeService
         return (array) $response->json();
     }
 
+    public function createCheckoutSessionForBooking(ContentBooking $booking): array
+    {
+        $secret = $this->requireSecretKey();
+        $booking->loadMissing('slot');
+
+        $slot = $booking->slot;
+        $dateLabel = $slot
+            ? $slot->date->translatedFormat('d \d\e F, Y').' a las '.$slot->time_label
+            : 'por confirmar';
+
+        $payload = [
+            'mode' => 'payment',
+            'client_reference_id' => 'bkg_'.$booking->public_id,
+            'customer_email' => $booking->client_email,
+            'success_url' => route('booking.confirm', $booking->public_id).'?session_id={CHECKOUT_SESSION_ID}',
+            'cancel_url' => route('booking.failure', $booking->public_id),
+            'payment_method_types' => ['card'],
+            'line_items' => [
+                [
+                    'price_data' => [
+                        'currency' => strtolower($booking->currency),
+                        'product_data' => [
+                            'name' => 'Sesión de Contenido — 2 Reels + 20 Fotos',
+                            'description' => 'Sesión profesional el '.$dateLabel,
+                        ],
+                        'unit_amount' => (int) $booking->amount * 100,
+                    ],
+                    'quantity' => 1,
+                ],
+            ],
+            'metadata' => [
+                'content_booking_id' => (string) $booking->id,
+                'content_booking_public_id' => $booking->public_id,
+            ],
+            'payment_intent_data' => [
+                'metadata' => [
+                    'content_booking_id' => (string) $booking->id,
+                    'content_booking_public_id' => $booking->public_id,
+                ],
+            ],
+        ];
+
+        $response = Http::withToken($secret)
+            ->asForm()
+            ->acceptJson()
+            ->post('https://api.stripe.com/v1/checkout/sessions', $payload);
+
+        if (! $response->successful()) {
+            Log::error('Stripe booking checkout session error', [
+                'status' => $response->status(),
+                'body' => $response->body(),
+                'booking_id' => $booking->id,
+            ]);
+
+            throw new RuntimeException('No se pudo crear la sesion de pago en Stripe.');
+        }
+
+        return (array) $response->json();
+    }
+
     public function fetchSession(string $sessionId): array
     {
         $secret = $this->requireSecretKey();
 
         $response = Http::withToken($secret)
             ->acceptJson()
-            ->get('https://api.stripe.com/v1/checkout/sessions/' . $sessionId, [
+            ->get('https://api.stripe.com/v1/checkout/sessions/'.$sessionId, [
                 'expand' => ['payment_intent'],
             ]);
 
@@ -118,7 +179,7 @@ class StripeService
             return false;
         }
 
-        $signedPayload = $timestamp . '.' . $payload;
+        $signedPayload = $timestamp.'.'.$payload;
         $expected = hash_hmac('sha256', $signedPayload, $secret);
 
         return hash_equals($expected, $signatureHash);

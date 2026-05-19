@@ -4,18 +4,26 @@ namespace App\Services;
 
 use App\Models\AnalyticsSession;
 use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
 
 class BookingLandingAnalyticsService
 {
-    public const LANDING_PATH = '/sesion-de-contenido';
+    public const LANDING_PATH = '/';
 
     public static function trackedEventNames(): array
     {
         return [
             'booking_page_viewed',
+            'hero_cta_clicked',
+            'deliverables_viewed',
+            'process_viewed',
+            'proof_section_viewed',
+            'faq_opened',
+            'sticky_cta_clicked',
+            'booking_page_viewed',
+            'equipment_viewed',
+            'booking_widget_viewed',
             'booking_popup_shown',
             'booking_popup_dismissed',
             'booking_popup_cta_clicked',
@@ -26,9 +34,11 @@ class BookingLandingAnalyticsService
             'booking_slot_cleared',
             'booking_form_viewed',
             'booking_form_started',
+            'booking_abandoned',
             'booking_checkout_started',
             'booking_form_submitted',
             'booking_payment_cta_clicked',
+            'booking_test_confirmed',
             'booking_confirmed',
             'booking_payment_pending',
             'booking_payment_failed',
@@ -55,27 +65,29 @@ class BookingLandingAnalyticsService
 
     public function baseQuery(): Builder
     {
-        $prefix = self::LANDING_PATH . '%';
+        $path = self::LANDING_PATH;
+        $operator = $path === '/' ? '=' : 'like';
+        $value = $path === '/' ? $path : $path.'%';
 
         return AnalyticsSession::query()
-            ->where(function (Builder $query) use ($prefix): void {
+            ->where(function (Builder $query) use ($operator, $value): void {
                 $query
-                    ->where('landing_path', 'like', $prefix)
-                    ->orWhereHas('pageviews', function (Builder $pageviews) use ($prefix): void {
-                        $pageviews->where('path', 'like', $prefix);
+                    ->where('landing_path', $operator, $value)
+                    ->orWhereHas('pageviews', function (Builder $pageviews) use ($operator, $value): void {
+                        $pageviews->where('path', $operator, $value);
                     });
             })
             ->withCount([
-                'pageviews as booking_pageviews_count' => function (Builder $query) use ($prefix): void {
-                    $query->where('path', 'like', $prefix);
+                'pageviews as booking_pageviews_count' => function (Builder $query) use ($operator, $value): void {
+                    $query->where('path', $operator, $value);
                 },
                 'events as booking_events_count' => function (Builder $query): void {
                     $query->whereIn('name', self::trackedEventNames());
                 },
             ])
             ->with([
-                'pageviews' => function ($query) use ($prefix): void {
-                    $query->where('path', 'like', $prefix)->orderBy('created_at');
+                'pageviews' => function ($query) use ($operator, $value): void {
+                    $query->where('path', $operator, $value)->orderBy('created_at');
                 },
                 'events' => function ($query): void {
                     $query->whereIn('name', self::trackedEventNames())->orderBy('created_at');

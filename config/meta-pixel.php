@@ -1,7 +1,8 @@
 <?php
 
 return [
-    'enabled' => env('META_PIXEL_ENABLED', false),
-    'id' => env('META_PIXEL_ID'),
-    'auto_track' => env('META_PIXEL_AUTO_TRACK', true),
+    'enabled' => config('meta.pixel.enabled'),
+    'id' => config('meta.pixel.id'),
+    'auto_track' => config('meta.pixel.auto_track'),
+    'track_pageview' => config('meta.pixel.track_pageview'),
 ];

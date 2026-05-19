@@ -27,7 +27,7 @@ class CustomerPortalAccessEmail extends Mailable
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: 'Acceso a tu portal de cliente',
+            subject: 'Bienvenido a tu portal Lapsique — datos de acceso',
         );
     }
 

@@ -1,43 +1,46 @@
 <?php
 
+use App\Http\Controllers\AnalyticsController;
 use App\Http\Controllers\ContentBookingController;
-use App\Http\Controllers\GoogleCalendarOAuthController;
+use App\Http\Controllers\CustomerAuthController;
+use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\DjController;
 use App\Http\Controllers\EmailTrackingController;
 use App\Http\Controllers\EventController;
+use App\Http\Controllers\GoogleCalendarOAuthController;
 use App\Http\Controllers\GuestListCheckInController;
 use App\Http\Controllers\GuestListController;
+use App\Http\Controllers\GuestListInviteController;
+use App\Http\Controllers\GuestListRegisterController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\LeadCaptureController;
+use App\Http\Controllers\MercadoPagoOAuthController;
 use App\Http\Controllers\MercadoPagoWebhookController;
+use App\Http\Controllers\PortfolioController;
+use App\Http\Controllers\PostController;
 use App\Http\Controllers\StripeWebhookController;
 use App\Http\Controllers\TicketAttendeeController;
 use App\Http\Controllers\TicketCheckInController;
 use App\Http\Controllers\TicketCheckoutController;
 use App\Http\Controllers\VideoController;
-use App\Http\Controllers\PostController;
-use App\Http\Controllers\CustomerController;
-use App\Http\Controllers\CustomerAuthController;
-use App\Http\Controllers\AnalyticsController;
-use App\Http\Controllers\GuestListInviteController;
-use App\Http\Controllers\GuestListRegisterController;
-use App\Http\Controllers\MercadoPagoOAuthController;
-use App\Http\Controllers\PortfolioController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', [HomeController::class, 'index'])->name('home');
 
 // Content Booking Landing Page
-Route::get('/sesion-de-contenido', [ContentBookingController::class, 'show'])->name('booking.show');
+Route::get('/sesion-de-contenido', function () {
+    return redirect()->to(route('home').'#agenda', 302);
+})->name('booking.show');
 Route::post('/sesion-de-contenido/checkout', [ContentBookingController::class, 'checkout'])->name('booking.checkout');
 Route::get('/sesion-de-contenido/{publicId}/confirm', [ContentBookingController::class, 'confirm'])->name('booking.confirm');
 Route::get('/sesion-de-contenido/{publicId}/pending', [ContentBookingController::class, 'pending'])->name('booking.pending');
 Route::get('/sesion-de-contenido/{publicId}/failure', [ContentBookingController::class, 'failure'])->name('booking.failure');
+Route::post('/sesion-de-contenido/{publicId}/retry', [ContentBookingController::class, 'retryPayment'])->name('booking.retry');
 
 Route::get('/djs', [DjController::class, 'index'])->name('djs.index');
 Route::get('/djs/{dj:slug}', [DjController::class, 'show'])->name('djs.show');
 
-Route::get('/eventos', [EventController::class, 'index'])->name('events.index');
+Route::get('/eventos', fn () => abort(404))->name('events.index');
 Route::get('/eventos/{event:slug}', [EventController::class, 'show'])->name('events.show');
 Route::get('/eventos/{event:slug}/tickets', [TicketCheckoutController::class, 'show'])->name('tickets.checkout.show');
 Route::post('/eventos/{event:slug}/tickets', [TicketCheckoutController::class, 'checkout'])->name('tickets.checkout.store');
@@ -98,6 +101,15 @@ Route::post('/mi-portal/logout', [CustomerAuthController::class, 'logout'])
     ->middleware('customer.auth')
     ->name('customers.logout');
 
+Route::get('/mi-portal/password/forgot', [\App\Http\Controllers\CustomerPasswordResetController::class, 'create'])
+    ->name('customers.password.request');
+Route::post('/mi-portal/password/forgot', [\App\Http\Controllers\CustomerPasswordResetController::class, 'store'])
+    ->name('customers.password.email');
+Route::get('/mi-portal/password/reset/{token}', [\App\Http\Controllers\CustomerPasswordResetController::class, 'edit'])
+    ->name('customers.password.reset');
+Route::post('/mi-portal/password/reset', [\App\Http\Controllers\CustomerPasswordResetController::class, 'update'])
+    ->name('customers.password.update');
+
 // Lead Capture (Popup)
 Route::post('/api/leads', [LeadCaptureController::class, 'capture'])->name('leads.capture');
 
@@ -112,9 +124,12 @@ Route::get('/track/email/{token}/click', [EmailTrackingController::class, 'track
 Route::post('/webhooks/mailtrap/events', [EmailTrackingController::class, 'mailtrapWebhook'])->name('webhooks.mailtrap.events');
 Route::post('/webhooks/mercadopago', [MercadoPagoWebhookController::class, 'handle'])->name('webhooks.mercadopago');
 Route::post('/webhooks/stripe', [StripeWebhookController::class, 'handle'])->name('webhooks.stripe');
-Route::post('/webhooks/twilio/sms/status', function () { /* TODO */ })->name('webhooks.twilio.sms');
-Route::post('/webhooks/twilio/whatsapp/status', function () { /* TODO */ })->name('webhooks.twilio.whatsapp');
-Route::post('/webhooks/twilio/voice/status', function () { /* TODO */ })->name('webhooks.twilio.voice');
+Route::post('/webhooks/twilio/sms/status', function () { /* TODO */
+})->name('webhooks.twilio.sms');
+Route::post('/webhooks/twilio/whatsapp/status', function () { /* TODO */
+})->name('webhooks.twilio.whatsapp');
+Route::post('/webhooks/twilio/voice/status', function () { /* TODO */
+})->name('webhooks.twilio.voice');
 
 // Unsubscribe
 Route::get('/unsubscribe', [LeadCaptureController::class, 'unsubscribe'])->name('customer.unsubscribe');
@@ -132,7 +147,7 @@ Route::get('/locale/{locale}', function (string $locale) {
 
 Route::post('/theme', function () {
     $theme = request()->input('theme', 'dark');
-    
+
     if (! in_array($theme, ['dark', 'light'])) {
         return response()->json(['success' => false, 'message' => 'Invalid theme'], 400);
     }

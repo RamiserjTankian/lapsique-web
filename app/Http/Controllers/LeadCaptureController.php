@@ -2,10 +2,11 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Customer;
 use App\Jobs\SendWelcomeEmailJob;
-use Illuminate\Http\Request;
+use App\Models\Customer;
+use App\Services\Meta\MetaConversionsApiService;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 
 class LeadCaptureController extends Controller
@@ -71,6 +72,11 @@ class LeadCaptureController extends Controller
                     'email' => $customer->email,
                 ]);
 
+                app(MetaConversionsApiService::class)->sendLeadFromCustomer(
+                    $customer->fresh(),
+                    $request->input('landing_url') ?: $request->input('current_page'),
+                );
+
                 return response()->json([
                     'success' => true,
                     'message' => '¡Gracias! Ya estás suscrito. Hemos actualizado tu información.',
@@ -90,19 +96,19 @@ class LeadCaptureController extends Controller
                 'lifecycle_stage' => 'subscriber',
                 'lead_score' => 10, // Score inicial por registrarse
                 'subscribed_newsletter' => true,
-                
+
                 // Tracking UTM
                 'utm_source' => $request->input('utm_source'),
                 'utm_medium' => $request->input('utm_medium'),
                 'utm_campaign' => $request->input('utm_campaign'),
                 'utm_term' => $request->input('utm_term'),
                 'utm_content' => $request->input('utm_content'),
-                
+
                 // Info técnica
                 'ip_address' => $request->ip(),
                 'user_agent' => $request->userAgent(),
                 'last_interaction_at' => now(),
-                
+
                 // Metadata adicional
                 'metadata' => [
                     'signup_page' => $request->input('current_page'),
@@ -123,6 +129,11 @@ class LeadCaptureController extends Controller
                 'email' => $customer->email,
                 'source' => 'popup',
             ]);
+
+            app(MetaConversionsApiService::class)->sendLeadFromCustomer(
+                $customer,
+                $request->input('landing_url') ?: $request->input('current_page'),
+            );
 
             // Despachar email de bienvenida
             SendWelcomeEmailJob::dispatch($customer);
@@ -152,13 +163,13 @@ class LeadCaptureController extends Controller
     {
         $email = $request->query('email');
 
-        if (!$email) {
+        if (! $email) {
             abort(404);
         }
 
         $customer = Customer::where('email', $email)->first();
 
-        if (!$customer) {
+        if (! $customer) {
             abort(404);
         }
 

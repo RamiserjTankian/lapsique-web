@@ -2,8 +2,8 @@
 
 namespace App\Filament\Resources\ContentBookings\Schemas;
 
-use Filament\Infolists\Components\Section;
 use Filament\Infolists\Components\TextEntry;
+use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
 
 class ContentBookingInfolist
@@ -33,19 +33,62 @@ class ContentBookingInfolist
                         ->formatStateUsing(fn ($record) => $record->status_label)
                         ->color(fn ($record) => $record->status_color),
                     TextEntry::make('formatted_amount')->label('Monto'),
-                    TextEntry::make('deliverables_count')->label('Entregables'),
-                    TextEntry::make('deliverables_ready_at')->label('Publicado')->dateTime('d/m/Y H:i')->placeholder('Aún no'),
+                    TextEntry::make('paid_at')->label('Pagado el')->dateTime('d/m/Y H:i')->placeholder('—'),
+                    TextEntry::make('deliverables_ready_at')
+                        ->label('Visible en portal desde')
+                        ->dateTime('d/m/Y H:i')
+                        ->placeholder('Sin entregables'),
+                    TextEntry::make('deliverable_links_count')
+                        ->label('Enlaces Drive')
+                        ->state(fn ($record) => $record->deliverableLinks()->count())
+                        ->badge()
+                        ->color(fn ($state) => $state > 0 ? 'success' : 'gray'),
                     TextEntry::make('public_id')->label('ID Público'),
                     TextEntry::make('admin_notes')->label('Notas internas')->columnSpanFull()->placeholder('—'),
                 ]),
 
-            Section::make('Pago MercadoPago')
+            Section::make('Entregables en Google Drive')
+                ->description('Cada enlace añadido envía un correo al cliente y aparece en su portal.')
+                ->schema([
+                    TextEntry::make('deliverable_links_list')
+                        ->label('Enlaces publicados')
+                        ->state(function ($record) {
+                            $links = $record->deliverableLinks;
+
+                            if ($links->isEmpty()) {
+                                return 'Sin enlaces — usa «Añadir entregables» arriba o la tabla inferior.';
+                            }
+
+                            return $links
+                                ->map(fn ($link) => ($link->label ?: 'Material').': '.$link->url)
+                                ->implode("\n");
+                        })
+                        ->markdown()
+                        ->columnSpanFull(),
+                ])
+                ->visible(fn ($record) => $record->status === 'confirmed'),
+
+            Section::make('Pago')
                 ->columns(2)
                 ->collapsible()
                 ->schema([
-                    TextEntry::make('mercadopago_preference_id')->label('Preference ID')->placeholder('—'),
-                    TextEntry::make('mercadopago_payment_id')->label('Payment ID')->placeholder('—'),
+                    TextEntry::make('payment_provider')->label('Proveedor')->badge(),
+                    TextEntry::make('mercadopago_preference_id')->label('MP Preference ID')->placeholder('—'),
+                    TextEntry::make('mercadopago_payment_id')->label('MP Payment ID')->placeholder('—'),
                     TextEntry::make('mercadopago_status')->label('Estado MP')->placeholder('—'),
+                    TextEntry::make('stripe_checkout_session_id')
+                        ->label('Stripe Session')
+                        ->placeholder('—')
+                        ->url(fn ($record) => $record->stripe_checkout_session_id
+                            ? 'https://dashboard.stripe.com/checkout/sessions/'.$record->stripe_checkout_session_id
+                            : null, true),
+                    TextEntry::make('stripe_payment_intent_id')
+                        ->label('Stripe Intent')
+                        ->placeholder('—')
+                        ->url(fn ($record) => $record->stripe_payment_intent_id
+                            ? 'https://dashboard.stripe.com/payments/'.$record->stripe_payment_intent_id
+                            : null, true),
+                    TextEntry::make('stripe_status')->label('Estado Stripe')->placeholder('—'),
                     TextEntry::make('google_calendar_event_id')->label('Evento GCal')->placeholder('—'),
                 ]),
 

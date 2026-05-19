@@ -3,6 +3,9 @@
         $calendarInfo = $this->getCalendarInfo(app(\App\Services\GoogleCalendarService::class));
         $isGcalConnected = $calendarInfo['connected'];
         $upcomingSlots = $this->getUpcomingSlotCount();
+        $slotsByTime = $this->getAvailableSlotsByTime();
+        $lastGeneration = $this->getLastSlotGeneration();
+        $expectedTimes = \App\Services\BookingAvailabilityRuleService::defaultSlots();
         $gcalConfigured = $this->getGoogleClientConfigured();
         $settings = \App\Models\SiteSetting::current();
         $selectedCalendarId = $settings?->google_calendar_id ?? 'primary';
@@ -20,6 +23,7 @@
                 </h3>
                 <p class="text-sm text-gray-500 dark:text-gray-400">
                     Sincroniza disponibilidad y crea eventos automáticamente al confirmar una reserva.
+                    Conecta una cuenta <strong>@lapsique</strong> de Google Workspace, elige un calendario dedicado y configura el email interno en el formulario de abajo.
                 </p>
             </div>
 
@@ -27,6 +31,11 @@
                 <span class="inline-flex items-center gap-1.5 rounded-full bg-green-50 px-3 py-1 text-xs font-medium text-green-700 ring-1 ring-green-600/20 dark:bg-green-500/10 dark:text-green-400 dark:ring-green-500/20">
                     <span class="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse"></span>
                     Conectado
+                </span>
+            @elseif (! empty($calendarInfo['needs_reconnect']))
+                <span class="inline-flex items-center gap-1.5 rounded-full bg-amber-50 px-3 py-1 text-xs font-medium text-amber-700 ring-1 ring-amber-600/20 dark:bg-amber-500/10 dark:text-amber-400">
+                    <span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
+                    Reconectar
                 </span>
             @else
                 <span class="inline-flex items-center gap-1.5 rounded-full bg-gray-50 px-3 py-1 text-xs font-medium text-gray-600 ring-1 ring-gray-500/20 dark:bg-gray-800 dark:text-gray-400">
@@ -48,6 +57,13 @@ GOOGLE_CLIENT_SECRET=tu-client-secret</pre>
                 con el Scope <strong>Google Calendar API</strong> y la URI de callback:
             </p>
             <pre class="font-mono text-xs bg-amber-100 dark:bg-amber-500/10 rounded p-3 text-amber-900 dark:text-amber-200 overflow-x-auto">{{ route('google-calendar.oauth.callback') }}</pre>
+        </div>
+        @endif
+
+        @if (! empty($calendarInfo['needs_reconnect']))
+        <div class="rounded-lg bg-amber-50 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/20 p-4 text-sm text-amber-800 dark:text-amber-300">
+            <p class="font-medium">La conexión guardada ya no es válida</p>
+            <p class="mt-1">{{ $calendarInfo['last_error_message'] ?? 'Vuelve a conectar Google Calendar.' }}</p>
         </div>
         @endif
 
@@ -140,6 +156,25 @@ GOOGLE_CLIENT_SECRET=tu-client-secret</pre>
             </div>
         </div>
 
+        <div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+            @foreach ($expectedTimes as $slot)
+                @php $count = $slotsByTime[$slot['time_value']] ?? 0; @endphp
+                <div class="rounded-lg border border-gray-200 dark:border-gray-700 px-3 py-2 text-sm">
+                    <p class="font-medium text-gray-900 dark:text-white">{{ $slot['time_label'] }}</p>
+                    <p class="text-xs text-gray-500 dark:text-gray-400">{{ $count }} slots disponibles</p>
+                </div>
+            @endforeach
+        </div>
+
+        @if ($lastGeneration)
+            <p class="text-xs text-gray-500 dark:text-gray-400">
+                Última generación: {{ \Carbon\Carbon::parse($lastGeneration['at'])->format('d/m/Y H:i') }}
+                — creados {{ $lastGeneration['created'] ?? 0 }},
+                omitidos {{ $lastGeneration['skipped'] ?? 0 }},
+                bloqueados GCal {{ $lastGeneration['blocked_by_calendar'] ?? 0 }}.
+            </p>
+        @endif
+
         <div class="flex flex-wrap gap-3">
             <button
                 wire:click="generateSlots"
@@ -175,7 +210,7 @@ GOOGLE_CLIENT_SECRET=tu-client-secret</pre>
             <p>💡 <strong>¿Cómo funciona?</strong></p>
             <ol class="list-decimal list-inside space-y-1 ml-2">
                 <li>Crea reglas en <strong>Disponibilidad</strong> (días y horarios recurrentes).</li>
-                <li>Haz clic en <strong>Generar horarios</strong> para crear los slots para las próximas {{ $settings?->booking_weeks_ahead ?? 4 }} semanas.</li>
+                <li>Haz clic en <strong>Generar horarios</strong> para crear los slots de los próximos {{ $settings?->bookingAvailabilityDays() ?? config('booking.availability_days', 11) }} días.</li>
                 <li>Si tienes Google Calendar conectado, los horarios con conflictos se omiten automáticamente.</li>
                 <li>Cuando alguien reserva y paga, se crea un evento en tu Google Calendar.</li>
             </ol>

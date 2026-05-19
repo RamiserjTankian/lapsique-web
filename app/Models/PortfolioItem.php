@@ -14,8 +14,8 @@ use Spatie\MediaLibrary\MediaCollections\Models\Media;
 class PortfolioItem extends Model implements HasMedia
 {
     use HasFactory;
-    use SoftDeletes;
     use InteractsWithMedia;
+    use SoftDeletes;
 
     protected $fillable = [
         'title',
@@ -63,7 +63,7 @@ class PortfolioItem extends Model implements HasMedia
             ]);
     }
 
-    public function registerMediaConversions(Media $media = null): void
+    public function registerMediaConversions(?Media $media = null): void
     {
         if (! $media || ! str_starts_with((string) $media->mime_type, 'image/')) {
             return;
@@ -161,6 +161,6 @@ class PortfolioItem extends Model implements HasMedia
             return null;
         }
 
-        return "https://www.youtube.com/embed/{$this->youtube_id}?rel=0&modestbranding=1&playsinline=1";
+        return "https://www.youtube.com/embed/{$this->youtube_id}?rel=0&modestbranding=1&playsinline=1&autoplay=1";
     }
 }

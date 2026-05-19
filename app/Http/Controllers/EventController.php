@@ -2,24 +2,28 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Resources\EventResource;
 use App\Models\Event;
 use App\Services\TicketOrderService;
-use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;
+use Inertia\Inertia;
+use Inertia\Response;
 
 class EventController extends Controller
 {
-    public function index(): View
+    public function index(): Response
     {
         $events = Event::query()
             ->orderByDesc('starts_at')
             ->orderByDesc('created_at')
             ->get();
 
-        return view('events.index', compact('events'));
+        return Inertia::render('Events/Index', [
+            'events' => EventResource::collection($events)->resolve(),
+        ]);
     }
 
-    public function show(Request $request, Event $event, TicketOrderService $orderService): View
+    public function show(Request $request, Event $event, TicketOrderService $orderService): Response
     {
         $event->load([
             'media',
@@ -29,9 +33,8 @@ class EventController extends Controller
             'ticketProducts' => fn ($query) => $query->active()->orderBy('price'),
         ]);
 
-        $inviteToken = $request->query('invite');
-        $inviteLink = $orderService->resolveInviteLink($inviteToken);
-
-        return view('events.show', compact('event', 'inviteToken', 'inviteLink'));
+        return Inertia::render('Events/Show', [
+            'event' => (new EventResource($event))->resolve(),
+        ]);
     }
 }

@@ -2,15 +2,19 @@
 
 namespace App\Models;
 
+use App\Notifications\CustomerResetPasswordNotification;
+use Illuminate\Auth\Passwords\CanResetPassword;
+use Illuminate\Contracts\Auth\CanResetPassword as CanResetPasswordContract;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
-class Customer extends Authenticatable
+class Customer extends Authenticatable implements CanResetPasswordContract
 {
+    use CanResetPassword;
     use HasFactory;
     use Notifiable;
     use SoftDeletes;
@@ -22,6 +26,16 @@ class Customer extends Authenticatable
         'whatsapp',
         'instagram_handle',
         'notes',
+        'fiscal_legal_name',
+        'fiscal_rfc',
+        'fiscal_regime',
+        'fiscal_cfdi_use',
+        'fiscal_email',
+        'fiscal_zip',
+        'fiscal_address',
+        'fiscal_city',
+        'fiscal_state',
+        'fiscal_country',
         'status',
         'source',
         'tags',
@@ -114,7 +128,7 @@ class Customer extends Authenticatable
     public function addTag(string $tag): void
     {
         $tags = $this->tags ?? [];
-        if (!in_array($tag, $tags)) {
+        if (! in_array($tag, $tags)) {
             $tags[] = $tag;
             $this->update(['tags' => $tags]);
         }
@@ -123,7 +137,7 @@ class Customer extends Authenticatable
     public function removeTag(string $tag): void
     {
         $tags = $this->tags ?? [];
-        $tags = array_values(array_filter($tags, fn($t) => $t !== $tag));
+        $tags = array_values(array_filter($tags, fn ($t) => $t !== $tag));
         $this->update(['tags' => $tags]);
     }
 
@@ -147,8 +161,8 @@ class Customer extends Authenticatable
     protected function updateLifecycleStage(): void
     {
         $score = $this->lead_score;
-        
-        $newStage = match(true) {
+
+        $newStage = match (true) {
             $score >= 100 => 'evangelist',
             $score >= 75 => 'customer',
             $score >= 50 => 'sql',
@@ -196,5 +210,10 @@ class Customer extends Authenticatable
     public function scopeRecentlyActive($query, int $days = 30)
     {
         return $query->where('last_interaction_at', '>=', now()->subDays($days));
+    }
+
+    public function sendPasswordResetNotification($token): void
+    {
+        $this->notify(new CustomerResetPasswordNotification($token));
     }
 }

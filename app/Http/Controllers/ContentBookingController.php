@@ -2,26 +2,59 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Resources\BookingSlotResource;
+use App\Http\Resources\ContentBookingResource;
 use App\Models\BookingSlot;
 use App\Models\ContentBooking;
 use App\Models\PortfolioItem;
 use App\Models\SiteSetting;
-use App\Services\CustomerPortalAccessService;
-use App\Services\GoogleCalendarService;
+use App\Services\ContentBookingPaymentService;
 use App\Services\MercadoPagoService;
+use App\Services\Meta\MetaConversionsApiService;
+use App\Services\StripeService;
+use App\Support\BookingMode;
+use Carbon\Carbon;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
-use Illuminate\View\View;
+use Inertia\Inertia;
+use Inertia\Response;
 
 class ContentBookingController extends Controller
 {
-    public function show(Request $request): View
+    public function show(Request $request): Response
     {
+        $data = $this->bookingPageData();
+        $settings = $data['settings'];
+
+        return Inertia::render('Booking/Show', [
+            'title' => $settings?->booking_title ?: 'Sesión de Contenido Profesional',
+            'subtitle' => $settings?->booking_subtitle ?: '2 Reels editados + 20 fotografías profesionales. Producción con cámara Sony α7.',
+            'price' => $data['price'],
+            'slots' => BookingSlotResource::collection($data['slots'])->resolve(),
+            'errors' => session('errors')?->getBag('default')?->getMessages() ?? [],
+        ]);
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    public static function bookingPageData(): array
+    {
+        $settings = SiteSetting::current();
+        $availabilityDays = $settings?->bookingAvailabilityDays() ?? config('booking.availability_days', 11);
+        $startTime = $settings?->bookingStartTime() ?? config('booking.default_start_time', '14:00');
+        $endTime = $settings?->bookingEndTime() ?? config('booking.default_end_time', '17:00');
+        $latestDate = Carbon::today()->addDays($availabilityDays)->toDateString();
+
         $slots = BookingSlot::available()
+            ->whereBetween('date', [Carbon::today()->toDateString(), $latestDate])
+            ->where('time_value', '>=', $startTime)
+            ->where('time_value', '<=', $endTime)
             ->orderBy('date')
             ->orderBy('time_value')
             ->get(['id', 'date', 'time_label', 'time_value']);
@@ -50,22 +83,22 @@ class ContentBookingController extends Controller
             ->orderByDesc('created_at')
             ->first();
 
-        $settings = SiteSetting::current();
         $price = $settings?->booking_price ?: 5000;
 
-        return view('booking.show', [
+        return [
             'slots' => $slots,
             'portfolioPhotos' => $portfolioPhotos,
             'portfolioVideo' => $portfolioVideo,
             'settings' => $settings,
             'price' => $price,
-        ]);
+        ];
     }
 
     public function checkout(
         Request $request,
         MercadoPagoService $mercadoPago,
-        CustomerPortalAccessService $portalAccess,
+        StripeService $stripe,
+        ContentBookingPaymentService $bookingPayment,
     ): RedirectResponse {
         $validated = $request->validate([
             'booking_slot_id' => ['required', 'integer', 'exists:booking_slots,id'],
@@ -74,16 +107,19 @@ class ContentBookingController extends Controller
             'client_phone' => ['required', 'string', 'max:30'],
             'client_instagram' => ['nullable', 'string', 'max:255'],
             'notes' => ['nullable', 'string', 'max:1000'],
+            'payment_provider' => ['nullable', 'string', 'in:mercadopago,stripe'],
+            'terms_accepted' => ['accepted'],
         ]);
 
         $settings = SiteSetting::current();
         $price = $settings?->booking_price ?: 5000;
+        $paymentProvider = $validated['payment_provider'] ?? 'mercadopago';
 
         $booking = null;
         $customer = null;
 
         try {
-            DB::transaction(function () use ($validated, $price, $request, &$booking, &$customer, $portalAccess) {
+            DB::transaction(function () use ($validated, $price, $request, $paymentProvider, &$booking, &$customer, $portalAccess, $settings) {
                 $slot = BookingSlot::where('id', $validated['booking_slot_id'])
                     ->where('is_active', true)
                     ->whereColumn('booked_count', '<', 'max_bookings')
@@ -91,6 +127,18 @@ class ContentBookingController extends Controller
                     ->first();
 
                 if (! $slot) {
+                    throw new \RuntimeException('slot_unavailable');
+                }
+
+                $availabilityDays = $settings?->bookingAvailabilityDays() ?? config('booking.availability_days', 11);
+                $startTime = $settings?->bookingStartTime() ?? config('booking.default_start_time', '14:00');
+                $endTime = $settings?->bookingEndTime() ?? config('booking.default_end_time', '17:00');
+                $slotDate = $slot->date->toDateString();
+                $slotTime = substr((string) $slot->time_value, 0, 5);
+                $today = Carbon::today()->toDateString();
+                $latestDate = Carbon::today()->addDays($availabilityDays)->toDateString();
+
+                if ($slotDate < $today || $slotDate > $latestDate || $slotTime < $startTime || $slotTime > $endTime) {
                     throw new \RuntimeException('slot_unavailable');
                 }
 
@@ -114,6 +162,7 @@ class ContentBookingController extends Controller
                     'amount' => $price,
                     'currency' => 'MXN',
                     'status' => 'pending_payment',
+                    'payment_provider' => $paymentProvider,
                     'utm_source' => $request->input('utm_source'),
                     'utm_medium' => $request->input('utm_medium'),
                     'utm_campaign' => $request->input('utm_campaign'),
@@ -125,6 +174,10 @@ class ContentBookingController extends Controller
                     'fbc' => $request->input('fbc'),
                     'referrer' => $request->input('referrer'),
                     'landing_url' => $request->input('landing_url'),
+                    'metadata' => [
+                        'created_from_host' => $request->getHost(),
+                        'skip_payment_mode' => BookingMode::shouldSkipPayment($request),
+                    ],
                 ]);
 
                 $slot->increment('booked_count');
@@ -137,28 +190,62 @@ class ContentBookingController extends Controller
             throw $e;
         }
 
-        try {
-            $preference = $mercadoPago->createPreferenceForBooking($booking);
+        if (! BookingMode::shouldSkipPayment($request)) {
+            app(MetaConversionsApiService::class)->sendInitiateCheckoutForBooking($booking->fresh());
+        }
 
-            $booking->update(['mercadopago_preference_id' => $preference['id']]);
+        if (BookingMode::shouldSkipPayment($request)) {
+            $booking = $bookingPayment->applyStatusTransition($booking->fresh(['slot', 'customer']), 'confirmed', [
+                'source' => 'test_skip_payment',
+                'host' => $request->getHost(),
+            ]);
+
+            Log::info('ContentBooking confirmed without payment in test mode', [
+                'booking_id' => $booking->id,
+                'host' => $request->getHost(),
+            ]);
+
+            $this->bootCustomerSession($request, $booking);
+
+            return redirect()
+                ->route('booking.confirm', $booking->public_id)
+                ->with('success', 'Reserva de prueba confirmada sin cobro real.');
+        }
+
+        try {
+            if ($paymentProvider === 'stripe') {
+                $session = $stripe->createCheckoutSessionForBooking($booking);
+                $checkoutUrl = Arr::get($session, 'url');
+
+                if (! $checkoutUrl) {
+                    throw new \RuntimeException('No se recibió el link de pago.');
+                }
+
+                $booking->update([
+                    'stripe_checkout_session_id' => Arr::get($session, 'id'),
+                    'stripe_status' => Arr::get($session, 'status'),
+                ]);
+            } else {
+                $preference = $mercadoPago->createPreferenceForBooking($booking);
+                $checkoutUrl = config('mercadopago.sandbox')
+                    ? ($preference['sandbox_init_point'] ?? $preference['init_point'])
+                    : $preference['init_point'];
+
+                $booking->update(['mercadopago_preference_id' => $preference['id']]);
+            }
+
             $booking = $booking->fresh(['slot', 'customer']);
 
             $this->bootCustomerSession($request, $booking);
-            if ($booking->customer) {
-                $portalAccess->ensurePortalAccessAndNotify($booking->customer, booking: $booking);
-            }
 
-            $initPoint = config('mercadopago.sandbox')
-                ? ($preference['sandbox_init_point'] ?? $preference['init_point'])
-                : $preference['init_point'];
-
-            return redirect()->away($initPoint);
+            return redirect()->away($checkoutUrl);
         } catch (\Throwable $e) {
             $booking->slot?->decrement('booked_count');
             $booking->update(['status' => 'failed']);
 
-            Log::error('ContentBooking MP preference failed', [
+            Log::error('ContentBooking checkout failed', [
                 'booking_id' => $booking->id,
+                'provider' => $paymentProvider,
                 'error' => $e->getMessage(),
             ]);
 
@@ -166,54 +253,38 @@ class ContentBookingController extends Controller
         }
     }
 
-    public function confirm(Request $request, string $publicId, CustomerPortalAccessService $portalAccess): View
-    {
+    public function confirm(
+        Request $request,
+        string $publicId,
+        StripeService $stripe,
+        ContentBookingPaymentService $bookingPayment,
+    ): Response {
         $booking = ContentBooking::where('public_id', $publicId)->with(['slot', 'customer'])->firstOrFail();
 
-        if ($booking->status === 'pending_payment') {
-            $booking->update(['status' => 'confirmed']);
-
-            // Create Google Calendar event
-            $this->createGoogleCalendarEvent($booking->fresh());
+        $sessionId = $request->query('session_id');
+        if ($sessionId && $booking->payment_provider === 'stripe') {
+            try {
+                $session = $stripe->fetchSession((string) $sessionId);
+                $bookingPayment->syncStripeSession($booking, $session);
+                $booking = $booking->fresh(['slot', 'customer']);
+            } catch (\Throwable $e) {
+                Log::warning('Stripe session sync on booking confirm failed', [
+                    'booking_id' => $booking->id,
+                    'error' => $e->getMessage(),
+                ]);
+            }
         }
 
         $this->bootCustomerSession($request, $booking);
-        if ($booking->customer) {
-            $portalAccess->ensurePortalAccessAndNotify($booking->customer, booking: $booking);
-        }
 
-        return view('booking.confirm', ['booking' => $booking]);
+        return Inertia::render('Booking/Confirm', [
+            'booking' => (new ContentBookingResource($booking))->resolve(),
+            'paymentVerified' => $booking->status === 'confirmed',
+            'isTestBooking' => (bool) data_get($booking->metadata, 'skip_payment_mode', false),
+        ]);
     }
 
-    protected function createGoogleCalendarEvent(ContentBooking $booking): void
-    {
-        if ($booking->google_calendar_event_id) {
-            return;
-        }
-
-        try {
-            $googleCalendar = app(GoogleCalendarService::class);
-
-            if (! $googleCalendar->isConnected()) {
-                return;
-            }
-
-            $settings = SiteSetting::current();
-            $calendarId = $settings?->google_calendar_id ?? 'primary';
-            $eventId = $googleCalendar->createBookingEvent($booking, $calendarId);
-
-            if ($eventId) {
-                $booking->update(['google_calendar_event_id' => $eventId]);
-            }
-        } catch (\Throwable $e) {
-            \Illuminate\Support\Facades\Log::warning('GCal event creation failed in controller', [
-                'booking_id' => $booking->id,
-                'error' => $e->getMessage(),
-            ]);
-        }
-    }
-
-    public function pending(Request $request, string $publicId): View
+    public function pending(Request $request, string $publicId): Response
     {
         $booking = ContentBooking::where('public_id', $publicId)->with(['slot', 'customer'])->firstOrFail();
 
@@ -223,21 +294,82 @@ class ContentBookingController extends Controller
 
         $this->bootCustomerSession($request, $booking);
 
-        return view('booking.pending', ['booking' => $booking]);
+        return Inertia::render('Booking/Pending', [
+            'booking' => (new ContentBookingResource($booking))->resolve(),
+            'errors' => session('errors')?->getBag('default')?->getMessages() ?? [],
+        ]);
     }
 
-    public function failure(Request $request, string $publicId): View
+    public function failure(Request $request, string $publicId): Response
     {
         $booking = ContentBooking::where('public_id', $publicId)->with(['slot', 'customer'])->firstOrFail();
 
-        if (in_array($booking->status, ['pending_payment', 'pending'])) {
-            $booking->slot?->decrement('booked_count');
-            $booking->update(['status' => 'failed']);
+        if (in_array($booking->status, ['pending_payment', 'pending'], true)) {
+            app(ContentBookingPaymentService::class)->releaseSlotIfFailed($booking, 'failed');
+            $booking = $booking->fresh(['slot', 'customer']);
         }
 
         $this->bootCustomerSession($request, $booking);
 
-        return view('booking.failure', ['booking' => $booking]);
+        return Inertia::render('Booking/Failure', [
+            'booking' => (new ContentBookingResource($booking))->resolve(),
+        ]);
+    }
+
+    public function retryPayment(
+        string $publicId,
+        MercadoPagoService $mercadoPago,
+        StripeService $stripe,
+    ): RedirectResponse {
+        $booking = ContentBooking::where('public_id', $publicId)->with(['slot', 'customer'])->firstOrFail();
+
+        if ($booking->status === 'confirmed') {
+            return redirect()->route('booking.confirm', $booking->public_id);
+        }
+
+        if (! in_array($booking->status, ['pending_payment', 'pending', 'failed'], true)) {
+            return redirect()->route('booking.failure', $booking->public_id);
+        }
+
+        if ($booking->status === 'failed') {
+            $booking->update(['status' => 'pending_payment']);
+        }
+
+        try {
+            if ($booking->payment_provider === 'stripe') {
+                $session = $stripe->createCheckoutSessionForBooking($booking);
+                $checkoutUrl = Arr::get($session, 'url');
+
+                if (! $checkoutUrl) {
+                    throw new \RuntimeException('No se recibió el link de pago.');
+                }
+
+                $booking->update([
+                    'stripe_checkout_session_id' => Arr::get($session, 'id'),
+                    'stripe_status' => Arr::get($session, 'status'),
+                ]);
+
+                return redirect()->away($checkoutUrl);
+            }
+
+            $preference = $mercadoPago->createPreferenceForBooking($booking);
+            $initPoint = config('mercadopago.sandbox')
+                ? ($preference['sandbox_init_point'] ?? $preference['init_point'])
+                : $preference['init_point'];
+
+            $booking->update(['mercadopago_preference_id' => $preference['id']]);
+
+            return redirect()->away($initPoint);
+        } catch (\Throwable $e) {
+            Log::error('ContentBooking retry payment failed', [
+                'booking_id' => $booking->id,
+                'error' => $e->getMessage(),
+            ]);
+
+            return redirect()
+                ->route('booking.pending', $booking->public_id)
+                ->withErrors(['payment' => 'No se pudo reiniciar el pago. Inténtalo de nuevo.']);
+        }
     }
 
     protected function bootCustomerSession(Request $request, ContentBooking $booking): void

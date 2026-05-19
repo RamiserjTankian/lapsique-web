@@ -5,17 +5,18 @@ namespace App\Http\Controllers;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\View\View;
+use Inertia\Inertia;
+use Inertia\Response;
 
 class CustomerAuthController extends Controller
 {
-    public function showLogin(Request $request): View|RedirectResponse
+    public function showLogin(Request $request): Response|RedirectResponse
     {
         if (Auth::guard('customer')->check()) {
             return redirect()->route('customers.portal');
         }
 
-        return view('customers.login');
+        return Inertia::render('Customer/Login');
     }
 
     public function login(Request $request): RedirectResponse

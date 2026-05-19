@@ -1,12 +1,25 @@
 const pixelConfig = window.LapsiquePixel || {};
 const pixelQueue = Array.isArray(window.__lapsiquePixelQueue) ? window.__lapsiquePixelQueue : [];
+let advancedMatchingApplied = false;
 
-function trackMetaPixel(event, payload) {
+function trackMetaPixel(event, payload, options) {
     if (!pixelConfig.enabled || typeof window.fbq !== 'function') {
         return;
     }
 
-    window.fbq('track', event, payload || {});
+    const { event_id, eventID, client_email, client_phone, client_name, customer_email, customer_phone, customer_name, ...rest } =
+        payload || {};
+
+    applyAdvancedMatchingOnce({
+        em: client_email || customer_email,
+        ph: client_phone || customer_phone,
+        fn: client_name || customer_name,
+        external_id: rest.booking_id,
+    });
+
+    const trackOptions = options || (event_id || eventID ? { eventID: event_id || eventID } : undefined);
+
+    window.fbq('track', event, rest, trackOptions);
 }
 
 window.trackMetaPixel = trackMetaPixel;
@@ -15,7 +28,19 @@ window.trackMetaPixelCustom = function trackMetaPixelCustom(event, payload) {
         return;
     }
 
-    window.fbq('trackCustom', event, payload || {});
+    const { event_id, eventID, client_email, client_phone, client_name, customer_email, customer_phone, customer_name, ...rest } =
+        payload || {};
+
+    applyAdvancedMatchingOnce({
+        em: client_email || customer_email,
+        ph: client_phone || customer_phone,
+        fn: client_name || customer_name,
+        external_id: rest.booking_id,
+    });
+
+    const trackOptions = event_id || eventID ? { eventID: event_id || eventID } : undefined;
+
+    window.fbq('trackCustom', event, rest, trackOptions);
 };
 
 flushQueuedPixelCalls();
@@ -58,6 +83,34 @@ function flushQueuedPixelCalls() {
             return;
         }
 
-        trackMetaPixel(queuedCall.eventName, queuedCall.payload || {});
+        trackMetaPixel(queuedCall.eventName, queuedCall.payload || {}, queuedCall.options);
     });
+}
+
+function applyAdvancedMatchingOnce(fields) {
+    const advancedMatching = {};
+
+    if (fields.em) {
+        advancedMatching.em = fields.em;
+    }
+    if (fields.ph) {
+        advancedMatching.ph = fields.ph;
+    }
+    if (fields.fn) {
+        advancedMatching.fn = fields.fn;
+    }
+    if (fields.external_id) {
+        advancedMatching.external_id = fields.external_id;
+    }
+
+    if (!pixelConfig.id || Object.keys(advancedMatching).length === 0) {
+        return;
+    }
+
+    if (advancedMatchingApplied) {
+        return;
+    }
+
+    advancedMatchingApplied = true;
+    window.fbq('init', pixelConfig.id, advancedMatching);
 }

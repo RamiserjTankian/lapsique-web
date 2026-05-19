@@ -3,10 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Models\ContentBooking;
-use App\Models\SiteSetting;
 use App\Models\TicketOrder;
-use App\Services\CustomerPortalAccessService;
-use App\Services\GoogleCalendarService;
+use App\Services\ContentBookingPaymentService;
 use App\Services\MercadoPagoService;
 use App\Services\TicketOrderService;
 use Illuminate\Http\Request;
@@ -15,8 +13,12 @@ use Symfony\Component\HttpFoundation\Response;
 
 class MercadoPagoWebhookController extends Controller
 {
-    public function handle(Request $request, MercadoPagoService $mercadoPago, TicketOrderService $orderService): Response
-    {
+    public function handle(
+        Request $request,
+        MercadoPagoService $mercadoPago,
+        TicketOrderService $orderService,
+        ContentBookingPaymentService $bookingPaymentService,
+    ): Response {
         if (! $mercadoPago->verifyWebhookSignature($request)) {
             Log::warning('MercadoPago webhook signature invalid', [
                 'ip' => $request->ip(),
@@ -32,7 +34,7 @@ class MercadoPagoWebhookController extends Controller
         $topic = str_replace('.updated', '', $topic);
 
         if ($topic === 'merchant_order') {
-            return $this->handleMerchantOrder($request, $mercadoPago, $orderService);
+            return $this->handleMerchantOrder($request, $mercadoPago, $orderService, $bookingPaymentService);
         }
 
         $paymentId = $request->input('data.id')
@@ -70,7 +72,7 @@ class MercadoPagoWebhookController extends Controller
             $booking = ContentBooking::where('public_id', $publicId)->first();
 
             if ($booking) {
-                $this->syncBookingPayment($booking, $payment);
+                $bookingPaymentService->syncMercadoPagoPayment($booking, $payment);
             } else {
                 Log::warning('MercadoPago webhook booking not found', [
                     'payment_id' => $paymentId,
@@ -97,72 +99,12 @@ class MercadoPagoWebhookController extends Controller
         return response()->noContent();
     }
 
-    protected function syncBookingPayment(ContentBooking $booking, array $payment): void
-    {
-        $mpStatus = (string) data_get($payment, 'status', '');
-        $paymentId = (string) data_get($payment, 'id', '');
-
-        $status = match ($mpStatus) {
-            'approved' => 'confirmed',
-            'pending', 'in_process', 'authorized' => 'pending',
-            'rejected', 'cancelled', 'refunded', 'charged_back' => 'failed',
-            default => $booking->status,
-        };
-
-        $wasAlreadyConfirmed = $booking->status === 'confirmed';
-
-        $booking->update([
-            'mercadopago_payment_id' => $paymentId ?: $booking->mercadopago_payment_id,
-            'mercadopago_status' => $mpStatus ?: $booking->mercadopago_status,
-            'status' => $status,
-        ]);
-
-        // Create Google Calendar event when newly confirmed
-        if ($status === 'confirmed' && ! $wasAlreadyConfirmed && ! $booking->google_calendar_event_id) {
-            $this->createGoogleCalendarEvent($booking->fresh());
-        }
-
-        if ($status === 'confirmed' && $booking->customer) {
-            app(CustomerPortalAccessService::class)->ensurePortalAccessAndNotify(
-                $booking->customer,
-                booking: $booking->fresh(['slot', 'customer']),
-            );
-        }
-
-        Log::info('ContentBooking payment synced', [
-            'booking_id' => $booking->id,
-            'mp_status' => $mpStatus,
-            'new_status' => $status,
-        ]);
-    }
-
-    protected function createGoogleCalendarEvent(ContentBooking $booking): void
-    {
-        try {
-            $googleCalendar = app(GoogleCalendarService::class);
-
-            if (! $googleCalendar->isConnected()) {
-                return;
-            }
-
-            $settings = SiteSetting::current();
-            $calendarId = $settings?->google_calendar_id ?? 'primary';
-
-            $eventId = $googleCalendar->createBookingEvent($booking, $calendarId);
-
-            if ($eventId) {
-                $booking->update(['google_calendar_event_id' => $eventId]);
-            }
-        } catch (\Throwable $e) {
-            Log::warning('Google Calendar event creation failed in webhook', [
-                'booking_id' => $booking->id,
-                'error' => $e->getMessage(),
-            ]);
-        }
-    }
-
-    protected function handleMerchantOrder(Request $request, MercadoPagoService $mercadoPago, TicketOrderService $orderService): Response
-    {
+    protected function handleMerchantOrder(
+        Request $request,
+        MercadoPagoService $mercadoPago,
+        TicketOrderService $orderService,
+        ContentBookingPaymentService $bookingPaymentService,
+    ): Response {
         $merchantOrderId = $request->input('data.id')
             ?? $request->query('id')
             ?? $this->extractIdFromResource($request->input('resource') ?: $request->query('resource'));
@@ -201,7 +143,7 @@ class MercadoPagoWebhookController extends Controller
                     $publicId = substr($externalReference, 4);
                     $booking = ContentBooking::where('public_id', $publicId)->first();
                     if ($booking) {
-                        $this->syncBookingPayment($booking, $payment);
+                        $bookingPaymentService->syncMercadoPagoPayment($booking, $payment);
                     }
                 } else {
                     $order = TicketOrder::where('public_id', $externalReference)->first();

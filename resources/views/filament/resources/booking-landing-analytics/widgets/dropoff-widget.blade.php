@@ -73,7 +73,7 @@
                                 <div class="flex items-start justify-between gap-4">
                                     <div>
                                         <p class="font-medium text-gray-900 dark:text-white">{{ $row['source'] }}</p>
-                                        <p class="text-sm text-gray-600 dark:text-gray-300">{{ $row['session']->landing_path ?: '/sesion-de-contenido' }}</p>
+                                        <p class="text-sm text-gray-600 dark:text-gray-300">{{ $row['session']->landing_path ?: '/' }}</p>
                                     </div>
                                     <span @class([
                                         'rounded-full px-2.5 py-1 text-xs font-medium',

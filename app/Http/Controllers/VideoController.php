@@ -2,44 +2,69 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Resources\VideoResource;
 use App\Models\Dj;
 use App\Models\Video;
-use Illuminate\Contracts\View\View;
+use Illuminate\Http\Request;
+use Inertia\Inertia;
+use Inertia\Response;
 
 class VideoController extends Controller
 {
-    public function index(): View
+    public function index(Request $request): Response
     {
-        // Obtener el DJ destacado
         $highlightedDj = Dj::query()
             ->where('is_highlighted', true)
             ->first();
 
-        // Obtener videos con los del DJ destacado primero
         $highlightedDjId = $highlightedDj?->id;
-        $videos = Video::query()
-            ->with('djs')
+
+        $baseQuery = Video::query()
+            ->with(['djs.media'])
             ->when($highlightedDjId, function ($query) use ($highlightedDjId) {
-                return $query->orderByRaw("EXISTS(
+                return $query->orderByRaw('EXISTS(
                     SELECT 1 FROM dj_video 
                     WHERE dj_video.video_id = videos.id 
                     AND dj_video.dj_id = ?
-                ) DESC", [$highlightedDjId]);
+                ) DESC', [$highlightedDjId]);
             })
             ->orderByDesc('is_featured')
             ->orderBy('priority')
-            ->orderByDesc('published_at')
-            ->get();
+            ->orderByDesc('published_at');
 
-        return view('videos.index', compact('videos', 'highlightedDj'));
+        $featured = (clone $baseQuery)->first();
+
+        $videosQuery = (clone $baseQuery);
+        if ($featured) {
+            $videosQuery->where('id', '!=', $featured->id);
+        }
+
+        $videos = $videosQuery->paginate(12)->withQueryString();
+
+        return Inertia::render('Videos/Index', [
+            'featuredVideo' => $featured ? (new VideoResource($featured))->resolve() : null,
+            'videos' => [
+                'data' => VideoResource::collection($videos->items())->resolve(),
+                'links' => $videos->linkCollection()->toArray(),
+                'meta' => [
+                    'current_page' => $videos->currentPage(),
+                    'last_page' => $videos->lastPage(),
+                    'per_page' => $videos->perPage(),
+                    'total' => $videos->total(),
+                    'from' => $videos->firstItem(),
+                    'to' => $videos->lastItem(),
+                ],
+            ],
+            'highlightedDjName' => $highlightedDj?->name,
+        ]);
     }
 
-    public function show(Video $video): View
+    public function show(Video $video): Response
     {
-        $video->load('djs');
+        $video->load('djs.media');
 
-        return view('videos.show', [
-            'video' => $video,
+        return Inertia::render('Videos/Show', [
+            'video' => (new VideoResource($video))->resolve(),
             'instagramUrl' => config('lapsique.instagram_url'),
         ]);
     }

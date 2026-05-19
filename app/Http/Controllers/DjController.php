@@ -2,19 +2,23 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Resources\DjResource;
+use App\Http\Resources\VideoResource;
 use App\Models\Dj;
-use Illuminate\Contracts\View\View;
+use Inertia\Inertia;
+use Inertia\Response;
 
 class DjController extends Controller
 {
-    public function index(): View
+    public function index(): Response
     {
-        // Obtener el DJ destacado
         $highlightedDj = Dj::query()
+            ->with('media')
             ->where('is_highlighted', true)
             ->first();
 
         $djs = Dj::query()
+            ->with('media')
             ->orderByDesc('is_highlighted')
             ->orderByDesc('is_featured')
             ->orderByRaw('COALESCE(JSON_LENGTH(tags), 0) desc')
@@ -22,16 +26,19 @@ class DjController extends Controller
             ->orderByDesc('id')
             ->paginate(9);
 
-        return view('djs.index', compact('djs', 'highlightedDj'));
+        return Inertia::render('Djs/Index', [
+            'djs' => DjResource::collection($djs->items())->resolve(),
+            'highlightedDj' => $highlightedDj ? (new DjResource($highlightedDj))->resolve() : null,
+        ]);
     }
 
-    public function show(Dj $dj): View
+    public function show(Dj $dj): Response
     {
-        $dj->load([
-            'media',
-            'videos',
-        ]);
+        $dj->load(['media', 'videos.media']);
 
-        return view('djs.show', compact('dj'));
+        return Inertia::render('Djs/Show', [
+            'dj' => (new DjResource($dj))->resolve(),
+            'videos' => VideoResource::collection($dj->videos)->resolve(),
+        ]);
     }
 }

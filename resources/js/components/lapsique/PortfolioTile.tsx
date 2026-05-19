@@ -1,0 +1,69 @@
+import { motion } from 'framer-motion';
+import { glassCardVariants } from '@/lib/variants';
+import { cn } from '@/lib/utils';
+import { route } from '@/lib/route';
+import { Link, usePage } from '@inertiajs/react';
+import { fadeUp } from '@/lib/motion';
+import type { PageProps, PortfolioItemData } from '@/types';
+
+interface PortfolioTileProps {
+    item: PortfolioItemData;
+    index?: number;
+    onSelect?: (item: PortfolioItemData) => void;
+}
+
+export function PortfolioTile({ item, index = 0, onSelect }: PortfolioTileProps) {
+    const { ziggy } = usePage<PageProps>().props;
+
+    const tileClassName = cn(
+        glassCardVariants(),
+        'group relative block aspect-square w-full overflow-hidden',
+        onSelect &&
+            'cursor-pointer text-left ring-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50',
+    );
+
+    const tileContent = (
+        <>
+            {item.asset_url && (
+                <img
+                    src={item.asset_url}
+                    alt={item.title ?? item.type}
+                    className="absolute inset-0 h-full w-full object-cover transition duration-700 group-hover:scale-[1.06]"
+                    loading="lazy"
+                />
+            )}
+            <div className="absolute inset-0 bg-gradient-to-t from-background via-background/40 to-transparent opacity-90 transition-opacity group-hover:opacity-100" />
+            <MotionCaption item={item} />
+        </>
+    );
+
+    return (
+        <motion.div
+            variants={fadeUp}
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true }}
+            custom={index}
+        >
+            {onSelect ? (
+                <button type="button" onClick={() => onSelect(item)} className={tileClassName}>
+                    {tileContent}
+                </button>
+            ) : (
+                <Link href={route('portfolio.index', undefined, false, ziggy)} className={tileClassName}>
+                    {tileContent}
+                </Link>
+            )}
+        </motion.div>
+    );
+}
+
+function MotionCaption({ item }: { item: PortfolioItemData }) {
+    return (
+        <div className="absolute inset-x-0 bottom-0 p-3 pt-10">
+            <p className="line-clamp-2 text-xs font-semibold text-foreground">
+                {item.title || item.type}
+            </p>
+        </div>
+    );
+}

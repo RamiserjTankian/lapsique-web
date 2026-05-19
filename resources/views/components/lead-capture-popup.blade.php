@@ -231,6 +231,28 @@ function leadCapturePopup() {
             localStorage.setItem('lapsique_popup_seen', Date.now().toString());
         },
 
+        getTrackingPayload() {
+            const context = window.LapsiqueTracker?.getContext?.() || window.LapsiqueTrackingContext || {};
+
+            return {
+                current_page: window.location.href,
+                landing_page: context.landing_page || window.location.pathname,
+                landing_url: context.landing_url || window.location.href,
+                page_type: context.page_type || null,
+                page_name: context.page_name || null,
+                referrer: context.referrer || document.referrer || null,
+                utm_source: context.utm_source || null,
+                utm_medium: context.utm_medium || null,
+                utm_campaign: context.utm_campaign || null,
+                utm_term: context.utm_term || null,
+                utm_content: context.utm_content || null,
+                analytics_visitor_id: context.visitor_id || null,
+                analytics_session_id: context.session_id || null,
+                fbp: context.fbp || null,
+                fbc: context.fbc || null,
+            };
+        },
+
         async submitForm() {
             this.loading = true;
             this.errorMessage = '';
@@ -245,13 +267,7 @@ function leadCapturePopup() {
                     },
                     body: JSON.stringify({
                         ...this.formData,
-                        current_page: window.location.href,
-                        referrer: document.referrer,
-                        utm_source: new URLSearchParams(window.location.search).get('utm_source'),
-                        utm_medium: new URLSearchParams(window.location.search).get('utm_medium'),
-                        utm_campaign: new URLSearchParams(window.location.search).get('utm_campaign'),
-                        utm_term: new URLSearchParams(window.location.search).get('utm_term'),
-                        utm_content: new URLSearchParams(window.location.search).get('utm_content'),
+                        ...this.getTrackingPayload(),
                     })
                 });
 

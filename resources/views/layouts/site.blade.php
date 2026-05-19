@@ -105,14 +105,9 @@
                 'activeWindowSeconds' => config('analytics.presence.active_window_seconds'),
             ],
         ];
-        $metaPixelId = config('meta-pixel.id');
-        $metaPixelEnabled = (bool) config('meta-pixel.enabled') && !empty($metaPixelId);
-        $metaPixelConfig = [
-            'enabled' => $metaPixelEnabled,
-            'id' => $metaPixelId,
-            'autoTrack' => (bool) config('meta-pixel.auto_track', true),
-            'trackPageView' => (bool) config('meta-pixel.track_pageview', true),
-        ];
+        $metaPixelConfig = \App\Support\Meta::pixelClientConfig();
+        $metaPixelId = $metaPixelConfig['id'];
+        $metaPixelEnabled = $metaPixelConfig['enabled'];
         $pageConfig = [
             'type' => $pageType,
             'name' => $routeName,
@@ -199,7 +194,7 @@
     $contactWhatsappNumber = preg_replace('/\D+/', '', (string) ($siteSettings?->booking_whatsapp ?: config('lapsique.whatsapp_number', '')));
     $contactWhatsappMessage = 'Hola, vengo de parte de Psiquemedia. Podemos ayudarte a hacer realidad tu idea en un reel.';
     $contactWhatsappUrl = $contactWhatsappNumber !== '' ? 'https://wa.me/' . $contactWhatsappNumber . '?text=' . urlencode($contactWhatsappMessage) : null;
-    $bookingCtaUrl = route('booking.show');
+    $bookingCtaUrl = route('home') . '#agenda';
     $showWhatsappWidget = (bool) $contactWhatsappUrl;
 @endphp
 <body class="bg-ink text-gray-100 min-h-screen antialiased" data-page-type="{{ $pageType }}" data-route-name="{{ $routeName }}">

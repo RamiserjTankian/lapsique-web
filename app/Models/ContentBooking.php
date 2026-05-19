@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Spatie\Image\Enums\Fit;
 use Spatie\MediaLibrary\HasMedia;
@@ -13,7 +14,7 @@ use Spatie\MediaLibrary\MediaCollections\Models\Media;
 
 class ContentBooking extends Model implements HasMedia
 {
-    use HasFactory, SoftDeletes, InteractsWithMedia;
+    use HasFactory, InteractsWithMedia, SoftDeletes;
 
     protected $fillable = [
         'public_id',
@@ -28,8 +29,14 @@ class ContentBooking extends Model implements HasMedia
         'amount',
         'currency',
         'status',
+        'paid_at',
+        'payment_provider',
         'mercadopago_preference_id',
         'mercadopago_payment_id',
+        'stripe_checkout_session_id',
+        'stripe_payment_intent_id',
+        'stripe_status',
+        'google_calendar_event_id',
         'mercadopago_status',
         'utm_source',
         'utm_medium',
@@ -45,11 +52,13 @@ class ContentBooking extends Model implements HasMedia
         'metadata',
         'admin_notes',
         'deliverables_ready_at',
+        'deliverables_drive_url',
     ];
 
     protected $casts = [
         'amount' => 'integer',
         'metadata' => 'array',
+        'paid_at' => 'datetime',
         'deliverables_ready_at' => 'datetime',
     ];
 
@@ -61,6 +70,20 @@ class ContentBooking extends Model implements HasMedia
     public function customer(): BelongsTo
     {
         return $this->belongsTo(Customer::class);
+    }
+
+    public function deliverableLinks(): HasMany
+    {
+        return $this->hasMany(ContentBookingDeliverableLink::class)->latest();
+    }
+
+    public function hasPublishedDeliverables(): bool
+    {
+        if ($this->relationLoaded('deliverableLinks')) {
+            return $this->deliverableLinks->isNotEmpty();
+        }
+
+        return $this->deliverableLinks()->exists();
     }
 
     public function registerMediaCollections(): void
@@ -134,11 +157,20 @@ class ContentBooking extends Model implements HasMedia
 
     public function getFormattedAmountAttribute(): string
     {
-        return '$' . number_format($this->amount, 0, '.', ',') . ' ' . $this->currency;
+        return '$'.number_format($this->amount, 0, '.', ',').' '.$this->currency;
     }
 
     public function getPaymentStatusLabelAttribute(): string
     {
+        if ($this->payment_provider === 'stripe') {
+            return match ($this->stripe_status) {
+                'succeeded', 'paid' => 'Pagado',
+                'processing', 'requires_action' => 'En revisión',
+                'canceled', 'requires_payment_method' => 'No aprobado',
+                default => $this->status_label,
+            };
+        }
+
         return match ($this->mercadopago_status) {
             'approved' => 'Pagado',
             'pending', 'in_process', 'authorized' => 'En revisión',
@@ -153,7 +185,7 @@ class ContentBooking extends Model implements HasMedia
             return 'Sin horario asignado';
         }
 
-        return $this->slot->date->translatedFormat('d \d\e F, Y') . ' — ' . $this->slot->time_label;
+        return $this->slot->date->translatedFormat('d \d\e F, Y').' — '.$this->slot->time_label;
     }
 
     public function getDeliverablesCountAttribute(): int

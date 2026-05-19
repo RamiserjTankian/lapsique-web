@@ -13,17 +13,19 @@ class BookingSlotGeneratorService
     public function __construct(protected GoogleCalendarService $googleCalendar) {}
 
     /**
-     * Generate booking slots for the next N weeks based on availability rules.
+     * Generate booking slots for the next N days based on availability rules.
      * Skips dates that already have a slot. Optionally checks Google Calendar for conflicts.
      *
      * @return array{created: int, skipped: int, blocked_by_calendar: int}
      */
-    public function generate(?int $weeksAhead = null, bool $checkGoogleCalendar = true): array
+    public function generate(?int $availabilityDays = null, bool $checkGoogleCalendar = true): array
     {
         $settings = SiteSetting::current();
-        $weeksAhead = $weeksAhead ?? ($settings?->booking_weeks_ahead ?? 4);
-        $advanceHours = $settings?->booking_advance_hours ?? 24;
-        $durationMinutes = $settings?->booking_duration_minutes ?? 120;
+        $availabilityDays = $availabilityDays ?? ($settings?->bookingAvailabilityDays() ?? config('booking.availability_days', 11));
+        $startTime = $settings?->bookingStartTime() ?? config('booking.default_start_time', '14:00');
+        $endTime = $settings?->bookingEndTime() ?? config('booking.default_end_time', '17:00');
+        $advanceHours = $settings?->booking_advance_hours ?? config('booking.default_advance_hours', 24);
+        $durationMinutes = $settings?->bookingDurationMinutes() ?? config('booking.default_duration_minutes', 120);
         $calendarId = $settings?->google_calendar_id ?? 'primary';
         $timezone = config('app.timezone', 'America/Mexico_City');
 
@@ -40,7 +42,7 @@ class BookingSlotGeneratorService
 
         $now = Carbon::now($timezone);
         $minAllowedDateTime = $now->copy()->addHours($advanceHours);
-        $endDate = $now->copy()->addWeeks($weeksAhead)->endOfDay();
+        $endDate = $now->copy()->addDays($availabilityDays)->endOfDay();
 
         // Pre-fetch busy times for the whole period if connected
         $busyTimes = [];
@@ -73,13 +75,22 @@ class BookingSlotGeneratorService
             $dayRules = $rules->where('day_of_week', $isoDow);
 
             foreach ($dayRules as $rule) {
-                [$hour, $minute] = array_map('intval', explode(':', $rule->time_value));
+                $ruleTime = substr((string) $rule->time_value, 0, 5);
+
+                if ($ruleTime < $startTime || $ruleTime > $endTime) {
+                    $skipped++;
+
+                    continue;
+                }
+
+                [$hour, $minute] = array_map('intval', explode(':', $ruleTime));
 
                 $slotDateTime = $cursor->copy()->setTime($hour, $minute, 0);
 
                 // Skip past or too-soon slots
                 if ($slotDateTime->lt($minAllowedDateTime)) {
                     $skipped++;
+
                     continue;
                 }
 
@@ -87,11 +98,12 @@ class BookingSlotGeneratorService
 
                 // Skip if slot already exists
                 $exists = BookingSlot::where('date', $dateStr)
-                    ->where('time_value', $rule->time_value)
+                    ->where('time_value', $ruleTime)
                     ->exists();
 
                 if ($exists) {
                     $skipped++;
+
                     continue;
                 }
 
@@ -107,8 +119,9 @@ class BookingSlotGeneratorService
                         $blockedByCalendar++;
                         Log::debug('BookingSlotGenerator: slot blocked by Google Calendar', [
                             'date' => $dateStr,
-                            'time' => $rule->time_value,
+                            'time' => $ruleTime,
                         ]);
+
                         continue;
                     }
                 }
@@ -117,7 +130,7 @@ class BookingSlotGeneratorService
                 BookingSlot::create([
                     'date' => $dateStr,
                     'time_label' => $rule->time_label,
-                    'time_value' => $rule->time_value,
+                    'time_value' => $ruleTime,
                     'max_bookings' => $rule->max_bookings,
                     'booked_count' => 0,
                     'is_active' => true,
@@ -133,7 +146,9 @@ class BookingSlotGeneratorService
             'created' => $created,
             'skipped' => $skipped,
             'blocked_by_calendar' => $blockedByCalendar,
-            'weeks_ahead' => $weeksAhead,
+            'availability_days' => $availabilityDays,
+            'start_time' => $startTime,
+            'end_time' => $endTime,
         ]);
 
         return [

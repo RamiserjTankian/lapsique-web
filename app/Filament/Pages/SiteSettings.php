@@ -4,15 +4,15 @@ namespace App\Filament\Pages;
 
 use App\Models\SiteSetting;
 use BackedEnum;
+use Filament\Actions\Action;
 use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\TextInput;
+use Filament\Notifications\Notification;
+use Filament\Pages\Page;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Concerns\InteractsWithSchemas;
 use Filament\Schemas\Contracts\HasSchemas;
 use Filament\Schemas\Schema;
-use Filament\Actions\Action;
-use Filament\Notifications\Notification;
-use Filament\Pages\Page;
 use Filament\Support\Icons\Heroicon;
 use Illuminate\Support\Facades\Storage;
 use UnitEnum;
@@ -36,8 +36,11 @@ class SiteSettings extends Page implements HasSchemas
     public $logo_watermark = null;
 
     public string $booking_title = '';
+
     public string $booking_subtitle = '';
+
     public int $booking_price = 5000;
+
     public string $booking_whatsapp = '';
 
     protected function getHeaderActions(): array
@@ -67,6 +70,7 @@ class SiteSettings extends Page implements HasSchemas
 
         $this->schema->fill([
             'logo_watermark' => $this->logo_watermark,
+            'meta_pixel_id' => $settings->meta_pixel_id,
             'booking_title' => $this->booking_title,
             'booking_subtitle' => $this->booking_subtitle,
             'booking_price' => $this->booking_price,
@@ -98,8 +102,18 @@ class SiteSettings extends Page implements HasSchemas
                             ->openable(),
                     ]),
 
+                Section::make('Meta Pixel')
+                    ->description('ID del pixel para el sitio público (Inertia). Si está vacío, se usa META_PIXEL_ID del .env. La API de campañas y CAPI se configuran en .env y en Configuración Meta Ads.')
+                    ->schema([
+                        TextInput::make('meta_pixel_id')
+                            ->label('Pixel ID')
+                            ->placeholder('Ej: 123456789012345')
+                            ->maxLength(32)
+                            ->helperText('Opcional. Debe coincidir con el pixel usado en META_CAPI_ENABLED y en Ads Manager.'),
+                    ]),
+
                 Section::make('Landing Page de Booking')
-                    ->description('Configuración de la página /sesion-de-contenido usada en campañas de Meta Ads.')
+                    ->description('Configuración base del funnel de agenda que vive en el home y conserva compatibilidad con campañas existentes.')
                     ->schema([
                         TextInput::make('booking_title')
                             ->label('Título principal')
@@ -132,7 +146,7 @@ class SiteSettings extends Page implements HasSchemas
     protected function getLogoPath(): ?string
     {
         $logoPath = public_path('images/logo-watermark.png');
-        
+
         return file_exists($logoPath) ? $logoPath : null;
     }
 
@@ -145,9 +159,9 @@ class SiteSettings extends Page implements HasSchemas
             } else {
                 // Intentar desde storage/public
                 $sourcePath = Storage::disk('public')->path($filePath);
-                
+
                 // Si no existe ahí, intentar como ruta relativa desde public
-                if (!file_exists($sourcePath)) {
+                if (! file_exists($sourcePath)) {
                     $sourcePath = public_path($filePath);
                 }
             }
@@ -162,7 +176,7 @@ class SiteSettings extends Page implements HasSchemas
             // Copiar el archivo a la ubicación final
             if (file_exists($sourcePath)) {
                 copy($sourcePath, $destinationPath);
-                
+
                 // Limpiar caché de vistas
                 \Artisan::call('view:clear');
             } else {
@@ -180,10 +194,10 @@ class SiteSettings extends Page implements HasSchemas
     protected function deleteLogo(): void
     {
         $logoPath = public_path('images/logo-watermark.png');
-        
+
         if (file_exists($logoPath)) {
             unlink($logoPath);
-            
+
             Notification::make()
                 ->title('Logo eliminado')
                 ->success()
@@ -206,6 +220,7 @@ class SiteSettings extends Page implements HasSchemas
         }
 
         SiteSetting::query()->firstOrCreate([])->update([
+            'meta_pixel_id' => filled($data['meta_pixel_id'] ?? null) ? $data['meta_pixel_id'] : null,
             'booking_title' => $data['booking_title'] ?? null,
             'booking_subtitle' => $data['booking_subtitle'] ?? null,
             'booking_price' => (int) ($data['booking_price'] ?? 5000),

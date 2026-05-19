@@ -1,0 +1,142 @@
+declare global {
+    interface Window {
+        LapsiqueTracker?: {
+            track: (name: string, options?: Record<string, unknown>) => void;
+            getContext?: () => Record<string, unknown>;
+        };
+        trackMetaPixel?: (
+            event: string,
+            data?: Record<string, unknown>,
+            options?: { eventID?: string },
+        ) => void;
+        trackMetaPixelCustom?: (event: string, data?: Record<string, unknown>) => void;
+    }
+}
+
+const BOOKING_CONTENT = {
+    content_category: 'content_booking',
+    content_name: 'Sesion de contenido lapsique.media',
+} as const;
+
+/** Eventos internos que también disparan un evento estándar de Meta (para optimización de campañas). */
+const STANDARD_EVENTS: Record<string, string> = {
+    booking_page_viewed: 'ViewContent',
+    deliverables_viewed: 'ViewContent',
+    process_viewed: 'ViewContent',
+    proof_section_viewed: 'ViewContent',
+    equipment_viewed: 'ViewContent',
+    booking_widget_viewed: 'ViewContent',
+    hero_cta_clicked: 'Lead',
+    sticky_cta_clicked: 'Lead',
+    booking_date_selected: 'Schedule',
+    booking_slot_selected: 'AddToCart',
+    booking_form_started: 'Lead',
+    booking_checkout_started: 'InitiateCheckout',
+    booking_confirmed: 'Purchase',
+};
+
+/** Sin Purchase estándar: no contaminar optimización en modo prueba. */
+const CUSTOM_ONLY_EVENTS = new Set([
+    'booking_test_confirmed',
+    'booking_form_submitted',
+    'booking_abandoned',
+    'booking_slot_cleared',
+    'booking_popup_shown',
+    'booking_payment_pending',
+    'booking_payment_failed',
+    'faq_opened',
+]);
+
+export function bookingMetaEventId(suffix: string, publicId?: string | null): string | undefined {
+    if (!publicId) {
+        return undefined;
+    }
+
+    return `booking_${suffix}_${publicId}`;
+}
+
+export function trackBookingEvent(
+    event: string,
+    data?: Record<string, unknown>,
+): void {
+    const basePayload = {
+        ...BOOKING_CONTENT,
+        ...data,
+    };
+
+    trackBookingMetaEvent(event, basePayload);
+    trackBookingInternalEvent(event, basePayload);
+}
+
+function trackBookingInternalEvent(event: string, data: Record<string, unknown>): void {
+    if (window.LapsiqueTracker) {
+        window.LapsiqueTracker.track(event, {
+            category: 'booking_funnel',
+            metadata: data,
+        });
+    }
+}
+
+function trackBookingMetaEvent(event: string, payload: Record<string, unknown>): void {
+    const metaEvent = STANDARD_EVENTS[event];
+    const eventId = resolveMetaEventId(event, payload);
+
+    if (metaEvent && !CUSTOM_ONLY_EVENTS.has(event) && typeof window.trackMetaPixel === 'function') {
+        const { event_id: _eid, eventID: _eID, ...pixelPayload } = payload;
+        window.trackMetaPixel(
+            metaEvent,
+            normalizeMetaPayload(metaEvent, pixelPayload),
+            eventId ? { eventID: eventId } : undefined,
+        );
+    }
+
+    if (typeof window.trackMetaPixelCustom === 'function') {
+        const customPayload = eventId ? { ...payload, event_id: eventId } : payload;
+        window.trackMetaPixelCustom(event, customPayload);
+    }
+}
+
+function resolveMetaEventId(event: string, payload: Record<string, unknown>): string | undefined {
+    const explicit = payload.event_id ?? payload.eventID;
+    if (typeof explicit === 'string' && explicit !== '') {
+        return explicit;
+    }
+
+    const publicId = payload.booking_id ?? payload.public_id;
+    if (typeof publicId !== 'string' || publicId === '') {
+        return undefined;
+    }
+
+    switch (event) {
+        case 'booking_checkout_started':
+        case 'booking_form_submitted':
+            return bookingMetaEventId('checkout', publicId);
+        case 'booking_confirmed':
+        case 'booking_test_confirmed':
+            return bookingMetaEventId('purchase', publicId);
+        default:
+            return undefined;
+    }
+}
+
+function normalizeMetaPayload(event: string, payload: Record<string, unknown>): Record<string, unknown> {
+    if (event === 'Purchase' || event === 'InitiateCheckout' || event === 'AddToCart') {
+        return {
+            currency: payload.currency || 'MXN',
+            value: payload.value ?? payload.amount,
+            content_ids: payload.booking_id ? [payload.booking_id] : undefined,
+            content_type: 'product',
+            content_name: payload.content_name ?? BOOKING_CONTENT.content_name,
+            content_category: payload.content_category ?? BOOKING_CONTENT.content_category,
+        };
+    }
+
+    if (event === 'ViewContent') {
+        return {
+            content_name: payload.content_name ?? payload.section ?? BOOKING_CONTENT.content_name,
+            content_category: payload.content_category ?? BOOKING_CONTENT.content_category,
+        };
+    }
+
+    return payload;
+}

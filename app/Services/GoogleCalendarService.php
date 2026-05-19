@@ -7,15 +7,18 @@ use App\Models\PaymentGatewayConnection;
 use App\Models\SiteSetting;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Str;
 use RuntimeException;
 
 class GoogleCalendarService
 {
     const PROVIDER = 'google_calendar';
+
     const SCOPES = 'https://www.googleapis.com/auth/calendar.events https://www.googleapis.com/auth/calendar.readonly';
+
     const AUTH_URL = 'https://accounts.google.com/o/oauth2/v2/auth';
+
     const TOKEN_URL = 'https://oauth2.googleapis.com/token';
+
     const API_BASE = 'https://www.googleapis.com/calendar/v3';
 
     public function getConnection(): ?PaymentGatewayConnection
@@ -36,9 +39,26 @@ class GoogleCalendarService
     {
         $connection = $this->getConnection();
 
-        if ($connection?->isConnected()) {
+        if (! $connection) {
+            return $this->disconnectedSummary();
+        }
+
+        if ($connection->status === 'connected' && ! $connection->hasDecryptableAccessToken()) {
+            return [
+                'connected' => false,
+                'needs_reconnect' => true,
+                'account_email' => $connection->account_email,
+                'account_name' => $connection->account_name,
+                'connected_at' => $connection->connected_at,
+                'expires_at' => $connection->expires_at,
+                'last_error_message' => 'Token inválido o APP_KEY cambió. Vuelve a conectar Google Calendar.',
+            ];
+        }
+
+        if ($connection->isConnected()) {
             return [
                 'connected' => true,
+                'needs_reconnect' => false,
                 'account_email' => $connection->account_email,
                 'account_name' => $connection->account_name,
                 'connected_at' => $connection->connected_at,
@@ -47,13 +67,22 @@ class GoogleCalendarService
             ];
         }
 
+        return $this->disconnectedSummary($connection);
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    protected function disconnectedSummary(?PaymentGatewayConnection $connection = null): array
+    {
         return [
             'connected' => false,
-            'account_email' => null,
-            'account_name' => null,
-            'connected_at' => null,
-            'expires_at' => null,
-            'last_error_message' => null,
+            'needs_reconnect' => false,
+            'account_email' => $connection?->account_email,
+            'account_name' => $connection?->account_name,
+            'connected_at' => $connection?->connected_at,
+            'expires_at' => $connection?->expires_at,
+            'last_error_message' => $connection?->last_error_message,
         ];
     }
 
@@ -61,7 +90,7 @@ class GoogleCalendarService
     {
         $clientId = $this->requireClientId();
 
-        return self::AUTH_URL . '?' . http_build_query([
+        return self::AUTH_URL.'?'.http_build_query([
             'client_id' => $clientId,
             'redirect_uri' => $this->redirectUri(),
             'response_type' => 'code',
@@ -117,7 +146,7 @@ class GoogleCalendarService
      */
     public function listCalendars(): array
     {
-        $response = $this->httpClient()->get(self::API_BASE . '/users/me/calendarList');
+        $response = $this->httpClient()->get(self::API_BASE.'/users/me/calendarList');
 
         if (! $response->successful()) {
             throw new RuntimeException('No se pudo listar los calendarios de Google.');
@@ -140,9 +169,9 @@ class GoogleCalendarService
      */
     public function getBusyTimes(string $calendarId, \DateTimeInterface $start, \DateTimeInterface $end): array
     {
-        $response = $this->httpClient()->post(self::API_BASE . '/freeBusy', [
-            'timeMin' => (new \DateTime())->setTimestamp($start->getTimestamp())->format(\DateTime::RFC3339),
-            'timeMax' => (new \DateTime())->setTimestamp($end->getTimestamp())->format(\DateTime::RFC3339),
+        $response = $this->httpClient()->post(self::API_BASE.'/freeBusy', [
+            'timeMin' => (new \DateTime)->setTimestamp($start->getTimestamp())->format(\DateTime::RFC3339),
+            'timeMax' => (new \DateTime)->setTimestamp($end->getTimestamp())->format(\DateTime::RFC3339),
             'timeZone' => config('app.timezone', 'America/Mexico_City'),
             'items' => [['id' => $calendarId]],
         ]);
@@ -198,16 +227,23 @@ class GoogleCalendarService
         }
 
         $settings = SiteSetting::current();
-        $durationMinutes = $settings?->booking_duration_minutes ?? 120;
+        $durationMinutes = $settings?->bookingDurationMinutes() ?? config('booking.default_duration_minutes', 120);
 
         $slot = $booking->slot;
         $startTime = $slot
-            ? \Carbon\Carbon::parse($slot->date->format('Y-m-d') . ' ' . $slot->time_value . ':00', config('app.timezone', 'America/Mexico_City'))
+            ? \Carbon\Carbon::parse($slot->date->format('Y-m-d').' '.$slot->time_value.':00', config('app.timezone', 'America/Mexico_City'))
             : now();
         $endTime = $startTime->copy()->addMinutes($durationMinutes);
 
         $instagramStr = $booking->client_instagram ? " (@{$booking->client_instagram})" : '';
         $notesStr = $booking->notes ? "\n\nNotas: {$booking->notes}" : '';
+
+        $attendees = array_values(array_filter([
+            ['email' => $booking->client_email, 'displayName' => $booking->client_name],
+            $settings?->booking_calendar_notify_email
+                ? ['email' => $settings->booking_calendar_notify_email]
+                : null,
+        ]));
 
         $event = [
             'summary' => "📸 Sesión de Contenido — {$booking->client_name}",
@@ -220,19 +256,27 @@ class GoogleCalendarService
                 'dateTime' => $endTime->toRfc3339String(),
                 'timeZone' => config('app.timezone', 'America/Mexico_City'),
             ],
-            'colorId' => '2', // Sage/green color
+            'colorId' => '2',
             'reminders' => [
                 'useDefault' => false,
                 'overrides' => [
-                    ['method' => 'email', 'minutes' => 1440], // 24h before
-                    ['method' => 'popup', 'minutes' => 60],   // 1h before
+                    ['method' => 'email', 'minutes' => 1440],
+                    ['method' => 'popup', 'minutes' => 60],
                 ],
             ],
         ];
 
+        if ($attendees !== []) {
+            $event['attendees'] = $attendees;
+        }
+
+        if ($settings?->booking_studio_location) {
+            $event['location'] = $settings->booking_studio_location;
+        }
+
         try {
             $response = $this->httpClient()->post(
-                self::API_BASE . '/calendars/' . urlencode($calendarId) . '/events',
+                self::API_BASE.'/calendars/'.urlencode($calendarId).'/events?sendUpdates=all',
                 $event
             );
 
@@ -275,7 +319,7 @@ class GoogleCalendarService
 
         try {
             $this->httpClient()->delete(
-                self::API_BASE . '/calendars/' . urlencode($calendarId) . '/events/' . $eventId
+                self::API_BASE.'/calendars/'.urlencode($calendarId).'/events/'.$eventId
             );
         } catch (\Throwable $e) {
             Log::warning('Google Calendar event deletion failed', [

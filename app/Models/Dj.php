@@ -4,14 +4,14 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Facades\Schema;
 use Spatie\Image\Enums\Fit;
 use Spatie\MediaLibrary\HasMedia;
 use Spatie\MediaLibrary\InteractsWithMedia;
 use Spatie\MediaLibrary\MediaCollections\Models\Media;
-use Illuminate\Database\Eloquent\Relations\BelongsToMany;
-use Illuminate\Database\Eloquent\Relations\HasMany;
-use Illuminate\Support\Facades\Schema;
 
 class Dj extends Model implements HasMedia
 {
@@ -33,6 +33,7 @@ class Dj extends Model implements HasMedia
         'is_highlighted',
         'priority',
         'tags',
+        'technical_rider',
     ];
 
     protected $casts = [
@@ -40,6 +41,7 @@ class Dj extends Model implements HasMedia
         'is_highlighted' => 'boolean',
         'priority' => 'integer',
         'tags' => 'array',
+        'technical_rider' => 'array',
     ];
 
     public function registerMediaCollections(): void

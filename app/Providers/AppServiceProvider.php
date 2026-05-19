@@ -2,8 +2,10 @@
 
 namespace App\Providers;
 
-use Illuminate\Support\ServiceProvider;
+use App\Models\TicketOrder;
+use App\Observers\TicketOrderObserver;
 use Illuminate\Support\Facades\URL;
+use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -20,6 +22,8 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        TicketOrder::observe(TicketOrderObserver::class);
+
         if ($this->app->environment('production')) {
             URL::forceScheme('https');
         }

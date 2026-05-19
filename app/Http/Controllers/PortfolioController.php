@@ -2,12 +2,14 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Resources\PortfolioItemResource;
 use App\Models\PortfolioItem;
-use Illuminate\Contracts\View\View;
+use Inertia\Inertia;
+use Inertia\Response;
 
 class PortfolioController extends Controller
 {
-    public function index(): View
+    public function index(): Response
     {
         $items = PortfolioItem::query()
             ->where('is_active', true)
@@ -17,7 +19,6 @@ class PortfolioController extends Controller
             ->with('media')
             ->get();
 
-        // Obtener todas las tags únicas de los items publicados
         $availableTags = $items
             ->pluck('tags')
             ->flatten()
@@ -27,14 +28,14 @@ class PortfolioController extends Controller
             ->values()
             ->toArray();
 
-        // Obtener un item destacado aleatorio para el SEO preview
-        $featuredItem = PortfolioItem::query()
-            ->where('is_active', true)
-            ->where('is_featured', true)
-            ->with('media')
-            ->inRandomOrder()
-            ->first();
+        $resolved = PortfolioItemResource::collection($items)->resolve();
+        $featuredItem = collect($resolved)->firstWhere('is_featured', true)
+            ?? ($resolved[0] ?? null);
 
-        return view('portfolio.index', compact('items', 'availableTags', 'featuredItem'));
+        return Inertia::render('Portfolio/Index', [
+            'items' => $resolved,
+            'featuredItem' => $featuredItem,
+            'availableTags' => $availableTags,
+        ]);
     }
 }

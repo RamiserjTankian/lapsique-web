@@ -4,7 +4,6 @@ namespace App\Filament\Resources\ContentBookings\Schemas;
 
 use Filament\Forms\Components\DateTimePicker;
 use Filament\Forms\Components\Select;
-use Filament\Forms\Components\SpatieMediaLibraryFileUpload;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Schemas\Components\Section;
@@ -54,7 +53,7 @@ class ContentBookingForm
                         Select::make('booking_slot_id')
                             ->label('Horario')
                             ->relationship('slot', 'time_label')
-                            ->getOptionLabelFromRecordUsing(fn ($record) => $record->date->format('d/m/Y') . ' · ' . $record->time_label)
+                            ->getOptionLabelFromRecordUsing(fn ($record) => $record->date->format('d/m/Y').' · '.$record->time_label)
                             ->searchable()
                             ->preload(),
                         Select::make('status')
@@ -81,32 +80,19 @@ class ContentBookingForm
                     ->columnSpan(1),
 
                 Section::make('Entregables del cliente')
-                    ->description('Archivos visibles dentro del portal del cliente.')
+                    ->description('Gestiona los enlaces desde la vista de la reserva con el botón «Añadir entregables» o la tabla de enlaces.')
                     ->schema([
-                        SpatieMediaLibraryFileUpload::make('deliverables')
-                            ->label('Material final')
-                            ->collection('deliverables')
-                            ->multiple()
-                            ->openable()
-                            ->downloadable()
-                            ->reorderable()
-                            ->acceptedFileTypes([
-                                'image/jpeg',
-                                'image/png',
-                                'image/webp',
-                                'image/jpg',
-                                'video/mp4',
-                                'video/quicktime',
-                                'video/webm',
-                                'application/pdf',
-                                'application/zip',
-                                'application/x-zip-compressed',
-                            ])
-                            ->maxSize(512000)
-                            ->helperText('Puedes subir fotos, reels, PDFs o ZIPs de entrega.')
+                        TextInput::make('deliverables_drive_url')
+                            ->label('Último enlace (legacy)')
+                            ->url()
+                            ->maxLength(2048)
+                            ->disabled()
+                            ->dehydrated(false)
+                            ->placeholder('Se actualiza al añadir enlaces')
                             ->columnSpanFull(),
                     ])
-                    ->columnSpanFull(),
+                    ->columnSpanFull()
+                    ->collapsed(),
             ]);
     }
 }

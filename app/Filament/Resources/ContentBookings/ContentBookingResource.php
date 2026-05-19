@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\ContentBookings;
 
+use App\Filament\Resources\ContentBookings\RelationManagers\DeliverableLinksRelationManager;
 use App\Filament\Resources\ContentBookings\Pages\ListContentBookings;
 use App\Filament\Resources\ContentBookings\Pages\EditContentBooking;
 use App\Filament\Resources\ContentBookings\Pages\ViewContentBooking;
@@ -48,7 +49,9 @@ class ContentBookingResource extends Resource
 
     public static function getRelations(): array
     {
-        return [];
+        return [
+            DeliverableLinksRelationManager::class,
+        ];
     }
 
     public static function getPages(): array
