@@ -89,6 +89,9 @@ export default function DjSetShow({
     const heroImage = portfolioImages.find((item) => item.is_featured) ?? portfolioImages[0];
     const proofImages = portfolioImages.filter((item) => item.id !== heroImage?.id);
     const galleryImages = proofImages.length > 0 ? proofImages : portfolioImages;
+    const portfolioVideos = portfolioItems.filter((item) => (
+        item.media_type === 'youtube' || item.media_type === 'video'
+    ));
 
     return (
         <SiteLayout>
@@ -107,7 +110,7 @@ export default function DjSetShow({
                     <div className="absolute inset-0 bg-[linear-gradient(180deg,oklch(0.08_0.01_280/0.22)_0%,oklch(0.08_0.01_280/0.42)_56%,var(--background)_100%)]" />
                 </div>
 
-                <div className="relative mx-auto grid min-h-[min(850px,92vh)] max-w-6xl content-end gap-8 px-4 pb-36 pt-24 sm:px-6 md:grid-cols-[minmax(0,1fr)_320px] md:items-end md:pb-24">
+                <div className="relative mx-auto grid min-h-[min(850px,92vh)] max-w-6xl content-end gap-8 px-4 pb-36 pt-24 sm:px-6 md:grid-cols-[minmax(0,1fr)_320px] md:items-end">
                     <div className="max-w-3xl">
                         <p className="text-xs font-semibold uppercase tracking-[0.24em] text-primary">
                             Lapsique para DJs
@@ -165,6 +168,26 @@ export default function DjSetShow({
             </section>
 
             <GlassSection
+                eyebrow="Muestra tu sonido"
+                title="La gente reserva cuando puede ver el resultado"
+                description="Pon tu DJ set frente a promotores, venues y audiencia con una sesión larga que se siente como contenido principal."
+                action={
+                    <Button type="button" variant="glass" onClick={scrollToAgenda}>
+                        Apartar fecha
+                        <ArrowRight className="h-4 w-4" />
+                    </Button>
+                }
+            >
+                <MediaSalesBoard
+                    images={portfolioImages}
+                    videos={originals}
+                    djs={djs}
+                    price={price}
+                    onBook={scrollToAgenda}
+                />
+            </GlassSection>
+
+            <GlassSection
                 eyebrow="Producción"
                 title="Tu set primero entra por imagen"
                 description="La propuesta combina prueba visual real, grabación larga y reserva inmediata para que el artista llegue con una fecha cerrada."
@@ -217,12 +240,15 @@ export default function DjSetShow({
                 </div>
             </GlassSection>
 
-            {galleryImages.length > 0 && (
+            {(galleryImages.length > 0 || portfolioVideos.length > 0) && (
                 <GlassSection
                     eyebrow="Nightlife"
-                    title="Portafolio con cabina, artista y pista"
-                    description="Imágenes de eventos que sostienen la atmósfera del DJ set y muestran cómo se ve una producción Lapsique."
+                    title="Cobertura para cabina, artista y pista"
+                    description="Fotos y movimiento de eventos para que tu sesión se vea como una pieza de la escena, no como una cámara puesta al azar."
                 >
+                    {portfolioVideos.length > 0 && (
+                        <PortfolioVideoProof video={portfolioVideos[0]} images={galleryImages} onBook={scrollToAgenda} />
+                    )}
                     <PortfolioEditorialGrid images={galleryImages} />
                 </GlassSection>
             )}
@@ -292,6 +318,134 @@ function Faq({ question, answer }: { question: string; answer: string }) {
     );
 }
 
+function MediaSalesBoard({
+    images,
+    videos,
+    djs,
+    price,
+    onBook,
+}: {
+    images: PortfolioItemData[];
+    videos: VideoItem[];
+    djs: DjItem[];
+    price: number;
+    onBook: () => void;
+}) {
+    const featuredVideo = videos.find((video) => video.thumbnail_url) ?? videos[0];
+    const supportingVideos = videos.filter((video) => video.id !== featuredVideo?.id).slice(0, 2);
+    const artistImage = djs.find((dj) => dj.cover_url || dj.avatar_url);
+
+    return (
+        <div className="grid gap-3 lg:grid-cols-[minmax(0,1.25fr)_minmax(320px,0.75fr)]">
+            <article className="group relative min-h-[420px] overflow-hidden rounded-xl border border-border/70 bg-black text-white">
+                {featuredVideo?.thumbnail_url && (
+                    <img
+                        src={featuredVideo.thumbnail_url}
+                        alt=""
+                        className="absolute inset-0 h-full w-full object-cover opacity-85 transition duration-700 group-hover:scale-[1.03]"
+                        loading="lazy"
+                    />
+                )}
+                <div className="absolute inset-0 bg-gradient-to-t from-black via-black/45 to-black/10" />
+                <div className="relative flex min-h-[420px] flex-col justify-between p-5 md:p-7">
+                    <div className="flex flex-wrap items-center justify-between gap-3">
+                        <span className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-black/35 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.24em] backdrop-blur">
+                            <Play className="h-3.5 w-3.5 fill-current text-primary" />
+                            Video de referencia
+                        </span>
+                        <span className="rounded-full border border-primary/35 bg-primary/15 px-3 py-1 font-mono-tabular text-xs font-semibold text-primary backdrop-blur">
+                            {formatMxn(price)}
+                        </span>
+                    </div>
+
+                    <div className="max-w-2xl">
+                        <h3 className="font-display text-3xl font-bold leading-tight md:text-4xl">
+                            Un set que puede vender tu próxima fecha.
+                        </h3>
+                        <p className="mt-3 line-clamp-2 text-sm leading-relaxed text-white/70 md:text-base">
+                            {featuredVideo?.title ?? 'Psique Originals: DJs, cabina y atmósfera en una sesión completa.'}
+                        </p>
+                        <div className="mt-5 flex flex-wrap gap-3">
+                            <Button variant="cinematic" asChild>
+                                <a href="#sets">Ver sesiones grabadas</a>
+                            </Button>
+                            <Button type="button" variant="glass" onClick={onBook}>
+                                Reservar grabación
+                            </Button>
+                        </div>
+                    </div>
+                </div>
+            </article>
+
+            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-1">
+                <div className="grid grid-cols-2 gap-3">
+                    {images.slice(0, 2).map((image, index) => (
+                        <PortfolioFrame key={image.id} image={image} className="min-h-[198px]" priority={index === 0} />
+                    ))}
+                </div>
+
+                {artistImage && (
+                    <figure className="relative min-h-[210px] overflow-hidden rounded-xl border border-border/70 bg-secondary">
+                        <img
+                            src={artistImage.cover_url ?? artistImage.avatar_url ?? ''}
+                            alt={artistImage.name}
+                            className="absolute inset-0 h-full w-full object-cover"
+                            loading="lazy"
+                        />
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/20 to-transparent" />
+                        <figcaption className="absolute inset-x-0 bottom-0 p-4 text-white">
+                            <p className="text-[10px] font-semibold uppercase tracking-[0.24em] text-primary">
+                                Para DJs
+                            </p>
+                            <p className="mt-1 font-display text-xl font-bold">
+                                Imagen de artista con lenguaje nightlife
+                            </p>
+                        </figcaption>
+                    </figure>
+                )}
+
+                {supportingVideos.length > 0 && (
+                    <div className="grid gap-3 sm:col-span-2 sm:grid-cols-2 lg:col-span-1">
+                        {supportingVideos.map((video) => (
+                            <SalesVideoThumb key={video.id} video={video} />
+                        ))}
+                    </div>
+                )}
+            </div>
+        </div>
+    );
+}
+
+function SalesVideoThumb({ video }: { video: VideoItem }) {
+    return (
+        <a
+            href="#sets"
+            className="group relative min-h-[148px] overflow-hidden rounded-xl border border-border/70 bg-black text-white"
+        >
+            {video.thumbnail_url && (
+                <img
+                    src={video.thumbnail_url}
+                    alt=""
+                    className="absolute inset-0 h-full w-full object-cover opacity-90 transition duration-500 group-hover:scale-[1.04]"
+                    loading="lazy"
+                />
+            )}
+            <span className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent" />
+            <span className="absolute left-3 top-3 flex h-9 w-9 items-center justify-center rounded-full border border-white/20 bg-black/35 backdrop-blur">
+                <Play className="ml-0.5 h-4 w-4 fill-current" />
+            </span>
+            <span className="absolute inset-x-0 bottom-0 p-3">
+                <span className="block text-[10px] font-semibold uppercase tracking-[0.2em] text-primary">
+                    Psique Original
+                </span>
+                <span className="mt-1 line-clamp-2 block text-sm font-semibold leading-snug">
+                    {video.title}
+                </span>
+            </span>
+        </a>
+    );
+}
+
 function PortfolioPreview({ images }: { images: PortfolioItemData[] }) {
     const displayImages = images.slice(0, 3);
 
@@ -318,8 +472,12 @@ function PortfolioPreview({ images }: { images: PortfolioItemData[] }) {
 }
 
 function PortfolioEditorialGrid({ images }: { images: PortfolioItemData[] }) {
+    if (images.length === 0) {
+        return null;
+    }
+
     return (
-        <div className="grid auto-rows-[160px] grid-cols-2 gap-3 md:auto-rows-[220px] md:grid-cols-4">
+        <div className="mt-3 grid auto-rows-[160px] grid-cols-2 gap-3 md:auto-rows-[220px] md:grid-cols-4">
             {images.slice(0, 7).map((image, index) => (
                 <PortfolioFrame
                     key={image.id}
@@ -337,6 +495,83 @@ function PortfolioEditorialGrid({ images }: { images: PortfolioItemData[] }) {
     );
 }
 
+function PortfolioVideoProof({
+    video,
+    images,
+    onBook,
+}: {
+    video: PortfolioItemData;
+    images: PortfolioItemData[];
+    onBook: () => void;
+}) {
+    const image = images[0];
+    const embedId = video.youtube_id;
+    const [isPlaying, setIsPlaying] = useState(false);
+
+    return (
+        <div className="mb-3 grid gap-3 lg:grid-cols-[minmax(0,1.15fr)_minmax(320px,0.85fr)]">
+            <div className="overflow-hidden rounded-xl border border-border/70 bg-black">
+                {embedId && isPlaying ? (
+                    <iframe
+                        src={`https://www.youtube.com/embed/${embedId}?rel=0&autoplay=1&mute=1&playsinline=1`}
+                        title={video.title ?? 'Video de portafolio nightlife'}
+                        className="aspect-video h-full min-h-[260px] w-full"
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                        allowFullScreen
+                    />
+                ) : (
+                    <button
+                        type="button"
+                        onClick={() => setIsPlaying(Boolean(embedId))}
+                        className="group relative block min-h-[320px] w-full text-left text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                        aria-label={embedId ? `Reproducir ${video.title ?? 'video nightlife'}` : undefined}
+                    >
+                        {(video.poster_url || video.asset_url) && (
+                            <img
+                                src={video.poster_url ?? video.asset_url ?? ''}
+                                alt=""
+                                className="absolute inset-0 h-full w-full object-cover opacity-90 transition duration-700 group-hover:scale-[1.03]"
+                                loading="lazy"
+                            />
+                        )}
+                        <span className="absolute inset-0 bg-gradient-to-t from-black via-black/25 to-transparent" />
+                        <span className="absolute left-5 top-5 flex h-14 w-14 items-center justify-center rounded-full border border-white/20 bg-black/35 backdrop-blur transition group-hover:bg-primary group-hover:text-primary-foreground">
+                            <Play className="ml-1 h-6 w-6 fill-current" />
+                        </span>
+                        <span className="absolute inset-x-0 bottom-0 p-5">
+                            <span className="block text-[10px] font-semibold uppercase tracking-[0.24em] text-primary">
+                                Clip de portafolio
+                            </span>
+                            <span className="mt-2 block max-w-lg font-display text-2xl font-bold">
+                                {video.title ?? 'Movimiento de pista y venue'}
+                            </span>
+                        </span>
+                    </button>
+                )}
+            </div>
+            <div className="grid gap-3 sm:grid-cols-[minmax(160px,0.7fr)_minmax(0,1fr)] lg:grid-cols-1">
+                {image && <PortfolioFrame image={image} className="min-h-[220px]" />}
+                <div className="flex flex-col justify-between rounded-xl border border-primary/20 bg-primary/10 p-5">
+                    <div>
+                        <p className="text-[10px] font-semibold uppercase tracking-[0.24em] text-primary">
+                            Visual nocturno
+                        </p>
+                        <h3 className="mt-3 font-display text-2xl font-bold text-foreground">
+                            Dron, cabina y venue en la misma historia.
+                        </h3>
+                        <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
+                            Reservas una sesión pensada para verse completa en YouTube y recortarse después en promoción.
+                        </p>
+                    </div>
+                    <Button type="button" variant="cinematic" className="mt-5 w-fit" onClick={onBook}>
+                        Elegir fecha
+                    </Button>
+                </div>
+            </div>
+        </div>
+    );
+}
+
 function PortfolioFrame({
     image,
     className = '',
@@ -348,9 +583,9 @@ function PortfolioFrame({
 }) {
     return (
         <figure className={`group relative overflow-hidden rounded-xl border border-border/70 bg-secondary ${className}`}>
-            {image.asset_url && (
+            {(image.asset_url || image.poster_url) && (
                 <img
-                    src={image.asset_url}
+                    src={image.asset_url ?? image.poster_url ?? ''}
                     alt={image.title ?? 'Portafolio nightlife de Lapsique'}
                     className="h-full w-full object-cover transition duration-700 group-hover:scale-[1.03]"
                     loading={priority ? 'eager' : 'lazy'}
