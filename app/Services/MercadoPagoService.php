@@ -293,7 +293,7 @@ class MercadoPagoService
         $payload = [
             'items' => [
                 [
-                    'title' => 'Sesión de Contenido — 2 Reels + 20 Fotos',
+                    'title' => $booking->service_stripe_name,
                     'description' => 'Sesión profesional el ' . $dateLabel,
                     'quantity' => 1,
                     'unit_price' => (float) $booking->amount,

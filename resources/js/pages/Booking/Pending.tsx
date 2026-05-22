@@ -53,7 +53,7 @@ function motionPendingCard({
             <Clock className="mx-auto h-12 w-12 text-primary" />
             <h1 className="font-display mt-6 text-center text-2xl font-bold">Pago pendiente</h1>
             <p className="mt-3 text-center text-muted-foreground">
-                Tu reserva está guardada. Completa el pago para confirmar tu sesión con Sony α7.
+                Tu reserva de {booking.service_short_name.toLowerCase()} está guardada. Completa el pago para confirmarla.
                 {booking.payment_provider === 'stripe' && (
                     <span className="mt-2 block text-xs">
                         Si ya pagaste con tarjeta, Stripe puede tardar unos segundos en confirmar.

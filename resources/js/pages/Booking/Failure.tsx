@@ -53,7 +53,9 @@ export default function BookingFailure({ booking }: BookingFailureProps) {
                         Reintentar pago
                     </Button>
                     <Button variant="glass" asChild>
-                        <a href={route('home', undefined, false, ziggy) + '#agenda'}>
+                        <a href={(booking.service_type === 'dj_set'
+                            ? route('djset.show', undefined, false, ziggy)
+                            : route('home', undefined, false, ziggy)) + '#agenda'}>
                             Elegir otro horario
                         </a>
                     </Button>

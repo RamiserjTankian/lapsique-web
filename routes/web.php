@@ -36,6 +36,8 @@ Route::get('/sesion-de-contenido/{publicId}/confirm', [ContentBookingController:
 Route::get('/sesion-de-contenido/{publicId}/pending', [ContentBookingController::class, 'pending'])->name('booking.pending');
 Route::get('/sesion-de-contenido/{publicId}/failure', [ContentBookingController::class, 'failure'])->name('booking.failure');
 Route::post('/sesion-de-contenido/{publicId}/retry', [ContentBookingController::class, 'retryPayment'])->name('booking.retry');
+Route::get('/djset', [ContentBookingController::class, 'showDjSet'])->name('djset.show');
+Route::post('/djset/checkout', [ContentBookingController::class, 'checkoutDjSet'])->name('djset.checkout');
 
 Route::get('/djs', [DjController::class, 'index'])->name('djs.index');
 Route::get('/djs/{dj:slug}', [DjController::class, 'show'])->name('djs.show');

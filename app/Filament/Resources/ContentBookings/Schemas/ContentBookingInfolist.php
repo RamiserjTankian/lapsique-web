@@ -25,6 +25,8 @@ class ContentBookingInfolist
             Section::make('Sesión')
                 ->columns(2)
                 ->schema([
+                    TextEntry::make('service_name')->label('Servicio'),
+                    TextEntry::make('service_description')->label('Incluye'),
                     TextEntry::make('slot_summary')->label('Horario'),
                     TextEntry::make('shoot_location')->label('Locación')->placeholder('Por definir'),
                     TextEntry::make('status')

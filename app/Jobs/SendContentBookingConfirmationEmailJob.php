@@ -32,9 +32,11 @@ class SendContentBookingConfirmationEmailJob implements ShouldQueue
         $booking = $this->booking->fresh(['slot', 'customer']);
         $email = $booking->client_email;
 
-        if (! $email) {
-            Log::warning('Content booking confirmation email skipped: missing email', [
+        if (! $email || ! $booking->customer_id) {
+            Log::warning('Content booking confirmation email skipped: missing recipient data', [
                 'booking_id' => $booking->id,
+                'has_email' => filled($email),
+                'customer_id' => $booking->customer_id,
             ]);
 
             return;
@@ -47,8 +49,8 @@ class SendContentBookingConfirmationEmailJob implements ShouldQueue
                 'customer_id' => $booking->customer_id,
                 'channel' => 'email',
                 'type' => 'transactional',
-                'subject' => 'Tu sesión Lapsique está confirmada',
-                'message' => 'Confirmación de reserva de sesión de contenido',
+                'subject' => 'Tu reserva de '.$booking->service_short_name.' Lapsique está confirmada',
+                'message' => 'Confirmación de reserva de '.$booking->service_name,
                 'metadata' => [
                     'template' => 'content_booking_confirmation',
                     'tracking_token' => $trackingToken,

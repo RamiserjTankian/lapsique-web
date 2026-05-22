@@ -199,8 +199,8 @@ class MetaConversionsApiService
             'value' => (float) $booking->amount,
             'content_type' => 'product',
             'content_ids' => [(string) $booking->public_id],
-            'content_name' => 'Sesion de contenido',
-            'content_category' => 'content_booking',
+            'content_name' => $booking->service_name,
+            'content_category' => $booking->isDjSet() ? 'dj_set_booking' : 'content_booking',
         ];
     }
 

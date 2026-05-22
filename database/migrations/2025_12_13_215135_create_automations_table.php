@@ -51,7 +51,6 @@ return new class extends Migration
             
             // Índices
             $table->index(['trigger_type', 'status']);
-            $table->index('status');
         });
     }
 

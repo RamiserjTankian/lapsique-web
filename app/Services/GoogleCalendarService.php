@@ -246,8 +246,8 @@ class GoogleCalendarService
         ]));
 
         $event = [
-            'summary' => "📸 Sesión de Contenido — {$booking->client_name}",
-            'description' => "Cliente: {$booking->client_name}{$instagramStr}\nEmail: {$booking->client_email}\nWhatsApp: {$booking->client_phone}\n\nServicio: 2 Reels + 20 Fotos editadas\nMonto: {$booking->formatted_amount}{$notesStr}\n\nReserva ID: {$booking->public_id}",
+            'summary' => $booking->service_calendar_summary,
+            'description' => "Cliente: {$booking->client_name}{$instagramStr}\nEmail: {$booking->client_email}\nWhatsApp: {$booking->client_phone}\n\nServicio: {$booking->service_name}\nIncluye: {$booking->service_description}\nMonto: {$booking->formatted_amount}{$notesStr}\n\nReserva ID: {$booking->public_id}",
             'start' => [
                 'dateTime' => $startTime->toRfc3339String(),
                 'timeZone' => config('app.timezone', 'America/Mexico_City'),

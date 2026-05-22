@@ -21,7 +21,7 @@ class ContentBookingConfirmationEmail extends Mailable
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: 'Tu sesión Lapsique está confirmada',
+            subject: 'Tu reserva de '.$this->booking->service_short_name.' Lapsique está confirmada',
         );
     }
 

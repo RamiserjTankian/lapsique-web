@@ -16,9 +16,14 @@ class ContentBooking extends Model implements HasMedia
 {
     use HasFactory, InteractsWithMedia, SoftDeletes;
 
+    public const SERVICE_CONTENT_SESSION = 'content_session';
+
+    public const SERVICE_DJ_SET = 'dj_set';
+
     protected $fillable = [
         'public_id',
         'booking_slot_id',
+        'service_type',
         'customer_id',
         'client_name',
         'client_email',
@@ -158,6 +163,45 @@ class ContentBooking extends Model implements HasMedia
     public function getFormattedAmountAttribute(): string
     {
         return '$'.number_format($this->amount, 0, '.', ',').' '.$this->currency;
+    }
+
+    public function isDjSet(): bool
+    {
+        return $this->service_type === self::SERVICE_DJ_SET;
+    }
+
+    public function getServiceNameAttribute(): string
+    {
+        return $this->isDjSet()
+            ? 'Grabación de DJ Set'
+            : 'Sesión de contenido';
+    }
+
+    public function getServiceShortNameAttribute(): string
+    {
+        return $this->isDjSet()
+            ? 'DJ Set'
+            : 'Sesión de contenido';
+    }
+
+    public function getServiceDescriptionAttribute(): string
+    {
+        return $this->isDjSet()
+            ? 'Video final de 1 hora con 3 cámaras fijas + dron'
+            : '2 reels editados + 20 fotografías editadas';
+    }
+
+    public function getServiceStripeNameAttribute(): string
+    {
+        return $this->isDjSet()
+            ? 'Grabación de DJ Set — 3 cámaras fijas + dron'
+            : 'Sesión de Contenido — 2 Reels + 20 Fotos';
+    }
+
+    public function getServiceCalendarSummaryAttribute(): string
+    {
+        return ($this->isDjSet() ? '🎧 Grabación de DJ Set' : '📸 Sesión de Contenido')
+            .' — '.$this->client_name;
     }
 
     public function getPaymentStatusLabelAttribute(): string

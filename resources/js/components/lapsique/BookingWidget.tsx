@@ -38,9 +38,60 @@ interface BookingWidgetProps {
     price: number;
     whatsapp?: string;
     errors?: Record<string, string>;
+    checkoutRoute?: string;
+    paymentProvider?: 'mercadopago' | 'stripe';
+    product?: BookingWidgetProduct;
 }
 
-export function BookingWidget({ slots, price, whatsapp, errors = {} }: BookingWidgetProps) {
+export interface BookingWidgetProduct {
+    checkoutLabel: string;
+    headerTitle: string;
+    headerDescription: string;
+    summaryTitle: string;
+    summaryDescription: string;
+    cartService: string;
+    cartDuration: string;
+    summaryPerks: string[];
+    terms: string[];
+    paymentCopy: string;
+    unavailableWhatsApp: string;
+}
+
+const contentSessionProduct: BookingWidgetProduct = {
+    checkoutLabel: 'Checkout de sesión',
+    headerTitle: 'Agenda tu sesión ahora',
+    headerDescription: 'Elige un horario real, deja tus datos y aparta producción con Sony a7',
+    summaryTitle: 'Sesión de contenido',
+    summaryDescription: '2 reels + 20 fotos + dirección + entrega editada',
+    cartService: '2 reels + 20 fotos',
+    cartDuration: '2 horas',
+    summaryPerks: [
+        '2 reels con edición profesional',
+        '20 fotografías editadas',
+        'Sesión de 2 a 3 horas',
+        'Captura Sony a7 full frame',
+        'Entrega en 5 días hábiles',
+    ],
+    terms: [
+        'La reserva queda sujeta a disponibilidad real del horario elegido y a la confirmación del flujo de pago o modo prueba.',
+        'La sesión estándar tiene duración de 2 horas. Tiempo adicional, locaciones extra o cambios de alcance pueden cotizarse aparte.',
+        'Incluye 2 reels editados y 20 fotografías editadas. Material bruto, versiones adicionales o entregas urgentes no están incluidos salvo acuerdo escrito.',
+        'Puedes solicitar cambios de fecha con mínimo 24 horas de anticipación. Cambios tardíos o inasistencias pueden perder el horario reservado.',
+        'Autorizas el uso del material producido para portafolio de lapsique.media salvo que se acuerde confidencialidad antes de la sesión.',
+    ],
+    paymentCopy: 'Pago seguro con Mercado Pago o Stripe.',
+    unavailableWhatsApp: 'Hola, me interesa una sesión de contenido y no veo horarios publicados.',
+};
+
+export function BookingWidget({
+    slots,
+    price,
+    whatsapp,
+    errors = {},
+    checkoutRoute = 'booking.checkout',
+    paymentProvider = 'mercadopago',
+    product = contentSessionProduct,
+}: BookingWidgetProps) {
     const { ziggy, booking, site, payments } = usePage<PageProps>().props;
     const isTestMode = booking.skipPayment;
     const sectionRef = useSectionEvent<HTMLElement>('booking_widget_viewed', { section: 'agenda' });
@@ -83,7 +134,7 @@ export function BookingWidget({ slots, price, whatsapp, errors = {} }: BookingWi
         client_phone: '',
         client_instagram: '',
         notes: '',
-        payment_provider: 'mercadopago',
+        payment_provider: paymentProvider,
         terms_accepted: false,
     });
 
@@ -218,7 +269,7 @@ export function BookingWidget({ slots, price, whatsapp, errors = {} }: BookingWi
             referrer: trackingContext.referrer,
             landing_url: trackingContext.landing_url,
         }));
-        post(route('booking.checkout', undefined, false, ziggy));
+        post(route(checkoutRoute, undefined, false, ziggy));
     };
 
     if (slots.length === 0) {
@@ -229,7 +280,7 @@ export function BookingWidget({ slots, price, whatsapp, errors = {} }: BookingWi
                 className="scroll-mt-20 space-y-6"
                 data-analytics-section="booking_widget"
             >
-                <BookingHeader isTestMode={isTestMode} />
+                <BookingHeader isTestMode={isTestMode} product={product} />
                 <div className={cn(glassCardVariants({ elevated: true }), 'space-y-5 p-8 text-center md:p-10')}>
                     <span className="mx-auto inline-flex h-16 w-16 items-center justify-center rounded-2xl border border-primary/20 bg-primary/10 text-primary">
                         <CalendarRange className="h-7 w-7" />
@@ -245,7 +296,7 @@ export function BookingWidget({ slots, price, whatsapp, errors = {} }: BookingWi
                     {whatsapp && (
                         <Button variant="cinematic" asChild>
                             <a
-                                href={`https://wa.me/${whatsapp}?text=${encodeURIComponent('Hola, me interesa una sesion de contenido y no veo horarios publicados.')}`}
+                                href={`https://wa.me/${whatsapp}?text=${encodeURIComponent(product.unavailableWhatsApp)}`}
                                 target="_blank"
                                 rel="noopener noreferrer"
                             >
@@ -265,7 +316,7 @@ export function BookingWidget({ slots, price, whatsapp, errors = {} }: BookingWi
             className="scroll-mt-20 space-y-6 py-4 md:py-6"
             data-analytics-section="booking_widget"
         >
-            <BookingHeader isTestMode={isTestMode} />
+            <BookingHeader isTestMode={isTestMode} product={product} />
 
             <div className={cn(glassCardVariants({ elevated: true }), 'glass-border-glow overflow-hidden border')}>
                 <div className="flex flex-wrap items-center justify-between gap-4 border-b border-border/70 px-5 py-5 md:px-7">
@@ -274,7 +325,7 @@ export function BookingWidget({ slots, price, whatsapp, errors = {} }: BookingWi
                             Agenda ahora
                         </p>
                         <p className="mt-1 max-w-2xl text-base font-medium text-foreground md:text-lg">
-                            Elige fecha, toma un horario y deja cerrada tu sesión en este momento.
+                            Elige fecha, toma un horario y deja cerrada tu reserva en este momento.
                         </p>
                     </div>
                     <Button
@@ -347,7 +398,7 @@ export function BookingWidget({ slots, price, whatsapp, errors = {} }: BookingWi
                             <TrustChip
                                 icon={<LockKeyhole className="h-4 w-4" />}
                                 title="Pago protegido"
-                                copy={isTestMode ? 'Flujo de prueba sin cobro real.' : 'Mercado Pago o Stripe según prefieras.'}
+                                copy={isTestMode ? 'Flujo de prueba sin cobro real.' : product.paymentCopy}
                             />
                             <TrustChip
                                 icon={<Clock3 className="h-4 w-4" />}
@@ -361,6 +412,7 @@ export function BookingWidget({ slots, price, whatsapp, errors = {} }: BookingWi
                         price={price}
                         selectedSlot={selectedSlot}
                         isTestMode={isTestMode}
+                        product={product}
                     />
                 </div>
             </div>
@@ -371,7 +423,7 @@ export function BookingWidget({ slots, price, whatsapp, errors = {} }: BookingWi
                         <div className="space-y-5 p-5 md:p-7">
                             <div>
                                 <span className="inline-flex rounded-full border border-primary/25 bg-primary/10 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.24em] text-primary">
-                                    Checkout de sesión
+                                    {product.checkoutLabel}
                                 </span>
                                 <DialogTitle className="mt-3 font-display text-2xl md:text-3xl">
                                     Agenda como carrito
@@ -452,6 +504,8 @@ export function BookingWidget({ slots, price, whatsapp, errors = {} }: BookingWi
                                     clearSelection={clearSelection}
                                     submitCheckout={submitCheckout}
                                     openTerms={() => setIsTermsModalOpen(true)}
+                                    product={product}
+                                    fixedPaymentProvider={paymentProvider === 'stripe' ? 'stripe' : undefined}
                                 />
                             )}
                         </div>
@@ -461,12 +515,13 @@ export function BookingWidget({ slots, price, whatsapp, errors = {} }: BookingWi
                             selectedDate={selectedDate}
                             selectedSlot={selectedSlot}
                             isTestMode={isTestMode}
+                            product={product}
                         />
                     </div>
                 </DialogContent>
             </Dialog>
 
-            <TermsModal open={isTermsModalOpen} onOpenChange={setIsTermsModalOpen} />
+            <TermsModal open={isTermsModalOpen} onOpenChange={setIsTermsModalOpen} product={product} />
 
             <ReservationTrustModal
                 open={isTrustModalOpen}
@@ -491,6 +546,8 @@ function BookingForm({
     clearSelection,
     submitCheckout,
     openTerms,
+    product,
+    fixedPaymentProvider,
 }: {
     data: {
         booking_slot_id: string | number;
@@ -511,6 +568,8 @@ function BookingForm({
     clearSelection: () => void;
     submitCheckout: (e: React.FormEvent) => void;
     openTerms: () => void;
+    product: BookingWidgetProduct;
+    fixedPaymentProvider?: 'stripe';
 }) {
     return (
         <div className={cn(glassCardVariants({ elevated: true }), 'space-y-6 border p-5 md:p-6')}>
@@ -602,13 +661,21 @@ function BookingForm({
                             />
                         </Field>
 
-                        {!isTestMode && (
+                        {!isTestMode && !fixedPaymentProvider && (
                             <PaymentMethodField
                                 value={data.payment_provider}
                                 onChange={(v) => setData('payment_provider', v)}
                                 stripeConfigured={payments?.stripeConfigured ?? true}
                                 mercadopagoConfigured={payments?.mercadopagoConfigured ?? true}
                             />
+                        )}
+                        {!isTestMode && fixedPaymentProvider === 'stripe' && (
+                            <div className="rounded-2xl border border-primary/20 bg-primary/10 px-4 py-3 text-sm">
+                                <p className="font-semibold text-foreground">Pago con tarjeta</p>
+                                <p className="mt-1 text-muted-foreground">
+                                    El cobro se completa en Stripe al confirmar esta reserva.
+                                </p>
+                            </div>
                         )}
 
                         <div className="rounded-2xl border border-border/70 bg-secondary p-4">
@@ -628,7 +695,7 @@ function BookingForm({
                                     >
                                         términos y condiciones
                                     </button>{' '}
-                                    de la sesión, incluyendo política de cambios, entregables y uso de material.
+                                    de la reserva, incluyendo política de cambios, entregables y uso de material.
                                 </span>
                             </label>
                             {errors.terms_accepted && (
@@ -638,9 +705,9 @@ function BookingForm({
 
                         <div className="flex items-center justify-between border-t border-border pt-5">
                             <div className="text-sm">
-                                <p className="font-medium">Sesion de contenido premium</p>
+                                <p className="font-medium">{product.summaryTitle}</p>
                                 <p className="text-xs text-muted-foreground">
-                                    2 reels + 20 fotos + direccion + entrega editada
+                                    {product.summaryDescription}
                                 </p>
                             </div>
                             <p className="font-mono-tabular text-xl font-bold">{formatMxn(price)}</p>
@@ -662,24 +729,24 @@ function BookingForm({
                         <p className="text-center text-xs text-muted-foreground">
                             {isTestMode
                                 ? 'Se confirmara sin cobro real y podras validar admin, correo y portal.'
-                                : 'Pago seguro con Mercado Pago o Stripe.'}
+                                : product.paymentCopy}
                         </p>
                     </form>
                 </div>
     );
 }
 
-function BookingHeader({ isTestMode }: { isTestMode: boolean }) {
+function BookingHeader({ isTestMode, product }: { isTestMode: boolean; product: BookingWidgetProduct }) {
     return (
         <div className="space-y-3 text-center">
             <span className="inline-block rounded-full border border-primary/30 bg-primary/10 px-4 py-1 text-xs font-semibold uppercase tracking-widest text-primary">
                 Cierra tu cita
             </span>
             <h2 className="font-display text-3xl font-bold md:text-5xl">
-                Agenda tu sesión ahora
+                {product.headerTitle}
             </h2>
             <p className="mx-auto max-w-2xl text-sm text-muted-foreground md:text-base">
-                Elige un horario real, deja tus datos y aparta producción con <strong className="text-foreground">Sony a7</strong>{' '}
+                {product.headerDescription}{' '}
                 {isTestMode ? '· confirmacion sin cobro real en este entorno.' : '· pago seguro al confirmar.'}
             </p>
         </div>
@@ -690,27 +757,21 @@ function BookingSummaryPanel({
     price,
     selectedSlot,
     isTestMode,
+    product,
 }: {
     price: number;
     selectedSlot?: BookingSlot;
     isTestMode: boolean;
+    product: BookingWidgetProduct;
 }) {
-    const perks = [
-        '2 reels con edicion profesional',
-        '20 fotografias editadas',
-        'Sesion de 2 a 3 horas',
-        'Captura Sony a7 full frame',
-        'Entrega en 5 dias habiles',
-    ];
-
     return (
         <div className="space-y-5 border-t border-border/70 bg-muted/30 p-6 md:order-2 md:border-t-0 md:border-l">
             <div>
                 <p className="text-xs uppercase tracking-widest text-muted-foreground">lapsique.media</p>
-                <h3 className="text-lg font-bold">Sesion de contenido</h3>
+                <h3 className="text-lg font-bold">{product.summaryTitle}</h3>
             </div>
             <ul className="space-y-2 text-sm text-muted-foreground">
-                {perks.map((perk) => (
+                {product.summaryPerks.map((perk) => (
                     <li key={perk}>{perk}</li>
                 ))}
             </ul>
@@ -822,11 +883,13 @@ function CartSummaryPanel({
     selectedDate,
     selectedSlot,
     isTestMode,
+    product,
 }: {
     price: number;
     selectedDate?: Date;
     selectedSlot?: BookingSlot;
     isTestMode: boolean;
+    product: BookingWidgetProduct;
 }) {
     return (
         <aside className="space-y-5 border-t border-border/70 bg-muted/40 p-6 lg:border-t-0 lg:border-l">
@@ -836,13 +899,13 @@ function CartSummaryPanel({
                 </span>
                 <div>
                     <p className="text-xs uppercase tracking-widest text-muted-foreground">Tu carrito</p>
-                    <h3 className="font-display text-xl font-bold">Sesión premium</h3>
+                    <h3 className="font-display text-xl font-bold">{product.summaryTitle}</h3>
                 </div>
             </div>
 
             <div className="space-y-3 rounded-2xl border border-border/70 bg-secondary p-4">
-                <CartRow label="Servicio" value="2 reels + 20 fotos" />
-                <CartRow label="Duración" value="2 horas" />
+                <CartRow label="Servicio" value={product.cartService} />
+                <CartRow label="Duración" value={product.cartDuration} />
                 <CartRow
                     label="Fecha"
                     value={selectedDate ? format(selectedDate, 'd MMM yyyy', { locale: es }) : 'Por elegir'}
@@ -861,8 +924,7 @@ function CartSummaryPanel({
             </div>
 
             <div className="space-y-2 text-xs text-muted-foreground">
-                <p>Incluye dirección en set, captura con Sony a7, edición y entrega digital.</p>
-                <p>Meta Pixel recibe ViewContent, Lead, Schedule, AddToCart, InitiateCheckout y Purchase.</p>
+                <p>{product.summaryDescription}.</p>
             </div>
         </aside>
     );
@@ -880,18 +942,12 @@ function CartRow({ label, value }: { label: string; value: string }) {
 function TermsModal({
     open,
     onOpenChange,
+    product,
 }: {
     open: boolean;
     onOpenChange: (open: boolean) => void;
+    product: BookingWidgetProduct;
 }) {
-    const terms = [
-        'La reserva queda sujeta a disponibilidad real del horario elegido y a la confirmación del flujo de pago o modo prueba.',
-        'La sesión estándar tiene duración de 2 horas. Tiempo adicional, locaciones extra o cambios de alcance pueden cotizarse aparte.',
-        'Incluye 2 reels editados y 20 fotografías editadas. Material bruto, versiones adicionales o entregas urgentes no están incluidos salvo acuerdo escrito.',
-        'Puedes solicitar cambios de fecha con mínimo 24 horas de anticipación. Cambios tardíos o inasistencias pueden perder el horario reservado.',
-        'Autorizas el uso del material producido para portafolio de lapsique.media salvo que se acuerde confidencialidad antes de la sesión.',
-    ];
-
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
             <DialogContent className="theme-scrollbar max-h-[min(90vh,760px)] max-w-[min(94vw,680px)] overflow-y-auto border-primary/25 p-0">
@@ -909,7 +965,7 @@ function TermsModal({
                     </div>
 
                     <div className="space-y-3">
-                        {terms.map((term, index) => (
+                        {product.terms.map((term, index) => (
                             <div key={term} className="rounded-2xl border border-border/70 bg-secondary p-4">
                                 <p className="text-xs font-semibold uppercase tracking-[0.2em] text-primary">
                                     {String(index + 1).padStart(2, '0')}

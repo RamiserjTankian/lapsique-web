@@ -23,6 +23,12 @@ class PageMeta
 
         return match ($routeName) {
             'home', 'booking.show' => self::forBookingFunnel($settings, $canonicalUrl),
+            'djset.show' => self::forSection(
+                'Grabación de DJ Set',
+                'Graba tu DJ set con 3 cámaras fijas y dron. Video final de una hora por $12,000 MXN con agenda y pago en línea.',
+                $canonicalUrl,
+                'grabación de DJ set, video DJ, DJ set Tulum, 3 cámaras fijas y dron, lapsique.media',
+            ),
             'djs.show' => self::forDj($request->route('dj'), $canonicalUrl),
             'videos.show' => self::forVideo($request->route('video'), $canonicalUrl),
             'events.show' => self::forEvent($request->route('event'), $canonicalUrl),

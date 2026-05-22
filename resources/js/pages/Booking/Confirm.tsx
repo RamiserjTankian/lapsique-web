@@ -65,16 +65,16 @@ export default function BookingConfirm({ booking, paymentVerified, isTestBooking
                 />
                 <h1 className="font-display mt-6 text-2xl font-bold">
                     {isTestBooking
-                        ? 'Reserva de prueba confirmada'
-                        : paymentVerified
-                          ? '¡Reserva confirmada!'
+                      ? 'Reserva de prueba confirmada'
+                      : paymentVerified
+                          ? `${booking.service_short_name} confirmado`
                           : 'Pago en proceso'}
                 </h1>
                 <p className="mt-3 text-muted-foreground">
                     {isTestBooking
                         ? 'La sesión quedó apartada en modo prueba, sin cobro real. Revisa tu correo o logs según tu configuración.'
                         : paymentVerified
-                          ? 'Tu sesión está agendada. Revisa tu correo con la confirmación y los detalles.'
+                          ? `Tu ${booking.service_short_name.toLowerCase()} está agendado. Revisa tu correo con la confirmación y los detalles.`
                           : booking.payment_provider === 'stripe'
                             ? 'Stripe está procesando tu pago. Recibirás un correo en cuanto se confirme.'
                             : 'Estamos verificando tu pago. Te notificaremos en cuanto se confirme.'}

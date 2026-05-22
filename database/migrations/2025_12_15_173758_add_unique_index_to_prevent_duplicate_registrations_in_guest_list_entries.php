@@ -27,15 +27,19 @@ return new class extends Migration
 
         // Eliminar registros duplicados manteniendo solo el más reciente
         // para cada combinación de invite_link_id y customer_id
-        DB::statement('
-            DELETE g1 FROM guest_list_entries g1
-            INNER JOIN guest_list_entries g2 
-            WHERE g1.id < g2.id 
-            AND g1.invite_link_id = g2.invite_link_id 
-            AND g1.customer_id = g2.customer_id
-            AND g1.deleted_at IS NULL
-            AND g2.deleted_at IS NULL
-        ');
+        $duplicateIds = DB::table('guest_list_entries as g1')
+            ->join('guest_list_entries as g2', function ($join) {
+                $join->on('g1.invite_link_id', '=', 'g2.invite_link_id')
+                    ->on('g1.customer_id', '=', 'g2.customer_id')
+                    ->whereColumn('g1.id', '<', 'g2.id');
+            })
+            ->whereNull('g1.deleted_at')
+            ->whereNull('g2.deleted_at')
+            ->pluck('g1.id');
+
+        DB::table('guest_list_entries')
+            ->whereIn('id', $duplicateIds)
+            ->delete();
 
         // Actualizar el contador de registros en los links afectados
         foreach ($duplicatesByLink as $duplicate) {

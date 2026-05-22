@@ -89,8 +89,8 @@ class StripeService
                     'price_data' => [
                         'currency' => strtolower($booking->currency),
                         'product_data' => [
-                            'name' => 'Sesión de Contenido — 2 Reels + 20 Fotos',
-                            'description' => 'Sesión profesional el '.$dateLabel,
+                            'name' => $booking->service_stripe_name,
+                            'description' => $booking->service_description.' el '.$dateLabel,
                         ],
                         'unit_amount' => (int) $booking->amount * 100,
                     ],

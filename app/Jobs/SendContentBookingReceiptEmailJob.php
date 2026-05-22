@@ -32,9 +32,11 @@ class SendContentBookingReceiptEmailJob implements ShouldQueue
         $booking = $this->booking->fresh(['slot', 'customer']);
         $email = $booking->client_email;
 
-        if (! $email) {
-            Log::warning('Content booking receipt email skipped: missing email', [
+        if (! $email || ! $booking->customer_id) {
+            Log::warning('Content booking receipt email skipped: missing recipient data', [
                 'booking_id' => $booking->id,
+                'has_email' => filled($email),
+                'customer_id' => $booking->customer_id,
             ]);
 
             return;
@@ -47,8 +49,8 @@ class SendContentBookingReceiptEmailJob implements ShouldQueue
                 'customer_id' => $booking->customer_id,
                 'channel' => 'email',
                 'type' => 'transactional',
-                'subject' => 'Recibo de tu sesión Lapsique',
-                'message' => 'Recibo de pago de sesión de contenido',
+                'subject' => 'Recibo de tu reserva de '.$booking->service_short_name.' Lapsique',
+                'message' => 'Recibo de pago de '.$booking->service_name,
                 'metadata' => [
                     'template' => 'content_booking_receipt',
                     'tracking_token' => $trackingToken,

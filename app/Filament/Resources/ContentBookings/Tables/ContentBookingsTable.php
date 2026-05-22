@@ -36,6 +36,10 @@ class ContentBookingsTable
                     ->date('d/m/Y')
                     ->description(fn ($record) => $record->slot?->time_label ?? '—'),
 
+                TextColumn::make('service_name')
+                    ->label('Servicio')
+                    ->badge(),
+
                 TextColumn::make('status')
                     ->label('Estado')
                     ->badge()
@@ -91,6 +95,12 @@ class ContentBookingsTable
                     ->options([
                         'stripe' => 'Stripe',
                         'mercadopago' => 'Mercado Pago',
+                    ]),
+                SelectFilter::make('service_type')
+                    ->label('Servicio')
+                    ->options([
+                        'content_session' => 'Sesión de contenido',
+                        'dj_set' => 'DJ Set',
                     ]),
                 Filter::make('paid_at')
                     ->label('Pagadas en periodo')

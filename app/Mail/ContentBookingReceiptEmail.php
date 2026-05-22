@@ -23,7 +23,7 @@ class ContentBookingReceiptEmail extends Mailable
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: 'Recibo de tu sesión Lapsique',
+            subject: 'Recibo de tu reserva de '.$this->booking->service_short_name.' Lapsique',
         );
     }
 

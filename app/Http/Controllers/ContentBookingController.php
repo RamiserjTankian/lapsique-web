@@ -9,6 +9,7 @@ use App\Models\ContentBooking;
 use App\Models\PortfolioItem;
 use App\Models\SiteSetting;
 use App\Services\ContentBookingPaymentService;
+use App\Services\CustomerPortalAccessService;
 use App\Services\MercadoPagoService;
 use App\Services\Meta\MetaConversionsApiService;
 use App\Services\StripeService;
@@ -36,6 +37,63 @@ class ContentBookingController extends Controller
             'subtitle' => $settings?->booking_subtitle ?: '2 Reels editados + 20 fotografías profesionales. Producción con cámara Sony α7.',
             'price' => $data['price'],
             'slots' => BookingSlotResource::collection($data['slots'])->resolve(),
+            'errors' => session('errors')?->getBag('default')?->getMessages() ?? [],
+        ]);
+    }
+
+    public function showDjSet(): Response
+    {
+        $data = $this->bookingPageData();
+
+        $originals = \App\Models\Video::query()
+            ->whereJsonContains('tags', 'psique-originals')
+            ->with('djs.media')
+            ->orderByDesc('is_featured')
+            ->orderBy('priority')
+            ->orderByDesc('published_at')
+            ->take(8)
+            ->get();
+
+        $portfolioItems = PortfolioItem::query()
+            ->where('is_active', true)
+            ->where(function ($query): void {
+                $query
+                    ->whereJsonContains('tags', 'nightlife')
+                    ->orWhereJsonContains('tags', 'events');
+            })
+            ->with('media')
+            ->orderByDesc('is_featured')
+            ->orderBy('priority')
+            ->orderByDesc('created_at')
+            ->take(10)
+            ->get();
+
+        if ($portfolioItems->isEmpty()) {
+            $portfolioItems = PortfolioItem::query()
+                ->where('is_active', true)
+                ->with('media')
+                ->orderByDesc('is_featured')
+                ->orderBy('priority')
+                ->orderByDesc('created_at')
+                ->take(10)
+                ->get();
+        }
+
+        $djs = \App\Models\Dj::query()
+            ->with('media')
+            ->orderByDesc('is_highlighted')
+            ->orderByDesc('is_featured')
+            ->orderBy('priority')
+            ->orderByDesc('id')
+            ->take(8)
+            ->get();
+
+        return Inertia::render('DjSet/Show', [
+            'price' => (int) config('booking.dj_set_price', 12000),
+            'slots' => BookingSlotResource::collection($data['slots'])->resolve(),
+            'originals' => \App\Http\Resources\VideoResource::collection($originals)->resolve(),
+            'portfolioItems' => \App\Http\Resources\PortfolioItemResource::collection($portfolioItems)->resolve(),
+            'djs' => \App\Http\Resources\DjResource::collection($djs)->resolve(),
             'errors' => session('errors')?->getBag('default')?->getMessages() ?? [],
         ]);
     }
@@ -99,6 +157,42 @@ class ContentBookingController extends Controller
         MercadoPagoService $mercadoPago,
         StripeService $stripe,
         ContentBookingPaymentService $bookingPayment,
+        CustomerPortalAccessService $portalAccess,
+    ): RedirectResponse {
+        return $this->checkoutForService(
+            $request,
+            $mercadoPago,
+            $stripe,
+            $bookingPayment,
+            $portalAccess,
+            ContentBooking::SERVICE_CONTENT_SESSION,
+        );
+    }
+
+    public function checkoutDjSet(
+        Request $request,
+        MercadoPagoService $mercadoPago,
+        StripeService $stripe,
+        ContentBookingPaymentService $bookingPayment,
+        CustomerPortalAccessService $portalAccess,
+    ): RedirectResponse {
+        return $this->checkoutForService(
+            $request,
+            $mercadoPago,
+            $stripe,
+            $bookingPayment,
+            $portalAccess,
+            ContentBooking::SERVICE_DJ_SET,
+        );
+    }
+
+    protected function checkoutForService(
+        Request $request,
+        MercadoPagoService $mercadoPago,
+        StripeService $stripe,
+        ContentBookingPaymentService $bookingPayment,
+        CustomerPortalAccessService $portalAccess,
+        string $serviceType,
     ): RedirectResponse {
         $validated = $request->validate([
             'booking_slot_id' => ['required', 'integer', 'exists:booking_slots,id'],
@@ -112,14 +206,17 @@ class ContentBookingController extends Controller
         ]);
 
         $settings = SiteSetting::current();
-        $price = $settings?->booking_price ?: 5000;
-        $paymentProvider = $validated['payment_provider'] ?? 'mercadopago';
+        $isDjSet = $serviceType === ContentBooking::SERVICE_DJ_SET;
+        $price = $isDjSet
+            ? (int) config('booking.dj_set_price', 12000)
+            : ($settings?->booking_price ?: 5000);
+        $paymentProvider = $isDjSet ? 'stripe' : ($validated['payment_provider'] ?? 'mercadopago');
 
         $booking = null;
         $customer = null;
 
         try {
-            DB::transaction(function () use ($validated, $price, $request, $paymentProvider, &$booking, &$customer, $portalAccess, $settings) {
+            DB::transaction(function () use ($validated, $price, $request, $paymentProvider, $serviceType, &$booking, &$customer, $portalAccess, $settings) {
                 $slot = BookingSlot::where('id', $validated['booking_slot_id'])
                     ->where('is_active', true)
                     ->whereColumn('booked_count', '<', 'max_bookings')
@@ -153,6 +250,7 @@ class ContentBookingController extends Controller
                 $booking = ContentBooking::create([
                     'public_id' => Str::uuid()->toString(),
                     'booking_slot_id' => $slot->id,
+                    'service_type' => $serviceType,
                     'customer_id' => $customer->id,
                     'client_name' => $validated['client_name'],
                     'client_email' => $validated['client_email'],
@@ -177,6 +275,8 @@ class ContentBookingController extends Controller
                     'metadata' => [
                         'created_from_host' => $request->getHost(),
                         'skip_payment_mode' => BookingMode::shouldSkipPayment($request),
+                        'service_type' => $serviceType,
+                        'checkout_route' => $request->route()?->getName(),
                     ],
                 ]);
 

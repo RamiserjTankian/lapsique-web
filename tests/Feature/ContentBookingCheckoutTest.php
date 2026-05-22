@@ -8,7 +8,10 @@ use App\Jobs\SendCustomerPortalAccessEmailJob;
 use App\Models\BookingSlot;
 use App\Models\ContentBooking;
 use App\Models\Customer;
+use App\Models\Dj;
+use App\Models\PortfolioItem;
 use App\Models\SiteSetting;
+use App\Models\Video;
 use App\Services\ContentBookingPaymentService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Bus;
@@ -24,8 +27,8 @@ class ContentBookingCheckoutTest extends TestCase
     {
         return BookingSlot::create([
             'date' => now()->addDays(3)->toDateString(),
-            'time_label' => '10:00 AM',
-            'time_value' => '10:00',
+            'time_label' => '2:00 PM',
+            'time_value' => '14:00',
             'max_bookings' => 1,
             'booked_count' => 0,
             'is_active' => true,
@@ -40,6 +43,7 @@ class ContentBookingCheckoutTest extends TestCase
             'client_email' => 'cliente@example.com',
             'client_phone' => '529841234567',
             'client_instagram' => '@cliente',
+            'terms_accepted' => true,
         ];
     }
 
@@ -63,7 +67,11 @@ class ContentBookingCheckoutTest extends TestCase
 
     public function test_checkout_with_mercadopago_redirects_to_preference(): void
     {
-        config(['mercadopago.access_token' => 'TEST-token']);
+        config([
+            'mercadopago.access_token' => 'TEST-token',
+            'booking.skip_payment_hosts' => [],
+            'booking.skip_payment_host_suffixes' => [],
+        ]);
 
         Http::fake([
             '*mercadopago.com*' => Http::response([
@@ -89,7 +97,11 @@ class ContentBookingCheckoutTest extends TestCase
 
     public function test_checkout_with_stripe_redirects_to_checkout_session(): void
     {
-        config(['stripe.secret_key' => 'sk_test_fake']);
+        config([
+            'stripe.secret_key' => 'sk_test_fake',
+            'booking.skip_payment_hosts' => [],
+            'booking.skip_payment_host_suffixes' => [],
+        ]);
 
         Http::fake([
             'https://api.stripe.com/v1/checkout/sessions' => Http::response([
@@ -112,6 +124,111 @@ class ContentBookingCheckoutTest extends TestCase
         $this->assertSame('cs_test_123', $booking->stripe_checkout_session_id);
     }
 
+    public function test_dj_set_landing_uses_shared_slots_and_dj_material(): void
+    {
+        $this->createAvailableSlot();
+
+        Video::create([
+            'title' => 'Psique DJ set',
+            'slug' => 'psique-dj-set',
+            'youtube_id' => 'yt-dj-set',
+            'youtube_url' => 'https://youtube.test/dj-set',
+            'tags' => ['psique-originals'],
+            'is_featured' => true,
+        ]);
+
+        PortfolioItem::create([
+            'title' => 'Nightlife proof',
+            'slug' => 'nightlife-proof',
+            'type' => 'photo',
+            'source' => 'upload',
+            'tags' => ['nightlife'],
+            'is_active' => true,
+        ]);
+
+        Dj::create([
+            'name' => 'DJ Proof',
+            'slug' => 'dj-proof',
+            'is_featured' => true,
+        ]);
+
+        $this->get(route('djset.show'))
+            ->assertOk()
+            ->assertInertia(fn ($page) => $page
+                ->component('DjSet/Show')
+                ->where('price', 12000)
+                ->has('slots', 1)
+                ->has('originals', 1)
+                ->has('portfolioItems', 1)
+                ->has('djs', 1)
+            );
+    }
+
+    public function test_dj_set_checkout_forces_stripe_product_and_amount(): void
+    {
+        config([
+            'stripe.secret_key' => 'sk_test_fake',
+            'booking.skip_payment_hosts' => [],
+            'booking.skip_payment_host_suffixes' => [],
+        ]);
+
+        Http::fake([
+            'https://api.stripe.com/v1/checkout/sessions' => Http::response([
+                'id' => 'cs_dj_set',
+                'url' => 'https://checkout.stripe.com/pay/cs_dj_set',
+                'status' => 'open',
+            ], 200),
+        ]);
+
+        $slot = $this->createAvailableSlot();
+
+        $response = $this->post(route('djset.checkout'), array_merge($this->checkoutPayload($slot), [
+            'payment_provider' => 'mercadopago',
+        ]));
+
+        $response->assertRedirect('https://checkout.stripe.com/pay/cs_dj_set');
+
+        $booking = ContentBooking::firstOrFail();
+        $this->assertSame(ContentBooking::SERVICE_DJ_SET, $booking->service_type);
+        $this->assertSame('stripe', $booking->payment_provider);
+        $this->assertSame(12000, $booking->amount);
+        $this->assertSame(1, $slot->fresh()->booked_count);
+
+        Http::assertSent(function ($request) use ($booking): bool {
+            $payload = $request->data();
+
+            return $request->url() === 'https://api.stripe.com/v1/checkout/sessions'
+                && data_get($payload, 'line_items.0.price_data.product_data.name') === 'Grabación de DJ Set — 3 cámaras fijas + dron'
+                && data_get($payload, 'line_items.0.price_data.unit_amount') === 1200000
+                && data_get($payload, 'metadata.content_booking_public_id') === $booking->public_id;
+        });
+    }
+
+    public function test_dj_set_failure_releases_shared_slot(): void
+    {
+        $slot = $this->createAvailableSlot();
+        $slot->update(['booked_count' => 1]);
+
+        $booking = ContentBooking::create([
+            'public_id' => (string) Str::uuid(),
+            'booking_slot_id' => $slot->id,
+            'service_type' => ContentBooking::SERVICE_DJ_SET,
+            'client_name' => 'DJ Cliente',
+            'client_email' => 'dj@example.com',
+            'client_phone' => '529841234567',
+            'amount' => 12000,
+            'currency' => 'MXN',
+            'status' => 'pending_payment',
+            'payment_provider' => 'stripe',
+        ]);
+
+        $this->get(route('booking.failure', $booking->public_id))
+            ->assertOk();
+
+        $this->assertSame('failed', $booking->fresh()->status);
+        $this->assertSame(0, $slot->fresh()->booked_count);
+    }
+
     public function test_confirm_does_not_confirm_without_payment(): void
     {
         $slot = $this->createAvailableSlot();
@@ -130,7 +247,11 @@ class ContentBookingCheckoutTest extends TestCase
 
         $this->get(route('booking.confirm', $booking->public_id))
             ->assertOk()
-            ->assertSee('Estamos confirmando tu pago');
+            ->assertInertia(fn ($page) => $page
+                ->component('Booking/Confirm')
+                ->where('paymentVerified', false)
+                ->where('booking.status', 'pending_payment')
+            );
 
         $this->assertSame('pending_payment', $booking->fresh()->status);
     }

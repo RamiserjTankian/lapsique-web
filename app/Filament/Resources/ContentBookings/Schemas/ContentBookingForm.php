@@ -50,6 +50,14 @@ class ContentBookingForm
 
                 Section::make('Gestión de la sesión')
                     ->schema([
+                        Select::make('service_type')
+                            ->label('Servicio')
+                            ->options([
+                                'content_session' => 'Sesión de contenido',
+                                'dj_set' => 'DJ Set',
+                            ])
+                            ->disabled()
+                            ->dehydrated(false),
                         Select::make('booking_slot_id')
                             ->label('Horario')
                             ->relationship('slot', 'time_label')

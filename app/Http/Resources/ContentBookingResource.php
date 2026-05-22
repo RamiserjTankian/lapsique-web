@@ -23,6 +23,10 @@ class ContentBookingResource extends JsonResource
             'currency' => $this->currency,
             'payment_provider' => $this->payment_provider,
             'paid_at' => $this->paid_at?->toIso8601String(),
+            'service_type' => $this->service_type ?: ContentBooking::SERVICE_CONTENT_SESSION,
+            'service_name' => $this->service_name,
+            'service_short_name' => $this->service_short_name,
+            'service_description' => $this->service_description,
             'slot_summary' => $this->slot_summary,
             'deliverables_ready_at' => $this->deliverables_ready_at?->toIso8601String(),
             'deliverables_drive_url' => $this->when(

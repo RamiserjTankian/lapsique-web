@@ -13,6 +13,7 @@ return new class extends Migration
     {
         Schema::table('guest_list_entries', function (Blueprint $table) {
             // Eliminar campos duplicados que ahora están en customers
+            $table->dropIndex(['email', 'event_id']);
             $table->dropColumn(['full_name', 'email', 'whatsapp', 'instagram_handle', 'accepts_emails']);
             
             // Añadir nuevos campos específicos del evento
