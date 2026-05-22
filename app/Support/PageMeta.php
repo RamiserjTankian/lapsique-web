@@ -4,6 +4,7 @@ namespace App\Support;
 
 use App\Models\Dj;
 use App\Models\Event;
+use App\Models\PortfolioItem;
 use App\Models\Post;
 use App\Models\SiteSetting;
 use App\Models\Video;
@@ -290,11 +291,42 @@ class PageMeta
             return self::absoluteImageUrl(Storage::disk('public')->url($uploaded));
         }
 
+        $portfolioImage = self::portfolioOgImageUrl();
+        if (filled($portfolioImage)) {
+            return $portfolioImage;
+        }
+
         if (file_exists(public_path('images/booking-og.jpg'))) {
             return url('/images/booking-og.jpg');
         }
 
         return self::defaultOgImageUrl();
+    }
+
+    public static function portfolioOgImageUrl(): ?string
+    {
+        $item = PortfolioItem::query()
+            ->where('is_active', true)
+            ->where('type', 'photo')
+            ->whereHas('media', fn ($query) => $query
+                ->where('collection_name', 'asset')
+                ->where('mime_type', 'like', 'image/%'))
+            ->orderByDesc('is_featured')
+            ->orderBy('priority')
+            ->orderByDesc('created_at')
+            ->with('media')
+            ->first();
+        $media = $item?->getFirstMedia('asset');
+
+        if (! $media) {
+            return null;
+        }
+
+        return self::absoluteImageUrl(
+            $media->hasGeneratedConversion('large')
+                ? $media->getUrl('large')
+                : $media->getUrl(),
+        );
     }
 
     public static function defaultOgImageUrl(): string
