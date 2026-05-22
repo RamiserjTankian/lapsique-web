@@ -826,6 +826,8 @@ export function BookingWidget({
                                             submitCheckout={submitCheckout}
                                             openTerms={() => setIsTermsModalOpen(true)}
                                             product={product}
+                                            stripeConfigured={payments?.stripeConfigured ?? true}
+                                            mercadopagoConfigured={payments?.mercadopagoConfigured ?? true}
                                             fixedPaymentProvider={
                                                 paymentProvider === 'stripe' ? 'stripe' : undefined
                                             }
@@ -863,6 +865,8 @@ function BookingForm({
     submitCheckout,
     openTerms,
     product,
+    stripeConfigured,
+    mercadopagoConfigured,
     fixedPaymentProvider,
 }: {
     data: {
@@ -886,6 +890,8 @@ function BookingForm({
     submitCheckout: (e: React.FormEvent) => void;
     openTerms: () => void;
     product: BookingWidgetProduct;
+    stripeConfigured: boolean;
+    mercadopagoConfigured: boolean;
     fixedPaymentProvider?: 'stripe';
 }) {
     return (
@@ -986,8 +992,8 @@ function BookingForm({
                             <PaymentMethodField
                                 value={data.payment_provider}
                                 onChange={(v) => setData('payment_provider', v)}
-                                stripeConfigured={payments?.stripeConfigured ?? true}
-                                mercadopagoConfigured={payments?.mercadopagoConfigured ?? true}
+                                stripeConfigured={stripeConfigured}
+                                mercadopagoConfigured={mercadopagoConfigured}
                             />
                         )}
                         {!isTestMode && fixedPaymentProvider === 'stripe' && (
