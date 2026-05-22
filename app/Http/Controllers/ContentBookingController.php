@@ -15,7 +15,6 @@ use App\Services\Meta\MetaConversionsApiService;
 use App\Services\StripeService;
 use App\Support\BookingMode;
 use Carbon\Carbon;
-use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Auth;
@@ -24,6 +23,7 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use Inertia\Inertia;
 use Inertia\Response;
+use Symfony\Component\HttpFoundation\Response as SymfonyResponse;
 
 class ContentBookingController extends Controller
 {
@@ -160,7 +160,7 @@ class ContentBookingController extends Controller
         StripeService $stripe,
         ContentBookingPaymentService $bookingPayment,
         CustomerPortalAccessService $portalAccess,
-    ): RedirectResponse {
+    ): SymfonyResponse {
         return $this->checkoutForService(
             $request,
             $mercadoPago,
@@ -177,7 +177,7 @@ class ContentBookingController extends Controller
         StripeService $stripe,
         ContentBookingPaymentService $bookingPayment,
         CustomerPortalAccessService $portalAccess,
-    ): RedirectResponse {
+    ): SymfonyResponse {
         return $this->checkoutForService(
             $request,
             $mercadoPago,
@@ -195,7 +195,7 @@ class ContentBookingController extends Controller
         ContentBookingPaymentService $bookingPayment,
         CustomerPortalAccessService $portalAccess,
         string $serviceType,
-    ): RedirectResponse {
+    ): SymfonyResponse {
         $validated = $request->validate([
             'booking_slot_id' => ['required', 'integer', 'exists:booking_slots,id'],
             'client_name' => ['required', 'string', 'max:255'],
@@ -349,7 +349,7 @@ class ContentBookingController extends Controller
 
             $this->bootCustomerSession($request, $booking);
 
-            return redirect()->away($checkoutUrl);
+            return Inertia::location($checkoutUrl);
         } catch (\Throwable $e) {
             $booking->slot?->decrement('booked_count');
             $booking->update(['status' => 'failed']);
@@ -431,7 +431,7 @@ class ContentBookingController extends Controller
         string $publicId,
         MercadoPagoService $mercadoPago,
         StripeService $stripe,
-    ): RedirectResponse {
+    ): SymfonyResponse {
         $booking = ContentBooking::where('public_id', $publicId)->with(['slot', 'customer'])->firstOrFail();
 
         if ($booking->status === 'confirmed') {
@@ -460,7 +460,7 @@ class ContentBookingController extends Controller
                     'stripe_status' => Arr::get($session, 'status'),
                 ]);
 
-                return redirect()->away($checkoutUrl);
+                return Inertia::location($checkoutUrl);
             }
 
             $preference = $mercadoPago->createPreferenceForBooking($booking);
@@ -470,7 +470,7 @@ class ContentBookingController extends Controller
 
             $booking->update(['mercadopago_preference_id' => $preference['id']]);
 
-            return redirect()->away($initPoint);
+            return Inertia::location($initPoint);
         } catch (\Throwable $e) {
             Log::error('ContentBooking retry payment failed', [
                 'booking_id' => $booking->id,

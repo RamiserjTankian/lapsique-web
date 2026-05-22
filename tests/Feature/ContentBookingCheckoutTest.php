@@ -157,6 +157,32 @@ class ContentBookingCheckoutTest extends TestCase
         $this->assertSame('cs_test_123', $booking->stripe_checkout_session_id);
     }
 
+    public function test_inertia_stripe_checkout_uses_external_location_visit(): void
+    {
+        config([
+            'stripe.secret_key' => 'sk_test_fake',
+            'booking.skip_payment_hosts' => [],
+            'booking.skip_payment_host_suffixes' => [],
+        ]);
+
+        Http::fake([
+            'https://api.stripe.com/v1/checkout/sessions' => Http::response([
+                'id' => 'cs_test_inertia',
+                'url' => 'https://checkout.stripe.com/pay/cs_test_inertia',
+                'status' => 'open',
+            ], 200),
+        ]);
+
+        $slot = $this->createAvailableSlot();
+
+        $this->withHeader('X-Inertia', 'true')
+            ->post(route('booking.checkout'), array_merge($this->checkoutPayload($slot), [
+                'payment_provider' => 'stripe',
+            ]))
+            ->assertConflict()
+            ->assertHeader('X-Inertia-Location', 'https://checkout.stripe.com/pay/cs_test_inertia');
+    }
+
     public function test_dj_set_landing_uses_shared_slots_and_dj_material(): void
     {
         $this->createAvailableSlot();
