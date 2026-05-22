@@ -22,7 +22,7 @@ class EnsureBookingSlotsCommand extends Command
     ): int {
         $addedRules = $rulesService->ensureDefaultRules();
         if ($addedRules > 0) {
-            $this->info("Se añadieron {$addedRules} reglas de disponibilidad (2–5 PM).");
+            $this->info("Se añadieron {$addedRules} reglas de disponibilidad (2 PM y 5 PM).");
         }
 
         if (! BookingAvailabilityRule::query()->where('is_active', true)->exists()) {

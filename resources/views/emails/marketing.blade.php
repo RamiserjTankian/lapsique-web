@@ -1,24 +1,20 @@
 @extends('emails.layout')
+@php use App\Support\EmailBrand; @endphp
 
-@section('title', 'Lapsique Newsletter')
+@section('title', EmailBrand::WORDMARK.' — Newsletter')
 
 @section('content')
-    <h2 style="color: #ffffff; margin-top: 0;">Hola {{ $customer->name ?? 'querido amigo' }}! 👋</h2>
-    
-    <div style="margin: 20px 0; color: #e5e7eb;">
+    <h2 style="{{ EmailBrand::headingStyle() }}">Hola {{ $customer->name ?? 'querido amigo' }}</h2>
+
+    <div style="margin:20px 0;color:{{ EmailBrand::FOREGROUND }};">
         {!! $emailContent !!}
     </div>
-    
+
     @if($buttonUrl && $buttonText)
-    <div style="text-align: center; margin: 30px 0;">
-        <a href="{{ $buttonUrl }}" class="button" style="display: inline-block; padding: 12px 30px; background-color: #ffffff; color: #050505; text-decoration: none; border-radius: 6px; font-weight: 600;">{{ $buttonText }}</a>
-    </div>
+        @include('emails.partials._button', ['url' => $buttonUrl, 'label' => $buttonText])
     @endif
-    
-    <p style="color: #bdbdbd; font-size: 14px; margin-top: 30px;">
-        El equipo de Lapsique
+
+    <p style="margin-top:30px;{{ EmailBrand::mutedStyle() }}">
+        El equipo de {{ EmailBrand::WORDMARK }}
     </p>
-    
-    <!-- Tracking Pixel -->
-    <img src="{{ $trackingPixelUrl }}" width="1" height="1" style="display: none;" alt="" />
 @endsection

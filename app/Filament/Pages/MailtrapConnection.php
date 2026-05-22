@@ -2,6 +2,7 @@
 
 namespace App\Filament\Pages;
 
+use App\Mail\MailtrapTestEmail;
 use App\Services\MailDeliveryService;
 use App\Services\MailtrapEventsService;
 use BackedEnum;
@@ -9,7 +10,6 @@ use Filament\Actions\Action;
 use Filament\Forms\Components\TextInput;
 use Filament\Notifications\Notification;
 use Filament\Pages\Page;
-use Illuminate\Mail\Mailable;
 use Illuminate\Support\Str;
 use UnitEnum;
 
@@ -91,28 +91,14 @@ class MailtrapConnection extends Page
                         ->default(fn (): string => auth()->user()?->email ?? config('mail.from.address')),
                 ])
                 ->action(function (array $data, MailDeliveryService $mailDelivery): void {
-                    $mailable = new class extends Mailable
-                    {
-                        public function build(): static
-                        {
-                            return $this
-                                ->subject('Prueba Mailtrap Lapsique Media')
-                                ->html(
-                                    '<div style="font-family:Arial,sans-serif;padding:24px;">'
-                                    . '<h1>Mailtrap operativo</h1>'
-                                    . '<p>Este correo confirma que la integracion de Mailtrap en Lapsique Media puede enviar mensajes correctamente.</p>'
-                                    . '<p><strong>Fecha UTC:</strong> ' . now()->toDateTimeString() . '</p>'
-                                    . '</div>'
-                                );
-                        }
-                    };
+                    $mailable = new MailtrapTestEmail;
 
                     try {
                         $messageId = $mailDelivery->send($mailable, $data['email'], null, 'system-test');
 
                         Notification::make()
                             ->title('Correo de prueba enviado')
-                            ->body('Message ID: ' . ($messageId ?: 'N/D'))
+                            ->body('Message ID: '.($messageId ?: 'N/D'))
                             ->success()
                             ->send();
                     } catch (\Throwable $exception) {

@@ -5,10 +5,14 @@ import { BookingWidget, type BookingWidgetProduct } from '@/components/lapsique/
 import { GlassSection } from '@/components/lapsique/GlassSection';
 import { DjCard } from '@/components/lapsique/DjCard';
 import { SpecBadge } from '@/components/lapsique/SpecBadge';
+import { FunnelPopups } from '@/components/lapsique/FunnelPopups';
 import { FunnelStickyBar } from '@/components/lapsique/funnel/FunnelStickyBar';
+import { BookingCtaButton } from '@/components/lapsique/BookingCtaButton';
+import { BookingCtaSection } from '@/components/lapsique/BookingCtaSection';
 import { Button } from '@/components/ui/button';
 import { formatMxn } from '@/lib/utils';
 import { trackBookingEvent } from '@/hooks/useBookingAnalytics';
+import { openBookingModal } from '@/lib/openBookingModal';
 import {
     ArrowRight,
     CalendarDays,
@@ -76,13 +80,15 @@ export default function DjSetShow({
         });
     }, []);
 
-    const scrollToAgenda = () => {
-        trackBookingEvent('hero_cta_clicked', {
-            target: 'djset_agenda',
-            content_name: 'Grabación de DJ Set',
-            content_category: 'dj_set_booking',
+    const openBooking = () => {
+        openBookingModal({
+            source: 'djset',
+            analyticsEvent: 'hero_cta_clicked',
+            analyticsPayload: {
+                content_name: 'Grabación de DJ Set',
+                content_category: 'dj_set_booking',
+            },
         });
-        document.getElementById('agenda')?.scrollIntoView({ behavior: 'smooth' });
     };
 
     const portfolioImages = portfolioItems.filter((item) => item.media_type === 'image' && item.asset_url);
@@ -129,18 +135,20 @@ export default function DjSetShow({
                             <SpecBadge>Video final 1 hora</SpecBadge>
                         </div>
 
-                        <div className="mt-8 flex flex-wrap items-end gap-x-5 gap-y-3">
-                            <div>
+                        <div className="mt-8 space-y-6">
+                            <div className="w-full lg:mx-auto lg:max-w-md">
                                 <p className="font-mono-tabular text-4xl font-semibold text-white md:text-5xl">
                                     {formatMxn(price)}
                                 </p>
                                 <p className="mt-1 text-sm text-white/65">MXN · paga con tarjeta al reservar</p>
                             </div>
-                            <div className="flex flex-wrap gap-3">
-                                <Button type="button" variant="cinematic" size="xl" onClick={scrollToAgenda}>
-                                    Elegir fecha
-                                </Button>
-                                <Button variant="glass" size="xl" asChild>
+                            <BookingCtaSection hero className="py-0">
+                                <BookingCtaButton type="button" hero onClick={openBooking}>
+                                    Agendar producción
+                                </BookingCtaButton>
+                            </BookingCtaSection>
+                            <div className="w-full lg:mx-auto lg:max-w-md">
+                                <Button variant="glass" size="xl" className="w-full" asChild>
                                     <a href="#sets">Ver sets grabados</a>
                                 </Button>
                             </div>
@@ -157,7 +165,7 @@ export default function DjSetShow({
                         </p>
                         <button
                             type="button"
-                            onClick={scrollToAgenda}
+                            onClick={openBooking}
                             className="mt-5 flex w-full items-center justify-between rounded-lg border border-white/15 bg-white/10 px-4 py-3 text-left text-sm font-semibold text-white transition hover:bg-white/15 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
                         >
                             Abrir agenda
@@ -171,19 +179,19 @@ export default function DjSetShow({
                 eyebrow="Muestra tu sonido"
                 title="La gente reserva cuando puede ver el resultado"
                 description="Pon tu DJ set frente a promotores, venues y audiencia con una sesión larga que se siente como contenido principal."
-                action={
-                    <Button type="button" variant="glass" onClick={scrollToAgenda}>
-                        Apartar fecha
-                        <ArrowRight className="h-4 w-4" />
-                    </Button>
-                }
             >
+                <BookingCtaSection className="pt-0 pb-4">
+                    <BookingCtaButton type="button" onClick={openBooking}>
+                        Apartar fecha
+                        <ArrowRight className="h-5 w-5" />
+                    </BookingCtaButton>
+                </BookingCtaSection>
                 <MediaSalesBoard
                     images={portfolioImages}
                     videos={originals}
                     djs={djs}
                     price={price}
-                    onBook={scrollToAgenda}
+                    onBook={openBooking}
                 />
             </GlassSection>
 
@@ -210,6 +218,9 @@ export default function DjSetShow({
                 checkoutRoute="djset.checkout"
                 paymentProvider="stripe"
                 product={djSetProduct}
+                popupVariant="djset"
+                popupPortfolioItems={portfolioItems}
+                popupOriginals={originals}
             />
 
             {originals.length > 0 && (
@@ -217,14 +228,8 @@ export default function DjSetShow({
                     eyebrow="Psique Originals"
                     title="Sets grabados por Lapsique"
                     description="Mira una referencia completa antes de reservar: performance, ambiente y ritmo visual hechos para artistas de la escena."
-                    action={
-                        <Button type="button" variant="glass" onClick={scrollToAgenda}>
-                            Reservar mi set
-                            <ArrowRight className="h-4 w-4" />
-                        </Button>
-                    }
                 >
-                    <OriginalsShowcase videos={originals} />
+                    <OriginalsShowcase videos={originals} onBook={openBooking} />
                 </GlassSection>
             )}
 
@@ -247,7 +252,7 @@ export default function DjSetShow({
                     description="Fotos y movimiento de eventos para que tu sesión se vea como una pieza de la escena, no como una cámara puesta al azar."
                 >
                     {portfolioVideos.length > 0 && (
-                        <PortfolioVideoProof video={portfolioVideos[0]} images={galleryImages} onBook={scrollToAgenda} />
+                        <PortfolioVideoProof video={portfolioVideos[0]} images={galleryImages} onBook={openBooking} />
                     )}
                     <PortfolioEditorialGrid images={galleryImages} />
                 </GlassSection>
@@ -281,6 +286,13 @@ export default function DjSetShow({
             </GlassSection>
 
             <FunnelStickyBar price={price} label="DJ set 3 cámaras fijas + dron" />
+
+            <FunnelPopups
+                variant="djset"
+                slotsCount={slots.length}
+                portfolioItems={portfolioItems}
+                originals={originals}
+            />
         </SiteLayout>
     );
 }
@@ -365,13 +377,15 @@ function MediaSalesBoard({
                         <p className="mt-3 line-clamp-2 text-sm leading-relaxed text-white/70 md:text-base">
                             {featuredVideo?.title ?? 'Psique Originals: DJs, cabina y atmósfera en una sesión completa.'}
                         </p>
-                        <div className="mt-5 flex flex-wrap gap-3">
-                            <Button variant="cinematic" asChild>
+                        <div className="mt-5 space-y-4">
+                            <Button variant="glass" className="w-full sm:w-auto" asChild>
                                 <a href="#sets">Ver sesiones grabadas</a>
                             </Button>
-                            <Button type="button" variant="glass" onClick={onBook}>
-                                Reservar grabación
-                            </Button>
+                            <BookingCtaSection className="py-0">
+                                <BookingCtaButton type="button" onClick={onBook}>
+                                    Reservar grabación
+                                </BookingCtaButton>
+                            </BookingCtaSection>
                         </div>
                     </div>
                 </div>
@@ -563,11 +577,13 @@ function PortfolioVideoProof({
                             Reservas una sesión pensada para verse completa en YouTube y recortarse después en promoción.
                         </p>
                     </div>
-                    <Button type="button" variant="cinematic" className="mt-5 w-fit" onClick={onBook}>
-                        Elegir fecha
-                    </Button>
                 </div>
             </div>
+            <BookingCtaSection>
+                <BookingCtaButton type="button" onClick={onBook}>
+                    Elegir fecha
+                </BookingCtaButton>
+            </BookingCtaSection>
         </div>
     );
 }
@@ -599,7 +615,7 @@ function PortfolioFrame({
     );
 }
 
-function OriginalsShowcase({ videos }: { videos: VideoItem[] }) {
+function OriginalsShowcase({ videos, onBook }: { videos: VideoItem[]; onBook: () => void }) {
     const playableVideos = videos.filter((video) => getYoutubeId(video));
     const [activeVideoId, setActiveVideoId] = useState(playableVideos[0]?.id);
     const activeVideo = playableVideos.find((video) => video.id === activeVideoId) ?? playableVideos[0];
@@ -622,23 +638,25 @@ function OriginalsShowcase({ videos }: { videos: VideoItem[] }) {
                         allowFullScreen
                     />
                 </div>
-                <div className="flex flex-wrap items-end justify-between gap-3 border-t border-white/10 bg-black px-4 py-4 text-white md:px-5">
-                    <div>
-                        <p className="text-[10px] font-semibold uppercase tracking-[0.24em] text-primary">
-                            Reproduciendo referencia
+                <div className="border-t border-white/10 bg-black px-4 py-4 text-white md:px-5">
+                    <p className="text-[10px] font-semibold uppercase tracking-[0.24em] text-primary">
+                        Reproduciendo referencia
+                    </p>
+                    <h3 className="mt-2 font-display text-xl font-bold">{activeVideo.title}</h3>
+                    {activeVideo.djs && activeVideo.djs.length > 0 && (
+                        <p className="mt-1 text-sm text-white/60">
+                            {activeVideo.djs.map((dj) => dj.name).join(' · ')}
                         </p>
-                        <h3 className="mt-2 font-display text-xl font-bold">{activeVideo.title}</h3>
-                        {activeVideo.djs && activeVideo.djs.length > 0 && (
-                            <p className="mt-1 text-sm text-white/60">
-                                {activeVideo.djs.map((dj) => dj.name).join(' · ')}
-                            </p>
-                        )}
-                    </div>
-                    <Button type="button" variant="cinematic" onClick={() => window.dispatchEvent(new Event('booking:open'))}>
-                        Reservar video
-                    </Button>
+                    )}
                 </div>
             </div>
+
+            <BookingCtaSection>
+                <BookingCtaButton type="button" onClick={onBook}>
+                    Reservar mi set
+                    <ArrowRight className="h-5 w-5" />
+                </BookingCtaButton>
+            </BookingCtaSection>
 
             <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
                 {playableVideos.slice(0, 4).map((video) => (

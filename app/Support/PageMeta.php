@@ -89,16 +89,16 @@ class PageMeta
 
     public static function forBookingFunnel(?SiteSetting $settings, string $canonicalUrl): PageMetaData
     {
-        $price = (int) ($settings?->booking_price ?? 5000);
+        $price = (int) ($settings?->booking_price ?? config('booking.content_price', 3000));
         $subtitle = $settings?->booking_subtitle
-            ?: '2 reels editados + 20 fotografías profesionales en una sesión dirigida para elevar tu percepción de marca.';
+            ?: 'Reels y fotografías premium para negocios que necesitan vender con mejor presencia visual.';
         $bookingTitle = $settings?->booking_title
-            ?: 'Contenido premium para marcas que quieren verse y vender mejor';
+            ?: 'Reels cinematográficos para negocios';
 
-        $title = 'Agenda tu sesión de contenido';
+        $title = 'Agenda reels para tu negocio';
         $metaTitle = "{$title} · ".self::SITE_NAME;
         $description = self::truncate(
-            "{$subtitle} Desde $".number_format($price, 0, '.', ',').' MXN. Filmado con Sony α7.',
+            "{$subtitle} Sesión reservable desde $".number_format($price, 0, '.', ',').' MXN.',
         );
         $ogImage = self::bookingOgImageUrl($settings);
         $ogImageAlt = 'Sesión de contenido profesional — '.self::SITE_NAME;
@@ -131,7 +131,7 @@ class PageMeta
             ogType: 'website',
             ogImage: $ogImage,
             ogImageAlt: $ogImageAlt,
-            keywords: 'sesión de contenido, reels, fotografía profesional, marca personal, producción audiovisual, lapsique.media',
+            keywords: 'reels para negocios, sesión de contenido, aftermovies, fotografía profesional, anuncios, producción audiovisual, lapsique.media',
             jsonLd: $jsonLd,
         );
     }
@@ -277,7 +277,7 @@ class PageMeta
     {
         return self::forSection(
             self::SITE_NAME,
-            'Sesiones de contenido premium: 2 reels editados + 20 fotografías profesionales para elevar tu marca.',
+            'Sesiones de contenido premium: 1 reel editado + 10 fotografías editadas para elevar tu marca.',
             $canonicalUrl,
             'sesión de contenido, producción audiovisual, reels, lapsique.media',
         );

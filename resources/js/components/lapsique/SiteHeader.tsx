@@ -1,6 +1,7 @@
 import { useState, type MouseEvent } from 'react';
 import { Link, usePage } from '@inertiajs/react';
 import { Menu } from 'lucide-react';
+import { BookingCtaButton } from '@/components/lapsique/BookingCtaButton';
 import { Button } from '@/components/ui/button';
 import {
     Sheet,
@@ -10,15 +11,9 @@ import {
     SheetTrigger,
 } from '@/components/ui/sheet';
 import { ThemeToggle } from '@/components/lapsique/ThemeToggle';
+import { markBookingModalPending, openBookingModal } from '@/lib/openBookingModal';
 import { route } from '@/lib/route';
 import type { PageProps } from '@/types';
-
-const navLinks = [
-    { label: 'Inicio', name: 'home' },
-    { label: 'Portafolio', name: 'portfolio.index' },
-    { label: 'Videos', name: 'videos.index' },
-    { label: 'DJs', name: 'djs.index' },
-] as const;
 
 export function SiteHeader() {
     const { ziggy, site } = usePage<PageProps>().props;
@@ -33,18 +28,6 @@ export function SiteHeader() {
                 >
                     {site.name}
                 </Link>
-
-                <nav className="hidden items-center gap-6 md:flex">
-                    {navLinks.map((link) => (
-                        <Link
-                            key={link.name}
-                            href={route(link.name, undefined, false, ziggy)}
-                            className="text-xs uppercase tracking-[0.18em] text-muted-foreground transition hover:text-foreground"
-                        >
-                            {link.label}
-                        </Link>
-                    ))}
-                </nav>
 
                 <MotionHeaderActions open={open} setOpen={setOpen} siteName={site.name} />
             </div>
@@ -64,14 +47,17 @@ function MotionHeaderActions({
     const { ziggy, customer } = usePage<PageProps>().props;
     const homeAgenda = `${route('home', undefined, false, ziggy)}#agenda`;
     const openBookingPopup = (event: MouseEvent<HTMLAnchorElement>) => {
-        const target = new URL(homeAgenda, window.location.origin);
+        if (document.getElementById('agenda')) {
+            event.preventDefault();
+            openBookingModal({
+                source: 'header',
+                analyticsEvent: 'header_cta_clicked',
+            });
 
-        if (target.pathname !== window.location.pathname) {
             return;
         }
 
-        event.preventDefault();
-        window.dispatchEvent(new CustomEvent('booking:open'));
+        markBookingModalPending();
     };
 
     return (
@@ -82,9 +68,11 @@ function MotionHeaderActions({
                 </Button>
             )}
             <ThemeToggle />
-            <Button variant="cinematic" size="lg" className="hidden rounded-xl px-6 font-bold md:inline-flex" asChild>
-                <Link href={homeAgenda} onClick={openBookingPopup}>Agendar sesión</Link>
-            </Button>
+            <BookingCtaButton compact className="hidden md:inline-flex" asChild>
+                <Link href={homeAgenda} onClick={openBookingPopup}>
+                    Agendar sesión
+                </Link>
+            </BookingCtaButton>
 
             <Sheet open={open} onOpenChange={setOpen}>
                 <SheetTrigger asChild className="md:hidden">
@@ -100,18 +88,8 @@ function MotionHeaderActions({
                         <span className="text-xs uppercase tracking-wider text-muted-foreground">Tema</span>
                         <ThemeToggle />
                     </div>
-                    <nav className="mt-8 flex flex-col gap-4">
-                        {navLinks.map((link) => (
-                            <Link
-                                key={link.name}
-                                href={route(link.name, undefined, false, ziggy)}
-                                className="text-sm uppercase tracking-wider"
-                                onClick={() => setOpen(false)}
-                            >
-                                {link.label}
-                            </Link>
-                        ))}
-                        <Button variant="cinematic" size="lg" asChild className="mt-4 rounded-xl font-bold">
+                    <div className="mt-8">
+                        <BookingCtaButton asChild className="w-full">
                             <Link
                                 href={homeAgenda}
                                 onClick={(event) => {
@@ -121,8 +99,8 @@ function MotionHeaderActions({
                             >
                                 Agendar sesión
                             </Link>
-                        </Button>
-                    </nav>
+                        </BookingCtaButton>
+                    </div>
                 </SheetContent>
             </Sheet>
         </div>

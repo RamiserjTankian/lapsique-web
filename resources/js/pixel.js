@@ -14,7 +14,7 @@ function trackMetaPixel(event, payload, options) {
         em: client_email || customer_email,
         ph: client_phone || customer_phone,
         fn: client_name || customer_name,
-        external_id: rest.booking_id,
+        external_id: resolvePixelExternalId(rest),
     });
 
     const trackOptions = options || (event_id || eventID ? { eventID: event_id || eventID } : undefined);
@@ -35,13 +35,25 @@ window.trackMetaPixelCustom = function trackMetaPixelCustom(event, payload) {
         em: client_email || customer_email,
         ph: client_phone || customer_phone,
         fn: client_name || customer_name,
-        external_id: rest.booking_id,
+        external_id: resolvePixelExternalId(rest),
     });
 
     const trackOptions = event_id || eventID ? { eventID: event_id || eventID } : undefined;
 
     window.fbq('trackCustom', event, rest, trackOptions);
 };
+
+function resolvePixelExternalId(rest) {
+    if (rest.customer_id != null && rest.customer_id !== '') {
+        return String(rest.customer_id);
+    }
+
+    if (rest.booking_id) {
+        return String(rest.booking_id);
+    }
+
+    return undefined;
+}
 
 flushQueuedPixelCalls();
 

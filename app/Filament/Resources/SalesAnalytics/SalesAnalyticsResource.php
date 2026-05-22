@@ -24,11 +24,16 @@ class SalesAnalyticsResource extends Resource
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedChartBar;
 
-    protected static ?string $navigationLabel = 'Ventas';
+    protected static ?string $navigationLabel = 'Detalle por evento';
 
     protected static UnitEnum|string|null $navigationGroup = 'Reportes';
 
-    protected static ?int $navigationSort = 1;
+    protected static ?int $navigationSort = 5;
+
+    public static function shouldRegisterNavigation(): bool
+    {
+        return false;
+    }
 
     public static function table(Table $table): Table
     {

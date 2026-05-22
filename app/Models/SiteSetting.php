@@ -28,6 +28,12 @@ class SiteSetting extends Model
         'booking_end_time',
         'booking_advance_hours',
         'booking_duration_minutes',
+        'home_hero_proof_1_title',
+        'home_hero_proof_1_source',
+        'home_hero_proof_1_reference',
+        'home_hero_proof_2_title',
+        'home_hero_proof_2_source',
+        'home_hero_proof_2_reference',
     ];
 
     protected $casts = [
@@ -75,5 +81,17 @@ class SiteSetting extends Model
     public function bookingDurationMinutes(): int
     {
         return $this->booking_duration_minutes ?: (int) config('booking.default_duration_minutes', 120);
+    }
+
+    /**
+     * @return array{title: ?string, source: ?string, reference: ?string}
+     */
+    public function homeHeroProofSlot(): array
+    {
+        return [
+            'title' => $this->home_hero_proof_1_title,
+            'source' => $this->home_hero_proof_1_source,
+            'reference' => $this->home_hero_proof_1_reference,
+        ];
     }
 }

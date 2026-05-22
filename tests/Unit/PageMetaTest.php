@@ -12,16 +12,16 @@ class PageMetaTest extends TestCase
     public function test_booking_funnel_meta_includes_price_and_deliverables(): void
     {
         $settings = new SiteSetting([
-            'booking_subtitle' => '2 reels + 20 fotos profesionales',
-            'booking_price' => 7500,
+            'booking_subtitle' => '1 reel + 10 fotos editadas',
+            'booking_price' => 3000,
         ]);
 
         $meta = PageMeta::forBookingFunnel($settings, 'https://lapsique.media/');
 
-        $this->assertSame('Agenda tu sesión de contenido', $meta->title);
+        $this->assertSame('Agenda reels para tu negocio', $meta->title);
         $this->assertStringContainsString('lapsique.media', $meta->metaTitle);
-        $this->assertStringContainsString('2 reels + 20 fotos profesionales', $meta->description);
-        $this->assertStringContainsString('7,500', $meta->description);
+        $this->assertStringContainsString('1 reel + 10 fotos editadas', $meta->description);
+        $this->assertStringContainsString('3,000', $meta->description);
         $this->assertNotNull($meta->jsonLd);
         $this->assertStringContainsString('booking-og.jpg', (string) $meta->ogImage);
     }
@@ -33,7 +33,7 @@ class PageMetaTest extends TestCase
 
         $settings = new SiteSetting([
             'booking_og_image' => 'images/og/custom.jpg',
-            'booking_price' => 5000,
+            'booking_price' => 3000,
         ]);
 
         $meta = PageMeta::forBookingFunnel($settings, 'https://lapsique.media/');

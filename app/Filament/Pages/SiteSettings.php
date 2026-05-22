@@ -2,14 +2,18 @@
 
 namespace App\Filament\Pages;
 
+use App\Models\PortfolioItem;
 use App\Models\SiteSetting;
+use App\Models\Video;
 use BackedEnum;
 use Filament\Actions\Action;
 use Filament\Forms\Components\FileUpload;
+use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Notifications\Notification;
 use Filament\Pages\Page;
 use Filament\Schemas\Components\Section;
+use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Concerns\InteractsWithSchemas;
 use Filament\Schemas\Contracts\HasSchemas;
 use Filament\Schemas\Schema;
@@ -39,7 +43,7 @@ class SiteSettings extends Page implements HasSchemas
 
     public string $booking_subtitle = '';
 
-    public int $booking_price = 5000;
+    public int $booking_price = 3000;
 
     public string $booking_whatsapp = '';
 
@@ -65,7 +69,7 @@ class SiteSettings extends Page implements HasSchemas
         $settings = SiteSetting::currentOrNew();
         $this->booking_title = $settings->booking_title ?? '';
         $this->booking_subtitle = $settings->booking_subtitle ?? '';
-        $this->booking_price = $settings->booking_price ?? 5000;
+        $this->booking_price = $settings->booking_price ?? (int) config('booking.content_price', 3000);
         $this->booking_whatsapp = $settings->booking_whatsapp ?? '';
 
         $this->schema->fill([
@@ -76,6 +80,9 @@ class SiteSettings extends Page implements HasSchemas
             'booking_og_image' => $settings->booking_og_image,
             'booking_price' => $this->booking_price,
             'booking_whatsapp' => $this->booking_whatsapp,
+            'home_hero_proof_1_title' => $settings->home_hero_proof_1_title,
+            'home_hero_proof_1_source' => $settings->home_hero_proof_1_source,
+            'home_hero_proof_1_reference' => $settings->home_hero_proof_1_reference,
         ]);
     }
 
@@ -123,7 +130,7 @@ class SiteSettings extends Page implements HasSchemas
 
                         TextInput::make('booking_subtitle')
                             ->label('Subtítulo / tagline')
-                            ->placeholder('Ej: 2 Reels + 20 Fotos editadas en una sola sesión')
+                            ->placeholder('Ej: 1 reel + 10 fotos editadas en una sola sesión')
                             ->maxLength(255),
 
                         FileUpload::make('booking_og_image')
@@ -144,7 +151,7 @@ class SiteSettings extends Page implements HasSchemas
                         TextInput::make('booking_price')
                             ->label('Precio (MXN)')
                             ->numeric()
-                            ->default(5000)
+                            ->default(config('booking.content_price', 3000))
                             ->minValue(0)
                             ->prefix('$')
                             ->suffix('MXN')
@@ -156,7 +163,76 @@ class SiteSettings extends Page implements HasSchemas
                             ->helperText('Número con código de país, sin + ni espacios. Usado para el botón de contacto.')
                             ->maxLength(30),
                     ]),
+
+                Section::make('Video del hero (landing negocios)')
+                    ->description('Un video en el panel lateral del home. Se reproduce en silencio en loop. Si dejas el origen vacío, se usa el primer video del portafolio.')
+                    ->schema(self::homeHeroProofSlotFields()),
             ]);
+    }
+
+    /**
+     * @return list<\Filament\Forms\Components\Component>
+     */
+    protected static function homeHeroProofSlotFields(): array
+    {
+        $titleKey = 'home_hero_proof_1_title';
+        $sourceKey = 'home_hero_proof_1_source';
+        $referenceKey = 'home_hero_proof_1_reference';
+
+        return [
+            TextInput::make($titleKey)
+                ->label('Título')
+                ->placeholder('Opcional. Si está vacío, usa el del origen.')
+                ->maxLength(120),
+
+            Select::make($sourceKey)
+                ->label('Origen')
+                ->options([
+                    '' => 'Automático (portafolio)',
+                    'portfolio_item' => 'Ítem de portafolio',
+                    'video' => 'Video del catálogo',
+                    'youtube' => 'YouTube (ID o URL)',
+                    'url' => 'URL directa (.mp4, .webm)',
+                ])
+                ->native(false),
+
+            Select::make($referenceKey)
+                ->label('Referencia')
+                ->options(function (Get $get) use ($sourceKey): array {
+                    return match ($get($sourceKey)) {
+                        'portfolio_item' => PortfolioItem::query()
+                            ->where('is_active', true)
+                            ->orderByDesc('is_featured')
+                            ->orderBy('priority')
+                            ->get()
+                            ->mapWithKeys(fn (PortfolioItem $item) => [
+                                (string) $item->id => $item->title ?: "Portafolio #{$item->id}",
+                            ])
+                            ->all(),
+                        'video' => Video::query()
+                            ->orderByDesc('is_featured')
+                            ->orderBy('priority')
+                            ->get()
+                            ->mapWithKeys(fn (Video $video) => [
+                                (string) $video->id => $video->title ?: "Video #{$video->id}",
+                            ])
+                            ->all(),
+                        default => [],
+                    };
+                })
+                ->searchable()
+                ->visible(fn (Get $get): bool => in_array($get($sourceKey), ['portfolio_item', 'video'], true)),
+
+            TextInput::make($referenceKey)
+                ->label(fn (Get $get): string => $get($sourceKey) === 'url'
+                    ? 'URL del archivo'
+                    : 'YouTube')
+                ->placeholder(fn (Get $get): string => $get($sourceKey) === 'url'
+                    ? 'https://...'
+                    : 'ID de 11 caracteres o URL completa')
+                ->url(fn (Get $get): bool => $get($sourceKey) === 'url')
+                ->visible(fn (Get $get): bool => in_array($get($sourceKey), ['youtube', 'url'], true)),
+        ];
     }
 
     protected static function normalizeUploadPath(mixed $value): ?string
@@ -253,8 +329,11 @@ class SiteSettings extends Page implements HasSchemas
             'booking_title' => $data['booking_title'] ?? null,
             'booking_subtitle' => $data['booking_subtitle'] ?? null,
             'booking_og_image' => self::normalizeUploadPath($data['booking_og_image'] ?? null),
-            'booking_price' => (int) ($data['booking_price'] ?? 5000),
+            'booking_price' => (int) ($data['booking_price'] ?? config('booking.content_price', 3000)),
             'booking_whatsapp' => $data['booking_whatsapp'] ?? null,
+            'home_hero_proof_1_title' => filled($data['home_hero_proof_1_title'] ?? null) ? $data['home_hero_proof_1_title'] : null,
+            'home_hero_proof_1_source' => filled($data['home_hero_proof_1_source'] ?? null) ? $data['home_hero_proof_1_source'] : null,
+            'home_hero_proof_1_reference' => filled($data['home_hero_proof_1_reference'] ?? null) ? (string) $data['home_hero_proof_1_reference'] : null,
         ]);
 
         $this->logo_watermark = $this->getLogoPath() ? 'images/logo-watermark.png' : null;

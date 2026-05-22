@@ -1,96 +1,92 @@
 @extends('emails.layout')
+@php
+    use App\Support\EmailBrand;
 
-@section('title', 'Confirmación de Evento')
+    $eventTime = $event->starts_at?->format('H:i');
+    $arrivalHint = $event->starts_at
+        ? $event->starts_at->copy()->subMinutes(30)->format('H:i')
+        : null;
+@endphp
+
+@section('title', 'Confirmación de evento')
 
 @section('content')
-    @php
-        $arrivalOptions = ['12:30', '13:00', '13:30', '14:00', '14:30', '15:00', '15:30', '16:00'];
-        $arrivalTime = $arrivalOptions[array_rand($arrivalOptions)];
-    @endphp
+    <p class="eyebrow" style="{{ EmailBrand::eyebrowStyle() }}">Guest list confirmada</p>
+    <h2 style="{{ EmailBrand::headingStyle() }}">¡Estás en la lista!</h2>
 
-    <h2 style="color: #ffffff; margin-top: 0; letter-spacing: 0.02em;">¡Estás en la lista! ✅</h2>
-    
-    <p style="color: #e5e7eb;">Hola {{ $customer->name }},</p>
-    
-    <p style="color: #e5e7eb;">Tu registro para <strong style="color: #ffffff;">{{ $event->title }}</strong> ha sido confirmado.</p>
-    
-    <div style="background-color: #0b0b0b; padding: 20px; border-radius: 12px; margin: 20px 0; border: 1px solid rgba(255, 255, 255, 0.12);">
-        <h3 style="margin-top: 0; color: #ffffff;">📅 Detalles del Evento</h3>
-        
+    <p style="{{ EmailBrand::paragraphStyle() }}">Hola {{ $customer->name }},</p>
+
+    <p style="{{ EmailBrand::paragraphStyle() }}">Tu registro para <strong style="{{ EmailBrand::strongStyle() }}">{{ $event->title }}</strong> ha sido confirmado.</p>
+
+    <div class="card" style="{{ EmailBrand::cardStyle() }}">
+        <h3 style="{{ EmailBrand::cardTitleStyle() }}">Detalles del evento</h3>
+
         @if($event->headline)
-            <p style="font-size: 16px; color: #d1d5db; font-style: italic;">{{ $event->headline }}</p>
+            <p style="{{ EmailBrand::cardRowStyle() }} font-style:italic;color:{{ EmailBrand::MUTED }};">{{ $event->headline }}</p>
         @endif
-        
-        @if($event->starts_at)
-            <p style="color: #e5e7eb;"><strong style="color: #ffffff;">📆 Fecha:</strong> {{ $event->starts_at->locale('es')->isoFormat('dddd, D [de] MMMM [de] YYYY') }}</p>
-            <p style="color: #e5e7eb;"><strong style="color: #ffffff;">🕐 Hora:</strong> 12:00</p>
-        @endif
-        
-        @if($event->venue)
-            <p style="color: #e5e7eb;"><strong style="color: #ffffff;">📍 Lugar:</strong> {{ $event->venue }}</p>
-        @endif
-        
-        @if($event->city)
-            <p style="color: #e5e7eb;"><strong style="color: #ffffff;">🌆 Ciudad:</strong> {{ $event->city }}</p>
-        @endif
-        
-        <p style="color: #e5e7eb;"><strong style="color: #ffffff;">✨ Estado:</strong> <span style="color: #ffffff; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em;">CONFIRMADO ✅</span></p>
 
-        <p style="margin-top: 16px; color: #f3f4f6;">
-            Te esperamos en este evento a las <strong style="color: #ffffff;">{{ $arrivalTime }}</strong>
-            confiando en que nos aportarás tu energía y tiempo para crear una experiencia inolvidable.
-        </p>
-        <p style="margin-top: 8px; color: #f3f4f6;">
-            La guest list caduca a las <strong style="color: #ffffff;">6 pm</strong>.
+        @if($event->starts_at)
+            <p style="{{ EmailBrand::cardRowStyle() }}"><strong style="{{ EmailBrand::strongStyle() }}">Fecha:</strong> {{ $event->starts_at->locale('es')->isoFormat('dddd, D [de] MMMM [de] YYYY') }}</p>
+            <p style="{{ EmailBrand::cardRowStyle() }}"><strong style="{{ EmailBrand::strongStyle() }}">Hora:</strong> {{ $eventTime }}</p>
+        @endif
+
+        @if($event->venue)
+            <p style="{{ EmailBrand::cardRowStyle() }}"><strong style="{{ EmailBrand::strongStyle() }}">Lugar:</strong> {{ $event->venue }}</p>
+        @endif
+
+        @if($event->city)
+            <p style="{{ EmailBrand::cardRowStyle() }}"><strong style="{{ EmailBrand::strongStyle() }}">Ciudad:</strong> {{ $event->city }}</p>
+        @endif
+
+        <p style="{{ EmailBrand::cardRowStyle() }}"><strong style="{{ EmailBrand::strongStyle() }}">Estado:</strong> <span style="color:{{ EmailBrand::ACCENT }};font-weight:600;text-transform:uppercase;letter-spacing:0.08em;">Confirmado</span></p>
+
+        @if($arrivalHint && $eventTime)
+            <p style="{{ EmailBrand::cardRowStyle() }} margin-top:16px;">
+                Te recomendamos llegar a las <strong style="{{ EmailBrand::strongStyle() }}">{{ $arrivalHint }}</strong>
+                (el evento inicia a las {{ $eventTime }}).
+            </p>
+        @endif
+        <p style="{{ EmailBrand::mutedStyle() }} margin-top:8px;font-size:13px;">
+            La guest list caduca a las 18:00 del día del evento.
         </p>
     </div>
 
-    <div style="background-color: #0b0b0b; border: 1px solid rgba(255, 255, 255, 0.12); padding: 20px; border-radius: 12px; margin: 24px 0; text-align: center;">
-        <h3 style="margin: 0 0 10px; color: #ffffff;">🎟️ Tu QR de Check-in</h3>
-        <p style="margin: 0 0 18px; color: #d1d5db; font-size: 14px;">
+    <div style="{{ EmailBrand::qrWrapperStyle() }}">
+        <h3 style="{{ EmailBrand::cardTitleStyle() }}">Tu QR de check-in</h3>
+        <p style="{{ EmailBrand::mutedStyle() }} margin-bottom:18px;">
             Presenta este QR en la entrada para registrar tu acceso.
         </p>
-        <div style="display: inline-block; padding: 12px; background-color: #111111; border-radius: 14px; border: 1px solid rgba(255, 255, 255, 0.12);">
-            <a href="{{ $checkInUrl }}" style="display: block;">
-                <img src="{{ $checkInQrUrl }}" alt="QR de Check-in" style="display: block; width: 220px; height: 220px; border-radius: 12px;">
+        <div style="{{ EmailBrand::qrFrameStyle() }}">
+            <a href="{{ $checkInUrl }}" style="display:block;">
+                <img src="{{ $checkInQrUrl }}" alt="QR de check-in" width="220" height="220" style="display:block;border-radius:12px;">
             </a>
         </div>
-        <p style="margin: 14px 0 0; font-size: 12px; color: #d1d5db;">
-            Código manual: <strong style="color: #ffffff;">{{ $checkInCode }}</strong>
+        <p style="{{ EmailBrand::mutedStyle() }} margin-top:14px;font-size:12px;">
+            Código manual: <strong style="{{ EmailBrand::strongStyle() }}">{{ $checkInCode }}</strong>
         </p>
-        <p style="margin: 8px 0 0; font-size: 12px; color: #bdbdbd;">
-            El staff validará este código en la entrada.
+        <p style="{{ EmailBrand::mutedStyle() }} margin-top:8px;font-size:12px;">
+            Si no ves el QR, <a href="{{ $checkInUrl }}" style="{{ EmailBrand::linkStyle() }}">abre tu pase</a>.
         </p>
-        <p style="margin: 10px 0 0; font-size: 12px; color: #d1d5db;">
-            Si no ves el QR, abre el pase aquí:
-            <a href="{{ $checkInUrl }}" style="color: #ffffff; text-decoration: underline;">Abrir pase</a>
-        </p>
-        <div style="margin-top: 18px;">
-            <a href="{{ $checkInUrl }}" class="button">Abrir Pase de Check-in</a>
-        </div>
+        @include('emails.partials._button', ['url' => $checkInUrl, 'label' => 'Abrir pase de check-in'])
     </div>
-    
+
     @if($event->description)
-        <div style="margin: 20px 0;">
-            <h4 style="color: #ffffff;">Acerca del Evento</h4>
-            <p style="color: #e5e7eb;">{{ Str::limit($event->description, 200) }}</p>
+        <div style="margin:20px 0;">
+            <h4 style="{{ EmailBrand::cardTitleStyle() }}">Acerca del evento</h4>
+            <p style="{{ EmailBrand::paragraphStyle() }}">{{ Str::limit($event->description, 200) }}</p>
         </div>
     @endif
-    
-    <div style="text-align: center; margin: 30px 0;">
-        <a href="{{ $eventUrl }}" class="button">Ver Detalles Completos</a>
+
+    @include('emails.partials._button', ['url' => $eventUrl, 'label' => 'Ver detalles completos'])
+
+    <div style="{{ EmailBrand::tipBoxStyle() }}">
+        <p style="margin:0;{{ EmailBrand::paragraphStyle() }}"><strong>Tip:</strong> Guarda este correo. Te servirá para tu check-in en el acceso.</p>
     </div>
-    
-    <div style="background-color: #0b0b0b; padding: 15px; border-left: 3px solid #ffffff; margin: 20px 0;">
-        <p style="margin: 0; color: #e5e7eb;"><strong>💡 Tip:</strong> Guarda este email. Te servirá para tu check-in en el acceso.</p>
-    </div>
-    
-    <p style="margin-top: 30px; color: #e5e7eb;">
+
+    <p style="{{ EmailBrand::paragraphStyle() }} margin-top:30px;">
         ¿Tienes alguna pregunta? No dudes en contactarnos.<br>
-        <strong style="color: #ffffff;">¡Nos vemos en la pista! 🎉</strong>
+        <strong style="{{ EmailBrand::strongStyle() }}">¡Nos vemos pronto!</strong>
     </p>
-    
-    <p style="color: #bdbdbd; font-size: 14px;">
-        El equipo de Lapsique
-    </p>
+
+    <p style="{{ EmailBrand::mutedStyle() }}">El equipo de {{ EmailBrand::WORDMARK }}</p>
 @endsection

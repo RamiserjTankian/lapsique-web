@@ -3,12 +3,9 @@
 namespace App\Http\Controllers;
 
 use App\Http\Resources\BookingSlotResource;
-use App\Http\Resources\DjResource;
 use App\Http\Resources\PortfolioItemResource;
-use App\Http\Resources\VideoResource;
-use App\Models\Dj;
 use App\Models\PortfolioItem;
-use App\Models\Video;
+use App\Support\HomeHeroProofVideos;
 use Illuminate\Support\Facades\Log;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -19,14 +16,6 @@ class HomeController extends Controller
     {
         $bookingData = ContentBookingController::bookingPageData();
 
-        $originals = Video::query()
-            ->whereJsonContains('tags', 'psique-originals')
-            ->orderByDesc('is_featured')
-            ->orderBy('priority')
-            ->orderByDesc('published_at')
-            ->take(3)
-            ->get();
-
         $portfolioItems = PortfolioItem::query()
             ->where('is_active', true)
             ->orderByDesc('is_featured')
@@ -34,15 +23,6 @@ class HomeController extends Controller
             ->orderByDesc('created_at')
             ->with('media')
             ->take(12)
-            ->get();
-
-        $djs = Dj::query()
-            ->with('media')
-            ->orderByDesc('is_highlighted')
-            ->orderByDesc('is_featured')
-            ->orderBy('priority')
-            ->orderByDesc('id')
-            ->take(6)
             ->get();
 
         $settings = $bookingData['settings'];
@@ -54,13 +34,12 @@ class HomeController extends Controller
         }
 
         return Inertia::render('Home', [
-            'title' => $settings?->booking_title ?: 'Contenido premium para marcas que quieren verse y vender mejor',
-            'subtitle' => $settings?->booking_subtitle ?: '2 reels editados + 20 fotografías profesionales en una sesión dirigida para elevar tu percepción de marca y ayudarte a convertir mejor.',
+            'title' => $settings?->booking_title ?: 'Reels cinematográficos para negocios',
+            'subtitle' => $settings?->booking_subtitle ?: 'Producción dirigida para crear reels y fotos premium que expliquen tu oferta, eleven tu marca y alimenten campañas.',
             'price' => $bookingData['price'],
             'slots' => BookingSlotResource::collection($bookingData['slots'])->resolve(),
-            'originals' => VideoResource::collection($originals)->resolve(),
             'portfolioItems' => PortfolioItemResource::collection($portfolioItems)->resolve(),
-            'djs' => DjResource::collection($djs)->resolve(),
+            'heroProofVideo' => HomeHeroProofVideos::resolve($settings, $portfolioItems)[0] ?? null,
             'errors' => session('errors')?->getBag('default')?->getMessages() ?? [],
         ]);
     }

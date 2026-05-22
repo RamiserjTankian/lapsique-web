@@ -161,6 +161,6 @@ class PortfolioItem extends Model implements HasMedia
             return null;
         }
 
-        return "https://www.youtube.com/embed/{$this->youtube_id}?rel=0&modestbranding=1&playsinline=1&autoplay=1";
+        return "https://www.youtube.com/embed/{$this->youtube_id}?rel=0&modestbranding=1&playsinline=1";
     }
 }

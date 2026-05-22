@@ -22,6 +22,11 @@ class ContentBookingSalesDashboard extends Dashboard
 
     protected static BackedEnum|string|null $navigationIcon = 'heroicon-o-currency-dollar';
 
+    public static function shouldRegisterNavigation(): bool
+    {
+        return false;
+    }
+
     public function getWidgets(): array
     {
         return [

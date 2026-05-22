@@ -3,6 +3,7 @@
 namespace App\Http\Middleware;
 
 use App\Models\SiteSetting;
+use App\Services\StripeIntegrationService;
 use App\Support\BookingMode;
 use App\Support\PageMeta;
 use Illuminate\Http\Request;
@@ -31,7 +32,7 @@ class HandleInertiaRequests extends Middleware
             ],
             'site' => fn () => [
                 'name' => 'lapsique.media',
-                'bookingPrice' => $settings?->booking_price ?? 5000,
+                'bookingPrice' => $settings?->booking_price ?? (int) config('booking.content_price', 3000),
                 'bookingTitle' => $settings?->booking_title,
                 'bookingSubtitle' => $settings?->booking_subtitle,
                 'bookingTeamName' => $settings?->booking_team_name,
@@ -45,7 +46,7 @@ class HandleInertiaRequests extends Middleware
                 'skipPayment' => BookingMode::shouldSkipPayment($request),
             ],
             'payments' => fn () => [
-                'stripeConfigured' => filled(config('stripe.secret_key')),
+                'stripeConfigured' => app(StripeIntegrationService::class)->isConfigured(),
                 'mercadopagoConfigured' => filled(config('mercadopago.access_token')),
             ],
             'flash' => fn () => [

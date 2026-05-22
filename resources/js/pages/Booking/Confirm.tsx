@@ -24,34 +24,44 @@ export default function BookingConfirm({ booking, paymentVerified, isTestBooking
     useEffect(() => {
         const purchaseEventId = bookingMetaEventId('purchase', booking.public_id);
 
+        const purchasePayload = {
+            booking_id: booking.public_id,
+            event_id: purchaseEventId,
+            value: booking.amount,
+            amount: booking.amount,
+            currency: booking.currency,
+            content_name: booking.service_name,
+            content_category: 'content_booking',
+            customer_id: booking.customer_id ?? undefined,
+            customer_name: booking.client_name,
+            customer_email: booking.client_email,
+            customer_phone: booking.client_phone,
+        };
+
         if (isTestBooking) {
-            trackBookingEvent('booking_test_confirmed', {
-                booking_id: booking.public_id,
-                event_id: purchaseEventId,
-                value: booking.amount,
-                amount: booking.amount,
-                currency: booking.currency,
-                customer_name: booking.client_name,
-                customer_email: booking.client_email,
-                customer_phone: booking.client_phone,
-            });
+            trackBookingEvent('booking_test_confirmed', purchasePayload);
             return;
         }
 
         if (paymentVerified) {
             trackBookingEvent('booking_confirmed', {
-                booking_id: booking.public_id,
-                event_id: purchaseEventId,
+                ...purchasePayload,
                 payment_provider: booking.payment_provider,
-                value: booking.amount,
-                amount: booking.amount,
-                currency: booking.currency,
-                customer_name: booking.client_name,
-                customer_email: booking.client_email,
-                customer_phone: booking.client_phone,
             });
         }
-    }, [booking.amount, booking.client_email, booking.client_name, booking.client_phone, booking.currency, booking.payment_provider, booking.public_id, isTestBooking, paymentVerified]);
+    }, [
+        booking.amount,
+        booking.client_email,
+        booking.client_name,
+        booking.client_phone,
+        booking.currency,
+        booking.customer_id,
+        booking.payment_provider,
+        booking.public_id,
+        booking.service_name,
+        isTestBooking,
+        paymentVerified,
+    ]);
 
     return (
         <SiteLayout>
@@ -88,6 +98,7 @@ export default function BookingConfirm({ booking, paymentVerified, isTestBooking
                     <p className="mt-4 font-mono text-sm text-primary">{slotLabel}</p>
                 )}
                 <p className="mt-2 font-mono-tabular text-lg">{formatMxn(booking.amount)}</p>
+                <p className="mt-1 text-sm text-muted-foreground">{booking.service_name}</p>
                 <p className="mt-6 text-sm text-muted-foreground">
                     {booking.client_name} · {booking.client_email}
                 </p>

@@ -1,63 +1,61 @@
 @extends('emails.layout')
+@php use App\Support\EmailBrand; @endphp
 
-@section('title', 'Recibo de compra')
+@section('title', 'Recibo de pago')
 
 @section('content')
-    <h2 style="color: #ffffff; margin-top: 0; letter-spacing: 0.02em;">Recibo de pago</h2>
+    <p class="eyebrow" style="{{ EmailBrand::eyebrowStyle() }}">Recibo de pago</p>
+    <h2 style="{{ EmailBrand::headingStyle() }}">Comprobante de tu sesión</h2>
 
-    <p style="color: #e5e7eb;">Hola {{ $booking->client_name }},</p>
+    <p style="{{ EmailBrand::paragraphStyle() }}">Hola {{ $booking->client_name }},</p>
 
-    <p style="color: #e5e7eb;">
-        Este es el comprobante de tu pago por <strong style="color: #ffffff;">{{ mb_strtolower($booking->service_name) }}</strong> en Lapsique.
+    <p style="{{ EmailBrand::paragraphStyle() }}">
+        Este es el comprobante de tu pago por <strong style="{{ EmailBrand::strongStyle() }}">{{ mb_strtolower($booking->service_name) }}</strong> en {{ EmailBrand::WORDMARK }}.
     </p>
 
-    <div style="background-color: #0b0b0b; padding: 20px; border-radius: 12px; margin: 20px 0; border: 1px solid rgba(255, 255, 255, 0.12);">
-        <h3 style="margin-top: 0; color: #ffffff;">Detalle del recibo</h3>
-        <p style="color: #e5e7eb; margin: 6px 0;">
-            <strong style="color: #ffffff;">Concepto:</strong> {{ $booking->service_name }} ({{ $booking->service_description }})
+    <div class="card" style="{{ EmailBrand::cardStyle() }}">
+        <h3 style="{{ EmailBrand::cardTitleStyle() }}">Detalle del recibo</h3>
+        <p style="{{ EmailBrand::cardRowStyle() }}">
+            <strong style="{{ EmailBrand::strongStyle() }}">Concepto:</strong> {{ $booking->service_name }} ({{ $booking->service_description }})
         </p>
         @if ($slot)
-            <p style="color: #e5e7eb; margin: 6px 0;">
-                <strong style="color: #ffffff;">Fecha programada:</strong>
+            <p style="{{ EmailBrand::cardRowStyle() }}">
+                <strong style="{{ EmailBrand::strongStyle() }}">Fecha programada:</strong>
                 {{ $slot->date->locale('es')->isoFormat('dddd, D [de] MMMM [de] YYYY') }} · {{ $slot->time_label }}
             </p>
         @endif
-        <p style="color: #e5e7eb; margin: 6px 0;">
-            <strong style="color: #ffffff;">Monto pagado:</strong>
+        <p style="{{ EmailBrand::cardRowStyle() }}">
+            <strong style="{{ EmailBrand::strongStyle() }}">Monto pagado:</strong>
             ${{ number_format($booking->amount, 0) }} {{ strtoupper($booking->currency) }}
         </p>
         @if ($booking->paid_at)
-            <p style="color: #e5e7eb; margin: 6px 0;">
-                <strong style="color: #ffffff;">Fecha de pago:</strong>
+            <p style="{{ EmailBrand::cardRowStyle() }}">
+                <strong style="{{ EmailBrand::strongStyle() }}">Fecha de pago:</strong>
                 {{ $booking->paid_at->locale('es')->isoFormat('D [de] MMMM [de] YYYY, HH:mm') }}
             </p>
         @endif
-        <p style="color: #e5e7eb; margin: 6px 0;">
-            <strong style="color: #ffffff;">Método de pago:</strong>
+        <p style="{{ EmailBrand::cardRowStyle() }}">
+            <strong style="{{ EmailBrand::strongStyle() }}">Método de pago:</strong>
             {{ $booking->payment_provider === 'stripe' ? 'Stripe' : ($booking->payment_provider === 'mercadopago' ? 'Mercado Pago' : '—') }}
         </p>
-        <p style="color: #9ca3af; font-size: 12px; margin-top: 12px;">
-            Folio: {{ $booking->public_id }}
-        </p>
+        <p style="{{ EmailBrand::mutedStyle() }} margin-top:12px;font-size:12px;">Folio: {{ $booking->public_id }}</p>
     </div>
 
     @if ($customer && ($customer->fiscal_legal_name || $customer->fiscal_rfc))
-        <div style="background-color: #0b0b0b; padding: 20px; border-radius: 12px; margin: 20px 0; border: 1px solid rgba(255, 255, 255, 0.12);">
-            <h3 style="margin-top: 0; color: #ffffff;">Datos fiscales</h3>
+        <div class="card" style="{{ EmailBrand::cardStyle() }}">
+            <h3 style="{{ EmailBrand::cardTitleStyle() }}">Datos fiscales</h3>
             @if ($customer->fiscal_legal_name)
-                <p style="color: #e5e7eb; margin: 6px 0;">{{ $customer->fiscal_legal_name }}</p>
+                <p style="{{ EmailBrand::cardRowStyle() }}">{{ $customer->fiscal_legal_name }}</p>
             @endif
             @if ($customer->fiscal_rfc)
-                <p style="color: #e5e7eb; margin: 6px 0;">RFC: {{ $customer->fiscal_rfc }}</p>
+                <p style="{{ EmailBrand::cardRowStyle() }}">RFC: {{ $customer->fiscal_rfc }}</p>
             @endif
         </div>
     @endif
 
-    <div style="text-align: center; margin: 30px 0;">
-        <a href="{{ $portalUrl }}" class="button">Ir a mi portal</a>
-    </div>
+    @include('emails.partials._button', ['url' => $portalUrl, 'label' => 'Ir a mi portal'])
 
-    <p style="color: #bdbdbd; font-size: 14px;">
+    <p style="{{ EmailBrand::mutedStyle() }}">
         Guarda este correo como comprobante. Si necesitas factura, contáctanos con tu folio.
     </p>
 @endsection

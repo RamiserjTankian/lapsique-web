@@ -8,8 +8,7 @@ use Illuminate\Database\Seeder;
 class BookingAvailabilityRulesSeeder extends Seeder
 {
     /**
-     * Horarios disponibles: Lunes a Domingo, 2pm–5pm hora Cancún (UTC-5).
-     * Se crea un slot por hora, de 14:00 a 17:00.
+     * Horarios disponibles: Lunes a Domingo, 2pm y 5pm hora Cancún (UTC-5).
      */
     public function run(): void
     {
@@ -26,11 +25,9 @@ class BookingAvailabilityRulesSeeder extends Seeder
             7 => 'Domingo',
         ];
 
-        // Horarios de 14:00 a 17:00 (2pm–5pm), un slot por hora
+        // Horarios de sesion publicados.
         $slots = [
             ['time_value' => '14:00', 'time_label' => '2:00 PM'],
-            ['time_value' => '15:00', 'time_label' => '3:00 PM'],
-            ['time_value' => '16:00', 'time_label' => '4:00 PM'],
             ['time_value' => '17:00', 'time_label' => '5:00 PM'],
         ];
 
@@ -52,6 +49,6 @@ class BookingAvailabilityRulesSeeder extends Seeder
 
         BookingAvailabilityRule::insert($rules);
 
-        $this->command->info('✓ '.count($rules).' reglas de disponibilidad creadas (Lun–Dom, 2pm–5pm).');
+        $this->command->info('✓ '.count($rules).' reglas de disponibilidad creadas (Lun-Dom, 2pm y 5pm).');
     }
 }

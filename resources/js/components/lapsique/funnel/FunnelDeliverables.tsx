@@ -8,23 +8,24 @@ import { glassCardVariants } from '@/lib/variants';
 const items = [
     {
         icon: Check,
-        title: '2 reels editados listos para publicar',
-        description: 'Piezas con ritmo, hook y acabado premium para anuncios, lanzamientos o presencia organica.',
+        title: '1 reel editado listo para pauta',
+        description: 'Pieza con hook, producto y acción clara para negocios que necesitan publicar y probar anuncios.',
     },
     {
         icon: Sparkles,
-        title: '20 fotos retocadas con look editorial',
-        description: 'Material consistente para feed, campañas, portada, stories, press kit y ventas.',
+        title: '10 fotos editadas para sostener campaña',
+        description: 'Material consistente para feed, portada, stories, catálogo ligero y ventas por mensaje.',
     },
     {
         icon: TimerReset,
         title: 'Dirección + producción + entrega rápida',
-        description: 'No solo grabamos: bajamos la idea, dirigimos la sesión y entregamos en cinco días hábiles.',
+        description: 'No solo grabamos: aterrizamos la oferta, dirigimos la sesión y entregamos en cinco días hábiles.',
     },
     {
         icon: UploadCloud,
-        title: 'Archivos listos para redes y pauta',
-        description: 'Formatos optimizados para Instagram, Meta Ads, lanzamientos, marca personal y campañas.',
+        title: 'Nube segura 1 año con tu material',
+        description:
+            'Accede a reels, fotos y masters editados durante 12 meses; guardamos tu material de forma segura.',
     },
 ];
 
@@ -34,8 +35,8 @@ export function FunnelDeliverables() {
     return (
         <GlassSection
             eyebrow="Que incluye"
-            title="Contenido premium para verte mejor y vender mejor"
-            description="Una oferta clara, cerrada y fácil de comprar: piezas pensadas para elevar percepción de marca, autoridad y respuesta comercial."
+            title="Paquete de producción para negocio, anuncios y redes"
+            description="La reserva compra una sesión clara: material útil para elevar percepción, repetir presencia y medir respuesta comercial."
             className="pt-8"
         >
             <section ref={ref} id="que-incluye" className="grid gap-4 md:grid-cols-2">

@@ -1,29 +1,28 @@
 @extends('emails.layout')
+@php use App\Support\EmailBrand; @endphp
 
-@section('title', 'Bienvenido a Lapsique')
+@section('title', 'Bienvenido a '.EmailBrand::WORDMARK)
 
 @section('content')
-    <h2 style="color: #ffffff; margin-top: 0;">¡Hola {{ $customer->name }}! 👋</h2>
-    
-    <p style="color: #e5e7eb;">Gracias por unirte a la familia Lapsique. Estamos emocionados de tenerte con nosotros.</p>
-    
-    <p style="color: #e5e7eb;">Somos una comunidad apasionada por la música electrónica, especialmente el techno. Aquí encontrarás:</p>
-    
-    <ul style="line-height: 2; color: #e5e7eb;">
-        <li>🎉 Información sobre nuestros próximos eventos</li>
-        <li>🎧 Los mejores DJs y artistas de la escena</li>
-        <li>🎟️ Acceso anticipado a tickets</li>
-        <li>💌 Contenido exclusivo y noticias</li>
+    <h2 style="{{ EmailBrand::headingStyle() }}">¡Hola {{ $customer->name }}!</h2>
+
+    <p style="{{ EmailBrand::paragraphStyle() }}">Gracias por unirte a {{ EmailBrand::WORDMARK }}. Estamos emocionados de tenerte con nosotros.</p>
+
+    <p style="{{ EmailBrand::paragraphStyle() }}">Aquí encontrarás información sobre eventos, producción de contenido y experiencias exclusivas:</p>
+
+    <ul style="line-height:2;color:{{ EmailBrand::FOREGROUND }};padding-left:20px;">
+        <li>Próximos eventos y lanzamientos</li>
+        <li>Artistas y colaboraciones</li>
+        <li>Acceso anticipado a tickets</li>
+        <li>Contenido y noticias del estudio</li>
     </ul>
-    
-    <div style="text-align: center; margin: 30px 0;">
-        <a href="{{ route('events.index') }}" class="button">Ver Próximos Eventos</a>
-    </div>
-    
-    <p style="color: #e5e7eb;">¿Quieres estar en nuestra guest list? Regístrate en nuestros eventos y recibe confirmación directa.</p>
-    
-    <p style="margin-top: 30px; color: #e5e7eb;">
-        <strong style="color: #ffffff;">¡Nos vemos en la pista! 🔊</strong><br>
-        <span style="color: #bdbdbd;">El equipo de Lapsique</span>
+
+    @include('emails.partials._button', ['url' => route('events.index'), 'label' => 'Ver próximos eventos'])
+
+    <p style="{{ EmailBrand::paragraphStyle() }}">¿Quieres estar en nuestra guest list? Regístrate en nuestros eventos y recibe confirmación directa.</p>
+
+    <p style="margin-top:30px;{{ EmailBrand::paragraphStyle() }}">
+        <strong style="{{ EmailBrand::strongStyle() }}">¡Nos vemos pronto!</strong><br>
+        <span style="{{ EmailBrand::mutedStyle() }}">El equipo de {{ EmailBrand::WORDMARK }}</span>
     </p>
 @endsection

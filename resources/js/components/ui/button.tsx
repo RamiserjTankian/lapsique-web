@@ -22,7 +22,7 @@ const buttonVariants = cva(
         glass:
           "glass-panel glass-border-glow border text-foreground hover:bg-foreground/10",
         cinematic:
-          "bg-primary text-primary-foreground shadow-[0_0_32px_oklch(0.78_0.14_75/0.35)] hover:bg-primary/90",
+          "bg-primary text-primary-foreground font-bold shadow-[0_0_32px_oklch(0.78_0.14_75/0.35)] hover:bg-primary/90 hover:shadow-[0_0_48px_oklch(0.78_0.14_75/0.5)]",
       },
       size: {
         default: "h-9 px-4 py-2 has-[>svg]:px-3",

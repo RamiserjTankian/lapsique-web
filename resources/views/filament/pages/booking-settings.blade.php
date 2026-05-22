@@ -217,16 +217,10 @@ GOOGLE_CLIENT_SECRET=tu-client-secret</pre>
         </div>
     </div>
 
-    {{-- Settings form --}}
-    <form wire:submit="save">
+    {{-- Settings form (guardado vía acción del encabezado «Guardar configuración») --}}
+    <div class="mt-6">
         {{ $this->schema }}
-
-        <div class="mt-4">
-            <x-filament::button type="submit">
-                Guardar configuración
-            </x-filament::button>
-        </div>
-    </form>
+    </div>
 
     <script>
     function saveCalendarSelection() {

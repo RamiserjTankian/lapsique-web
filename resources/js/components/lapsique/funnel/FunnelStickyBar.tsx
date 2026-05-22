@@ -1,23 +1,50 @@
 import { usePage } from '@inertiajs/react';
-import type { MouseEvent } from 'react';
-import { Button } from '@/components/ui/button';
-import { trackBookingEvent } from '@/hooks/useBookingAnalytics';
+import { useEffect, useState, type MouseEvent } from 'react';
+import { BookingCtaButton } from '@/components/lapsique/BookingCtaButton';
+import { openBookingModal } from '@/lib/openBookingModal';
 import { formatMxn } from '@/lib/utils';
 import type { PageProps } from '@/types';
 
 export function FunnelStickyBar({
     price,
     label = 'Sesión premium',
+    deferUntilScrolled = false,
 }: {
     price: number;
     label?: string;
+    deferUntilScrolled?: boolean;
 }) {
     const { booking } = usePage<PageProps>().props;
+    const [isVisible, setIsVisible] = useState(!deferUntilScrolled);
+
+    useEffect(() => {
+        if (!deferUntilScrolled) {
+            setIsVisible(true);
+
+            return;
+        }
+
+        const syncVisibility = () => {
+            setIsVisible(window.scrollY > 360);
+        };
+
+        syncVisibility();
+        window.addEventListener('scroll', syncVisibility, { passive: true });
+
+        return () => window.removeEventListener('scroll', syncVisibility);
+    }, [deferUntilScrolled]);
+
     const openBookingPopup = (event: MouseEvent<HTMLAnchorElement>) => {
         event.preventDefault();
-        trackBookingEvent('sticky_cta_clicked', { target: 'booking_popup' });
-        window.dispatchEvent(new CustomEvent('booking:open'));
+        openBookingModal({
+            source: 'sticky_bar',
+            analyticsEvent: 'sticky_cta_clicked',
+        });
     };
+
+    if (!isVisible) {
+        return null;
+    }
 
     return (
         <div className="pointer-events-none fixed inset-x-0 bottom-4 z-40 px-4">
@@ -26,21 +53,18 @@ export function FunnelStickyBar({
                     <p className="text-[10px] uppercase tracking-[0.24em] text-primary/80">
                         {label}
                     </p>
-                    <p className="font-mono-tabular text-sm font-semibold text-foreground md:text-base">
+                    <p className="font-mono-tabular text-xl font-bold leading-none tracking-tight text-primary motion-safe:animate-sticky-price-glow motion-reduce:animate-none md:text-2xl">
                         {formatMxn(price)}
                     </p>
-                    <p className="truncate text-xs text-muted-foreground">
+                    <p className="hidden truncate text-xs text-muted-foreground sm:block">
                         {booking.skipPayment ? 'Modo prueba activo' : 'Reserva directa con checkout seguro'}
                     </p>
                 </div>
-                <Button
-                    asChild
-                    variant="cinematic"
-                    size="lg"
-                    className="h-12 shrink-0 rounded-xl px-6 font-bold"
-                >
-                    <a href="#agenda" onClick={openBookingPopup}>Agendar</a>
-                </Button>
+                <BookingCtaButton asChild compact className="shrink-0">
+                    <a href="#agenda" onClick={openBookingPopup}>
+                        Agendar
+                    </a>
+                </BookingCtaButton>
             </div>
         </div>
     );

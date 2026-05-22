@@ -82,14 +82,30 @@ class ViewContentBooking extends ViewRecord
                 ->color('success')
                 ->visible(fn () => in_array($this->record->status, ['pending_payment', 'pending']))
                 ->requiresConfirmation()
-                ->action(function () {
-                    app(ContentBookingPaymentService::class)->applyStatusTransition(
-                        $this->record->fresh(),
-                        'confirmed',
-                        ['source' => 'admin_manual'],
-                    );
+                ->action(function (): void {
+                    try {
+                        if (blank($this->record->payment_provider)) {
+                            $this->record->update(['payment_provider' => 'internal']);
+                        }
 
-                    Notification::make()->title('Reserva confirmada')->success()->send();
+                        app(ContentBookingPaymentService::class)->applyStatusTransition(
+                            $this->record->fresh(['slot', 'customer']),
+                            'confirmed',
+                            ['source' => 'admin_manual'],
+                        );
+
+                        $this->record->refresh();
+
+                        Notification::make()->title('Reserva confirmada')->success()->send();
+                    } catch (\Throwable $e) {
+                        Notification::make()
+                            ->title('No se pudo confirmar')
+                            ->body($e->getMessage())
+                            ->danger()
+                            ->send();
+
+                        report($e);
+                    }
                 }),
 
             Action::make('cancel')

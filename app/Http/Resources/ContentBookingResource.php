@@ -13,6 +13,7 @@ class ContentBookingResource extends JsonResource
     {
         return [
             'public_id' => $this->public_id,
+            'customer_id' => $this->customer_id,
             'status' => $this->status,
             'status_label' => $this->status_label,
             'client_name' => $this->client_name,

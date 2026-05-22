@@ -31,7 +31,6 @@ const STANDARD_EVENTS: Record<string, string> = {
     booking_date_selected: 'Schedule',
     booking_slot_selected: 'AddToCart',
     booking_form_started: 'Lead',
-    booking_checkout_started: 'InitiateCheckout',
     booking_confirmed: 'Purchase',
 };
 
@@ -39,6 +38,7 @@ const STANDARD_EVENTS: Record<string, string> = {
 const CUSTOM_ONLY_EVENTS = new Set([
     'booking_test_confirmed',
     'booking_form_submitted',
+    'booking_checkout_started',
     'booking_abandoned',
     'booking_slot_cleared',
     'booking_popup_shown',
@@ -47,12 +47,17 @@ const CUSTOM_ONLY_EVENTS = new Set([
     'faq_opened',
 ]);
 
-export function bookingMetaEventId(suffix: string, publicId?: string | null): string | undefined {
+/** IDs alineados con Meta CAPI (MetaConversionsApiService). */
+export function bookingMetaEventId(kind: 'checkout' | 'purchase', publicId?: string | null): string | undefined {
     if (!publicId) {
         return undefined;
     }
 
-    return `booking_${suffix}_${publicId}`;
+    if (kind === 'purchase') {
+        return `booking_${publicId}`;
+    }
+
+    return `booking_checkout_${publicId}`;
 }
 
 export function trackBookingEvent(
@@ -81,7 +86,12 @@ function trackBookingMetaEvent(event: string, payload: Record<string, unknown>):
     const metaEvent = STANDARD_EVENTS[event];
     const eventId = resolveMetaEventId(event, payload);
 
-    if (metaEvent && !CUSTOM_ONLY_EVENTS.has(event) && typeof window.trackMetaPixel === 'function') {
+    if (
+        metaEvent &&
+        !CUSTOM_ONLY_EVENTS.has(event) &&
+        typeof window.trackMetaPixel === 'function' &&
+        shouldFireStandardMetaEvent(event, payload)
+    ) {
         const { event_id: _eid, eventID: _eID, ...pixelPayload } = payload;
         window.trackMetaPixel(
             metaEvent,
@@ -94,6 +104,16 @@ function trackBookingMetaEvent(event: string, payload: Record<string, unknown>):
         const customPayload = eventId ? { ...payload, event_id: eventId } : payload;
         window.trackMetaPixelCustom(event, customPayload);
     }
+}
+
+function shouldFireStandardMetaEvent(event: string, payload: Record<string, unknown>): boolean {
+    if (event !== 'booking_confirmed' && event !== 'booking_test_confirmed') {
+        return true;
+    }
+
+    const publicId = payload.booking_id ?? payload.public_id;
+
+    return typeof publicId === 'string' && publicId !== '';
 }
 
 function resolveMetaEventId(event: string, payload: Record<string, unknown>): string | undefined {
@@ -128,6 +148,7 @@ function normalizeMetaPayload(event: string, payload: Record<string, unknown>): 
             content_type: 'product',
             content_name: payload.content_name ?? BOOKING_CONTENT.content_name,
             content_category: payload.content_category ?? BOOKING_CONTENT.content_category,
+            customer_id: payload.customer_id,
         };
     }
 

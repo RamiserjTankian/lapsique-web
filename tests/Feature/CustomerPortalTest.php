@@ -45,7 +45,7 @@ class CustomerPortalTest extends TestCase
             'client_name' => $customer->name,
             'client_email' => $customer->email,
             'client_phone' => '529841234567',
-            'amount' => 5000,
+            'amount' => 3000,
             'currency' => 'MXN',
             'status' => 'confirmed',
             'paid_at' => now(),
@@ -142,7 +142,7 @@ class CustomerPortalTest extends TestCase
             ], 201),
         ]);
 
-        \App\Models\SiteSetting::query()->create(['booking_price' => 5000]);
+        \App\Models\SiteSetting::query()->create(['booking_price' => 3000]);
 
         $slot = BookingSlot::create([
             'date' => now()->addDays(3)->toDateString(),

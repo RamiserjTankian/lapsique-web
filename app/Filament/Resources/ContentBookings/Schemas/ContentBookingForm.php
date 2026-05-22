@@ -63,7 +63,8 @@ class ContentBookingForm
                             ->relationship('slot', 'time_label')
                             ->getOptionLabelFromRecordUsing(fn ($record) => $record->date->format('d/m/Y').' · '.$record->time_label)
                             ->searchable()
-                            ->preload(),
+                            ->preload()
+                            ->required(),
                         Select::make('status')
                             ->label('Estado')
                             ->options([
@@ -73,7 +74,9 @@ class ContentBookingForm
                                 'failed' => 'Pago fallido',
                                 'cancelled' => 'Cancelada',
                             ])
-                            ->required(),
+                            ->disabled()
+                            ->dehydrated(false)
+                            ->helperText('Para confirmar o cancelar, usa los botones en la vista de la reserva (no en Editar).'),
                         TextInput::make('shoot_location')
                             ->label('Locación / set'),
                         DateTimePicker::make('deliverables_ready_at')

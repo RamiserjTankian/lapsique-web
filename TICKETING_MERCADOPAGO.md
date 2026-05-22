@@ -41,7 +41,31 @@ Configurar la URL de webhooks en Stripe:
 ```
 POST https://TU_DOMINIO/webhooks/stripe
 ```
-El webhook valida firma con `STRIPE_WEBHOOK_SECRET` y sincroniza el estado de la orden.
+El webhook valida firma con `STRIPE_WEBHOOK_SECRET` (tolerancia de reloj configurable con `STRIPE_WEBHOOK_TOLERANCE_SECONDS`, por defecto 300) y sincroniza reservas de contenido y órdenes de tickets.
+
+Eventos que debe suscribir el endpoint en Stripe Dashboard:
+
+- `checkout.session.completed`
+- `checkout.session.expired`
+- `checkout.session.async_payment_succeeded`
+- `checkout.session.async_payment_failed`
+- `checkout.session.async_payment_pending`
+- `payment_intent.succeeded`
+- `payment_intent.payment_failed`
+- `payment_intent.canceled`
+- `charge.refunded`
+- `refund.updated`
+
+Comportamiento resumido:
+
+| Evento | Reserva de contenido | Orden de tickets |
+|--------|----------------------|------------------|
+| Checkout completado / async OK | Confirma y envía emails | Marca `paid`, genera asistentes |
+| Checkout expirado / async fallido | Libera slot | Libera stock reservado y cancela/falla |
+| Payment intent fallido / cancelado | Libera slot si aplica | Libera reserva y marca fallida |
+| Reembolso (`charge.refunded`) | Cancela y libera slot si estaba confirmada | Revierte stock/balance y marca `refunded` |
+
+Idempotencia: cada `event.id` de Stripe se guarda en `stripe_webhook_events` para no procesar dos veces.
 
 ## Flujo de compra
 1. Crear productos desde Filament:

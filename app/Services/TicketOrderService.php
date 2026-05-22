@@ -14,7 +14,6 @@ use App\Models\TicketOrder;
 use App\Models\TicketOrderItem;
 use App\Models\TicketProduct;
 use Illuminate\Support\Arr;
-use Illuminate\Support\Str;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use RuntimeException;
@@ -176,24 +175,28 @@ class TicketOrderService
 
             if (in_array($status, ['pending', 'in_process'], true)) {
                 $order->markAsPending($payload);
+
                 return $order->fresh();
             }
 
             if ($status === 'cancelled') {
                 $this->releaseReservation($order);
                 $order->markAsCancelled($payload);
+
                 return $order->fresh();
             }
 
             if ($status === 'rejected') {
                 $this->releaseReservation($order);
                 $order->markAsFailed((string) data_get($payment, 'status_detail'), $payload);
+
                 return $order->fresh();
             }
 
             if (in_array($status, ['refunded', 'charged_back'], true)) {
                 $this->revertCustomerBalance($order);
                 $order->markAsRefunded($payload);
+
                 return $order->fresh();
             }
 
@@ -240,12 +243,14 @@ class TicketOrderService
 
             if (in_array($intentStatus, ['processing', 'requires_action'], true) || $paymentStatus === 'unpaid') {
                 $order->markAsPending($payload);
+
                 return $order->fresh();
             }
 
             if (in_array($intentStatus, ['canceled', 'requires_payment_method'], true)) {
                 $this->releaseReservation($order);
                 $order->markAsFailed($intentStatus ?: $paymentStatus, $payload);
+
                 return $order->fresh();
             }
 
@@ -288,18 +293,80 @@ class TicketOrderService
 
             if (in_array($status, ['processing', 'requires_action', 'requires_capture'], true)) {
                 $order->markAsPending($payload);
+
                 return $order->fresh();
             }
 
             if (in_array($status, ['canceled', 'requires_payment_method'], true)) {
                 $this->releaseReservation($order);
                 $order->markAsFailed($status, $payload);
+
                 return $order->fresh();
             }
 
             $order->fill($payload)->save();
 
             return $order->fresh();
+        });
+    }
+
+    public function syncStripeRefund(TicketOrder $order, array $charge): TicketOrder
+    {
+        return DB::transaction(function () use ($order, $charge) {
+            $order->refresh();
+
+            $payload = [
+                'payment_provider' => 'stripe',
+                'stripe_payment_intent_id' => (string) data_get($charge, 'payment_intent') ?: $order->stripe_payment_intent_id,
+                'stripe_status' => 'refunded',
+            ];
+
+            if ($order->status === 'paid') {
+                $this->rollbackCommittedOrder($order);
+                $this->revertCustomerBalance($order);
+                $this->cancelAttendees($order);
+            } elseif ($order->status === 'pending') {
+                $this->releaseReservation($order);
+            }
+
+            $order->markAsRefunded($payload);
+
+            return $order->fresh(['items', 'attendees']);
+        });
+    }
+
+    public function expireStripeCheckout(TicketOrder $order, array $payload = []): TicketOrder
+    {
+        return DB::transaction(function () use ($order, $payload) {
+            $order->refresh();
+
+            if (! in_array($order->status, ['paid', 'refunded', 'cancelled'], true)) {
+                $this->releaseReservation($order);
+            }
+
+            $order->markAsCancelled(array_merge([
+                'payment_provider' => 'stripe',
+            ], $payload));
+
+            return $order->fresh(['items']);
+        });
+    }
+
+    public function failStripeCheckout(TicketOrder $order, array $payload = []): TicketOrder
+    {
+        return DB::transaction(function () use ($order, $payload) {
+            $order->refresh();
+
+            if (! in_array($order->status, ['paid', 'refunded', 'cancelled'], true)) {
+                $this->releaseReservation($order);
+            }
+
+            $reason = (string) ($payload['stripe_status'] ?? 'failed');
+            $order->markAsFailed($reason, array_merge([
+                'payment_provider' => 'stripe',
+            ], $payload));
+
+            return $order->fresh(['items']);
         });
     }
 

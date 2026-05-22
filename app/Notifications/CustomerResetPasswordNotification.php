@@ -2,9 +2,9 @@
 
 namespace App\Notifications;
 
+use App\Mail\CustomerPasswordResetEmail;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
-use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 
 class CustomerResetPasswordNotification extends Notification implements ShouldQueue
@@ -21,19 +21,14 @@ class CustomerResetPasswordNotification extends Notification implements ShouldQu
         return ['mail'];
     }
 
-    public function toMail(object $notifiable): MailMessage
+    public function toMail(object $notifiable): CustomerPasswordResetEmail
     {
         $url = route('customers.password.reset', [
             'token' => $this->token,
             'email' => $notifiable->getEmailForPasswordReset(),
         ]);
 
-        return (new MailMessage)
-            ->subject('Restablecer contraseña — Lapsique')
-            ->greeting('Hola '.($notifiable->name ?? ''))
-            ->line('Recibimos una solicitud para restablecer la contraseña de tu portal de cliente.')
-            ->action('Restablecer contraseña', $url)
-            ->line('Este enlace expira en 60 minutos.')
-            ->line('Si no solicitaste este cambio, ignora este correo.');
+        return (new CustomerPasswordResetEmail($notifiable, $this->token, $url))
+            ->to($notifiable->getEmailForPasswordReset());
     }
 }

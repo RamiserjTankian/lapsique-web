@@ -24,6 +24,7 @@ class BookingSlotGeneratorService
         $availabilityDays = $availabilityDays ?? ($settings?->bookingAvailabilityDays() ?? config('booking.availability_days', 11));
         $startTime = $settings?->bookingStartTime() ?? config('booking.default_start_time', '14:00');
         $endTime = $settings?->bookingEndTime() ?? config('booking.default_end_time', '17:00');
+        $allowedTimeValues = config('booking.allowed_time_values', [$startTime, $endTime]);
         $advanceHours = $settings?->booking_advance_hours ?? config('booking.default_advance_hours', 24);
         $durationMinutes = $settings?->bookingDurationMinutes() ?? config('booking.default_duration_minutes', 120);
         $calendarId = $settings?->google_calendar_id ?? 'primary';
@@ -77,7 +78,7 @@ class BookingSlotGeneratorService
             foreach ($dayRules as $rule) {
                 $ruleTime = substr((string) $rule->time_value, 0, 5);
 
-                if ($ruleTime < $startTime || $ruleTime > $endTime) {
+                if ($ruleTime < $startTime || $ruleTime > $endTime || ! in_array($ruleTime, $allowedTimeValues, true)) {
                     $skipped++;
 
                     continue;

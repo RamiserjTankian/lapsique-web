@@ -29,6 +29,8 @@ return Application::configure(basePath: dirname(__DIR__))
 
         $middleware->validateCsrfTokens(except: [
             'webhooks/mailtrap/events',
+            'webhooks/stripe',
+            'webhooks/mercadopago',
             'analytics/collect',
         ]);
     })

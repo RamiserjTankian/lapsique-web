@@ -11,6 +11,12 @@ use RuntimeException;
 
 class StripeService
 {
+    public function __construct(
+        protected ?StripeIntegrationService $integration = null,
+    ) {
+        $this->integration ??= app(StripeIntegrationService::class);
+    }
+
     public function createCheckoutSession(TicketOrder $order): array
     {
         $secret = $this->requireSecretKey();
@@ -150,9 +156,30 @@ class StripeService
         return (array) $response->json();
     }
 
+    public function fetchPaymentIntent(string $paymentIntentId): array
+    {
+        $secret = $this->requireSecretKey();
+
+        $response = Http::withToken($secret)
+            ->acceptJson()
+            ->get('https://api.stripe.com/v1/payment_intents/'.$paymentIntentId);
+
+        if (! $response->successful()) {
+            Log::warning('Stripe payment intent fetch failed', [
+                'payment_intent_id' => $paymentIntentId,
+                'status' => $response->status(),
+                'body' => $response->body(),
+            ]);
+
+            throw new RuntimeException('No pudimos consultar el payment intent.');
+        }
+
+        return (array) $response->json();
+    }
+
     public function verifyWebhookSignature(Request $request, string $payload): bool
     {
-        $secret = (string) config('stripe.webhook_secret');
+        $secret = (string) ($this->integration->resolveWebhookSecret() ?? '');
 
         if ($secret === '') {
             return true;
@@ -179,6 +206,16 @@ class StripeService
             return false;
         }
 
+        $tolerance = $this->integration->resolveWebhookToleranceSeconds();
+        if ($tolerance > 0 && abs(time() - (int) $timestamp) > $tolerance) {
+            Log::warning('Stripe webhook timestamp outside tolerance', [
+                'timestamp' => $timestamp,
+                'tolerance' => $tolerance,
+            ]);
+
+            return false;
+        }
+
         $signedPayload = $timestamp.'.'.$payload;
         $expected = hash_hmac('sha256', $signedPayload, $secret);
 
@@ -187,12 +224,12 @@ class StripeService
 
     protected function requireSecretKey(): string
     {
-        $secret = (string) config('stripe.secret_key', '');
+        $secret = $this->integration->resolveSecretKey();
 
-        if ($secret === '') {
-            throw new RuntimeException('STRIPE_SECRET_KEY no configurado.');
+        if (! filled($secret)) {
+            throw new RuntimeException('Stripe no configurado: agrega la Secret Key en el panel o STRIPE_SECRET_KEY en .env.');
         }
 
-        return $secret;
+        return (string) $secret;
     }
 }

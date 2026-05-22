@@ -101,7 +101,8 @@ class MetaAttributionReportService
 
         $names = $this->hasInsightsTable()
             ? MetaCampaignDailyInsight::query()
-                ->whereBetween('date', [$since->toDateString(), $until->toDateString()])
+                ->whereDate('date', '>=', $since)
+                ->whereDate('date', '<=', $until)
                 ->whereNotNull('campaign_name')
                 ->select('campaign_id', DB::raw('MAX(campaign_name) as campaign_name'))
                 ->groupBy('campaign_id')
@@ -219,7 +220,8 @@ class MetaAttributionReportService
         }
 
         return MetaCampaignDailyInsight::query()
-            ->whereBetween('date', [$since->toDateString(), $until->toDateString()])
+            ->whereDate('date', '>=', $since)
+            ->whereDate('date', '<=', $until)
             ->select('campaign_id', DB::raw('SUM(spend) as total_spend'))
             ->groupBy('campaign_id')
             ->pluck('total_spend', 'campaign_id')
@@ -329,7 +331,8 @@ class MetaAttributionReportService
 
         $spendByDay = $this->hasInsightsTable()
             ? MetaCampaignDailyInsight::query()
-                ->whereBetween('date', [$since->toDateString(), $until->toDateString()])
+                ->whereDate('date', '>=', $since)
+                ->whereDate('date', '<=', $until)
                 ->select('date', DB::raw('SUM(spend) as total'))
                 ->groupBy('date')
                 ->pluck('total', 'date')

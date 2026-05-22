@@ -166,9 +166,14 @@ class MetaConversionsApiService
      */
     protected function userDataFromBooking(ContentBooking $booking): array
     {
+        $externalId = $booking->customer_id
+            ? $this->hash('customer_'.$booking->customer_id)
+            : ($booking->public_id ? $this->hash('booking_'.$booking->public_id) : null);
+
         return array_filter([
             'em' => $this->hash($booking->client_email),
             'ph' => $this->hashPhone($booking->client_phone),
+            'external_id' => $externalId,
             'fbc' => $booking->fbc,
             'fbp' => $booking->fbp,
         ]);

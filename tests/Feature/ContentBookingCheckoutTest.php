@@ -50,7 +50,7 @@ class ContentBookingCheckoutTest extends TestCase
     public function test_home_includes_agenda_section(): void
     {
         SiteSetting::query()->create([
-            'booking_price' => 5000,
+            'booking_price' => 3000,
             'booking_title' => 'Sesión Test',
         ]);
 
@@ -62,7 +62,33 @@ class ContentBookingCheckoutTest extends TestCase
                 ->component('Home')
                 ->where('title', 'Sesión Test')
                 ->has('slots', 1)
+                ->has('heroProofVideo')
             );
+    }
+
+    public function test_booking_pages_only_expose_supported_session_times(): void
+    {
+        $this->createAvailableSlot();
+
+        BookingSlot::create([
+            'date' => now()->addDays(3)->toDateString(),
+            'time_label' => '3:00 PM',
+            'time_value' => '15:00',
+            'max_bookings' => 1,
+            'booked_count' => 0,
+            'is_active' => true,
+        ]);
+
+        $this->get(route('home'))
+            ->assertOk()
+            ->assertInertia(fn ($page) => $page
+                ->component('Home')
+                ->has('slots', 1)
+                ->where('slots.0.time_value', '14:00')
+            );
+
+        $this->post(route('booking.checkout'), $this->checkoutPayload(BookingSlot::query()->where('time_value', '15:00')->first()))
+            ->assertSessionHasErrors('booking_slot_id');
     }
 
     public function test_checkout_with_mercadopago_redirects_to_preference(): void
@@ -92,6 +118,13 @@ class ContentBookingCheckoutTest extends TestCase
         $this->assertNotNull($booking);
         $this->assertSame('mercadopago', $booking->payment_provider);
         $this->assertSame('pref_test_123', $booking->mercadopago_preference_id);
+        $this->assertSame(3000, $booking->amount);
+        $this->assertSame('cliente@example.com', $booking->client_email);
+        $this->assertNotNull($booking->customer_id);
+        $this->assertDatabaseHas('customers', [
+            'id' => $booking->customer_id,
+            'email' => 'cliente@example.com',
+        ]);
         $this->assertSame(1, $slot->fresh()->booked_count);
     }
 
@@ -239,7 +272,7 @@ class ContentBookingCheckoutTest extends TestCase
             'client_name' => 'Cliente',
             'client_email' => 'cliente@example.com',
             'client_phone' => '529841234567',
-            'amount' => 5000,
+            'amount' => 3000,
             'currency' => 'MXN',
             'status' => 'pending_payment',
             'payment_provider' => 'mercadopago',
@@ -251,6 +284,7 @@ class ContentBookingCheckoutTest extends TestCase
                 ->component('Booking/Confirm')
                 ->where('paymentVerified', false)
                 ->where('booking.status', 'pending_payment')
+                ->has('booking.service_name')
             );
 
         $this->assertSame('pending_payment', $booking->fresh()->status);
@@ -268,7 +302,7 @@ class ContentBookingCheckoutTest extends TestCase
             'client_name' => 'Cliente',
             'client_email' => 'cliente@example.com',
             'client_phone' => '529841234567',
-            'amount' => 5000,
+            'amount' => 3000,
             'currency' => 'MXN',
             'status' => 'pending_payment',
             'payment_provider' => 'mercadopago',
@@ -301,7 +335,7 @@ class ContentBookingCheckoutTest extends TestCase
             'client_name' => 'Cliente',
             'client_email' => 'cliente@example.com',
             'client_phone' => '529841234567',
-            'amount' => 5000,
+            'amount' => 3000,
             'currency' => 'MXN',
             'status' => 'pending_payment',
             'payment_provider' => 'stripe',
@@ -351,7 +385,7 @@ class ContentBookingCheckoutTest extends TestCase
             'client_name' => 'Cliente',
             'client_email' => 'cliente@example.com',
             'client_phone' => '529841234567',
-            'amount' => 5000,
+            'amount' => 3000,
             'currency' => 'MXN',
             'status' => 'pending_payment',
             'payment_provider' => 'stripe',
@@ -416,7 +450,7 @@ class ContentBookingCheckoutTest extends TestCase
             'client_name' => 'Cliente',
             'client_email' => 'cliente@example.com',
             'client_phone' => '529841234567',
-            'amount' => 5000,
+            'amount' => 3000,
             'currency' => 'MXN',
             'status' => 'pending',
             'payment_provider' => 'stripe',
@@ -449,7 +483,7 @@ class ContentBookingCheckoutTest extends TestCase
             'client_name' => 'Cliente Email',
             'client_email' => 'emails@example.com',
             'client_phone' => '529841234567',
-            'amount' => 5000,
+            'amount' => 3000,
             'currency' => 'MXN',
             'status' => 'pending_payment',
             'payment_provider' => 'stripe',
@@ -481,7 +515,7 @@ class ContentBookingCheckoutTest extends TestCase
             'client_name' => 'Cliente',
             'client_email' => 'cliente@example.com',
             'client_phone' => '529841234567',
-            'amount' => 5000,
+            'amount' => 3000,
             'currency' => 'MXN',
             'status' => 'pending_payment',
             'payment_provider' => 'mercadopago',

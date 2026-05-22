@@ -13,14 +13,12 @@ class BookingAvailabilityRuleService
     {
         return [
             ['time_value' => '14:00', 'time_label' => '2:00 PM'],
-            ['time_value' => '15:00', 'time_label' => '3:00 PM'],
-            ['time_value' => '16:00', 'time_label' => '4:00 PM'],
             ['time_value' => '17:00', 'time_label' => '5:00 PM'],
         ];
     }
 
     /**
-     * Ensure Mon–Sun rules exist for 2:00–5:00 PM without removing custom rules.
+     * Ensure Mon-Sun rules exist for the supported session times without removing custom rules.
      */
     public function ensureDefaultRules(): int
     {

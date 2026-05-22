@@ -16,7 +16,17 @@ export function FunnelFAQ() {
         {
             value: 'que-llevar',
             question: '¿Qué necesito llevar o preparar?',
-            answer: 'Idealmente referencias visuales, cambios de outfit, props de marca y claridad sobre la oferta o mensaje que quieres comunicar.',
+            answer: 'Idealmente referencias visuales, producto, props de marca y claridad sobre la oferta, promoción o mensaje que quieres comunicar.',
+        },
+        {
+            value: 'anuncios',
+            question: '¿Sirve para anuncios de negocio?',
+            answer: 'Sí. La sesión se plantea para entregar reels y fotos que puedan alimentar orgánico, campañas y pruebas de mensajes con una oferta clara.',
+        },
+        {
+            value: 'aftermovie',
+            question: '¿También producen aftermovies?',
+            answer: 'Sí. Aftermovies de eventos, venues o lanzamientos se cotizan por alcance cuando el proyecto necesita cobertura más amplia que una sesión de reels.',
         },
         {
             value: 'reagendar',

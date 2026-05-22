@@ -1,11 +1,13 @@
 import { motion } from 'framer-motion';
+import { BookingCtaButton } from '@/components/lapsique/BookingCtaButton';
+import { BookingCtaSection } from '@/components/lapsique/BookingCtaSection';
 import { Button } from '@/components/ui/button';
 import { HeroPortfolioFloat } from '@/components/lapsique/HeroPortfolioFloat';
 import { HeroTextAura } from '@/components/lapsique/HeroTextAura';
 import { SpecBadge } from '@/components/lapsique/SpecBadge';
 import { formatMxn } from '@/lib/utils';
 import { fadeUp } from '@/lib/motion';
-import { trackBookingEvent } from '@/hooks/useBookingAnalytics';
+import { openBookingModal } from '@/lib/openBookingModal';
 import type { PortfolioItemData } from '@/types';
 
 interface CinematicHeroProps {
@@ -30,9 +32,11 @@ export function CinematicHero({
     showAgendaCta = true,
     portfolioItems = [],
 }: CinematicHeroProps) {
-    const scrollToAgenda = () => {
-        trackBookingEvent('hero_cta_clicked', { target: 'agenda' });
-        document.getElementById('agenda')?.scrollIntoView({ behavior: 'smooth' });
+    const openBooking = () => {
+        openBookingModal({
+            source: 'cinematic_hero',
+            analyticsEvent: 'hero_cta_clicked',
+        });
     };
 
     return (
@@ -71,8 +75,8 @@ export function CinematicHero({
                 className="relative z-10 mt-10 flex flex-wrap justify-center gap-2"
             >
                 <SpecBadge highlight>Sony α7 · full frame</SpecBadge>
-                <SpecBadge>2 reels editados</SpecBadge>
-                <SpecBadge>20 fotos retocadas</SpecBadge>
+                <SpecBadge>1 reel editado</SpecBadge>
+                <SpecBadge>10 fotos editadas</SpecBadge>
                 <SpecBadge>Entrega en 5 días hábiles</SpecBadge>
             </motion.div>
 
@@ -85,25 +89,32 @@ export function CinematicHero({
                 </p>
             </motion.div>
 
+            {showAgendaCta && (
+                <motion.div variants={fadeUp} className="relative z-10 mt-10 px-4 sm:px-6">
+                    <BookingCtaSection hero className="py-0">
+                        <BookingCtaButton hero onClick={openBooking}>
+                            Agendar mi sesión
+                        </BookingCtaButton>
+                    </BookingCtaSection>
+                </motion.div>
+            )}
+
             <motion.div
                 variants={fadeUp}
-                className="relative z-10 mt-10 flex flex-wrap justify-center gap-3"
+                className="relative z-10 mt-6 flex justify-center px-4 sm:px-6"
             >
-                {showAgendaCta && (
-                    <Button variant="cinematic" size="xl" onClick={scrollToAgenda}>
-                        Agendar mi sesión
+                <div className="w-full lg:max-w-md">
+                    <Button variant="glass" size="xl" className="w-full" asChild>
+                        <a
+                            href="#que-incluye"
+                            onClick={() =>
+                                trackBookingEvent('hero_cta_clicked', { target: 'que_incluye' })
+                            }
+                        >
+                            Ver qué incluye
+                        </a>
                     </Button>
-                )}
-                <Button variant="glass" size="xl" asChild>
-                    <a
-                        href="#que-incluye"
-                        onClick={() =>
-                            trackBookingEvent('hero_cta_clicked', { target: 'que_incluye' })
-                        }
-                    >
-                        Ver qué incluye
-                    </a>
-                </Button>
+                </div>
             </motion.div>
 
             <motion.div

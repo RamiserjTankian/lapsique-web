@@ -34,7 +34,7 @@ class ContentBookingController extends Controller
 
         return Inertia::render('Booking/Show', [
             'title' => $settings?->booking_title ?: 'Sesión de Contenido Profesional',
-            'subtitle' => $settings?->booking_subtitle ?: '2 Reels editados + 20 fotografías profesionales. Producción con cámara Sony α7.',
+            'subtitle' => $settings?->booking_subtitle ?: '1 reel editado + 10 fotografías editadas. Producción con cámara Sony α7.',
             'price' => $data['price'],
             'slots' => BookingSlotResource::collection($data['slots'])->resolve(),
             'errors' => session('errors')?->getBag('default')?->getMessages() ?? [],
@@ -107,12 +107,14 @@ class ContentBookingController extends Controller
         $availabilityDays = $settings?->bookingAvailabilityDays() ?? config('booking.availability_days', 11);
         $startTime = $settings?->bookingStartTime() ?? config('booking.default_start_time', '14:00');
         $endTime = $settings?->bookingEndTime() ?? config('booking.default_end_time', '17:00');
+        $allowedTimeValues = config('booking.allowed_time_values', [$startTime, $endTime]);
         $latestDate = Carbon::today()->addDays($availabilityDays)->toDateString();
 
         $slots = BookingSlot::available()
             ->whereBetween('date', [Carbon::today()->toDateString(), $latestDate])
             ->where('time_value', '>=', $startTime)
             ->where('time_value', '<=', $endTime)
+            ->whereIn('time_value', $allowedTimeValues)
             ->orderBy('date')
             ->orderBy('time_value')
             ->get(['id', 'date', 'time_label', 'time_value']);
@@ -141,7 +143,7 @@ class ContentBookingController extends Controller
             ->orderByDesc('created_at')
             ->first();
 
-        $price = $settings?->booking_price ?: 5000;
+        $price = $settings?->booking_price ?: (int) config('booking.content_price', 3000);
 
         return [
             'slots' => $slots,
@@ -209,7 +211,7 @@ class ContentBookingController extends Controller
         $isDjSet = $serviceType === ContentBooking::SERVICE_DJ_SET;
         $price = $isDjSet
             ? (int) config('booking.dj_set_price', 12000)
-            : ($settings?->booking_price ?: 5000);
+            : ($settings?->booking_price ?: (int) config('booking.content_price', 3000));
         $paymentProvider = $isDjSet ? 'stripe' : ($validated['payment_provider'] ?? 'mercadopago');
 
         $booking = null;
@@ -230,12 +232,19 @@ class ContentBookingController extends Controller
                 $availabilityDays = $settings?->bookingAvailabilityDays() ?? config('booking.availability_days', 11);
                 $startTime = $settings?->bookingStartTime() ?? config('booking.default_start_time', '14:00');
                 $endTime = $settings?->bookingEndTime() ?? config('booking.default_end_time', '17:00');
+                $allowedTimeValues = config('booking.allowed_time_values', [$startTime, $endTime]);
                 $slotDate = $slot->date->toDateString();
                 $slotTime = substr((string) $slot->time_value, 0, 5);
                 $today = Carbon::today()->toDateString();
                 $latestDate = Carbon::today()->addDays($availabilityDays)->toDateString();
 
-                if ($slotDate < $today || $slotDate > $latestDate || $slotTime < $startTime || $slotTime > $endTime) {
+                if (
+                    $slotDate < $today
+                    || $slotDate > $latestDate
+                    || $slotTime < $startTime
+                    || $slotTime > $endTime
+                    || ! in_array($slotTime, $allowedTimeValues, true)
+                ) {
                     throw new \RuntimeException('slot_unavailable');
                 }
 
@@ -295,6 +304,8 @@ class ContentBookingController extends Controller
         }
 
         if (BookingMode::shouldSkipPayment($request)) {
+            $booking->update(['payment_provider' => 'internal']);
+
             $booking = $bookingPayment->applyStatusTransition($booking->fresh(['slot', 'customer']), 'confirmed', [
                 'source' => 'test_skip_payment',
                 'host' => $request->getHost(),

@@ -17,7 +17,7 @@ const steps = [
     {
         step: '03',
         title: 'Recibes material listo para vender',
-        description: 'Entregamos reels y fotos editadas para lanzar campañas, alimentar contenido y reforzar tu marca.',
+        description: 'Entregamos reel y fotos editadas para lanzar campañas, alimentar contenido y reforzar tu marca.',
     },
 ];
 

@@ -56,6 +56,7 @@ class ContentBookingsTable
                     ->formatStateUsing(fn (?string $state) => match ($state) {
                         'stripe' => 'Stripe',
                         'mercadopago' => 'Mercado Pago',
+                        'internal' => 'Prueba / manual',
                         default => $state ? ucfirst($state) : '—',
                     }),
 

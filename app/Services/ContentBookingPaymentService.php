@@ -116,6 +116,35 @@ class ContentBookingPaymentService
         });
     }
 
+    public function syncStripeRefund(ContentBooking $booking, array $charge): ContentBooking
+    {
+        return DB::transaction(function () use ($booking, $charge) {
+            $booking->refresh();
+
+            $intentId = (string) data_get($charge, 'payment_intent', '');
+
+            $booking->update([
+                'payment_provider' => 'stripe',
+                'stripe_payment_intent_id' => $intentId !== '' ? $intentId : $booking->stripe_payment_intent_id,
+                'stripe_status' => 'refunded',
+            ]);
+
+            if ($booking->status === 'confirmed') {
+                $booking->slot?->decrement('booked_count');
+                $booking->update(['status' => 'cancelled']);
+
+                Log::info('ContentBooking refunded via Stripe', [
+                    'booking_id' => $booking->id,
+                    'public_id' => $booking->public_id,
+                ]);
+
+                return $booking->fresh(['slot', 'customer']);
+            }
+
+            return $this->releaseSlotIfFailed($booking->fresh(), 'cancelled');
+        });
+    }
+
     public function applyStatusTransition(ContentBooking $booking, string $status, array $context = []): ContentBooking
     {
         $wasConfirmed = $booking->status === 'confirmed';

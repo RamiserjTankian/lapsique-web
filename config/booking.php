@@ -4,8 +4,13 @@ return [
     'availability_days' => 11,
     'default_start_time' => '14:00',
     'default_end_time' => '17:00',
+    'allowed_time_values' => [
+        '14:00',
+        '17:00',
+    ],
     'default_duration_minutes' => 120,
     'default_advance_hours' => 24,
+    'content_price' => 3000,
     'dj_set_price' => 12000,
 
     'skip_payment_hosts' => [

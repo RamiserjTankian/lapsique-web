@@ -71,7 +71,7 @@ class BookingSettings extends Page implements HasSchemas
         $this->schema->fill([
             'booking_title' => $settings->booking_title ?? '',
             'booking_subtitle' => $settings->booking_subtitle ?? '',
-            'booking_price' => $settings->booking_price ?? 5000,
+            'booking_price' => $settings->booking_price ?? (int) config('booking.content_price', 3000),
             'booking_whatsapp' => $settings->booking_whatsapp ?? '',
             'booking_team_name' => $settings->booking_team_name ?? '',
             'booking_team_bio' => $settings->booking_team_bio ?? '',
@@ -106,13 +106,13 @@ class BookingSettings extends Page implements HasSchemas
 
                         TextInput::make('booking_subtitle')
                             ->label('Subtítulo')
-                            ->placeholder('2 Reels + 20 Fotos editadas en una sola sesión')
+                            ->placeholder('1 reel + 10 fotos editadas en una sola sesión')
                             ->columnSpanFull(),
 
                         TextInput::make('booking_price')
                             ->label('Precio (MXN)')
                             ->numeric()
-                            ->default(5000)
+                            ->default(config('booking.content_price', 3000))
                             ->prefix('$')
                             ->suffix('MXN'),
 
@@ -198,7 +198,7 @@ class BookingSettings extends Page implements HasSchemas
         $settings->update([
             'booking_title' => $data['booking_title'] ?? null,
             'booking_subtitle' => $data['booking_subtitle'] ?? null,
-            'booking_price' => (int) ($data['booking_price'] ?? 5000),
+            'booking_price' => (int) ($data['booking_price'] ?? config('booking.content_price', 3000)),
             'booking_whatsapp' => $data['booking_whatsapp'] ?? null,
             'booking_team_name' => $data['booking_team_name'] ?? null,
             'booking_team_bio' => $data['booking_team_bio'] ?? null,

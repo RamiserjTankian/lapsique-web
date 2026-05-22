@@ -41,6 +41,14 @@ export interface Paginated<T> {
     };
 }
 
+export interface HeroProofVideoData {
+    title: string | null;
+    media_type: 'youtube' | 'video' | 'image';
+    embed_url: string | null;
+    playback_url: string | null;
+    poster_url: string | null;
+}
+
 export interface PortfolioItemData {
     id: number;
     title: string | null;
@@ -107,6 +115,7 @@ export interface ContentBookingDeliverableLink {
 
 export interface ContentBookingData {
     public_id: string;
+    customer_id?: number | null;
     status: string;
     status_label?: string;
     client_name: string;

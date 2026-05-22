@@ -1,10 +1,23 @@
 import { Link, usePage } from '@inertiajs/react';
+import { openNewsletterModal } from '@/lib/funnelModalEvents';
 import { route } from '@/lib/route';
 import type { PageProps } from '@/types';
 
+function isFunnelNewsletterRoute(url: string): boolean {
+    try {
+        const path = new URL(url, window.location.origin).pathname;
+
+        return path === '/' || path === '/djset';
+    } catch {
+        return false;
+    }
+}
+
 export function SiteFooter() {
     const { ziggy, site } = usePage<PageProps>().props;
+    const { url } = usePage<PageProps>();
     const year = new Date().getFullYear();
+    const showNewsletterCta = isFunnelNewsletterRoute(url);
 
     return (
         <footer className="mt-20 border-t border-border py-12">
@@ -37,6 +50,15 @@ export function SiteFooter() {
                         >
                             Mi portal
                         </Link>
+                        {showNewsletterCta && (
+                            <button
+                                type="button"
+                                className="hover:text-foreground"
+                                onClick={() => openNewsletterModal('footer')}
+                            >
+                                Recibir novedades
+                            </button>
+                        )}
                     </div>
                 </div>
                 <p className="mt-8 text-xs text-muted-foreground">
