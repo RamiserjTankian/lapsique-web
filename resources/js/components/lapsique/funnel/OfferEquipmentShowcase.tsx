@@ -1,19 +1,11 @@
-import { SpecBadge } from '@/components/lapsique/SpecBadge';
 import {
     SONY_BRAND_LOGO,
     SONY_CAMERA_MODELS,
-    SONY_EQUIPMENT_BADGES,
     SONY_EQUIPMENT_DESCRIPTION,
     SONY_EQUIPMENT_EYEBROW,
     SONY_EQUIPMENT_HEADLINE,
 } from '@/data/sonyEquipment';
 import { useSectionEvent } from '@/hooks/useSectionEvent';
-import { cn } from '@/lib/utils';
-
-const EXTRA_BADGES = ['Audio para piezas habladas', 'Edición premium'] as const;
-
-const badgeClassName =
-    'border-white/15 bg-white/5 text-white/80 hover:bg-white/10';
 
 export function OfferEquipmentShowcase() {
     const ref = useSectionEvent('equipment_viewed', { section: 'equipment' });
@@ -45,25 +37,6 @@ export function OfferEquipmentShowcase() {
                         <p className="mt-4 max-w-2xl text-sm leading-relaxed text-white/72 md:text-base">
                             {SONY_EQUIPMENT_DESCRIPTION}
                         </p>
-                        <div className="mt-5 flex flex-wrap gap-2">
-                            {SONY_EQUIPMENT_BADGES.map((badge) => (
-                                <SpecBadge
-                                    key={badge.label}
-                                    highlight={badge.highlight}
-                                    className={cn(
-                                        badgeClassName,
-                                        badge.highlight && 'border-primary/40 bg-primary/15 text-primary',
-                                    )}
-                                >
-                                    {badge.label}
-                                </SpecBadge>
-                            ))}
-                            {EXTRA_BADGES.map((label) => (
-                                <SpecBadge key={label} className={badgeClassName}>
-                                    {label}
-                                </SpecBadge>
-                            ))}
-                        </div>
                     </div>
                 </div>
 
@@ -93,7 +66,7 @@ export function OfferEquipmentShowcase() {
                 </div>
 
                 <p className="mt-6 text-center text-xs text-white/50 md:text-sm">
-                    Sony α7 V, α7 IV y α6700 disponibles en set según la producción.
+                    Sony a7 V, a7 IV y a6700 disponibles en set según la producción.
                 </p>
             </div>
         </article>
