@@ -15,18 +15,31 @@ export function getActiveFunnelModal(): FunnelModalType | null {
 
 export function setActiveFunnelModal(type: FunnelModalType | null): void {
     activeModal = type;
+
+    if (typeof window === 'undefined') {
+        return;
+    }
+
     window.dispatchEvent(
         new CustomEvent(FUNNEL_MODAL_STATE_EVENT, { detail: { type } }),
     );
 }
 
 export function openNewsletterModal(source = 'manual'): void {
+    if (typeof window === 'undefined') {
+        return;
+    }
+
     window.dispatchEvent(
         new CustomEvent(NEWSLETTER_OPEN_EVENT, { detail: { source } }),
     );
 }
 
 export function requestBookingAutoOpen(): void {
+    if (typeof window === 'undefined') {
+        return;
+    }
+
     window.dispatchEvent(new CustomEvent(BOOKING_AUTO_OPEN_EVENT));
 }
 

@@ -2,7 +2,6 @@ import { Link, usePage } from '@inertiajs/react';
 import {
     ArrowRight,
     CalendarDays,
-    Film,
     MousePointerClick,
     Play,
     Smartphone,
@@ -15,12 +14,13 @@ import { BookingWidget } from '@/components/lapsique/BookingWidget';
 import { GlassSection } from '@/components/lapsique/GlassSection';
 import { HeroProofVideoCard } from '@/components/lapsique/HeroProofVideoCard';
 import { PortfolioMediaViewer } from '@/components/lapsique/PortfolioMediaViewer';
-import { FunnelDeliverables } from '@/components/lapsique/funnel/FunnelDeliverables';
+import { ContentPackageSection } from '@/components/lapsique/funnel/ContentPackageSection';
+import { RecordingGearSection } from '@/components/lapsique/funnel/RecordingGearSection';
 import { FunnelTeam } from '@/components/lapsique/funnel/FunnelTeam';
 import { OfferEquipmentShowcase } from '@/components/lapsique/funnel/OfferEquipmentShowcase';
 import { FunnelFAQ } from '@/components/lapsique/funnel/FunnelFAQ';
 import { FunnelPopups } from '@/components/lapsique/FunnelPopups';
-import { FunnelStickyBar } from '@/components/lapsique/funnel/FunnelStickyBar';
+import { PaymentTrustOrTestMode } from '@/components/lapsique/PaymentTrustPanel';
 import { BookingCtaButton } from '@/components/lapsique/BookingCtaButton';
 import { BookingCtaSection } from '@/components/lapsique/BookingCtaSection';
 import { Button } from '@/components/ui/button';
@@ -115,6 +115,7 @@ export default function Home({
                         <ArrowRight className="h-5 w-5" />
                     </BookingCtaButton>
                 </BookingCtaSection>
+                <PaymentTrustOrTestMode variant="dual" layout="card" className="mt-6" />
                 <BusinessOfferBoard images={portfolioImages} heroProofVideo={heroProofVideo} />
             </GlassSection>
 
@@ -146,7 +147,9 @@ export default function Home({
                 />
             </GlassSection>
 
-            <FunnelDeliverables />
+            <ContentPackageSection />
+
+            <RecordingGearSection />
 
             <GlassSection
                 eyebrow="Aftermovies"
@@ -160,16 +163,11 @@ export default function Home({
                     </Button>
                 }
             >
-                <AftermovieProof
-                    sectionRef={aftermovieRef}
-                    onBook={openBooking}
-                />
+                <div ref={aftermovieRef} id="portafolio-negocios" className="scroll-mt-24" />
             </GlassSection>
 
             <FunnelTeam />
-            <FunnelFAQ />
-            <FunnelStickyBar price={price} label="Contenido para negocios" deferUntilScrolled />
-
+            <FunnelFAQ variant="home" />
             <FunnelPopups
                 variant="home"
                 slotsCount={slots.length}
@@ -229,9 +227,12 @@ function BusinessHero({
                             <p className="mt-2 font-mono-tabular text-4xl font-bold text-primary drop-shadow-[0_2px_12px_rgb(0_0_0/0.4)] md:text-5xl">
                                 {formatMxn(price)}
                             </p>
-                            <p className="mt-1 text-sm text-white/85">
-                                Checkout seguro y fecha real en agenda
-                            </p>
+                            <PaymentTrustOrTestMode
+                                variant="dual"
+                                layout="compact"
+                                onDark
+                                className="mt-3"
+                            />
                         </div>
                         <BookingCtaSection hero className="py-0">
                             <BookingCtaButton type="button" hero onClick={onBook}>
@@ -279,7 +280,7 @@ function BusinessOfferBoard({
 
     return (
         <div id="reels-negocio" className="scroll-mt-24 flex flex-col gap-4">
-            <OfferEquipmentShowcase />
+            <OfferEquipmentShowcase images={images} />
 
             <article className="relative min-h-[220px] overflow-hidden rounded-xl border border-primary/25 bg-black text-white shadow-[0_20px_60px_rgb(0_0_0/0.16)] sm:min-h-[240px] lg:min-h-[260px]">
                 {offerHeroVideo ? (
@@ -449,39 +450,6 @@ function BusinessCreativeBoard({
                     </article>
                 )}
             </div>
-        </div>
-    );
-}
-
-function AftermovieProof({
-    sectionRef,
-    onBook,
-}: {
-    sectionRef: RefObject<HTMLDivElement | null>;
-    onBook: () => void;
-}) {
-    return (
-        <div ref={sectionRef} id="portafolio-negocios" className="scroll-mt-24 space-y-4">
-            <article className="flex flex-col justify-between rounded-xl border border-primary/20 bg-primary/10 p-5 md:p-6">
-                <div>
-                    <div className="flex h-11 w-11 items-center justify-center rounded-xl border border-primary/25 bg-background/50 text-primary">
-                        <Film className="h-5 w-5" />
-                    </div>
-                    <h3 className="mt-4 font-display text-2xl font-bold text-foreground">
-                        Primero compra el reel. Después escala la historia.
-                    </h3>
-                    <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
-                        Mantén la landing de adquisición enfocada en negocios y usa aftermovies
-                        para proyectos donde evento, comunidad y experiencia justifican más producción.
-                    </p>
-                </div>
-            </article>
-
-            <BookingCtaSection>
-                <BookingCtaButton type="button" onClick={onBook}>
-                    Empezar con sesión
-                </BookingCtaButton>
-            </BookingCtaSection>
         </div>
     );
 }

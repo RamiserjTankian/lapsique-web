@@ -5,6 +5,7 @@ import {
     hasSeenNewsletterPopupWithinDays,
     markNewsletterPopupSeen,
     NEWSLETTER_OPEN_EVENT,
+    setActiveFunnelModal,
 } from '@/lib/funnelModalEvents';
 
 const NEWSLETTER_DELAY_MS = 30_000;
@@ -24,12 +25,20 @@ export function useNewsletterPopupTrigger({
     openManually: (source?: string) => void;
     dismiss: () => void;
 } {
-    const [open, setOpen] = useState(false);
+    const [open, setOpenState] = useState(false);
     const triggeredRef = useRef(false);
     const scrollTriggeredRef = useRef(false);
     const exitTriggeredRef = useRef(false);
     const bookingOpenedEarlyRef = useRef(false);
     const mountTimeRef = useRef(Date.now());
+    const pendingTimeoutRef = useRef<number | null>(null);
+
+    const clearPendingOpen = useCallback(() => {
+        if (pendingTimeoutRef.current !== null) {
+            window.clearTimeout(pendingTimeoutRef.current);
+            pendingTimeoutRef.current = null;
+        }
+    }, []);
 
     const canShow = useCallback(() => {
         if (!enabled || skipIfLoggedIn || triggeredRef.current) {
@@ -47,11 +56,30 @@ export function useNewsletterPopupTrigger({
         return true;
     }, [enabled, skipIfLoggedIn]);
 
+    const setOpen = useCallback(
+        (next: boolean) => {
+            setOpenState(next);
+
+            if (!next) {
+                if (getActiveFunnelModal() === 'newsletter') {
+                    setActiveFunnelModal(null);
+                }
+
+                return;
+            }
+
+            setActiveFunnelModal('newsletter');
+        },
+        [],
+    );
+
     const tryOpen = useCallback(
         (source: string) => {
             if (!canShow()) {
                 return;
             }
+
+            clearPendingOpen();
 
             const delay =
                 bookingOpenedEarlyRef.current
@@ -59,19 +87,18 @@ export function useNewsletterPopupTrigger({
                     ? BOOKING_CONFLICT_DELAY_MS
                     : 0;
 
-            window.setTimeout(() => {
+            pendingTimeoutRef.current = window.setTimeout(() => {
+                pendingTimeoutRef.current = null;
+
                 if (!canShow() || getActiveFunnelModal() !== null) {
                     return;
                 }
 
                 triggeredRef.current = true;
                 setOpen(true);
-                window.dispatchEvent(
-                    new CustomEvent('lapsique:newsletter-opened', { detail: { source } }),
-                );
             }, delay);
         },
-        [canShow],
+        [canShow, clearPendingOpen, setOpen],
     );
 
     const openManually = useCallback(
@@ -80,19 +107,18 @@ export function useNewsletterPopupTrigger({
                 return;
             }
 
+            clearPendingOpen();
             triggeredRef.current = true;
             setOpen(true);
-            window.dispatchEvent(
-                new CustomEvent('lapsique:newsletter-opened', { detail: { source } }),
-            );
         },
-        [skipIfLoggedIn],
+        [clearPendingOpen, setOpen, skipIfLoggedIn],
     );
 
     const dismiss = useCallback(() => {
+        clearPendingOpen();
         setOpen(false);
         markNewsletterPopupSeen();
-    }, []);
+    }, [clearPendingOpen, setOpen]);
 
     useEffect(() => {
         const onManual = (event: Event) => {
@@ -155,10 +181,11 @@ export function useNewsletterPopupTrigger({
 
         return () => {
             window.clearTimeout(timer);
+            clearPendingOpen();
             window.removeEventListener('scroll', onScroll);
             document.removeEventListener('mouseleave', onExitIntent);
         };
-    }, [enabled, skipIfLoggedIn, tryOpen]);
+    }, [clearPendingOpen, enabled, skipIfLoggedIn, tryOpen]);
 
     return { open, setOpen, openManually, dismiss };
 }

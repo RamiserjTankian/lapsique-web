@@ -4,8 +4,13 @@ import { trackBookingEvent } from '@/hooks/useBookingAnalytics';
 import { usePage } from '@inertiajs/react';
 import type { PageProps } from '@/types';
 
-export function FunnelFAQ() {
+export function FunnelFAQ({ variant = 'default' }: { variant?: 'home' | 'default' }) {
     const { site } = usePage<PageProps>().props;
+
+    const paymentAnswer =
+        variant === 'home'
+            ? 'Compra protegida al confirmar: puedes pagar con tarjeta (Stripe) o Mercado Pago. Al pagar con tarjeta, aplica reembolso del 100% si no realizamos tu sesión según lo acordado. En entornos de prueba no hay cobro real.'
+            : 'En producción real se confirma mediante checkout seguro con Stripe o Mercado Pago. En entornos de prueba no se hace cobro real.';
 
     const items = [
         {
@@ -36,8 +41,17 @@ export function FunnelFAQ() {
         {
             value: 'pago',
             question: '¿Cómo funciona el pago?',
-            answer: 'En producción real se confirma mediante checkout seguro con Stripe o Mercado Pago. En entornos de prueba no se hace cobro real.',
+            answer: paymentAnswer,
         },
+        ...(variant === 'home'
+            ? [
+                  {
+                      value: 'reembolso-tarjeta',
+                      question: '¿Qué pasa si pago con tarjeta y no se realiza la sesión?',
+                      answer: 'Si pagas con tarjeta vía Stripe y no realizamos tu sesión según lo acordado, gestionamos la devolución del 100% de tu pago. El cobro cuenta con protección al comprador de Stripe; Lapsique coordina contigo el seguimiento.',
+                  },
+              ]
+            : []),
         {
             value: 'ubicacion',
             question: '¿Dónde se realiza la sesión?',

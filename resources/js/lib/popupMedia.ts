@@ -102,7 +102,7 @@ export function getPopupVisualCopy(
                   badge: 'Reserva DJ set',
                   title: 'Tu set, capturado como contenido principal',
                   description: '3 cámaras fijas, dron y video final de una hora listo para mostrar tu sonido.',
-                  caption: 'Apartado con Stripe · fecha real del equipo',
+                  caption: 'Compra protegida · tarjeta · fecha real del equipo',
               }
             : {
                   badge: 'Agenda tu sesión',

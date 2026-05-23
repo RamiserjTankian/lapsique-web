@@ -7,7 +7,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { trackNewsletterEvent } from '@/hooks/useNewsletterAnalytics';
-import { markNewsletterPopupSeen, setActiveFunnelModal } from '@/lib/funnelModalEvents';
+import { markNewsletterPopupSeen } from '@/lib/funnelModalEvents';
 import {
     getPopupVisualCopy,
     resolvePopupImage,
@@ -93,7 +93,6 @@ export function NewsletterCaptureModal({
             return;
         }
 
-        setActiveFunnelModal('newsletter');
         trackNewsletterEvent('newsletter_popup_shown', { variant, source });
     }, [open, variant, source]);
 
@@ -101,7 +100,6 @@ export function NewsletterCaptureModal({
         if (!next) {
             markNewsletterPopupSeen();
             trackNewsletterEvent('newsletter_popup_dismissed', { variant, source });
-            setActiveFunnelModal(null);
         }
 
         onOpenChange(next);
@@ -121,13 +119,21 @@ export function NewsletterCaptureModal({
         try {
             const token = document.querySelector<HTMLMetaElement>('meta[name="csrf-token"]')?.content;
 
+            if (!token) {
+                setErrorMessage('No se pudo validar la sesión. Recarga la página e inténtalo de nuevo.');
+
+                return;
+            }
+
             const response = await fetch(route('leads.capture', undefined, false, ziggy), {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                     Accept: 'application/json',
-                    ...(token ? { 'X-CSRF-TOKEN': token } : {}),
+                    'X-CSRF-TOKEN': token,
+                    'X-Requested-With': 'XMLHttpRequest',
                 },
+                credentials: 'same-origin',
                 body: JSON.stringify({
                     name,
                     email,
@@ -138,13 +144,14 @@ export function NewsletterCaptureModal({
                 }),
             });
 
-            const data = (await response.json()) as {
-                success?: boolean;
-                message?: string;
-            };
+            const data = await parseLeadCaptureResponse(response);
 
             if (!response.ok || !data.success) {
-                setErrorMessage(data.message ?? 'Ocurrió un error. Por favor intenta de nuevo.');
+                setErrorMessage(
+                    data.message
+                    ?? formatValidationMessage(data.errors)
+                    ?? 'Ocurrió un error. Por favor intenta de nuevo.',
+                );
 
                 return;
             }
@@ -172,7 +179,7 @@ export function NewsletterCaptureModal({
             title={visual.title}
             description={visual.description}
             caption={visual.caption}
-            contentClassName="p-5 md:p-7"
+            contentClassName="px-4 py-4 sm:px-5 sm:py-5 md:px-7 md:py-7"
         >
             {submitted ? (
                 <div className="flex flex-col items-center py-8 text-center">
@@ -193,9 +200,11 @@ export function NewsletterCaptureModal({
             ) : (
                 <form onSubmit={submit} className="space-y-4">
                     <div className="lg:hidden">
-                        <h2 className="font-display text-2xl font-bold">Únete a Lapsique</h2>
-                        <p className="mt-2 text-sm text-muted-foreground">
-                            Recibe novedades exclusivas sobre eventos, producción y la escena.
+                        <h2 className="font-display text-xl font-bold leading-tight sm:text-2xl">
+                            Únete a Lapsique
+                        </h2>
+                        <p className="mt-1.5 text-sm text-muted-foreground">
+                            Eventos, producción y la escena en tu inbox.
                         </p>
                     </div>
 
@@ -293,4 +302,36 @@ export function NewsletterCaptureModal({
             )}
         </PremiumSplitDialog>
     );
+}
+
+async function parseLeadCaptureResponse(response: Response): Promise<{
+    success?: boolean;
+    message?: string;
+    errors?: Record<string, string[]>;
+}> {
+    const contentType = response.headers.get('content-type') ?? '';
+
+    if (!contentType.includes('application/json')) {
+        return { success: false };
+    }
+
+    try {
+        return (await response.json()) as {
+            success?: boolean;
+            message?: string;
+            errors?: Record<string, string[]>;
+        };
+    } catch {
+        return { success: false };
+    }
+}
+
+function formatValidationMessage(errors?: Record<string, string[]>): string | null {
+    if (!errors) {
+        return null;
+    }
+
+    const first = Object.values(errors).flat()[0];
+
+    return first ?? null;
 }

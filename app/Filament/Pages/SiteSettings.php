@@ -78,6 +78,7 @@ class SiteSettings extends Page implements HasSchemas
             'booking_title' => $this->booking_title,
             'booking_subtitle' => $this->booking_subtitle,
             'booking_og_image' => $settings->booking_og_image,
+            'djset_og_image' => $settings->djset_og_image,
             'booking_price' => $this->booking_price,
             'booking_whatsapp' => $this->booking_whatsapp,
             'home_hero_proof_1_title' => $settings->home_hero_proof_1_title,
@@ -162,6 +163,25 @@ class SiteSettings extends Page implements HasSchemas
                             ->placeholder('Ej: 5219841234567')
                             ->helperText('Número con código de país, sin + ni espacios. Usado para el botón de contacto.')
                             ->maxLength(30),
+                    ]),
+
+                Section::make('Landing DJ Set (/djset)')
+                    ->description('Open Graph al compartir https://lapsique.media/djset en WhatsApp, Facebook, etc.')
+                    ->schema([
+                        FileUpload::make('djset_og_image')
+                            ->label('Imagen para compartir (Open Graph)')
+                            ->helperText('Recomendado 1200×630 px. Si está vacío, se usa una foto destacada del portafolio o un thumbnail de video.')
+                            ->acceptedFileTypes(['image/jpeg', 'image/png', 'image/webp'])
+                            ->maxSize(2048)
+                            ->image()
+                            ->imageEditor()
+                            ->imageEditorAspectRatios(['1.91:1', '16:9'])
+                            ->disk('public')
+                            ->directory('images/og')
+                            ->visibility('public')
+                            ->downloadable()
+                            ->previewable()
+                            ->openable(),
                     ]),
 
                 Section::make('Video del hero (landing negocios)')
@@ -329,6 +349,7 @@ class SiteSettings extends Page implements HasSchemas
             'booking_title' => $data['booking_title'] ?? null,
             'booking_subtitle' => $data['booking_subtitle'] ?? null,
             'booking_og_image' => self::normalizeUploadPath($data['booking_og_image'] ?? null),
+            'djset_og_image' => self::normalizeUploadPath($data['djset_og_image'] ?? null),
             'booking_price' => (int) ($data['booking_price'] ?? config('booking.content_price', 3000)),
             'booking_whatsapp' => $data['booking_whatsapp'] ?? null,
             'home_hero_proof_1_title' => filled($data['home_hero_proof_1_title'] ?? null) ? $data['home_hero_proof_1_title'] : null,

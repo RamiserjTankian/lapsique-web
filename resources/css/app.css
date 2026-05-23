@@ -225,6 +225,18 @@
     }
 }
 
+@keyframes whatsapp-fab-pulse {
+    0%,
+    100% {
+        box-shadow: 0 12px 40px oklch(0.55 0.18 145 / 0.4);
+        transform: scale(1);
+    }
+    50% {
+        box-shadow: 0 16px 48px oklch(0.55 0.2 145 / 0.55);
+        transform: scale(1.04);
+    }
+}
+
 @keyframes booking-cta-glow {
     0%,
     100% {

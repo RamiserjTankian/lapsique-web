@@ -6,7 +6,7 @@ import { GlassSection } from '@/components/lapsique/GlassSection';
 import { DjCard } from '@/components/lapsique/DjCard';
 import { SpecBadge } from '@/components/lapsique/SpecBadge';
 import { FunnelPopups } from '@/components/lapsique/FunnelPopups';
-import { FunnelStickyBar } from '@/components/lapsique/funnel/FunnelStickyBar';
+import { PaymentTrustOrTestMode } from '@/components/lapsique/PaymentTrustPanel';
 import { BookingCtaButton } from '@/components/lapsique/BookingCtaButton';
 import { BookingCtaSection } from '@/components/lapsique/BookingCtaSection';
 import { Button } from '@/components/ui/button';
@@ -141,6 +141,12 @@ export default function DjSetShow({
                                     {formatMxn(price)}
                                 </p>
                                 <p className="mt-1 text-sm text-white/65">MXN · paga con tarjeta al reservar</p>
+                                <PaymentTrustOrTestMode
+                                    variant="stripe"
+                                    layout="compact"
+                                    onDark
+                                    className="mt-4"
+                                />
                             </div>
                             <BookingCtaSection hero className="py-0">
                                 <BookingCtaButton type="button" hero onClick={openBooking}>
@@ -163,6 +169,12 @@ export default function DjSetShow({
                         <p className="mt-2 text-sm leading-relaxed text-white/70">
                             Selecciona tu fecha disponible y sal a Stripe sin esperar una cotización manual.
                         </p>
+                        <PaymentTrustOrTestMode
+                            variant="stripe"
+                            layout="compact"
+                            onDark
+                            className="mt-4"
+                        />
                         <button
                             type="button"
                             onClick={openBooking}
@@ -238,9 +250,10 @@ export default function DjSetShow({
                 title="Fecha cerrada en tres pasos"
                 description="Selecciona disponibilidad real del equipo, deja tus datos y completa Stripe."
             >
+                <PaymentTrustOrTestMode variant="stripe" layout="card" className="mb-5" />
                 <div className="grid gap-3 md:grid-cols-3">
                     <ProcessPoint icon={<Radio className="h-5 w-5" />} title="1. Elige slot" copy="La agenda se bloquea contra las demás sesiones para no duplicar producción." />
-                    <ProcessPoint icon={<CreditCard className="h-5 w-5" />} title="2. Paga tarjeta" copy="Stripe procesa el cobro de la grabación y confirma tu reserva." />
+                    <ProcessPoint icon={<CreditCard className="h-5 w-5" />} title="2. Paga tarjeta" copy="Stripe procesa el cobro de la grabación y confirma tu reserva al instante." />
                     <ProcessPoint icon={<CircleCheckBig className="h-5 w-5" />} title="3. Produce" copy="Coordinamos set y locación para capturar una sesión visualmente sólida." />
                 </div>
             </GlassSection>
@@ -279,13 +292,18 @@ export default function DjSetShow({
             >
                 <div className="grid gap-3 md:grid-cols-2">
                     <Faq answer="La oferta incluye un video final de hasta 1 hora. La coordinación del set se cierra después de apartar fecha." question="¿La hora es la duración del video?" />
-                    <Faq answer="Sí. El checkout de esta landing cobra la grabación DJ set con tarjeta vía Stripe." question="¿Puedo pagar al reservar?" />
+                    <Faq
+                        answer="Sí. Pagas con tarjeta en un checkout protegido por Stripe. Apartas fecha, confirmas tu reserva y recibes seguimiento por correo."
+                        question="¿Puedo pagar al reservar?"
+                    />
+                    <Faq
+                        answer="Si no realizamos tu sesión según lo acordado, gestionamos la devolución del 100% de tu pago. El cobro con tarjeta cuenta con protección al comprador vía Stripe."
+                        question="¿Qué pasa si no se realiza la sesión?"
+                    />
                     <Faq answer="Incluye tomas con dron cuando la locación, permisos, clima y seguridad de vuelo lo permiten." question="¿El dron siempre vuela?" />
                     <Faq answer="Sí. Los slots son los mismos del equipo de producción, así no se vende una fecha ya tomada por otra sesión." question="¿La agenda bloquea otras sesiones?" />
                 </div>
             </GlassSection>
-
-            <FunnelStickyBar price={price} label="DJ set 3 cámaras fijas + dron" />
 
             <FunnelPopups
                 variant="djset"

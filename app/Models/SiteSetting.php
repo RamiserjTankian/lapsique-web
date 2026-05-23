@@ -15,6 +15,7 @@ class SiteSetting extends Model
         'booking_title',
         'booking_subtitle',
         'booking_og_image',
+        'djset_og_image',
         'booking_price',
         'booking_whatsapp',
         'booking_team_name',

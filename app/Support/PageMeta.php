@@ -24,12 +24,7 @@ class PageMeta
 
         return match ($routeName) {
             'home', 'booking.show' => self::forBookingFunnel($settings, $canonicalUrl),
-            'djset.show' => self::forSection(
-                'Grabación de DJ Set',
-                'Graba tu DJ set con 3 cámaras fijas y dron. Video final de una hora por $12,000 MXN con agenda y pago en línea.',
-                $canonicalUrl,
-                'grabación de DJ set, video DJ, DJ set Tulum, 3 cámaras fijas y dron, lapsique.media',
-            ),
+            'djset.show' => self::forDjSet($settings, $canonicalUrl),
             'djs.show' => self::forDj($request->route('dj'), $canonicalUrl),
             'videos.show' => self::forVideo($request->route('video'), $canonicalUrl),
             'events.show' => self::forEvent($request->route('event'), $canonicalUrl),
@@ -86,6 +81,31 @@ class PageMeta
             ),
             default => self::forDefault($canonicalUrl),
         };
+    }
+
+    public static function forDjSet(?SiteSetting $settings, string $canonicalUrl): PageMetaData
+    {
+        $price = (int) config('booking.dj_set_price', 12000);
+        $title = 'Grabación de DJ Set';
+        $metaTitle = "{$title} · ".self::SITE_NAME;
+        $description = self::truncate(
+            "Graba tu DJ set con 3 cámaras fijas y dron. Video final de una hora por $"
+            .number_format($price, 0, '.', ',')
+            .' MXN con agenda y pago en línea.',
+        );
+        $ogImage = self::djsetOgImageUrl($settings);
+        $ogImageAlt = 'Grabación de DJ set — '.self::SITE_NAME;
+
+        return new PageMetaData(
+            title: $title,
+            metaTitle: $metaTitle,
+            description: $description,
+            canonicalUrl: $canonicalUrl,
+            ogType: 'website',
+            ogImage: $ogImage,
+            ogImageAlt: $ogImageAlt,
+            keywords: 'grabación de DJ set, video DJ, DJ set Tulum, 3 cámaras fijas y dron, lapsique.media',
+        );
     }
 
     public static function forBookingFunnel(?SiteSetting $settings, string $canonicalUrl): PageMetaData
@@ -284,11 +304,40 @@ class PageMeta
         );
     }
 
+    public static function djsetOgImageUrl(?SiteSetting $settings): string
+    {
+        $uploaded = $settings?->djset_og_image;
+        if (filled($uploaded) && Storage::disk('public')->exists($uploaded)) {
+            return self::absoluteImageUrl(Storage::disk('public')->url($uploaded)) ?? self::defaultOgImageUrl();
+        }
+
+        $portfolioImage = self::portfolioOgImageUrl();
+        if (filled($portfolioImage)) {
+            return $portfolioImage;
+        }
+
+        $videoImage = self::featuredVideoOgImageUrl();
+        if (filled($videoImage)) {
+            return $videoImage;
+        }
+
+        $bookingFallback = self::bookingOgImageUrl($settings);
+        if (! str_contains($bookingFallback, 'og-default.jpg')) {
+            return $bookingFallback;
+        }
+
+        if (file_exists(public_path('images/booking-og.jpg'))) {
+            return url('/images/booking-og.jpg');
+        }
+
+        return self::defaultOgImageUrl();
+    }
+
     public static function bookingOgImageUrl(?SiteSetting $settings): string
     {
         $uploaded = $settings?->booking_og_image;
         if (filled($uploaded) && Storage::disk('public')->exists($uploaded)) {
-            return self::absoluteImageUrl(Storage::disk('public')->url($uploaded));
+            return self::absoluteImageUrl(Storage::disk('public')->url($uploaded)) ?? self::defaultOgImageUrl();
         }
 
         $portfolioImage = self::portfolioOgImageUrl();
@@ -301,6 +350,24 @@ class PageMeta
         }
 
         return self::defaultOgImageUrl();
+    }
+
+    public static function featuredVideoOgImageUrl(): ?string
+    {
+        $video = Video::query()
+            ->orderByDesc('is_featured')
+            ->orderBy('priority')
+            ->orderByDesc('created_at')
+            ->first();
+
+        if (! $video) {
+            return null;
+        }
+
+        return self::absoluteImageUrl(
+            $video->getFirstMediaUrl('thumbnail')
+                ?: $video->thumbnail_url,
+        );
     }
 
     public static function portfolioOgImageUrl(): ?string

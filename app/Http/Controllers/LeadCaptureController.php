@@ -72,10 +72,17 @@ class LeadCaptureController extends Controller
                     'email' => $customer->email,
                 ]);
 
+            try {
                 app(MetaConversionsApiService::class)->sendLeadFromCustomer(
                     $customer->fresh(),
                     $request->input('landing_url') ?: $request->input('current_page'),
                 );
+            } catch (\Throwable $e) {
+                Log::warning('Meta lead event failed after popup capture', [
+                    'customer_id' => $customer->id,
+                    'error' => $e->getMessage(),
+                ]);
+            }
 
                 return response()->json([
                     'success' => true,
@@ -130,10 +137,17 @@ class LeadCaptureController extends Controller
                 'source' => 'popup',
             ]);
 
-            app(MetaConversionsApiService::class)->sendLeadFromCustomer(
-                $customer,
-                $request->input('landing_url') ?: $request->input('current_page'),
-            );
+            try {
+                app(MetaConversionsApiService::class)->sendLeadFromCustomer(
+                    $customer,
+                    $request->input('landing_url') ?: $request->input('current_page'),
+                );
+            } catch (\Throwable $e) {
+                Log::warning('Meta lead event failed after popup capture', [
+                    'customer_id' => $customer->id,
+                    'error' => $e->getMessage(),
+                ]);
+            }
 
             // Despachar email de bienvenida
             SendWelcomeEmailJob::dispatch($customer);

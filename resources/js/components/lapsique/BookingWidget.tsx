@@ -14,6 +14,7 @@ import {
     DialogTitle,
 } from '@/components/ui/dialog';
 import { PremiumSplitDialog } from '@/components/lapsique/PremiumSplitDialog';
+import { getPaymentTrustContent, type PaymentTrustVariant } from '@/lib/paymentTrustCopy';
 import { setActiveFunnelModal } from '@/lib/funnelModalEvents';
 import {
     getPopupVisualCopy,
@@ -37,7 +38,6 @@ import {
     Clock3,
     CalendarDays,
     LockKeyhole,
-    MapPin,
     ShieldCheck,
     Sparkles,
     X,
@@ -110,7 +110,7 @@ export function BookingWidget({
     popupHeroProofVideo = null,
     popupOriginals = [],
 }: BookingWidgetProps) {
-    const { ziggy, booking, site, payments } = usePage<PageProps>().props;
+    const { ziggy, booking, payments } = usePage<PageProps>().props;
     const isTestMode = booking.skipPayment;
     const sectionRef = useSectionEvent<HTMLElement>('booking_widget_viewed', { section: 'agenda' });
     const calendarRef = useSectionEvent<HTMLDivElement>('booking_calendar_opened', { section: 'calendar' });
@@ -128,7 +128,6 @@ export function BookingWidget({
     const [selectedDate, setSelectedDate] = useState<Date | undefined>();
     const [selectedSlotId, setSelectedSlotId] = useState<number | null>(null);
     const [isBookingModalOpen, setIsBookingModalOpen] = useState(false);
-    const [isTrustModalOpen, setIsTrustModalOpen] = useState(false);
     const [isTermsModalOpen, setIsTermsModalOpen] = useState(false);
 
     const slotsByDate = useMemo(() => {
@@ -178,6 +177,26 @@ export function BookingWidget({
 
     const showForm = selectedSlotId !== null;
 
+    const trustVariant: PaymentTrustVariant = useMemo(() => {
+        if (popupVariant === 'djset' || paymentProvider === 'stripe') {
+            return 'stripe';
+        }
+
+        if (data.payment_provider === 'stripe') {
+            return 'stripe';
+        }
+
+        return 'dual';
+    }, [popupVariant, paymentProvider, data.payment_provider]);
+
+    const trustContent = useMemo(
+        () => getPaymentTrustContent(trustVariant),
+        [trustVariant],
+    );
+
+    const showStripePopupOverlay =
+        !isTestMode && (popupVariant === 'djset' || trustVariant === 'stripe');
+
     const scrollToBookingStep = useCallback((step: 'fecha' | 'horario' | 'datos') => {
         const target =
             step === 'fecha'
@@ -221,18 +240,22 @@ export function BookingWidget({
         [popupVariant, popupPortfolioItems, popupHeroProofVideo, popupOriginals],
     );
 
+    const handleBookingModalOpenChange = useCallback(
+        (next: boolean) => {
+            setIsBookingModalOpen(next);
+            setActiveFunnelModal(next ? 'booking' : null);
+        },
+        [],
+    );
+
     const openBookingModalFresh = useCallback(
         (source: string) => {
             resetBookingWizard();
-            setIsBookingModalOpen(true);
+            handleBookingModalOpenChange(true);
             trackBookingEvent('booking_popup_shown', { source });
         },
-        [resetBookingWizard],
+        [handleBookingModalOpenChange, resetBookingWizard],
     );
-
-    useEffect(() => {
-        setActiveFunnelModal(isBookingModalOpen ? 'booking' : null);
-    }, [isBookingModalOpen]);
 
     useEffect(() => {
         if (!showForm || !selectedSlot || formStartedRef.current) {
@@ -498,7 +521,10 @@ export function BookingWidget({
             <BookingHeader isTestMode={isTestMode} product={product} />
 
             <div className={cn(glassCardVariants({ elevated: true }), 'glass-border-glow overflow-hidden border')}>
-                <div className="flex flex-wrap items-center justify-between gap-4 border-b border-border/70 px-5 py-5 md:px-7">
+                <div
+                    ref={calendarRef}
+                    className="space-y-5 p-5 md:p-6"
+                >
                     <div>
                         <p className="text-[10px] font-semibold uppercase tracking-[0.24em] text-primary/80">
                             Agenda ahora
@@ -507,23 +533,8 @@ export function BookingWidget({
                             Elige fecha, toma un horario y deja cerrada tu reserva en este momento.
                         </p>
                     </div>
-                    <Button
-                        type="button"
-                        variant="glass"
-                        size="lg"
-                        onClick={() => setIsTrustModalOpen(true)}
-                    >
-                        <ShieldCheck className="h-4 w-4" />
-                        Reserva protegida
-                    </Button>
-                </div>
 
-                <div className="grid lg:grid-cols-[minmax(0,1fr)_320px]">
-                    <div
-                        ref={calendarRef}
-                        className="order-1 space-y-5 p-5 md:p-6"
-                    >
-                        <div className="space-y-4">
+                    <div className="space-y-4">
                             <div className="flex flex-wrap items-end justify-between gap-3">
                                 <div>
                                     <p className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">
@@ -590,7 +601,11 @@ export function BookingWidget({
                             <TrustChip
                                 icon={<LockKeyhole className="h-4 w-4" />}
                                 title="Pago protegido"
-                                copy={isTestMode ? 'Flujo de prueba sin cobro real.' : product.paymentCopy}
+                                copy={
+                                    isTestMode
+                                        ? 'Flujo de prueba sin cobro real.'
+                                        : trustContent.protectedPaymentChip
+                                }
                             />
                             <TrustChip
                                 icon={<Clock3 className="h-4 w-4" />}
@@ -598,20 +613,12 @@ export function BookingWidget({
                                 copy="Elige fecha, comparte datos y confirma en minutos."
                             />
                         </div>
-                    </div>
-
-                    <BookingSummaryPanel
-                        price={price}
-                        selectedSlot={selectedSlot}
-                        isTestMode={isTestMode}
-                        product={product}
-                    />
                 </div>
             </div>
 
             <PremiumSplitDialog
                 open={isBookingModalOpen}
-                onOpenChange={setIsBookingModalOpen}
+                onOpenChange={handleBookingModalOpenChange}
                 imageUrl={bookingPopupImage.url}
                 imageAlt={bookingPopupImage.alt}
                 badge={bookingPopupVisual.badge}
@@ -621,6 +628,11 @@ export function BookingWidget({
                 imageOverlay={
                     <div className="mt-5 space-y-2 rounded-2xl border border-white/15 bg-black/35 p-4 backdrop-blur-md">
                         <p className="font-mono-tabular text-2xl font-bold text-white">{formatMxn(price)}</p>
+                        {showStripePopupOverlay && (
+                            <p className="text-xs font-medium text-primary">
+                                Compra protegida · reembolso 100% si no hay sesión
+                            </p>
+                        )}
                         <ul className="space-y-1 text-xs text-white/75">
                             {product.summaryPerks.slice(0, 3).map((perk) => (
                                 <li key={perk} className="flex items-start gap-2">
@@ -631,20 +643,26 @@ export function BookingWidget({
                         </ul>
                     </div>
                 }
-                contentClassName="p-5 md:p-7"
+                contentClassName="px-4 py-4 sm:px-5 sm:py-5 md:px-7 md:py-7"
             >
-                <div className="space-y-5">
+                <div className="space-y-4 sm:space-y-5">
                     <div className="lg:hidden">
-                        <span className="inline-flex rounded-full border border-primary/25 bg-primary/10 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.24em] text-primary">
-                            {product.checkoutLabel}
-                        </span>
-                        <h2 className="mt-3 font-display text-2xl font-bold">Agendar tu sesión</h2>
-                        <p className="mt-2 text-sm text-muted-foreground">
-                            Elige fecha y horario, completa tus datos y confirma con pago seguro.
-                        </p>
+                        <div className="flex items-start justify-between gap-3">
+                            <div className="min-w-0">
+                                <span className="inline-flex rounded-full border border-primary/25 bg-primary/10 px-2.5 py-0.5 text-[9px] font-semibold uppercase tracking-[0.2em] text-primary">
+                                    {product.checkoutLabel}
+                                </span>
+                                <h2 className="mt-2 font-display text-xl font-bold leading-tight sm:text-2xl">
+                                    Agendar tu sesión
+                                </h2>
+                            </div>
+                            <p className="shrink-0 font-mono-tabular text-lg font-bold text-primary sm:text-xl">
+                                {formatMxn(price)}
+                            </p>
+                        </div>
                     </div>
 
-                    <div className="grid w-full grid-cols-3 gap-2">
+                    <div className="grid w-full grid-cols-3 gap-1.5 sm:gap-2">
                                 <WizardStep
                                     index="1"
                                     title="Fecha"
@@ -663,6 +681,7 @@ export function BookingWidget({
                                 <WizardStep
                                     index="3"
                                     title="Datos y pago"
+                                    shortTitle="Pago"
                                     active={Boolean(selectedSlot)}
                                     complete={false}
                                     disabled={!selectedSlot}
@@ -675,7 +694,7 @@ export function BookingWidget({
                                     ref={dateSectionRef}
                                     id="booking-step-fecha"
                                     className={cn(
-                                        'scroll-mt-4 space-y-4 rounded-2xl border bg-muted/40 p-4 transition-shadow',
+                                        'scroll-mt-4 space-y-3 rounded-2xl border bg-muted/40 p-3 transition-shadow sm:space-y-4 sm:p-4',
                                         !selectedDate
                                             ? 'border-primary/50 ring-2 ring-primary'
                                             : 'border-primary/40',
@@ -688,15 +707,15 @@ export function BookingWidget({
                                         <h3
                                             data-step-focus
                                             tabIndex={-1}
-                                            className="mt-1 text-lg font-bold outline-none"
+                                            className="mt-1 text-base font-bold outline-none sm:text-lg"
                                         >
                                             Fechas disponibles
                                         </h3>
-                                        <p className="mt-2 text-sm text-muted-foreground">
+                                        <p className="mt-1.5 hidden text-sm text-muted-foreground sm:block">
                                             Elige tu día — puedes cambiar la fecha cuando quieras.
                                         </p>
                                     </div>
-                                    <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+                                    <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 sm:gap-3">
                                         {availableDates.slice(0, 12).map((date) => {
                                             const key = format(date, 'yyyy-MM-dd');
                                             const isSelected =
@@ -713,6 +732,7 @@ export function BookingWidget({
                                                     date={date}
                                                     selected={isSelected}
                                                     suggested={isSuggested}
+                                                    compact
                                                     onClick={() => handleModalDateSelect(date)}
                                                 />
                                             );
@@ -838,16 +858,17 @@ export function BookingWidget({
                 </div>
             </PremiumSplitDialog>
 
-            <TermsModal open={isTermsModalOpen} onOpenChange={setIsTermsModalOpen} product={product} />
-
-            <ReservationTrustModal
-                open={isTrustModalOpen}
-                onOpenChange={setIsTrustModalOpen}
+            <TermsModal
+                open={isTermsModalOpen}
+                onOpenChange={setIsTermsModalOpen}
+                product={product}
                 isTestMode={isTestMode}
-                teamName={site.bookingTeamName}
-                teamBio={site.bookingTeamBio}
-                studioLocation={site.studioLocation}
+                usesStripeCheckout={
+                    !isTestMode
+                    && (paymentProvider === 'stripe' || data.payment_provider === 'stripe')
+                }
             />
+
         </section>
     );
 }
@@ -1077,48 +1098,6 @@ function BookingHeader({ isTestMode, product }: { isTestMode: boolean; product: 
     );
 }
 
-function BookingSummaryPanel({
-    price,
-    selectedSlot,
-    isTestMode,
-    product,
-}: {
-    price: number;
-    selectedSlot?: BookingSlot;
-    isTestMode: boolean;
-    product: BookingWidgetProduct;
-}) {
-    return (
-        <div className="space-y-5 border-t border-border/70 bg-muted/30 p-6 md:order-2 md:border-t-0 md:border-l">
-            <div>
-                <p className="text-xs uppercase tracking-widest text-muted-foreground">lapsique.media</p>
-                <h3 className="text-lg font-bold">{product.summaryTitle}</h3>
-            </div>
-            <ul className="space-y-2 text-sm text-muted-foreground">
-                {product.summaryPerks.map((perk) => (
-                    <li key={perk}>{perk}</li>
-                ))}
-            </ul>
-            <div className="border-t border-border pt-4">
-                <p className="text-xs uppercase tracking-wider text-muted-foreground">Precio</p>
-                <p className="font-mono-tabular text-3xl font-bold">{formatMxn(price)}</p>
-                <p className="text-xs text-muted-foreground">
-                    {isTestMode ? 'Modo prueba sin cobro real' : 'MXN · todo incluido'}
-                </p>
-            </div>
-            {selectedSlot && (
-                <div className="rounded-2xl border border-primary/20 bg-primary/10 px-4 py-3">
-                    <p className="text-xs uppercase tracking-wider text-muted-foreground">Sesion elegida</p>
-                    <p className="text-sm font-medium text-primary">
-                        {format(parseISO(selectedSlot.date), 'd MMM yyyy', { locale: es })} ·{' '}
-                        {selectedSlot.time_label}
-                    </p>
-                </div>
-            )}
-        </div>
-    );
-}
-
 function TrustChip({
     icon,
     title,
@@ -1142,6 +1121,7 @@ function TrustChip({
 function WizardStep({
     index,
     title,
+    shortTitle,
     active,
     complete,
     disabled = false,
@@ -1149,11 +1129,13 @@ function WizardStep({
 }: {
     index: string;
     title: string;
+    shortTitle?: string;
     active: boolean;
     complete: boolean;
     disabled?: boolean;
     onClick?: () => void;
 }) {
+    const displayTitle = shortTitle ?? title;
     const statusLabel = complete ? 'Listo' : active ? 'En curso' : 'Pendiente';
     const isInteractive = Boolean(onClick) && !disabled;
 
@@ -1189,7 +1171,8 @@ function WizardStep({
                 {complete && <Check className="h-3.5 w-3.5 shrink-0 text-primary" aria-hidden />}
             </div>
             <p className="mt-0.5 truncate text-xs font-semibold text-foreground sm:mt-1 sm:text-sm md:text-base">
-                {title}
+                <span className="sm:hidden">{displayTitle}</span>
+                <span className="hidden sm:inline">{title}</span>
             </p>
             <p
                 className={cn(
@@ -1208,11 +1191,13 @@ function DateOption({
     date,
     selected,
     suggested = false,
+    compact = false,
     onClick,
 }: {
     date: Date;
     selected: boolean;
     suggested?: boolean;
+    compact?: boolean;
     onClick: () => void;
 }) {
     return (
@@ -1221,7 +1206,8 @@ function DateOption({
             onClick={onClick}
             aria-pressed={selected}
             className={cn(
-                'flex min-h-[7.5rem] w-full flex-col rounded-2xl border-2 p-3.5 text-left transition duration-200 sm:p-4',
+                'flex w-full flex-col rounded-2xl border-2 text-left transition duration-200',
+                compact ? 'min-h-[5.75rem] p-2.5 sm:min-h-[7.5rem] sm:p-4' : 'min-h-[7.5rem] p-3.5 sm:p-4',
                 'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background',
                 'active:scale-[0.98]',
                 selected
@@ -1255,12 +1241,17 @@ function DateOption({
                     </span>
                 )}
             </div>
-            <span className="mt-3 block font-mono-tabular text-[2rem] font-bold leading-none sm:mt-3.5 sm:text-3xl md:text-4xl">
+            <span
+                className={cn(
+                    'mt-2 block font-mono-tabular font-bold leading-none sm:mt-3.5',
+                    compact ? 'text-2xl sm:text-3xl' : 'text-[2rem] sm:text-3xl md:text-4xl',
+                )}
+            >
                 {format(date, 'd', { locale: es })}
             </span>
             <span
                 className={cn(
-                    'mt-auto block pt-2 text-sm capitalize leading-snug',
+                    'mt-auto block pt-1 text-xs capitalize leading-snug sm:pt-2 sm:text-sm',
                     selected ? 'text-primary-foreground/85' : 'text-muted-foreground',
                 )}
             >
@@ -1335,16 +1326,26 @@ function TermsModal({
     open,
     onOpenChange,
     product,
+    isTestMode,
+    usesStripeCheckout = false,
 }: {
     open: boolean;
     onOpenChange: (open: boolean) => void;
     product: BookingWidgetProduct;
+    isTestMode: boolean;
+    usesStripeCheckout?: boolean;
 }) {
+    const showStripeProtection = usesStripeCheckout;
+    const stripeTrust = getPaymentTrustContent('stripe');
+
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
-            <DialogContent className="theme-scrollbar max-h-[min(90vh,760px)] max-w-[min(94vw,680px)] overflow-y-auto border-primary/25 p-0">
-                <div className="space-y-6 p-6 md:p-8">
-                    <div className="space-y-3">
+            <DialogContent
+                layer="stacked"
+                className="theme-scrollbar max-h-[min(90vh,760px)] max-w-[min(94vw,680px)] overflow-y-auto border-primary/25 p-0 shadow-[0_24px_80px_oklch(0_0_0/0.55)]"
+            >
+                <div className="space-y-5 p-5 md:p-7">
+                    <div className="space-y-2">
                         <span className="inline-flex rounded-full border border-primary/25 bg-primary/10 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.24em] text-primary">
                             Términos de reserva
                         </span>
@@ -1355,6 +1356,20 @@ function TermsModal({
                             Estos puntos protegen el tiempo de producción y evitan confusiones sobre alcance, cambios y entrega.
                         </DialogDescription>
                     </div>
+
+                    {showStripeProtection && stripeTrust.headline && (
+                        <div className="flex gap-3 rounded-2xl border border-primary/30 bg-primary/10 p-4">
+                            <ShieldCheck className="mt-0.5 h-5 w-5 shrink-0 text-primary" />
+                            <div className="space-y-1.5 text-sm leading-relaxed">
+                                <p className="font-semibold text-foreground">
+                                    {stripeTrust.headline}
+                                </p>
+                                {stripeTrust.body && (
+                                    <p className="text-muted-foreground">{stripeTrust.body}</p>
+                                )}
+                            </div>
+                        </div>
+                    )}
 
                     <div className="space-y-3">
                         {product.terms.map((term, index) => (
@@ -1373,100 +1388,6 @@ function TermsModal({
                 </div>
             </DialogContent>
         </Dialog>
-    );
-}
-
-function ReservationTrustModal({
-    open,
-    onOpenChange,
-    isTestMode,
-    teamName,
-    teamBio,
-    studioLocation,
-}: {
-    open: boolean;
-    onOpenChange: (open: boolean) => void;
-    isTestMode: boolean;
-    teamName?: string | null;
-    teamBio?: string | null;
-    studioLocation?: string | null;
-}) {
-    return (
-        <Dialog open={open} onOpenChange={onOpenChange}>
-            <DialogContent className="theme-scrollbar max-h-[min(92vh,860px)] max-w-[min(94vw,680px)] overflow-y-auto border-primary/25 p-0">
-                <div className="relative overflow-hidden rounded-[1.6rem]">
-                    <div className="absolute inset-x-0 top-0 h-28 bg-[radial-gradient(circle_at_top,var(--hero-radial-glow),transparent_72%)]" />
-                    <div className="space-y-6 p-6 md:p-8">
-                        <div className="space-y-3">
-                            <span className="inline-flex rounded-full border border-primary/25 bg-primary/10 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.24em] text-primary">
-                                Reserva con confianza
-                            </span>
-                            <DialogTitle className="font-display text-2xl md:text-3xl">
-                                Todo está pensado para que agendes con claridad y sin fricción
-                            </DialogTitle>
-                            <DialogDescription className="max-w-xl text-sm leading-relaxed text-muted-foreground md:text-base">
-                                Confirmas tu fecha desde el home, tu espacio queda registrado y el
-                                siguiente paso queda claro desde el primer minuto.
-                            </DialogDescription>
-                        </div>
-
-                        <div className="grid gap-3 md:grid-cols-2">
-                            <TrustModalCard
-                                icon={<ShieldCheck className="h-5 w-5" />}
-                                title="Reserva respaldada"
-                                copy={isTestMode ? 'Este entorno confirma sin cobro real para validar el flujo completo.' : 'Puedes pagar con Mercado Pago o Stripe dentro de un checkout protegido.'}
-                            />
-                            <TrustModalCard
-                                icon={<Clock3 className="h-5 w-5" />}
-                                title="Proceso rápido"
-                                copy="Seleccionas horario, dejas tus datos y quedas encaminado sin tener que esperar una cotización manual."
-                            />
-                            <TrustModalCard
-                                icon={<MapPin className="h-5 w-5" />}
-                                title="Operación clara"
-                                copy={studioLocation || 'La locación y la logística se confirman contigo una vez apartada la sesión.'}
-                            />
-                            <TrustModalCard
-                                icon={<Sparkles className="h-5 w-5" />}
-                                title="Dirección premium"
-                                copy={teamBio || `La sesión se trabaja con criterio visual, dirección en set y foco comercial${teamName ? ` por ${teamName}` : ''}.`}
-                            />
-                        </div>
-
-                        <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-border/70 bg-muted/30 px-4 py-3">
-                            <p className="text-sm text-foreground">
-                                Si ya viste una fecha disponible, lo ideal es apartarla ahora.
-                            </p>
-                            <Button type="button" variant="cinematic" onClick={() => onOpenChange(false)}>
-                                Volver al calendario
-                            </Button>
-                        </div>
-                    </div>
-                </div>
-            </DialogContent>
-        </Dialog>
-    );
-}
-
-function TrustModalCard({
-    icon,
-    title,
-    copy,
-}: {
-    icon: ReactNode;
-    title: string;
-    copy: string;
-}) {
-    return (
-        <div className="rounded-[1.4rem] border border-border/70 bg-secondary p-4">
-            <div className="flex items-center gap-3 text-primary">
-                <span className="flex h-10 w-10 items-center justify-center rounded-2xl border border-primary/20 bg-primary/10">
-                    {icon}
-                </span>
-                <p className="font-semibold text-foreground">{title}</p>
-            </div>
-            <p className="mt-3 text-sm leading-relaxed text-muted-foreground">{copy}</p>
-        </div>
     );
 }
 
