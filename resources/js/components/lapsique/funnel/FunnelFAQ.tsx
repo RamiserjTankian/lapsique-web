@@ -1,5 +1,6 @@
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { GlassSection } from '@/components/lapsique/GlassSection';
+import { CONTENT_REEL_DURATION_SECONDS } from '@/data/contentOffer';
 import { trackBookingEvent } from '@/hooks/useBookingAnalytics';
 import { usePage } from '@inertiajs/react';
 import type { PageProps } from '@/types';
@@ -13,6 +14,16 @@ export function FunnelFAQ({ variant = 'default' }: { variant?: 'home' | 'default
             : 'En producción real se confirma mediante checkout seguro con Stripe o Mercado Pago. En entornos de prueba no se hace cobro real.';
 
     const items = [
+        {
+            value: 'reel-duracion',
+            question: '¿Cuánto dura el reel entregado?',
+            answer: `El reel editado dura ${CONTENT_REEL_DURATION_SECONDS} segundos — formato ideal para Meta Ads, hooks y piezas de retargeting.`,
+        },
+        {
+            value: 'dron',
+            question: '¿El reel incluye tomas de dron?',
+            answer: 'Sí. Incluye 3 tomas aéreas con dron DJI integradas al reel, cuando locación, permisos y condiciones de vuelo lo permiten.',
+        },
         {
             value: 'duracion',
             question: '¿Cuánto dura la sesión?',

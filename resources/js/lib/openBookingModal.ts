@@ -10,6 +10,8 @@ export type OpenBookingModalOptions = {
     analyticsEvent?: string;
     /** Extra analytics payload merged into the event */
     analyticsPayload?: Record<string, unknown>;
+    /** Skip analytics when the caller already tracked a dedicated event */
+    skipAnalytics?: boolean;
 };
 
 /**
@@ -20,12 +22,15 @@ export function openBookingModal({
     source = 'cta',
     analyticsEvent = 'booking_cta_clicked',
     analyticsPayload,
+    skipAnalytics = false,
 }: OpenBookingModalOptions = {}): void {
-    trackBookingEvent(analyticsEvent, {
-        target: 'booking_popup',
-        source,
-        ...analyticsPayload,
-    });
+    if (!skipAnalytics) {
+        trackBookingEvent(analyticsEvent, {
+            target: 'booking_popup',
+            source,
+            ...analyticsPayload,
+        });
+    }
 
     const agenda = document.getElementById('agenda');
 

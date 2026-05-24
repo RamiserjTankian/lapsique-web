@@ -5,7 +5,11 @@ namespace App\Http\Controllers;
 use App\Http\Resources\BookingSlotResource;
 use App\Http\Resources\PortfolioItemResource;
 use App\Models\PortfolioItem;
+use App\Support\ContentSessionOffer;
+use App\Support\HomeHeroBackground;
 use App\Support\HomeHeroProofVideos;
+use App\Support\HomeReelDistribution;
+use App\Support\LandingPageVideos;
 use Illuminate\Support\Facades\Log;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -26,6 +30,9 @@ class HomeController extends Controller
             ->get();
 
         $settings = $bookingData['settings'];
+        $reelDistribution = HomeReelDistribution::forHome(
+            HomeReelDistribution::previewCountForUserAgent(request()->userAgent()),
+        );
 
         if ($bookingData['slots']->isEmpty() && app()->environment(['local', 'testing'])) {
             Log::warning('Home booking funnel rendered without published slots.', [
@@ -35,11 +42,20 @@ class HomeController extends Controller
 
         return Inertia::render('Home', [
             'title' => $settings?->booking_title ?: 'Reels cinematográficos para negocios',
-            'subtitle' => $settings?->booking_subtitle ?: 'Producción dirigida para crear reels y fotos premium que expliquen tu oferta, eleven tu marca y alimenten campañas.',
+            'subtitle' => $settings?->booking_subtitle ?: ContentSessionOffer::defaultSubtitle(),
             'price' => $bookingData['price'],
             'slots' => BookingSlotResource::collection($bookingData['slots'])->resolve(),
             'portfolioItems' => PortfolioItemResource::collection($portfolioItems)->resolve(),
-            'heroProofVideo' => HomeHeroProofVideos::resolve($settings, $portfolioItems)[0] ?? null,
+            'heroBackgroundImage' => HomeHeroBackground::resolve($portfolioItems),
+            'landingVideos' => $reelDistribution['landingVideos'] ?? LandingPageVideos::forHome(),
+            'heroProofVideo' => $reelDistribution['heroProofVideo']
+                ?? HomeHeroProofVideos::resolve($settings, $portfolioItems)[0]
+                ?? null,
+            'reelLibraryPreview' => $reelDistribution['reelLibraryPreview'] ?? [],
+            'reelStats' => $reelDistribution['reelStats'] ?? [
+                'totalSourceVideos' => 0,
+                'uniqueVideos' => 0,
+            ],
             'errors' => session('errors')?->getBag('default')?->getMessages() ?? [],
         ]);
     }

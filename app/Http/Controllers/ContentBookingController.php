@@ -14,6 +14,7 @@ use App\Services\MercadoPagoService;
 use App\Services\Meta\MetaConversionsApiService;
 use App\Services\StripeService;
 use App\Support\BookingMode;
+use App\Support\ContentSessionOffer;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Arr;
@@ -34,7 +35,7 @@ class ContentBookingController extends Controller
 
         return Inertia::render('Booking/Show', [
             'title' => $settings?->booking_title ?: 'Sesión de Contenido Profesional',
-            'subtitle' => $settings?->booking_subtitle ?: '1 reel editado + 10 fotografías editadas. Producción con cámara Sony α7.',
+            'subtitle' => $settings?->booking_subtitle ?: ContentSessionOffer::defaultSubtitle(),
             'price' => $data['price'],
             'slots' => BookingSlotResource::collection($data['slots'])->resolve(),
             'errors' => session('errors')?->getBag('default')?->getMessages() ?? [],
@@ -212,7 +213,7 @@ class ContentBookingController extends Controller
         $price = $isDjSet
             ? (int) config('booking.dj_set_price', 12000)
             : ($settings?->booking_price ?: (int) config('booking.content_price', 3000));
-        $paymentProvider = $isDjSet ? 'stripe' : ($validated['payment_provider'] ?? 'mercadopago');
+        $paymentProvider = 'stripe';
 
         $booking = null;
         $customer = null;

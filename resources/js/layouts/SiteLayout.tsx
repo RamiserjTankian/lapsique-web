@@ -19,5 +19,5 @@ export default function SiteLayout({ children }: SiteLayoutProps) {
 }
 
 function MotionSiteLayout({ children }: { children: ReactNode }) {
-    return <div className="relative min-h-screen grain-overlay">{children}</div>;
+    return <div className="relative min-h-screen overflow-x-hidden grain-overlay">{children}</div>;
 }

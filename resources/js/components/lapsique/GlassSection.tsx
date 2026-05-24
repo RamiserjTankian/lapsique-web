@@ -27,7 +27,7 @@ export function GlassSection({
             variants={fadeUp}
             className={cn('py-16 md:py-20', className)}
         >
-            <div className="mb-8 flex flex-wrap items-end justify-between gap-4">
+            <div className="relative z-10 mb-8 flex flex-wrap items-end justify-between gap-4">
                 <div>
                     {eyebrow && (
                         <span className="inline-block rounded-full border border-accent/30 bg-accent/10 px-3 py-0.5 text-xs font-medium uppercase tracking-widest text-accent">

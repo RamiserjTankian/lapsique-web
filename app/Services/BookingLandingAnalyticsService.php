@@ -16,13 +16,22 @@ class BookingLandingAnalyticsService
         return [
             'booking_page_viewed',
             'hero_cta_clicked',
+            'header_cta_clicked',
+            'sticky_cta_clicked',
+            'booking_cta_clicked',
             'deliverables_viewed',
             'process_viewed',
             'proof_section_viewed',
-            'faq_opened',
-            'sticky_cta_clicked',
-            'booking_page_viewed',
             'equipment_viewed',
+            'gear_section_viewed',
+            'workflow_section_viewed',
+            'package_includes_viewed',
+            'faq_opened',
+            'reel_card_clicked',
+            'reel_player_opened',
+            'reel_watch_milestone',
+            'reel_overlay_cta_clicked',
+            'reel_player_agendar_clicked',
             'booking_widget_viewed',
             'booking_popup_shown',
             'booking_popup_dismissed',
@@ -49,6 +58,10 @@ class BookingLandingAnalyticsService
     {
         return [
             ['key' => 'landing_view', 'label' => 'Visita landing', 'color' => 'gray', 'events' => []],
+            ['key' => 'reel_engaged', 'label' => 'Reel interactuado', 'color' => 'info', 'events' => ['reel_card_clicked', 'reel_player_opened']],
+            ['key' => 'reel_watch', 'label' => 'Reel >25% visto', 'color' => 'info', 'events' => ['reel_watch_milestone']],
+            ['key' => 'reel_overlay_cta', 'label' => 'CTA overlay reel', 'color' => 'info', 'events' => ['reel_overlay_cta_clicked']],
+            ['key' => 'reel_modal_cta', 'label' => 'Agendar desde modal', 'color' => 'primary', 'events' => ['reel_player_agendar_clicked']],
             ['key' => 'popup_shown', 'label' => 'Popup visto', 'color' => 'info', 'events' => ['booking_popup_shown']],
             ['key' => 'popup_clicked', 'label' => 'CTA popup', 'color' => 'info', 'events' => ['booking_popup_cta_clicked']],
             ['key' => 'calendar_opened', 'label' => 'Calendario abierto', 'color' => 'primary', 'events' => ['booking_calendar_opened']],
@@ -117,6 +130,8 @@ class BookingLandingAnalyticsService
         $failedSessions = $sessions->filter(fn (AnalyticsSession $session) => $this->sessionStageSummary($session)['key'] === 'failed')->count();
         $popupShownSessions = $sessions->filter(fn (AnalyticsSession $session) => $this->hasEvent($session, ['booking_popup_shown']))->count();
         $popupCtaSessions = $sessions->filter(fn (AnalyticsSession $session) => $this->hasEvent($session, ['booking_popup_cta_clicked']))->count();
+        $reelEngagedSessions = $sessions->filter(fn (AnalyticsSession $session) => $this->hasEvent($session, ['reel_card_clicked', 'reel_player_opened']))->count();
+        $reelWatchSessions = $sessions->filter(fn (AnalyticsSession $session) => $this->hasEvent($session, ['reel_watch_milestone']))->count();
         $dateSelectedSessions = $sessions->filter(fn (AnalyticsSession $session) => $this->hasEvent($session, ['booking_date_selected']))->count();
         $formSubmittedSessions = $sessions->filter(fn (AnalyticsSession $session) => $this->hasEvent($session, ['booking_form_submitted']))->count();
 
@@ -177,6 +192,8 @@ class BookingLandingAnalyticsService
             'stats' => [
                 'sessions' => $sessions->count(),
                 'unique_visitors' => $uniqueVisitors,
+                'reel_engaged' => $reelEngagedSessions,
+                'reel_watch' => $reelWatchSessions,
                 'popup_shown' => $popupShownSessions,
                 'popup_cta' => $popupCtaSessions,
                 'date_selected' => $dateSelectedSessions,

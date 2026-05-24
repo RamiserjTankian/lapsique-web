@@ -5,7 +5,7 @@ export interface CreatorBrand {
 /** Perfil del creador en la landing — edita marcas e Instagram aquí. */
 export const CREATOR_PROFILE = {
     name: 'Ramiro',
-    role: 'Video maker · Photographer',
+    role: 'videomaker · photographer',
     instagramUsername: 'ramiro.tech',
     instagramHandle: '@ramiro.tech',
     instagramUrl: 'https://www.instagram.com/ramiro.tech/',

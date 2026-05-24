@@ -29,17 +29,29 @@ import { trackBookingEvent } from '@/hooks/useBookingAnalytics';
 import { useSectionEvent } from '@/hooks/useSectionEvent';
 import { consumeBookingModalPending } from '@/lib/openBookingModal';
 import { route } from '@/lib/route';
-import { cn, formatMxn } from '@/lib/utils';
+import { cn, formatMxn, parseSlotDate } from '@/lib/utils';
+import {
+    bookingCheckboxSelectedClasses,
+    bookingConfirmButtonClasses,
+    bookingCheckoutLinkClasses,
+    bookingCheckoutPanelClasses,
+    bookingOptionSelectedClasses,
+    bookingOptionSelectedDayClasses,
+    bookingOptionSelectedMonthClasses,
+    bookingOptionSuggestedBadgeClasses,
+    bookingOptionSuggestedClasses,
+    bookingOptionSuggestedLabelClasses,
+    bookingSlotSelectedClasses,
+    bookingStepActiveSectionClasses,
+    bookingStepCompleteSectionClasses,
+} from '@/lib/bookingSelectionStyles';
 import { glassCardVariants } from '@/lib/variants';
 import type { BookingSlot, HeroProofVideoData, PageProps, PortfolioItemData, VideoItem } from '@/types';
 import {
     CalendarRange,
     Check,
-    Clock3,
     CalendarDays,
-    LockKeyhole,
     ShieldCheck,
-    Sparkles,
     X,
 } from 'lucide-react';
 
@@ -63,6 +75,7 @@ export interface BookingWidgetProduct {
     headerDescription: string;
     summaryTitle: string;
     summaryDescription: string;
+    summaryDescriptionLines?: string[];
     cartService: string;
     cartDuration: string;
     summaryPerks: string[];
@@ -71,31 +84,46 @@ export interface BookingWidgetProduct {
     unavailableWhatsApp: string;
 }
 
+import {
+    CONTENT_DELIVERY_BUSINESS_DAYS,
+    CONTENT_DRONE_SHOTS,
+    CONTENT_OFFER_CHECKOUT_SUMMARY_LINES,
+    CONTENT_OFFER_ONE_LINER,
+    CONTENT_OFFER_SHORT,
+    CONTENT_PHOTOS_COUNT,
+    CONTENT_REEL_DURATION_SECONDS,
+    CONTENT_SESSION_DURATION,
+} from '@/data/contentOffer';
+
 const contentSessionProduct: BookingWidgetProduct = {
     checkoutLabel: 'Checkout de sesión',
     headerTitle: 'Agenda tu sesión ahora',
-    headerDescription: 'Elige un horario real, deja tus datos y aparta producción con Sony a7',
+    headerDescription: `Reel de ${CONTENT_REEL_DURATION_SECONDS} s con cámara Sony, ${CONTENT_DRONE_SHOTS} tomas de dron DJI y dirección en set`,
     summaryTitle: 'Sesión de contenido',
-    summaryDescription: '1 reel + 10 fotos editadas + dirección + entrega editada',
-    cartService: '1 reel + 10 fotos editadas',
-    cartDuration: '2 horas',
+    summaryDescription: CONTENT_OFFER_ONE_LINER,
+    summaryDescriptionLines: CONTENT_OFFER_CHECKOUT_SUMMARY_LINES,
+    cartService: CONTENT_OFFER_ONE_LINER,
+    cartDuration: CONTENT_SESSION_DURATION,
     summaryPerks: [
-        '1 reel con edición profesional',
-        '10 fotografías editadas',
-        'Sesión de 2 a 3 horas',
-        'Captura Sony a7 full frame',
-        'Entrega en 5 días hábiles',
+        `Reel editado de ${CONTENT_REEL_DURATION_SECONDS} segundos con cámara Sony, listo para Meta Ads`,
+        `${CONTENT_DRONE_SHOTS} tomas aéreas con dron DJI integradas al reel`,
+        `${CONTENT_PHOTOS_COUNT} fotografías editadas`,
+        `Sesión de ${CONTENT_SESSION_DURATION} con dirección en set`,
+        'Captura Sony α7 full frame',
+        `Entrega en ${CONTENT_DELIVERY_BUSINESS_DAYS} días hábiles`,
     ],
     terms: [
         'La reserva queda sujeta a disponibilidad real del horario elegido y a la confirmación del flujo de pago o modo prueba.',
-        'La sesión estándar tiene duración de 2 horas. Tiempo adicional, locaciones extra o cambios de alcance pueden cotizarse aparte.',
-        'Incluye 1 reel editado y 10 fotografías editadas. Material bruto, versiones adicionales o entregas urgentes no están incluidos salvo acuerdo escrito.',
+        `La sesión estándar tiene duración de ${CONTENT_SESSION_DURATION}. Tiempo adicional, locaciones extra o cambios de alcance pueden cotizarse aparte.`,
+        `Incluye 1 reel editado de ${CONTENT_REEL_DURATION_SECONDS} segundos con cámara Sony, ${CONTENT_DRONE_SHOTS} tomas aéreas con dron DJI (cuando locación, permisos y condiciones de vuelo lo permiten) y ${CONTENT_PHOTOS_COUNT} fotografías editadas. Material bruto, versiones adicionales o entregas urgentes no están incluidos salvo acuerdo escrito.`,
         'Puedes solicitar cambios de fecha con mínimo 24 horas de anticipación. Cambios tardíos o inasistencias pueden perder el horario reservado.',
         'Autorizas el uso del material producido para portafolio de lapsique.media salvo que se acuerde confidencialidad antes de la sesión.',
     ],
-    paymentCopy: 'Pago seguro con Mercado Pago o Stripe.',
+    paymentCopy: 'Pago seguro con tarjeta vía Stripe.',
     unavailableWhatsApp: 'Hola, me interesa una sesión de contenido y no veo horarios publicados.',
 };
+
+const BOOKING_FORM_DRAFT_KEY = 'lapsique_booking_form_draft';
 
 export function BookingWidget({
     slots,
@@ -125,7 +153,7 @@ export function BookingWidget({
     const formSectionRef = useRef<HTMLElement>(null);
     const pendingScrollStepRef = useRef<'horario' | 'datos' | null>(null);
     const userPickedSlotRef = useRef(false);
-    const [selectedDate, setSelectedDate] = useState<Date | undefined>();
+    const [selectedDateKey, setSelectedDateKey] = useState<string | undefined>();
     const [selectedSlotId, setSelectedSlotId] = useState<number | null>(null);
     const [isBookingModalOpen, setIsBookingModalOpen] = useState(false);
     const [isTermsModalOpen, setIsTermsModalOpen] = useState(false);
@@ -140,27 +168,33 @@ export function BookingWidget({
         return map;
     }, [slots]);
 
-    const availableDates = useMemo(
-        () => Array.from(slotsByDate.keys()).sort().map((d) => parseISO(d)),
+    const availableDateKeys = useMemo(
+        () => Array.from(slotsByDate.keys()).sort(),
         [slotsByDate],
     );
 
-    const suggestedDate = useMemo(() => {
-        if (availableDates.length === 0) {
+    const selectedDate = useMemo(
+        () => (selectedDateKey ? parseSlotDate(selectedDateKey) : undefined),
+        [selectedDateKey],
+    );
+
+    const suggestedDateKey = useMemo(() => {
+        if (availableDateKeys.length === 0) {
             return undefined;
         }
 
-        const today = startOfDay(new Date());
-        return availableDates.find((date) => startOfDay(date) >= today) ?? availableDates[0];
-    }, [availableDates]);
+        const todayKey = format(startOfDay(new Date()), 'yyyy-MM-dd');
+
+        return availableDateKeys.find((key) => key >= todayKey) ?? availableDateKeys[0];
+    }, [availableDateKeys]);
 
     const daySlots = useMemo(() => {
-        if (!selectedDate) {
+        if (!selectedDateKey) {
             return [];
         }
 
-        return slotsByDate.get(format(selectedDate, 'yyyy-MM-dd')) ?? [];
-    }, [selectedDate, slotsByDate]);
+        return slotsByDate.get(selectedDateKey) ?? [];
+    }, [selectedDateKey, slotsByDate]);
 
     const selectedSlot = slots.find((s) => s.id === selectedSlotId);
 
@@ -218,7 +252,7 @@ export function BookingWidget({
     const resetBookingWizard = useCallback(() => {
         submittedRef.current = false;
         skipSlotAutoSelectRef.current = true;
-        setSelectedDate(undefined);
+        setSelectedDateKey(undefined);
         setSelectedSlotId(null);
         setData('booking_slot_id', '');
     }, [setData]);
@@ -258,6 +292,63 @@ export function BookingWidget({
     );
 
     useEffect(() => {
+        try {
+            const raw = sessionStorage.getItem(BOOKING_FORM_DRAFT_KEY);
+
+            if (!raw) {
+                return;
+            }
+
+            const draft = JSON.parse(raw) as Partial<typeof data>;
+
+            if (draft.client_name) {
+                setData('client_name', draft.client_name);
+            }
+
+            if (draft.client_email) {
+                setData('client_email', draft.client_email);
+            }
+
+            if (draft.client_phone) {
+                setData('client_phone', draft.client_phone);
+            }
+
+            if (draft.client_instagram) {
+                setData('client_instagram', draft.client_instagram);
+            }
+
+            if (draft.notes) {
+                setData('notes', draft.notes);
+            }
+        } catch {
+            // sessionStorage unavailable or invalid JSON
+        }
+    }, [setData]);
+
+    useEffect(() => {
+        try {
+            sessionStorage.setItem(
+                BOOKING_FORM_DRAFT_KEY,
+                JSON.stringify({
+                    client_name: data.client_name,
+                    client_email: data.client_email,
+                    client_phone: data.client_phone,
+                    client_instagram: data.client_instagram,
+                    notes: data.notes,
+                }),
+            );
+        } catch {
+            // sessionStorage unavailable
+        }
+    }, [
+        data.client_email,
+        data.client_instagram,
+        data.client_name,
+        data.client_phone,
+        data.notes,
+    ]);
+
+    useEffect(() => {
         if (!showForm || !selectedSlot || formStartedRef.current) {
             return;
         }
@@ -293,7 +384,9 @@ export function BookingWidget({
         }
 
         const shouldOpen =
-            window.location.hash === '#agenda' || consumeBookingModalPending();
+            window.location.hash === '#agenda'
+            || new URLSearchParams(window.location.search).get('book') === '1'
+            || consumeBookingModalPending();
 
         if (!shouldOpen) {
             return;
@@ -301,7 +394,11 @@ export function BookingWidget({
 
         handledDeepLinkOpenRef.current = true;
         openBookingModalFresh(
-            window.location.hash === '#agenda' ? 'hash_agenda' : 'pending_navigation',
+            window.location.hash === '#agenda'
+                ? 'hash_agenda'
+                : new URLSearchParams(window.location.search).get('book') === '1'
+                  ? 'query_book'
+                  : 'pending_navigation',
         );
     }, [openBookingModalFresh, slots.length]);
 
@@ -348,11 +445,10 @@ export function BookingWidget({
         applySlotSelection(slot);
     };
 
-    const applyDateSelection = (date: Date) => {
-        const key = format(date, 'yyyy-MM-dd');
-        const slotsForDay = slotsByDate.get(key) ?? [];
+    const applyDateSelection = (dateKey: string) => {
+        const slotsForDay = slotsByDate.get(dateKey) ?? [];
         skipSlotAutoSelectRef.current = false;
-        setSelectedDate(date);
+        setSelectedDateKey(dateKey);
         submittedRef.current = false;
         if (slotsForDay.length > 0) {
             applySlotSelection(slotsForDay[0]);
@@ -360,17 +456,17 @@ export function BookingWidget({
             setSelectedSlotId(null);
             setData('booking_slot_id', '');
         }
-        trackBookingEvent('booking_date_selected', { date: key });
+        trackBookingEvent('booking_date_selected', { date: dateKey });
     };
 
-    const handleInlineDateSelect = (date: Date) => {
-        applyDateSelection(date);
-        setIsBookingModalOpen(true);
+    const handleInlineDateSelect = (dateKey: string) => {
+        applyDateSelection(dateKey);
+        handleBookingModalOpenChange(true);
         pendingScrollStepRef.current = 'horario';
     };
 
-    const handleModalDateSelect = (date: Date) => {
-        applyDateSelection(date);
+    const handleModalDateSelect = (dateKey: string) => {
+        applyDateSelection(dateKey);
         pendingScrollStepRef.current = 'horario';
     };
 
@@ -380,13 +476,13 @@ export function BookingWidget({
         setSelectedSlotId(null);
         setData('booking_slot_id', '');
         trackBookingEvent('booking_slot_cleared');
-        if (isBookingModalOpen && selectedDate) {
+        if (isBookingModalOpen && selectedDateKey) {
             requestAnimationFrame(() => scrollToBookingStep('horario'));
         }
     };
 
     useEffect(() => {
-        if (!selectedDate || daySlots.length === 0) {
+        if (!selectedDateKey || daySlots.length === 0) {
             return;
         }
 
@@ -403,7 +499,7 @@ export function BookingWidget({
         }
 
         applySlotSelection(daySlots[0]);
-    }, [selectedDate, daySlots, selectedSlotId]);
+    }, [selectedDateKey, daySlots, selectedSlotId]);
 
     useEffect(() => {
         if (!isBookingModalOpen || !pendingScrollStepRef.current) {
@@ -412,7 +508,7 @@ export function BookingWidget({
 
         const step = pendingScrollStepRef.current;
 
-        if (step === 'horario' && !selectedDate) {
+        if (step === 'horario' && !selectedDateKey) {
             return;
         }
 
@@ -422,7 +518,7 @@ export function BookingWidget({
 
         pendingScrollStepRef.current = null;
         requestAnimationFrame(() => scrollToBookingStep(step));
-    }, [isBookingModalOpen, selectedDate, selectedSlotId, daySlots.length, scrollToBookingStep]);
+    }, [isBookingModalOpen, selectedDateKey, selectedSlotId, daySlots.length, scrollToBookingStep]);
 
     useEffect(() => {
         if (!isBookingModalOpen || !userPickedSlotRef.current || selectedSlotId === null) {
@@ -554,64 +650,23 @@ export function BookingWidget({
                             </div>
 
                             <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 xl:grid-cols-4">
-                                {availableDates.slice(0, 12).map((date) => {
-                                    const key = format(date, 'yyyy-MM-dd');
-                                    const isSelected = selectedDate
-                                        ? format(selectedDate, 'yyyy-MM-dd') === key
-                                        : false;
+                                {availableDateKeys.slice(0, 12).map((dateKey) => {
+                                    const date = parseSlotDate(dateKey);
+                                    const isSelected = selectedDateKey === dateKey;
                                     const isSuggested =
-                                        !isSelected &&
-                                        suggestedDate !== undefined &&
-                                        format(suggestedDate, 'yyyy-MM-dd') === key;
+                                        !selectedDateKey && suggestedDateKey === dateKey;
 
                                     return (
                                         <DateOption
-                                            key={key}
+                                            key={dateKey}
                                             date={date}
                                             selected={isSelected}
                                             suggested={isSuggested}
-                                            onClick={() => handleInlineDateSelect(date)}
+                                            onClick={() => handleInlineDateSelect(dateKey)}
                                         />
                                     );
                                 })}
                             </div>
-
-                            <div className="rounded-2xl border border-primary/20 bg-primary/10 px-4 py-4">
-                                <p className="text-sm font-semibold text-foreground">Wizard de reserva tipo carrito.</p>
-                                <p className="mt-1 text-xs text-muted-foreground">
-                                    Elige fecha, horario y confirma tus datos en un modal de checkout.
-                                </p>
-                                <BookingCtaSection className="py-4 pb-0">
-                                    <BookingCtaButton
-                                        type="button"
-                                        onClick={() => openBookingModalFresh('widget_cta')}
-                                    >
-                                        Seleccionar fecha
-                                    </BookingCtaButton>
-                                </BookingCtaSection>
-                            </div>
-                        </div>
-
-                        <div className="grid gap-3 border-t border-border/70 pt-5 sm:grid-cols-3">
-                            <TrustChip
-                                icon={<Sparkles className="h-4 w-4" />}
-                                title="Respuesta boutique"
-                                copy="Producción dirigida y atención uno a uno."
-                            />
-                            <TrustChip
-                                icon={<LockKeyhole className="h-4 w-4" />}
-                                title="Pago protegido"
-                                copy={
-                                    isTestMode
-                                        ? 'Flujo de prueba sin cobro real.'
-                                        : trustContent.protectedPaymentChip
-                                }
-                            />
-                            <TrustChip
-                                icon={<Clock3 className="h-4 w-4" />}
-                                title="Cierre rápido"
-                                copy="Elige fecha, comparte datos y confirma en minutos."
-                            />
                         </div>
                 </div>
             </div>
@@ -647,47 +702,10 @@ export function BookingWidget({
             >
                 <div className="space-y-4 sm:space-y-5">
                     <div className="lg:hidden">
-                        <div className="flex items-start justify-between gap-3">
-                            <div className="min-w-0">
-                                <span className="inline-flex rounded-full border border-primary/25 bg-primary/10 px-2.5 py-0.5 text-[9px] font-semibold uppercase tracking-[0.2em] text-primary">
-                                    {product.checkoutLabel}
-                                </span>
-                                <h2 className="mt-2 font-display text-xl font-bold leading-tight sm:text-2xl">
-                                    Agendar tu sesión
-                                </h2>
-                            </div>
-                            <p className="shrink-0 font-mono-tabular text-lg font-bold text-primary sm:text-xl">
-                                {formatMxn(price)}
-                            </p>
-                        </div>
+                        <h2 className="font-display text-xl font-bold leading-tight sm:text-2xl">
+                            Agendar tu sesión
+                        </h2>
                     </div>
-
-                    <div className="grid w-full grid-cols-3 gap-1.5 sm:gap-2">
-                                <WizardStep
-                                    index="1"
-                                    title="Fecha"
-                                    active={!selectedDate}
-                                    complete={Boolean(selectedDate)}
-                                    onClick={() => scrollToBookingStep('fecha')}
-                                />
-                                <WizardStep
-                                    index="2"
-                                    title="Horario"
-                                    active={Boolean(selectedDate) && !selectedSlot}
-                                    complete={Boolean(selectedSlot)}
-                                    disabled={!selectedDate}
-                                    onClick={() => scrollToBookingStep('horario')}
-                                />
-                                <WizardStep
-                                    index="3"
-                                    title="Datos y pago"
-                                    shortTitle="Pago"
-                                    active={Boolean(selectedSlot)}
-                                    complete={false}
-                                    disabled={!selectedSlot}
-                                    onClick={() => scrollToBookingStep('datos')}
-                                />
-                            </div>
 
                             <div className="space-y-4">
                                 <section
@@ -695,9 +713,9 @@ export function BookingWidget({
                                     id="booking-step-fecha"
                                     className={cn(
                                         'scroll-mt-4 space-y-3 rounded-2xl border bg-muted/40 p-3 transition-shadow sm:space-y-4 sm:p-4',
-                                        !selectedDate
-                                            ? 'border-primary/50 ring-2 ring-primary'
-                                            : 'border-primary/40',
+                                        !selectedDateKey
+                                            ? bookingStepActiveSectionClasses
+                                            : bookingStepCompleteSectionClasses,
                                     )}
                                 >
                                     <div>
@@ -716,40 +734,36 @@ export function BookingWidget({
                                         </p>
                                     </div>
                                     <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 sm:gap-3">
-                                        {availableDates.slice(0, 12).map((date) => {
-                                            const key = format(date, 'yyyy-MM-dd');
-                                            const isSelected =
-                                                selectedDate !== undefined &&
-                                                format(selectedDate, 'yyyy-MM-dd') === key;
+                                        {availableDateKeys.slice(0, 12).map((dateKey) => {
+                                            const date = parseSlotDate(dateKey);
+                                            const isSelected = selectedDateKey === dateKey;
                                             const isSuggested =
-                                                !isSelected &&
-                                                suggestedDate !== undefined &&
-                                                format(suggestedDate, 'yyyy-MM-dd') === key;
+                                                !selectedDateKey && suggestedDateKey === dateKey;
 
                                             return (
                                                 <DateOption
-                                                    key={key}
+                                                    key={dateKey}
                                                     date={date}
                                                     selected={isSelected}
                                                     suggested={isSuggested}
                                                     compact
-                                                    onClick={() => handleModalDateSelect(date)}
+                                                    onClick={() => handleModalDateSelect(dateKey)}
                                                 />
                                             );
                                         })}
                                     </div>
                                 </section>
 
-                                {selectedDate && (
+                                {selectedDateKey && selectedDate && (
                                     <section
                                         ref={timeSectionRef}
                                         id="booking-step-horario"
                                         className={cn(
                                             'scroll-mt-4 space-y-4 rounded-2xl border bg-muted/40 p-4 transition-shadow',
-                                            Boolean(selectedDate) && !selectedSlotId
-                                                ? 'border-primary/50 ring-2 ring-primary'
+                                            Boolean(selectedDateKey) && !selectedSlotId
+                                                ? bookingStepActiveSectionClasses
                                                 : selectedSlotId
-                                                  ? 'border-primary/40'
+                                                  ? bookingStepCompleteSectionClasses
                                                   : 'border-border/70',
                                         )}
                                     >
@@ -781,13 +795,13 @@ export function BookingWidget({
                                                         <Button
                                                             key={slot.id}
                                                             type="button"
-                                                            variant={isSelected ? 'cinematic' : 'outline'}
+                                                            variant="outline"
                                                             size="lg"
                                                             aria-pressed={isSelected}
                                                             className={cn(
                                                                 'h-12 justify-between rounded-xl px-4 text-base transition-all',
                                                                 isSelected
-                                                                    ? 'border-primary bg-primary text-primary-foreground shadow-[0_0_24px_oklch(0.78_0.14_75/0.28)] ring-2 ring-primary ring-offset-2 ring-offset-background'
+                                                                    ? bookingSlotSelectedClasses
                                                                     : 'border-border/70 bg-secondary/80 text-foreground opacity-90 hover:border-primary/40 hover:bg-muted hover:opacity-100',
                                                             )}
                                                             onClick={() => handleSlotSelect(slot)}
@@ -805,7 +819,7 @@ export function BookingWidget({
                                                                 className={cn(
                                                                     'text-xs font-semibold uppercase tracking-[0.12em]',
                                                                     isSelected
-                                                                        ? 'text-primary-foreground'
+                                                                        ? 'text-white/90'
                                                                         : 'text-muted-foreground',
                                                                 )}
                                                             >
@@ -826,7 +840,7 @@ export function BookingWidget({
                                         className={cn(
                                             'scroll-mt-4 rounded-2xl border bg-muted/40 p-4 transition-shadow',
                                             showForm
-                                                ? 'border-primary/50 ring-2 ring-primary'
+                                                ? bookingStepActiveSectionClasses
                                                 : 'border-border/70',
                                         )}
                                     >
@@ -851,6 +865,7 @@ export function BookingWidget({
                                             fixedPaymentProvider={
                                                 paymentProvider === 'stripe' ? 'stripe' : undefined
                                             }
+                                            trustBody={trustContent.body}
                                         />
                                     </section>
                                 )}
@@ -889,6 +904,7 @@ function BookingForm({
     stripeConfigured,
     mercadopagoConfigured,
     fixedPaymentProvider,
+    trustBody,
 }: {
     data: {
         booking_slot_id: string | number;
@@ -914,6 +930,7 @@ function BookingForm({
     stripeConfigured: boolean;
     mercadopagoConfigured: boolean;
     fixedPaymentProvider?: 'stripe';
+    trustBody?: string;
 }) {
     return (
         <div className={cn(glassCardVariants({ elevated: true }), 'space-y-6 border p-5 md:p-6')}>
@@ -931,7 +948,7 @@ function BookingForm({
                                     ? 'Completa para confirmar tu reserva de prueba'
                                     : 'Completa y paga para confirmar'}
                             </h3>
-                            <p className="text-sm font-medium text-primary">
+                            <p className="text-sm font-bold text-foreground">
                                 {format(parseISO(selectedSlot.date), 'd MMM yyyy', { locale: es })} ·{' '}
                                 {selectedSlot.time_label}
                             </p>
@@ -941,16 +958,6 @@ function BookingForm({
                             Cambiar
                         </Button>
                     </div>
-
-                    {isTestMode && (
-                        <div className="flex items-start gap-3 rounded-2xl border border-primary/20 bg-primary/10 px-4 py-3 text-sm text-primary">
-                            <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0" />
-                            <p>
-                                Modo prueba activo. Esta reserva no genera cobro real y se confirmara
-                                directamente para validacion del flujo.
-                            </p>
-                        </div>
-                    )}
 
                     {Object.keys(errors).length > 0 && (
                         <Alert variant="destructive">
@@ -1018,7 +1025,7 @@ function BookingForm({
                             />
                         )}
                         {!isTestMode && fixedPaymentProvider === 'stripe' && (
-                            <div className="rounded-2xl border border-primary/20 bg-primary/10 px-4 py-3 text-sm">
+                            <div className={cn(bookingCheckoutPanelClasses, 'px-4 py-3 text-sm')}>
                                 <p className="font-semibold text-foreground">Pago con tarjeta</p>
                                 <p className="mt-1 text-muted-foreground">
                                     El cobro se completa en Stripe al confirmar esta reserva.
@@ -1030,23 +1037,22 @@ function BookingForm({
                             price={price}
                             selectedDate={selectedDate}
                             selectedSlot={selectedSlot}
-                            isTestMode={isTestMode}
                             product={product}
                         />
 
-                        <div className="rounded-2xl border border-border/70 bg-secondary p-4">
+                        <div className={cn(bookingCheckoutPanelClasses, 'p-4')}>
                             <label className="flex items-start gap-3 text-sm leading-relaxed">
                                 <Checkbox
                                     checked={data.terms_accepted}
                                     onCheckedChange={(checked) => setData('terms_accepted', checked === true)}
-                                    className="mt-0.5"
+                                    className={cn('mt-0.5', bookingCheckboxSelectedClasses)}
                                     required
                                 />
                                 <span className="text-muted-foreground">
                                     Acepto los{' '}
                                     <button
                                         type="button"
-                                        className="font-semibold text-primary underline-offset-4 hover:underline"
+                                        className={bookingCheckoutLinkClasses}
                                         onClick={openTerms}
                                     >
                                         términos y condiciones
@@ -1059,23 +1065,31 @@ function BookingForm({
                             )}
                         </div>
 
-                        <BookingCtaButton
+                        {!isTestMode && fixedPaymentProvider === 'stripe' && trustBody ? (
+                            <p className={cn(bookingCheckoutPanelClasses, 'px-4 py-3 text-sm text-muted-foreground lg:hidden')}>
+                                {trustBody}
+                            </p>
+                        ) : null}
+
+                        <Button
                             type="submit"
-                            className="w-full"
-                            size="lg"
+                            variant="ghost"
+                            className={bookingConfirmButtonClasses}
                             disabled={processing || !data.terms_accepted}
                         >
-                            {processing
-                                ? 'Procesando...'
-                                : isTestMode
-                                  ? 'Confirmar reserva de prueba'
-                                  : `Pagar ${formatMxn(price)}`}
-                        </BookingCtaButton>
-                        <p className="text-center text-xs text-muted-foreground">
-                            {isTestMode
-                                ? 'Se confirmara sin cobro real y podras validar admin, correo y portal.'
-                                : product.paymentCopy}
-                        </p>
+                            {processing ? (
+                                'Redirigiendo a pago seguro…'
+                            ) : (
+                                <>
+                                    {!isTestMode ? (
+                                        <ShieldCheck className="h-5 w-5 shrink-0" aria-hidden />
+                                    ) : null}
+                                    {isTestMode
+                                        ? 'Confirmar reserva de prueba'
+                                        : `Pagar ${formatMxn(price)}`}
+                                </>
+                            )}
+                        </Button>
                     </form>
                 </div>
     );
@@ -1093,95 +1107,6 @@ function BookingHeader({ isTestMode, product }: { isTestMode: boolean; product: 
             <p className="mx-auto max-w-2xl text-sm text-muted-foreground md:text-base">
                 {product.headerDescription}{' '}
                 {isTestMode ? '· confirmacion sin cobro real en este entorno.' : '· pago seguro al confirmar.'}
-            </p>
-        </div>
-    );
-}
-
-function TrustChip({
-    icon,
-    title,
-    copy,
-}: {
-    icon: ReactNode;
-    title: string;
-    copy: string;
-}) {
-    return (
-        <div className="rounded-2xl border border-border/70 bg-secondary p-3">
-            <div className="flex items-center gap-2 text-primary">
-                {icon}
-                <p className="text-xs font-semibold uppercase tracking-[0.2em]">{title}</p>
-            </div>
-            <p className="mt-2 text-sm text-muted-foreground">{copy}</p>
-        </div>
-    );
-}
-
-function WizardStep({
-    index,
-    title,
-    shortTitle,
-    active,
-    complete,
-    disabled = false,
-    onClick,
-}: {
-    index: string;
-    title: string;
-    shortTitle?: string;
-    active: boolean;
-    complete: boolean;
-    disabled?: boolean;
-    onClick?: () => void;
-}) {
-    const displayTitle = shortTitle ?? title;
-    const statusLabel = complete ? 'Listo' : active ? 'En curso' : 'Pendiente';
-    const isInteractive = Boolean(onClick) && !disabled;
-
-    return (
-        <div
-            role={isInteractive ? 'button' : undefined}
-            tabIndex={isInteractive ? 0 : undefined}
-            onClick={isInteractive ? onClick : undefined}
-            onKeyDown={
-                isInteractive
-                    ? (event) => {
-                          if (event.key === 'Enter' || event.key === ' ') {
-                              event.preventDefault();
-                              onClick?.();
-                          }
-                      }
-                    : undefined
-            }
-            className={cn(
-                'min-w-0 rounded-xl border px-2 py-2 sm:rounded-2xl sm:px-3 sm:py-2.5 md:px-4 md:py-3',
-                complete && 'border-primary/45 bg-primary/15',
-                active && !complete && 'border-primary ring-2 ring-primary bg-primary/10',
-                !active && !complete && 'border-border/70 bg-secondary',
-                isInteractive &&
-                    'cursor-pointer transition hover:border-primary/40 hover:bg-primary/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2',
-                disabled && 'cursor-not-allowed opacity-50',
-            )}
-        >
-            <div className="flex items-center justify-between gap-1">
-                <p className="truncate text-[9px] font-semibold uppercase tracking-[0.16em] text-muted-foreground sm:text-[10px] sm:tracking-[0.2em]">
-                    {index}
-                </p>
-                {complete && <Check className="h-3.5 w-3.5 shrink-0 text-primary" aria-hidden />}
-            </div>
-            <p className="mt-0.5 truncate text-xs font-semibold text-foreground sm:mt-1 sm:text-sm md:text-base">
-                <span className="sm:hidden">{displayTitle}</span>
-                <span className="hidden sm:inline">{title}</span>
-            </p>
-            <p
-                className={cn(
-                    'mt-0.5 truncate text-[10px] sm:text-xs',
-                    complete ? 'text-primary' : 'text-muted-foreground',
-                )}
-                title={statusLabel}
-            >
-                {statusLabel}
             </p>
         </div>
     );
@@ -1207,43 +1132,52 @@ function DateOption({
             aria-pressed={selected}
             className={cn(
                 'flex w-full flex-col rounded-2xl border-2 text-left transition duration-200',
-                compact ? 'min-h-[5.75rem] p-2.5 sm:min-h-[7.5rem] sm:p-4' : 'min-h-[7.5rem] p-3.5 sm:p-4',
-                'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background',
+                compact ? 'min-h-[6.75rem] p-3 sm:min-h-[7.5rem] sm:p-4' : 'min-h-[7.5rem] p-3.5 sm:p-4',
+                'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-2 focus-visible:ring-offset-background',
                 'active:scale-[0.98]',
                 selected
-                    ? 'border-primary bg-primary text-primary-foreground shadow-[0_0_40px_oklch(0.78_0.14_75/0.32)] ring-2 ring-primary/50 ring-offset-2 ring-offset-background'
+                    ? bookingOptionSelectedClasses
                     : suggested
-                      ? 'border-primary/55 border-dashed bg-primary/12 text-foreground hover:border-primary hover:bg-primary/18'
-                      : 'border-border/70 bg-secondary hover:border-primary/45 hover:bg-muted',
+                      ? bookingOptionSuggestedClasses
+                      : 'border-border/70 bg-secondary hover:border-emerald-500/40 hover:bg-muted',
             )}
         >
-            <div className="flex min-h-[1.375rem] items-start justify-between gap-2">
+            <div className="flex items-start justify-between gap-1.5">
                 <span
                     className={cn(
-                        'truncate text-[11px] font-semibold uppercase tracking-[0.14em] sm:text-xs sm:tracking-[0.18em]',
-                        selected ? 'text-primary-foreground/80' : suggested ? 'text-primary' : 'text-muted-foreground',
+                        'min-w-0 flex-1 text-[10px] font-semibold uppercase leading-snug tracking-[0.06em] sm:text-[11px]',
+                        selected
+                            ? bookingOptionSelectedDayClasses
+                            : suggested
+                              ? bookingOptionSuggestedLabelClasses
+                              : 'text-muted-foreground',
                     )}
                 >
-                    {format(date, 'EEE', { locale: es })}
+                    {format(date, 'EEEE', { locale: es })}
                 </span>
-                {selected && (
+                {selected ? (
                     <span
                         aria-label="Fecha seleccionada"
-                        className="inline-flex shrink-0 items-center gap-1 rounded-full border border-primary-foreground/30 bg-primary-foreground/15 px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-[0.08em] text-primary-foreground sm:px-2 sm:text-[10px]"
+                        className="inline-flex shrink-0 items-center gap-1 rounded-full bg-white/20 px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-[0.08em] text-white sm:px-2 sm:text-[10px]"
                     >
                         <Check className="h-3 w-3" aria-hidden />
-                        Elegido
+                        <span className="hidden min-[380px]:inline">Elegido</span>
                     </span>
-                )}
-                {suggested && !selected && (
-                    <span className="shrink-0 rounded-full border border-primary/35 bg-primary/15 px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-[0.1em] text-primary sm:px-2 sm:text-[10px]">
+                ) : null}
+                {suggested && !selected ? (
+                    <span
+                        className={cn(
+                            'shrink-0 rounded-full border px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-[0.08em] sm:px-2 sm:text-[10px]',
+                            bookingOptionSuggestedBadgeClasses,
+                        )}
+                    >
                         Sugerido
                     </span>
-                )}
+                ) : null}
             </div>
             <span
                 className={cn(
-                    'mt-2 block font-mono-tabular font-bold leading-none sm:mt-3.5',
+                    'mt-1.5 block font-mono-tabular font-bold leading-none sm:mt-2',
                     compact ? 'text-2xl sm:text-3xl' : 'text-[2rem] sm:text-3xl md:text-4xl',
                 )}
             >
@@ -1251,8 +1185,8 @@ function DateOption({
             </span>
             <span
                 className={cn(
-                    'mt-auto block pt-1 text-xs capitalize leading-snug sm:pt-2 sm:text-sm',
-                    selected ? 'text-primary-foreground/85' : 'text-muted-foreground',
+                    'mt-auto block pt-1 text-xs capitalize leading-snug sm:pt-1.5 sm:text-sm',
+                    selected ? bookingOptionSelectedMonthClasses : 'text-muted-foreground',
                 )}
             >
                 {format(date, 'MMMM', { locale: es })}
@@ -1265,13 +1199,11 @@ function BookingCheckoutSummary({
     price,
     selectedDate,
     selectedSlot,
-    isTestMode,
     product,
 }: {
     price: number;
     selectedDate?: Date;
     selectedSlot: BookingSlot;
-    isTestMode: boolean;
     product: BookingWidgetProduct;
 }) {
     return (
@@ -1281,12 +1213,25 @@ function BookingCheckoutSummary({
                     Resumen de tu reserva
                 </p>
                 <p className="mt-1 font-display text-lg font-bold">{product.summaryTitle}</p>
-                <p className="mt-1 text-xs text-muted-foreground">{product.summaryDescription}</p>
+                {product.summaryDescriptionLines?.length ? (
+                    <ul className="mt-2 space-y-1.5 text-xs leading-relaxed text-muted-foreground">
+                        {product.summaryDescriptionLines.map((line) => (
+                            <li key={line} className="flex gap-2">
+                                <span className="mt-0.5 shrink-0 text-muted-foreground/50" aria-hidden>
+                                    ·
+                                </span>
+                                <span>{line}</span>
+                            </li>
+                        ))}
+                    </ul>
+                ) : (
+                    <p className="mt-1 text-xs text-muted-foreground">{product.summaryDescription}</p>
+                )}
             </div>
 
-            <div className="space-y-2 rounded-2xl border border-border/70 bg-secondary/80 p-4">
+            <div className={cn(bookingCheckoutPanelClasses, 'space-y-2 p-4')}>
                 <CartRow label="Servicio" value={product.cartService} />
-                <CartRow label="Duración" value={product.cartDuration} />
+                <CartRow label="Duración de la sesión" value={product.cartDuration} />
                 <CartRow
                     label="Fecha"
                     value={
@@ -1296,18 +1241,12 @@ function BookingCheckoutSummary({
                     }
                 />
                 <CartRow label="Horario" value={selectedSlot.time_label} />
-            </div>
-
-            <div className="rounded-2xl border border-primary/20 bg-primary/10 p-4">
-                <div className="flex items-center justify-between gap-3">
-                    <span className="text-sm font-medium text-muted-foreground">Total</span>
-                    <span className="font-mono-tabular text-2xl font-bold text-foreground md:text-3xl">
+                <div className="flex items-center justify-between gap-3 border-t border-border/70 pt-3">
+                    <span className="text-sm font-semibold text-foreground">Total</span>
+                    <span className="font-mono-tabular text-2xl font-bold text-emerald-700 dark:text-emerald-400 md:text-3xl">
                         {formatMxn(price)}
                     </span>
                 </div>
-                <p className="mt-2 text-xs text-muted-foreground">
-                    {isTestMode ? 'Modo prueba activo: no se cobra.' : 'Pago seguro al confirmar.'}
-                </p>
             </div>
         </div>
     );

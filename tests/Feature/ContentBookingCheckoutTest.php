@@ -50,7 +50,7 @@ class ContentBookingCheckoutTest extends TestCase
     public function test_home_includes_agenda_section(): void
     {
         SiteSetting::query()->create([
-            'booking_price' => 3000,
+            'booking_price' => 4000,
             'booking_title' => 'Sesión Test',
         ]);
 
@@ -63,6 +63,7 @@ class ContentBookingCheckoutTest extends TestCase
                 ->where('title', 'Sesión Test')
                 ->has('slots', 1)
                 ->has('heroProofVideo')
+                ->has('landingVideos.offer.src')
             );
     }
 
@@ -91,10 +92,11 @@ class ContentBookingCheckoutTest extends TestCase
             ->assertSessionHasErrors('booking_slot_id');
     }
 
-    public function test_checkout_with_mercadopago_redirects_to_preference(): void
+    public function test_checkout_defaults_to_stripe_for_home_booking(): void
     {
         config([
             'mercadopago.access_token' => 'TEST-token',
+            'stripe.secret_key' => 'sk_test_fake',
             'booking.skip_payment_hosts' => [],
             'booking.skip_payment_host_suffixes' => [],
         ]);
@@ -104,6 +106,10 @@ class ContentBookingCheckoutTest extends TestCase
                 'id' => 'pref_test_123',
                 'init_point' => 'https://www.mercadopago.com.mx/checkout/v1/redirect?pref_id=pref_test_123',
             ], 201),
+            'https://api.stripe.com/v1/checkout/sessions' => Http::response([
+                'id' => 'cs_test_123',
+                'url' => 'https://checkout.stripe.com/pay/cs_test_123',
+            ], 200),
         ]);
 
         $slot = $this->createAvailableSlot();
@@ -112,13 +118,13 @@ class ContentBookingCheckoutTest extends TestCase
             'payment_provider' => 'mercadopago',
         ]));
 
-        $response->assertRedirect('https://www.mercadopago.com.mx/checkout/v1/redirect?pref_id=pref_test_123');
+        $response->assertRedirect('https://checkout.stripe.com/pay/cs_test_123');
 
         $booking = ContentBooking::first();
         $this->assertNotNull($booking);
-        $this->assertSame('mercadopago', $booking->payment_provider);
-        $this->assertSame('pref_test_123', $booking->mercadopago_preference_id);
-        $this->assertSame(3000, $booking->amount);
+        $this->assertSame('stripe', $booking->payment_provider);
+        $this->assertSame('cs_test_123', $booking->stripe_checkout_session_id);
+        $this->assertSame(4000, $booking->amount);
         $this->assertSame('cliente@example.com', $booking->client_email);
         $this->assertNotNull($booking->customer_id);
         $this->assertDatabaseHas('customers', [

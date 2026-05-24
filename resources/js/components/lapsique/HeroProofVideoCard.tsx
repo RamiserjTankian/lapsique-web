@@ -1,3 +1,4 @@
+import { ReelLoopCard } from '@/components/lapsique/ReelLoopCard';
 import type { HeroProofVideoData } from '@/types';
 
 interface HeroProofVideoCardProps {
@@ -7,45 +8,44 @@ interface HeroProofVideoCardProps {
 }
 
 export function HeroProofVideoCard({ video, className = '', eager = false }: HeroProofVideoCardProps) {
-    const isPlayable = video.media_type === 'youtube' || video.media_type === 'video';
+    const isLocalVideo = video.media_type === 'video' && Boolean(video.playback_url);
+    const isYoutube = video.media_type === 'youtube' && Boolean(video.embed_url);
+    const aspectClass = isYoutube ? 'aspect-video' : 'aspect-[9/16]';
 
     return (
         <figure
-            className={`group relative min-h-[180px] overflow-hidden rounded-xl border border-border/70 bg-black ${className}`}
+            className={`group relative w-full overflow-hidden rounded-xl border border-border/70 bg-black ${aspectClass} ${className}`}
         >
-            {video.media_type === 'youtube' && video.embed_url ? (
+            {isLocalVideo && video.playback_url ? (
+                <ReelLoopCard
+                    src={video.playback_url}
+                    poster={video.poster_url}
+                    title="Video de portafolio"
+                    bookingSource="hero_proof_reel"
+                    articleClassName="absolute inset-0 h-full w-full rounded-none border-0"
+                    fillContainer
+                    eager={eager}
+                    pauseWhenOffscreen={!eager}
+                />
+            ) : isYoutube && video.embed_url ? (
                 <iframe
-                    title={video.title ?? 'Video de portafolio'}
+                    title="Video de portafolio"
                     src={video.embed_url}
-                    className="absolute inset-0 h-full w-full object-cover"
+                    className="absolute inset-0 h-full w-full"
                     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
                     loading={eager ? 'eager' : 'lazy'}
-                />
-            ) : video.media_type === 'video' && video.playback_url ? (
-                <video
-                    src={video.playback_url}
-                    poster={video.poster_url ?? undefined}
-                    className="absolute inset-0 h-full w-full object-cover"
-                    autoPlay
-                    loop
-                    muted
-                    playsInline
-                    preload={eager ? 'auto' : 'metadata'}
                 />
             ) : video.poster_url ? (
                 <img
                     src={video.poster_url}
-                    alt={video.title ?? 'Portafolio visual de Lapsique'}
-                    className="absolute inset-0 h-full w-full object-cover transition duration-700 group-hover:scale-[1.03]"
+                    alt="Portafolio visual de Lapsique"
+                    className="absolute inset-0 h-full w-full object-cover object-center transition duration-700 group-hover:scale-[1.03]"
                     loading={eager ? 'eager' : 'lazy'}
                 />
             ) : null}
-            <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/78 via-black/12 to-transparent" />
-            {video.title && (
-                <figcaption className="absolute inset-x-0 bottom-0 p-3 text-xs font-semibold text-white">
-                    {video.title}
-                </figcaption>
-            )}
+            {!isLocalVideo ? (
+                <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/78 via-black/12 to-transparent" />
+            ) : null}
         </figure>
     );
 }

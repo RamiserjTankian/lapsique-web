@@ -36,6 +36,8 @@
     --color-border: var(--border);
     --color-input: var(--input);
     --color-ring: var(--ring);
+    --color-selection: var(--selection);
+    --color-selection-foreground: var(--selection-foreground);
 
     --animate-sticky-price-glow: sticky-price-glow 2.8s ease-in-out infinite;
     --animate-booking-cta-glow: booking-cta-glow 2.6s ease-in-out infinite;
@@ -64,6 +66,9 @@
     --border: oklch(0.2 0.02 260 / 0.12);
     --input: oklch(0.2 0.02 260 / 0.1);
     --ring: oklch(0.72 0.14 75 / 0.45);
+    --selection: oklch(0.52 0.16 150);
+    --selection-foreground: oklch(0.99 0.01 150);
+    --selection-glow: oklch(0.52 0.16 150 / 0.35);
 
     --scrollbar-thumb: oklch(0.55 0.06 260 / 0.45);
     --scrollbar-thumb-hover: oklch(0.45 0.06 260 / 0.65);
@@ -118,6 +123,9 @@
     --border: oklch(1 0 0 / 0.12);
     --input: oklch(1 0 0 / 0.1);
     --ring: oklch(0.78 0.14 75 / 0.4);
+    --selection: oklch(0.58 0.17 150);
+    --selection-foreground: oklch(0.98 0.01 150);
+    --selection-glow: oklch(0.58 0.17 150 / 0.38);
 
     --scrollbar-thumb: oklch(0.78 0.14 75 / 0.35);
     --scrollbar-thumb-hover: oklch(0.78 0.14 75 / 0.55);

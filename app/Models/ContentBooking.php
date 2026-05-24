@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Support\ContentSessionOffer;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -188,14 +189,14 @@ class ContentBooking extends Model implements HasMedia
     {
         return $this->isDjSet()
             ? 'Video final de 1 hora con 3 cámaras fijas + dron'
-            : '1 reel editado + 10 fotografías editadas';
+            : ContentSessionOffer::description();
     }
 
     public function getServiceStripeNameAttribute(): string
     {
         return $this->isDjSet()
             ? 'Grabación de DJ Set — 3 cámaras fijas + dron'
-            : 'Sesión de Contenido — 1 Reel + 10 Fotos';
+            : ContentSessionOffer::stripeProductName();
     }
 
     public function getServiceCalendarSummaryAttribute(): string

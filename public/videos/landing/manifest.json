@@ -1,0 +1,120 @@
+{
+    "version": 2,
+    "generated_at": "2026-05-24T01:36:41+00:00",
+    "hero": {
+        "id": "hero",
+        "src": "/videos/landing/hero.mp4",
+        "poster": "/videos/landing/hero.jpg",
+        "title": "Vatos Locos \u2014 aftermovie"
+    },
+    "offer": {
+        "id": "offer",
+        "src": "/videos/landing/offer.mp4",
+        "poster": "/videos/landing/offer.jpg",
+        "title": null
+    },
+    "proof": {
+        "id": "proof",
+        "src": "/videos/landing/proof.mp4",
+        "poster": "/videos/landing/proof.jpg",
+        "title": "Rebolledo \u2014 aftermovie"
+    },
+    "pauta": {
+        "id": "pauta",
+        "src": "/videos/landing/pauta.mp4",
+        "poster": "/videos/landing/pauta.jpg",
+        "title": "Proper \u2014 Pergola"
+    },
+    "creative": [
+        {
+            "id": "creative-1",
+            "src": "/videos/landing/creative-1.mp4",
+            "poster": "/videos/landing/creative-1.jpg",
+            "title": "Nu Zao \u2014 drop"
+        },
+        {
+            "id": "creative-2",
+            "src": "/videos/landing/creative-2.mp4",
+            "poster": "/videos/landing/creative-2.jpg",
+            "title": "Nu Zao \u2014 energ\u00eda"
+        },
+        {
+            "id": "creative-3",
+            "src": "/videos/landing/creative-3.mp4",
+            "poster": "/videos/landing/creative-3.jpg",
+            "title": "Traumer \u2014 drop"
+        }
+    ],
+    "equipment": [
+        {
+            "id": "equipment-1",
+            "src": "/videos/landing/equipment-1.mp4",
+            "poster": "/videos/landing/equipment-1.jpg",
+            "title": "Satoshi \u2014 aftermovie"
+        },
+        {
+            "id": "equipment-2",
+            "src": "/videos/landing/equipment-2.mp4",
+            "poster": "/videos/landing/equipment-2.jpg",
+            "title": "Rebolledo \u2014 evento"
+        }
+    ],
+    "aftermovies": [
+        {
+            "id": "showcase-1",
+            "src": "/videos/landing/showcase-1.mp4",
+            "poster": "/videos/landing/showcase-1.jpg",
+            "title": "Vatos Locos"
+        },
+        {
+            "id": "showcase-2",
+            "src": "/videos/landing/showcase-2.mp4",
+            "poster": "/videos/landing/showcase-2.jpg",
+            "title": "Rebolledo"
+        },
+        {
+            "id": "showcase-3",
+            "src": "/videos/landing/showcase-3.mp4",
+            "poster": "/videos/landing/showcase-3.jpg",
+            "title": null
+        },
+        {
+            "id": "showcase-4",
+            "src": "/videos/landing/showcase-4.mp4",
+            "poster": "/videos/landing/showcase-4.jpg",
+            "title": "Bioevolution"
+        }
+    ],
+    "floats": [
+        {
+            "id": "float-1",
+            "src": "/videos/landing/float-1.mp4",
+            "poster": "/videos/landing/float-1.jpg",
+            "title": "Nu Zao"
+        },
+        {
+            "id": "float-2",
+            "src": "/videos/landing/float-2.mp4",
+            "poster": "/videos/landing/float-2.jpg",
+            "title": "Traumer"
+        }
+    ],
+    "package": {
+        "id": "package",
+        "src": "/videos/landing/package.mp4",
+        "poster": "/videos/landing/package.jpg",
+        "title": "Satoshi Tomiie"
+    },
+    "gear": {
+        "id": "gear",
+        "src": "/videos/landing/gear.mp4",
+        "poster": "/videos/landing/gear.jpg",
+        "title": "Bioevolution"
+    },
+    "meta": {
+        "id": "meta-card",
+        "src": "/videos/landing/meta-card.mp4",
+        "poster": "/videos/landing/meta-card.jpg",
+        "title": "Traumer \u2014 pista"
+    }
+}

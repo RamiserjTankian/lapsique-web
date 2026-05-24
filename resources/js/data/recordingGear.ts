@@ -17,9 +17,9 @@ export const RECORDING_GEAR_GROUPS: RecordingGearGroup[] = [
         label: 'Aéreo',
         items: [
             {
-                quantity: 1,
-                name: 'DJI Air 3',
-                spec: 'Dron 4K · doble sensor · cobertura aérea en set',
+                quantity: 3,
+                name: 'Tomas aéreas DJI',
+                spec: 'Dron DJI Air 3 · 3 planos incluidos en tu reel',
             },
         ],
     },

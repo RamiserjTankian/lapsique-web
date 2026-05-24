@@ -31,6 +31,10 @@ class BookingLandingOverviewWidget extends BaseWidget
                 ->description(number_format((int) $stats['unique_visitors']) . ' visitantes únicos')
                 ->descriptionIcon('heroicon-m-users')
                 ->color('primary'),
+            Stat::make('Reels interactuados', number_format((int) ($stats['reel_engaged'] ?? 0)))
+                ->description(number_format((int) ($stats['reel_watch'] ?? 0)) . ' con progreso de video')
+                ->descriptionIcon('heroicon-m-play')
+                ->color('info'),
             Stat::make('Popup visto', number_format((int) $stats['popup_shown']))
                 ->description(number_format((float) $stats['popup_rate'], 2) . '% de sesiones')
                 ->descriptionIcon('heroicon-m-chat-bubble-left-right')

@@ -22,6 +22,13 @@ class HomeHeroProofVideos
      */
     public static function resolve(?SiteSetting $settings, Collection $portfolioItems): array
     {
+        $landing = LandingPageVideos::forHome();
+        $landingProof = LandingPageVideos::toHeroProofVideo($landing['proof'] ?? null);
+
+        if ($landingProof !== null) {
+            return [$landingProof];
+        }
+
         if ($settings) {
             $slot = $settings->homeHeroProofSlot();
 

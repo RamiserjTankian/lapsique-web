@@ -8,7 +8,7 @@ import {
     setActiveFunnelModal,
 } from '@/lib/funnelModalEvents';
 
-const NEWSLETTER_DELAY_MS = 30_000;
+const NEWSLETTER_DELAY_MS = 45_000;
 const NEWSLETTER_SCROLL_THRESHOLD = 50;
 const NEWSLETTER_SCROLL_DELAY_MS = 1_000;
 const BOOKING_CONFLICT_DELAY_MS = 30_000;
@@ -148,6 +148,12 @@ export function useNewsletterPopupTrigger({
 
     useEffect(() => {
         if (!enabled || skipIfLoggedIn) {
+            return;
+        }
+
+        const params = new URLSearchParams(window.location.search);
+
+        if (params.get('book') === '1') {
             return;
         }
 

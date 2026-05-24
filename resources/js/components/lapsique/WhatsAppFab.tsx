@@ -2,6 +2,9 @@ import { useEffect, useMemo, useState } from 'react';
 import { usePage } from '@inertiajs/react';
 import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
 import { MessageCircle, X } from 'lucide-react';
+import { REEL_PLAYER_STATE_EVENT } from '@/hooks/useReelPlayerModal';
+import { FUNNEL_MODAL_STATE_EVENT, getActiveFunnelModal } from '@/lib/funnelModalEvents';
+import { useIsMobileViewport } from '@/hooks/useMediaQuery';
 import { useTypingCycle } from '@/hooks/useTypingCycle';
 import { cn } from '@/lib/utils';
 import type { PageProps } from '@/types';
@@ -19,10 +22,25 @@ const DEFAULT_WHATSAPP_TEXT = 'Hola, me interesa lapsique.media';
 
 export function WhatsAppFab() {
     const { site } = usePage<PageProps>().props;
+    const { url } = usePage<PageProps>();
     const number = site.whatsapp;
     const prefersReducedMotion = useReducedMotion();
     const [isPromptVisible, setIsPromptVisible] = useState(false);
     const [isDismissed, setIsDismissed] = useState(false);
+    const isMobile = useIsMobileViewport();
+    const [bookingModalOpen, setBookingModalOpen] = useState(getActiveFunnelModal() === 'booking');
+    const [reelPlayerOpen, setReelPlayerOpen] = useState(false);
+    const isHomePage = useMemo(() => {
+        if (typeof url !== 'string' || url === '') {
+            return false;
+        }
+
+        try {
+            return new URL(url, window.location.origin).pathname === '/';
+        } catch {
+            return false;
+        }
+    }, [url]);
 
     const href = useMemo(() => {
         if (!number) {
@@ -56,7 +74,27 @@ export function WhatsAppFab() {
     }, [number]);
 
     useEffect(() => {
-        if (!number || isDismissed) {
+        const onModalState = (event: Event) => {
+            const type = (event as CustomEvent<{ type: string | null }>).detail?.type;
+            setBookingModalOpen(type === 'booking');
+        };
+
+        const onReelPlayerState = (event: Event) => {
+            const open = (event as CustomEvent<{ open?: boolean }>).detail?.open;
+            setReelPlayerOpen(open === true);
+        };
+
+        window.addEventListener(FUNNEL_MODAL_STATE_EVENT, onModalState);
+        window.addEventListener(REEL_PLAYER_STATE_EVENT, onReelPlayerState);
+
+        return () => {
+            window.removeEventListener(FUNNEL_MODAL_STATE_EVENT, onModalState);
+            window.removeEventListener(REEL_PLAYER_STATE_EVENT, onReelPlayerState);
+        };
+    }, []);
+
+    useEffect(() => {
+        if (!number || isDismissed || bookingModalOpen) {
             return;
         }
 
@@ -65,7 +103,7 @@ export function WhatsAppFab() {
         }, 1800);
 
         return () => window.clearTimeout(showTimer);
-    }, [number, isDismissed]);
+    }, [number, isDismissed, bookingModalOpen]);
 
     const dismissPrompt = () => {
         setIsPromptVisible(false);
@@ -78,7 +116,7 @@ export function WhatsAppFab() {
         }
     };
 
-    if (!number) {
+    if (!number || bookingModalOpen || reelPlayerOpen || (isMobile && isHomePage)) {
         return null;
     }
 
@@ -99,7 +137,7 @@ export function WhatsAppFab() {
                         <button
                             type="button"
                             onClick={dismissPrompt}
-                            className="absolute -right-1 -top-1 z-10 flex h-7 w-7 items-center justify-center rounded-full border border-border/80 bg-background text-muted-foreground shadow-md transition hover:bg-secondary hover:text-foreground"
+                            className="absolute -right-1 -top-1 z-10 flex h-11 w-11 items-center justify-center rounded-full border border-border/80 bg-background text-muted-foreground shadow-md transition hover:bg-secondary hover:text-foreground"
                             aria-label="Cerrar mensaje de WhatsApp"
                         >
                             <X className="h-3.5 w-3.5" />

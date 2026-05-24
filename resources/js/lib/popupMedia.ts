@@ -106,8 +106,9 @@ export function getPopupVisualCopy(
               }
             : {
                   badge: 'Agenda tu sesión',
-                  title: 'Contenido premium que vende tu negocio',
-                  description: 'Reel editado, fotos y dirección en set con captura Sony full frame.',
+                  title: 'Reel de 30 s · cámara Sony + dron DJI',
+                  description:
+                      '3 tomas aéreas con dron DJI, reel de 30 s con cámara Sony y fotos con dirección en set.',
                   caption: 'Checkout seguro · entrega en días hábiles',
               };
     }

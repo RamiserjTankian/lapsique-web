@@ -1,0 +1,35 @@
+{
+    "version": 1,
+    "hero": {
+        "id": "hero",
+        "src": "/videos/landing/hero.mp4",
+        "poster": "/videos/landing/hero.jpg",
+        "title": "Test hero"
+    },
+    "offer": {
+        "id": "offer",
+        "src": "/videos/landing/offer.mp4",
+        "poster": null,
+        "title": "Test offer"
+    },
+    "proof": {
+        "id": "proof",
+        "src": "/videos/landing/proof.mp4",
+        "poster": null,
+        "title": "Test proof"
+    },
+    "pauta": {
+        "id": "pauta",
+        "src": "/videos/landing/pauta.mp4",
+        "poster": null,
+        "title": "Test pauta"
+    },
+    "creative": [
+        {
+            "id": "creative-1",
+            "src": "/videos/landing/creative-1.mp4",
+            "poster": null,
+            "title": "Creative 1"
+        }
+    ]
+}

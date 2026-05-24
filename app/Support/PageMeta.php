@@ -110,9 +110,9 @@ class PageMeta
 
     public static function forBookingFunnel(?SiteSetting $settings, string $canonicalUrl): PageMetaData
     {
-        $price = (int) ($settings?->booking_price ?? config('booking.content_price', 3000));
+        $price = (int) ($settings?->booking_price ?? config('booking.content_price', 4000));
         $subtitle = $settings?->booking_subtitle
-            ?: 'Reels y fotografías premium para negocios que necesitan vender con mejor presencia visual.';
+            ?: ContentSessionOffer::defaultSubtitle();
         $bookingTitle = $settings?->booking_title
             ?: 'Reels cinematográficos para negocios';
 
@@ -298,7 +298,7 @@ class PageMeta
     {
         return self::forSection(
             self::SITE_NAME,
-            'Sesiones de contenido premium: 1 reel editado + 10 fotografías editadas para elevar tu marca.',
+            'Sesiones de contenido premium: '.ContentSessionOffer::description().' para elevar tu marca.',
             $canonicalUrl,
             'sesión de contenido, producción audiovisual, reels, lapsique.media',
         );

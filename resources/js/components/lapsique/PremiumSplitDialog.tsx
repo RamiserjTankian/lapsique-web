@@ -68,11 +68,11 @@ export function PremiumSplitDialog({
                         />
                         <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(180deg,oklch(0.08_0.02_280/0.35)_0%,oklch(0.08_0.02_280/0.92)_100%)] lg:bg-[linear-gradient(90deg,oklch(0.08_0.02_280/0.2)_0%,oklch(0.08_0.02_280/0.75)_55%,oklch(0.08_0.02_280/0.92)_100%)]" />
                         <div className="grain-overlay pointer-events-none absolute inset-0 opacity-40" />
-                        <div className="relative flex h-full flex-col justify-center gap-1 p-2.5 pr-11 max-lg:py-2 sm:max-lg:p-3 sm:max-lg:pr-12 lg:justify-end lg:gap-0 lg:p-6 lg:pr-6">
-                            <span className="inline-flex w-fit rounded-full border border-primary/30 bg-primary/15 px-2 py-0.5 text-[8px] font-semibold uppercase tracking-[0.18em] text-primary backdrop-blur-sm max-lg:leading-none sm:max-lg:px-2.5 sm:max-lg:text-[9px] lg:px-3 lg:py-1 lg:text-[10px] lg:tracking-[0.24em]">
+                        <div className="relative hidden h-full flex-col justify-end gap-0 p-6 lg:flex">
+                            <span className="inline-flex w-fit rounded-full border border-primary/30 bg-primary/15 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.24em] text-primary backdrop-blur-sm">
                                 {badge}
                             </span>
-                            <p className="line-clamp-1 font-display text-sm font-bold leading-tight text-white drop-shadow-md max-lg:mt-0 sm:max-lg:line-clamp-2 sm:max-lg:text-base lg:mt-4 lg:line-clamp-none lg:text-3xl">
+                            <p className="mt-4 font-display text-3xl font-bold leading-tight text-white drop-shadow-md">
                                 {title}
                             </p>
                             <p className="mt-2 hidden max-w-sm text-sm leading-relaxed text-white/80 lg:block">

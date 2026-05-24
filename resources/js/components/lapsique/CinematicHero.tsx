@@ -6,6 +6,11 @@ import { HeroPortfolioFloat } from '@/components/lapsique/HeroPortfolioFloat';
 import { HeroTextAura } from '@/components/lapsique/HeroTextAura';
 import { SpecBadge } from '@/components/lapsique/SpecBadge';
 import { formatMxn } from '@/lib/utils';
+import {
+    CONTENT_DRONE_SHOTS,
+    CONTENT_PHOTOS_COUNT,
+    CONTENT_REEL_DURATION_SECONDS,
+} from '@/data/contentOffer';
 import { fadeUp } from '@/lib/motion';
 import { openBookingModal } from '@/lib/openBookingModal';
 import type { PortfolioItemData } from '@/types';
@@ -75,9 +80,9 @@ export function CinematicHero({
                 className="relative z-10 mt-10 flex flex-wrap justify-center gap-2"
             >
                 <SpecBadge highlight>Sony α7 · full frame</SpecBadge>
-                <SpecBadge>1 reel editado</SpecBadge>
-                <SpecBadge>10 fotos editadas</SpecBadge>
-                <SpecBadge>Entrega en 5 días hábiles</SpecBadge>
+                <SpecBadge>Reel {CONTENT_REEL_DURATION_SECONDS} s · Meta Ads</SpecBadge>
+                <SpecBadge>{CONTENT_DRONE_SHOTS} tomas dron DJI</SpecBadge>
+                <SpecBadge>{CONTENT_PHOTOS_COUNT} fotos editadas</SpecBadge>
             </motion.div>
 
             <motion.div variants={fadeUp} className="relative z-10 mt-8">

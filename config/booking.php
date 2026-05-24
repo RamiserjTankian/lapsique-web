@@ -10,7 +10,10 @@ return [
     ],
     'default_duration_minutes' => 120,
     'default_advance_hours' => 24,
-    'content_price' => 3000,
+    'content_price' => 4000,
+    'content_reel_duration_seconds' => 30,
+    'content_drone_shots' => 3,
+    'content_photos_count' => 10,
     'dj_set_price' => 12000,
 
     'skip_payment_hosts' => [

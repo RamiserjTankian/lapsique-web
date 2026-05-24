@@ -6,8 +6,8 @@ import {
     requestBookingAutoOpen,
 } from '@/lib/funnelModalEvents';
 
-const BOOKING_AUTO_DELAY_MS = 14_000;
-const BOOKING_SCROLL_THRESHOLD = 35;
+const BOOKING_AUTO_DELAY_MS = 22_000;
+const BOOKING_SCROLL_THRESHOLD = 50;
 
 export function useBookingPopupTrigger(enabled: boolean): void {
     const triggeredRef = useRef(false);

@@ -1,6 +1,7 @@
 import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { cn } from '@/lib/utils';
+import { bookingPaymentSelectedClasses } from '@/lib/bookingSelectionStyles';
 import { CreditCard } from 'lucide-react';
 
 interface PaymentMethodFieldProps {
@@ -33,7 +34,7 @@ export function PaymentMethodField({
                     <div
                         className={cn(
                             'flex items-center gap-3 rounded-lg border border-border/60 px-3 py-2.5 transition',
-                            value === 'mercadopago' && 'border-primary/40 bg-primary/5',
+                            value === 'mercadopago' && bookingPaymentSelectedClasses,
                         )}
                     >
                         <RadioGroupItem value="mercadopago" id="mp" />
@@ -49,7 +50,7 @@ export function PaymentMethodField({
                     <div
                         className={cn(
                             'flex items-center gap-3 rounded-lg border border-border/60 px-3 py-2.5 transition',
-                            value === 'stripe' && 'border-primary/40 bg-primary/5',
+                            value === 'stripe' && bookingPaymentSelectedClasses,
                         )}
                     >
                         <RadioGroupItem value="stripe" id="stripe" />

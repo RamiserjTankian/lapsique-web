@@ -49,6 +49,11 @@ export interface HeroProofVideoData {
     poster_url: string | null;
 }
 
+export interface HeroBackgroundImageData {
+    url: string;
+    alt: string | null;
+}
+
 export interface PortfolioItemData {
     id: number;
     title: string | null;
@@ -139,6 +144,37 @@ export interface ContentBookingData {
         date: string;
         time_label: string;
     } | null;
+}
+
+export interface LandingVideoEntry {
+    src: string;
+    poster: string | null;
+    title: string | null;
+}
+
+export interface LandingVideosProps {
+    hero: LandingVideoEntry | null;
+    offer: LandingVideoEntry | null;
+    proof: LandingVideoEntry | null;
+    pauta: LandingVideoEntry | null;
+    creative: LandingVideoEntry[];
+    equipment: LandingVideoEntry[];
+    aftermovies: LandingVideoEntry[];
+    floats: LandingVideoEntry[];
+    package: LandingVideoEntry | null;
+    gear: LandingVideoEntry | null;
+}
+
+export interface ReelLibraryEntry {
+    id: string;
+    src: string;
+    poster?: string | null;
+    title?: string;
+}
+
+export interface ReelLibraryStats {
+    totalSourceVideos: number;
+    uniqueVideos: number;
 }
 
 export interface SeoMeta {

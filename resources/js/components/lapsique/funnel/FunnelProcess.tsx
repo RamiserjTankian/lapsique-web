@@ -1,4 +1,5 @@
 import { GlassSection } from '@/components/lapsique/GlassSection';
+import { CONTENT_REEL_DURATION_SECONDS } from '@/data/contentOffer';
 import { useSectionEvent } from '@/hooks/useSectionEvent';
 import { cn } from '@/lib/utils';
 import { glassCardVariants } from '@/lib/variants';
@@ -12,12 +13,12 @@ const steps = [
     {
         step: '02',
         title: 'Dirigimos la sesión',
-        description: 'Definimos tomas, ritmo, locación y dirección visual para que no improvises frente a cámara.',
+        description: `Capturamos en tierra y desde el aire con dron DJI: dirección, ritmo y tomas pensadas para tu reel de ${CONTENT_REEL_DURATION_SECONDS} segundos con cámara Sony.`,
     },
     {
         step: '03',
         title: 'Recibes material listo para vender',
-        description: 'Entregamos reel y fotos editadas para lanzar campañas, alimentar contenido y reforzar tu marca.',
+        description: `Entregamos reel de ${CONTENT_REEL_DURATION_SECONDS} s con cámara Sony, tomas de dron DJI y fotos editadas listas para campañas y redes.`,
     },
 ];
 

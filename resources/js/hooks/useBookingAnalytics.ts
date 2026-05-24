@@ -26,8 +26,16 @@ const STANDARD_EVENTS: Record<string, string> = {
     proof_section_viewed: 'ViewContent',
     equipment_viewed: 'ViewContent',
     booking_widget_viewed: 'ViewContent',
+    gear_section_viewed: 'ViewContent',
+    workflow_section_viewed: 'ViewContent',
+    package_includes_viewed: 'ViewContent',
+    reel_card_clicked: 'ViewContent',
     hero_cta_clicked: 'Lead',
+    header_cta_clicked: 'Lead',
     sticky_cta_clicked: 'Lead',
+    booking_cta_clicked: 'Lead',
+    reel_overlay_cta_clicked: 'Lead',
+    reel_player_agendar_clicked: 'Lead',
     booking_date_selected: 'Schedule',
     booking_slot_selected: 'AddToCart',
     booking_form_started: 'Lead',
@@ -153,9 +161,18 @@ function normalizeMetaPayload(event: string, payload: Record<string, unknown>): 
     }
 
     if (event === 'ViewContent') {
+        const contentId =
+            typeof payload.src === 'string' ? payload.src.split('/').pop()?.split('?')[0] : undefined;
+
         return {
-            content_name: payload.content_name ?? payload.section ?? BOOKING_CONTENT.content_name,
+            content_name:
+                payload.section ??
+                payload.title ??
+                payload.content_name ??
+                BOOKING_CONTENT.content_name,
             content_category: payload.content_category ?? BOOKING_CONTENT.content_category,
+            content_ids: contentId ? [contentId] : undefined,
+            content_type: contentId ? 'video' : undefined,
         };
     }
 
