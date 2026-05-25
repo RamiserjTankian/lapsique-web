@@ -5,19 +5,20 @@ import SiteLayout from '@/layouts/SiteLayout';
 import { PortfolioGridItem } from '@/components/lapsique/PortfolioGridItem';
 import { PortfolioLightbox } from '@/components/lapsique/PortfolioLightbox';
 import { GlassSection } from '@/components/lapsique/GlassSection';
+import { PaginationLinks } from '@/components/lapsique/PaginationLinks';
 import { staggerContainer } from '@/lib/motion';
-import type { PortfolioItemData } from '@/types';
+import type { Paginated, PortfolioItemData } from '@/types';
 
 interface PortfolioIndexProps {
-    items: PortfolioItemData[];
-    featuredItem: PortfolioItemData | null;
+    items: Paginated<PortfolioItemData>;
     availableTags: string[];
 }
 
 export default function PortfolioIndex({ items }: PortfolioIndexProps) {
     const [activeIndex, setActiveIndex] = useState<number | null>(null);
 
-    const gridItems = useMemo(() => arrangePortfolioMosaic(items), [items]);
+    const pageItems = items?.data ?? [];
+    const gridItems = useMemo(() => arrangePortfolioMosaic(pageItems), [pageItems]);
 
     const openItem = (item: PortfolioItemData) => {
         const idx = gridItems.findIndex((i) => i.id === item.id);
@@ -51,6 +52,10 @@ export default function PortfolioIndex({ items }: PortfolioIndexProps) {
 
                 {gridItems.length === 0 && (
                     <p className="text-center text-muted-foreground">No hay proyectos disponibles.</p>
+                )}
+
+                {gridItems.length > 0 && (
+                    <PaginationLinks links={items?.links ?? []} />
                 )}
             </GlassSection>
 
