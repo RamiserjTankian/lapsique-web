@@ -28,7 +28,7 @@ import { BookingCtaSection } from '@/components/lapsique/BookingCtaSection';
 import { StickyBookingBar } from '@/components/lapsique/StickyBookingBar';
 import { trackBookingEvent } from '@/hooks/useBookingAnalytics';
 import { useSectionEvent } from '@/hooks/useSectionEvent';
-import { formatMxn } from '@/lib/utils';
+import { cn, formatMxn } from '@/lib/utils';
 import {
     CONTENT_DRONE_SHOTS,
     CONTENT_OFFER_SHORT,
@@ -151,7 +151,14 @@ export default function Home({
                 </div>
             </GlassSection>
 
-            <FeaturedReel video={landingVideos?.pauta ?? null} bookingSource="featured_reel_pauta" />
+            <FeaturedReel
+                videos={[
+                    landingVideos?.pauta ?? null,
+                    landingVideos?.package ?? landingVideos?.gear ?? null,
+                    landingVideos?.floats?.[0] ?? null,
+                ]}
+                bookingSource="featured_reel_pauta"
+            />
 
             <BookingWidget
                 slots={slots}
@@ -286,32 +293,44 @@ function ReelLibraryShowcase({
 
 function FeaturedReel({
     video,
+    videos,
     bookingSource,
 }: {
-    video: LandingVideoEntry | null;
+    video?: LandingVideoEntry | null;
+    videos?: Array<LandingVideoEntry | null | undefined>;
     bookingSource: string;
 }) {
-    if (!isPlayableLandingVideo(video)) {
+    const playableVideos = (videos ?? [video])
+        .filter(isPlayableLandingVideo)
+        .slice(0, 3);
+
+    if (playableVideos.length === 0) {
         return null;
     }
 
     return (
         <section className="pb-8 pt-2" aria-label="Ejemplo de reel para pauta">
-            <div className="mx-auto w-full max-w-[22rem] sm:max-w-sm xl:max-w-[24rem]">
-                <ReelLoopCard
-                    src={video.src}
-                    poster={video.poster}
-                    title={video.title ?? undefined}
-                    bookingSource={bookingSource}
-                    articleClassName="rounded-xl border border-border/70 bg-black shadow-lg"
-                    footer={
-                        <div className="pointer-events-none absolute inset-x-0 bottom-0 flex justify-end p-3">
-                            <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full border border-white/20 bg-black/35 text-primary backdrop-blur">
-                                <Play className="h-3 w-3 fill-current" />
-                            </span>
-                        </div>
-                    }
-                />
+            <div className="mx-auto grid w-full max-w-[22rem] grid-cols-1 gap-4 md:max-w-4xl md:grid-cols-3 xl:max-w-5xl">
+                {playableVideos.map((entry, index) => (
+                    <ReelLoopCard
+                        key={`${entry.src}-${index}`}
+                        src={entry.src}
+                        poster={entry.poster}
+                        title={entry.title ?? undefined}
+                        bookingSource={bookingSource}
+                        articleClassName={cn(
+                            'rounded-xl border border-border/70 bg-black shadow-lg',
+                            index > 0 && 'hidden md:block',
+                        )}
+                        footer={
+                            <div className="pointer-events-none absolute inset-x-0 bottom-0 flex justify-end p-3">
+                                <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full border border-white/20 bg-black/35 text-primary backdrop-blur">
+                                    <Play className="h-3 w-3 fill-current" />
+                                </span>
+                            </div>
+                        }
+                    />
+                ))}
             </div>
         </section>
     );
