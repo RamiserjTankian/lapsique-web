@@ -476,7 +476,6 @@ function BusinessCreativeBoard({
 
 function VerticalCreativeVideoFrame({
     video,
-    label,
     title,
 }: {
     video: LandingVideoEntry;
@@ -493,16 +492,6 @@ function VerticalCreativeVideoFrame({
                 articleClassName="absolute inset-0 h-full w-full rounded-none border-0"
                 fillContainer
                 videoClassName="group-hover:scale-[1.03]"
-                footer={
-                    <figcaption className="pointer-events-none absolute inset-x-0 bottom-0 p-4 text-white">
-                        <p className="text-xs font-semibold uppercase tracking-[0.2em] text-primary">
-                            {label}
-                        </p>
-                        <p className="mt-2 max-w-[13rem] font-display text-xl font-bold leading-tight">
-                            {title}
-                        </p>
-                    </figcaption>
-                }
             />
         </figure>
     );
@@ -510,8 +499,6 @@ function VerticalCreativeVideoFrame({
 
 function VerticalCreativeFrame({
     image,
-    label,
-    title,
 }: {
     image?: PortfolioItemData;
     label: string;
@@ -527,16 +514,6 @@ function VerticalCreativeFrame({
                     loading="lazy"
                 />
             )}
-            <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent" />
-            <figcaption className="absolute inset-x-0 bottom-0 p-4 text-white">
-                <p className="text-xs font-semibold uppercase tracking-[0.2em] text-primary">
-                    {label}
-                </p>
-                <p className="mt-2 max-w-[13rem] font-display text-xl font-bold leading-tight">
-                    {title}
-                </p>
-            </figcaption>
         </figure>
     );
 }
-

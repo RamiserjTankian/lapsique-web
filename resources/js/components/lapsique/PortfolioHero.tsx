@@ -2,7 +2,6 @@ import { Play } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { PortfolioMediaViewer } from '@/components/lapsique/PortfolioMediaViewer';
-import { SpecBadge } from '@/components/lapsique/SpecBadge';
 import { fadeUp } from '@/lib/motion';
 import type { PortfolioItemData } from '@/types';
 
@@ -58,21 +57,6 @@ export function PortfolioHero({ item, onExplore }: PortfolioHeroProps) {
                     <span className="text-[10px] font-semibold uppercase tracking-[0.24em] text-primary">
                         Destacado del portafolio
                     </span>
-                    <h2 className="font-display mt-3 text-2xl font-bold text-foreground md:text-3xl">
-                        {item.title ?? 'Proyecto destacado'}
-                    </h2>
-                    {item.caption && (
-                        <p className="mt-3 text-sm leading-relaxed text-muted-foreground line-clamp-4">
-                            {item.caption}
-                        </p>
-                    )}
-                    {item.tags && item.tags.length > 0 && (
-                        <div className="mt-5 flex flex-wrap gap-2">
-                            {item.tags.map((tag) => (
-                                <SpecBadge key={tag}>{tag}</SpecBadge>
-                            ))}
-                        </div>
-                    )}
                     <Button variant="cinematic" size="lg" className="mt-6 w-fit rounded-xl" onClick={onExplore}>
                         {isPlayable ? (
                             <>

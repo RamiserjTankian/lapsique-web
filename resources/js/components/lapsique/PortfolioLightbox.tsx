@@ -126,22 +126,6 @@ export function PortfolioLightbox({
                         )}
                     </AnimatePresence>
                 </div>
-
-                {(active?.title || active?.caption) && (
-                    <div className="border-t border-border/60 px-5 py-4">
-                        {active.title && (
-                            <p className="font-display text-lg font-semibold">{active.title}</p>
-                        )}
-                        {active.caption && (
-                            <p className="mt-1 text-sm text-muted-foreground">{active.caption}</p>
-                        )}
-                        {items.length > 1 && activeIndex !== null && (
-                            <p className="mt-2 font-mono text-xs text-muted-foreground">
-                                {activeIndex + 1} / {items.length}
-                            </p>
-                        )}
-                    </div>
-                )}
             </DialogContent>
         </Dialog>
     );

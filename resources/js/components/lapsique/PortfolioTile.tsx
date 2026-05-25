@@ -33,8 +33,7 @@ export function PortfolioTile({ item, index = 0, onSelect }: PortfolioTileProps)
                     loading="lazy"
                 />
             )}
-            <div className="absolute inset-0 bg-gradient-to-t from-background via-background/40 to-transparent opacity-90 transition-opacity group-hover:opacity-100" />
-            <MotionCaption item={item} />
+            <div className="absolute inset-0 bg-gradient-to-t from-background/20 via-transparent to-transparent opacity-0 transition-opacity group-hover:opacity-100" />
         </>
     );
 
@@ -56,16 +55,6 @@ export function PortfolioTile({ item, index = 0, onSelect }: PortfolioTileProps)
                 </Link>
             )}
         </motion.div>
-    );
-}
-
-function MotionCaption({ item }: { item: PortfolioItemData }) {
-    return (
-        <div className="absolute inset-x-0 bottom-0 p-3 pt-10">
-            <p className="line-clamp-2 text-xs font-semibold text-foreground">
-                {item.title || item.type}
-            </p>
-        </div>
     );
 }
 

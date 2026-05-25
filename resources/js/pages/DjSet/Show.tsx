@@ -424,15 +424,6 @@ function MediaSalesBoard({
                             className="absolute inset-0 h-full w-full object-cover"
                             loading="lazy"
                         />
-                        <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/20 to-transparent" />
-                        <figcaption className="absolute inset-x-0 bottom-0 p-4 text-white">
-                            <p className="text-[10px] font-semibold uppercase tracking-[0.24em] text-primary">
-                                Para DJs
-                            </p>
-                            <p className="mt-1 font-display text-xl font-bold">
-                                Imagen de artista con lenguaje nightlife
-                            </p>
-                        </figcaption>
                     </figure>
                 )}
 
@@ -465,14 +456,6 @@ function SalesVideoThumb({ video }: { video: VideoItem }) {
             <span className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent" />
             <span className="absolute left-3 top-3 flex h-9 w-9 items-center justify-center rounded-full border border-white/20 bg-black/35 backdrop-blur">
                 <Play className="ml-0.5 h-4 w-4 fill-current" />
-            </span>
-            <span className="absolute inset-x-0 bottom-0 p-3">
-                <span className="block text-[10px] font-semibold uppercase tracking-[0.2em] text-primary">
-                    Psique Original
-                </span>
-                <span className="mt-1 line-clamp-2 block text-sm font-semibold leading-snug">
-                    {video.title}
-                </span>
             </span>
         </a>
     );
@@ -570,14 +553,6 @@ function PortfolioVideoProof({
                         <span className="absolute left-5 top-5 flex h-14 w-14 items-center justify-center rounded-full border border-white/20 bg-black/35 backdrop-blur transition group-hover:bg-primary group-hover:text-primary-foreground">
                             <Play className="ml-1 h-6 w-6 fill-current" />
                         </span>
-                        <span className="absolute inset-x-0 bottom-0 p-5">
-                            <span className="block text-[10px] font-semibold uppercase tracking-[0.24em] text-primary">
-                                Clip de portafolio
-                            </span>
-                            <span className="mt-2 block max-w-lg font-display text-2xl font-bold">
-                                {video.title ?? 'Movimiento de pista y venue'}
-                            </span>
-                        </span>
                     </button>
                 )}
             </div>
@@ -625,10 +600,6 @@ function PortfolioFrame({
                     loading={priority ? 'eager' : 'lazy'}
                 />
             )}
-            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/15 to-transparent" />
-            <figcaption className="absolute inset-x-0 bottom-0 p-3 text-xs font-semibold text-white">
-                {image.title ?? 'Nightlife por Lapsique'}
-            </figcaption>
         </figure>
     );
 }
@@ -722,14 +693,6 @@ function OriginalVideoCard({
                 <span className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/10 to-transparent" />
                 <span className="absolute bottom-3 left-3 flex h-10 w-10 items-center justify-center rounded-full border border-white/20 bg-white/15 text-white backdrop-blur">
                     <Play className="ml-0.5 h-4 w-4 fill-current" />
-                </span>
-            </span>
-            <span className="block min-h-20 p-3">
-                <span className="block text-[10px] font-semibold uppercase tracking-[0.2em] text-primary">
-                    Psique Original
-                </span>
-                <span className="mt-1 line-clamp-2 block text-sm font-semibold leading-snug text-foreground">
-                    {video.title}
                 </span>
             </span>
         </button>

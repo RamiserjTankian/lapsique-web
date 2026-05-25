@@ -54,12 +54,6 @@ export function OfferEquipmentShowcase({
                         className="h-full w-full object-cover transition duration-700 group-hover:scale-[1.03]"
                         loading="lazy"
                     />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/65 via-transparent to-transparent" />
-                    {image.title && (
-                        <figcaption className="absolute inset-x-0 bottom-0 p-3 text-xs font-semibold text-white">
-                            {image.title}
-                        </figcaption>
-                    )}
                 </figure>
             ))}
         </div>

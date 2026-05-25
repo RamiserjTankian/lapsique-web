@@ -43,13 +43,7 @@ export function LandingReelPreviewGrid({
                     videoClassName="group-hover:scale-[1.04]"
                     footer={
                         <div className="pointer-events-none absolute inset-x-0 bottom-0 flex items-end justify-between gap-2 p-3">
-                            {video.title ? (
-                                <span className="max-w-[70%] truncate text-xs font-medium text-white/90">
-                                    {video.title}
-                                </span>
-                            ) : (
-                                <span />
-                            )}
+                            <span />
                             <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full border border-white/20 bg-black/35 text-primary backdrop-blur">
                                 <Play className="h-3 w-3 fill-current" />
                             </span>

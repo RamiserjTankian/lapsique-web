@@ -82,7 +82,6 @@ export function PortfolioGridItem({
                 </span>
             )}
             <motionOverlay />
-            <motionCaption item={item} />
             <motionHoverRing />
         </motion.button>
     );
@@ -102,22 +101,7 @@ function PortfolioTileSkeleton() {
 
 function motionOverlay() {
     return (
-        <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-background via-background/20 to-transparent opacity-90 transition-opacity group-hover:opacity-100" />
-    );
-}
-
-function motionCaption({ item }: { item: PortfolioItemData }) {
-    return (
-        <div className="absolute inset-x-0 bottom-0 translate-y-1 p-4 pt-16 transition-transform duration-300 group-hover:translate-y-0">
-            {item.type && (
-                <span className="font-mono text-[10px] uppercase tracking-[0.2em] text-primary">
-                    {item.type}
-                </span>
-            )}
-            <p className="mt-1 line-clamp-2 text-sm font-semibold text-foreground">
-                {item.title || item.caption || 'Ver proyecto'}
-            </p>
-        </div>
+        <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-background/20 via-transparent to-transparent opacity-0 transition-opacity group-hover:opacity-100" />
     );
 }
 
