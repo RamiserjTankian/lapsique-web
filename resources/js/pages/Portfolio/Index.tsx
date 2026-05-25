@@ -4,7 +4,6 @@ import { motion } from 'framer-motion';
 import SiteLayout from '@/layouts/SiteLayout';
 import { PortfolioGridItem } from '@/components/lapsique/PortfolioGridItem';
 import { PortfolioLightbox } from '@/components/lapsique/PortfolioLightbox';
-import { PortfolioHero } from '@/components/lapsique/PortfolioHero';
 import { GlassSection } from '@/components/lapsique/GlassSection';
 import { staggerContainer } from '@/lib/motion';
 import type { PortfolioItemData } from '@/types';
@@ -15,38 +14,19 @@ interface PortfolioIndexProps {
     availableTags: string[];
 }
 
-export default function PortfolioIndex({ items, featuredItem }: PortfolioIndexProps) {
+export default function PortfolioIndex({ items }: PortfolioIndexProps) {
     const [activeIndex, setActiveIndex] = useState<number | null>(null);
 
-    const gridItems = useMemo(() => {
-        const visibleItems = featuredItem
-            ? items.filter((i) => i.id !== featuredItem.id)
-            : items;
-
-        return arrangePortfolioMosaic(visibleItems);
-    }, [items, featuredItem]);
-
-    const galleryItems = useMemo(
-        () => (featuredItem ? [featuredItem, ...gridItems] : gridItems),
-        [featuredItem, gridItems],
-    );
+    const gridItems = useMemo(() => arrangePortfolioMosaic(items), [items]);
 
     const openItem = (item: PortfolioItemData) => {
-        const idx = galleryItems.findIndex((i) => i.id === item.id);
+        const idx = gridItems.findIndex((i) => i.id === item.id);
         setActiveIndex(idx >= 0 ? idx : null);
-    };
-
-    const openFeaturedInGallery = () => {
-        if (!featuredItem) return;
-        setActiveIndex(0);
     };
 
     return (
         <SiteLayout>
             <Head title="Portafolio" />
-            {featuredItem && (
-                <PortfolioHero item={featuredItem} onExplore={openFeaturedInGallery} />
-            )}
             <GlassSection
                 title="Portafolio"
                 description="Fotografía y video con look cinematográfico."
@@ -75,7 +55,7 @@ export default function PortfolioIndex({ items, featuredItem }: PortfolioIndexPr
             </GlassSection>
 
             <PortfolioLightbox
-                items={galleryItems}
+                items={gridItems}
                 activeIndex={activeIndex}
                 onClose={() => setActiveIndex(null)}
                 onNavigate={setActiveIndex}
