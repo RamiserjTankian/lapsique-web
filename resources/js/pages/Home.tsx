@@ -297,7 +297,7 @@ function FeaturedReel({
 
     return (
         <section className="pb-8 pt-2" aria-label="Ejemplo de reel para pauta">
-            <div className="w-full">
+            <div className="mx-auto w-full max-w-[22rem] sm:max-w-sm xl:max-w-[24rem]">
                 <ReelLoopCard
                     src={video.src}
                     poster={video.poster}
