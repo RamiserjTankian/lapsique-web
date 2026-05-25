@@ -24,12 +24,12 @@ class PortfolioItemResource extends JsonResource
 
         return [
             'id' => $this->id,
-            'title' => $this->title,
+            'title' => null,
             'slug' => $this->slug,
             'type' => $this->type,
             'source' => $this->source ?? 'upload',
-            'caption' => $this->caption,
-            'tags' => $this->tags ?? [],
+            'caption' => null,
+            'tags' => [],
             'asset_url' => $this->asset_url,
             'poster_url' => $this->poster_url ?? $this->asset_url,
             'playback_url' => $hasPublicVideo ? $this->asset_url : ($isUploadVideo ? $assetMedia->getUrl() : null),
