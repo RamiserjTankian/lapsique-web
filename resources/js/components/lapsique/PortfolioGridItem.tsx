@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Play } from 'lucide-react';
 import { glassCardVariants } from '@/lib/variants';
@@ -18,6 +19,10 @@ export function PortfolioGridItem({
     onSelect,
     className,
 }: PortfolioGridItemProps) {
+    const previewUrl = getPortfolioPreviewUrl(item);
+    const canAutoplayPreview = item.media_type === 'video' && Boolean(item.playback_url);
+    const [isLoaded, setIsLoaded] = useState(false);
+
     return (
         <motion.button
             type="button"
@@ -27,18 +32,41 @@ export function PortfolioGridItem({
             viewport={{ once: true, margin: '-40px' }}
             custom={index}
             onClick={() => onSelect(item)}
+            aria-label={`Abrir ${item.title ?? 'proyecto de portafolio'}`}
             className={cn(
                 glassCardVariants(),
-                'group relative block w-full aspect-square overflow-hidden text-left',
+                'group relative block h-full min-h-[9rem] w-full overflow-hidden text-left',
                 'ring-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50',
                 className,
             )}
         >
-            {item.asset_url ? (
+            {!isLoaded && <PortfolioTileSkeleton />}
+            {canAutoplayPreview ? (
+                <video
+                    src={item.playback_url ?? undefined}
+                    poster={item.poster_url ?? undefined}
+                    muted
+                    autoPlay
+                    loop
+                    playsInline
+                    preload="metadata"
+                    onLoadedData={() => setIsLoaded(true)}
+                    onCanPlay={() => setIsLoaded(true)}
+                    className={cn(
+                        'absolute inset-0 h-full w-full object-cover transition duration-700 ease-out group-hover:scale-[1.04]',
+                        isLoaded ? 'opacity-100' : 'opacity-0',
+                    )}
+                />
+            ) : previewUrl ? (
                 <img
-                    src={item.asset_url}
+                    src={previewUrl}
                     alt={item.title ?? item.type}
-                    className="absolute inset-0 h-full w-full object-cover transition duration-700 ease-out group-hover:scale-[1.06]"
+                    onLoad={() => setIsLoaded(true)}
+                    onError={() => setIsLoaded(true)}
+                    className={cn(
+                        'absolute inset-0 h-full w-full object-cover transition duration-700 ease-out group-hover:scale-[1.06]',
+                        isLoaded ? 'opacity-100' : 'opacity-0',
+                    )}
                     loading="lazy"
                 />
             ) : (
@@ -57,6 +85,18 @@ export function PortfolioGridItem({
             <motionCaption item={item} />
             <motionHoverRing />
         </motion.button>
+    );
+}
+
+function PortfolioTileSkeleton() {
+    return (
+        <div className="absolute inset-0 overflow-hidden bg-muted/50">
+            <div className="absolute inset-0 bg-[linear-gradient(110deg,transparent_0%,transparent_35%,oklch(1_0_0/0.18)_48%,transparent_62%,transparent_100%)] animate-[portfolio-shimmer_1.4s_ease-in-out_infinite]" />
+            <div className="absolute inset-x-3 bottom-3 space-y-2">
+                <div className="h-2 w-16 rounded-full bg-foreground/10" />
+                <div className="h-3 w-2/3 rounded-full bg-foreground/10" />
+            </div>
+        </div>
     );
 }
 
@@ -91,4 +131,12 @@ function motionHoverRing() {
 
 function motionHoverRingInner() {
     return <motion.div className="absolute inset-0 ring-1 ring-inset ring-border/50" />;
+}
+
+function getPortfolioPreviewUrl(item: PortfolioItemData): string | null {
+    if (item.media_type === 'video' || item.media_type === 'youtube') {
+        return item.poster_url ?? item.asset_url ?? null;
+    }
+
+    return item.asset_url ?? item.poster_url ?? null;
 }

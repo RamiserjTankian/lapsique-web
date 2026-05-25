@@ -32,9 +32,11 @@ import { route } from '@/lib/route';
 import { cn, formatMxn, parseSlotDate } from '@/lib/utils';
 import {
     bookingCheckboxSelectedClasses,
-    bookingConfirmButtonClasses,
     bookingCheckoutLinkClasses,
     bookingCheckoutPanelClasses,
+    bookingCheckoutPriceClasses,
+    bookingConfirmButtonClasses,
+    bookingOptionSelectedBadgeClasses,
     bookingOptionSelectedClasses,
     bookingOptionSelectedDayClasses,
     bookingOptionSelectedMonthClasses,
@@ -806,25 +808,17 @@ export function BookingWidget({
                                                             )}
                                                             onClick={() => handleSlotSelect(slot)}
                                                         >
-                                                            <span className="flex items-center gap-2 font-semibold">
-                                                                {isSelected && (
-                                                                    <Check
-                                                                        className="h-4 w-4 shrink-0"
-                                                                        aria-hidden
-                                                                    />
-                                                                )}
-                                                                {slot.time_label}
-                                                            </span>
-                                                            <span
-                                                                className={cn(
-                                                                    'text-xs font-semibold uppercase tracking-[0.12em]',
-                                                                    isSelected
-                                                                        ? 'text-white/90'
-                                                                        : 'text-muted-foreground',
-                                                                )}
-                                                            >
-                                                                {isSelected ? 'Elegido' : 'Disponible'}
-                                                            </span>
+                                                            <span className="font-semibold">{slot.time_label}</span>
+                                                            {isSelected ? (
+                                                                <span className={bookingOptionSelectedBadgeClasses}>
+                                                                    <Check className="h-3 w-3" aria-hidden />
+                                                                    Elegido
+                                                                </span>
+                                                            ) : (
+                                                                <span className="text-xs font-semibold uppercase tracking-[0.12em] text-muted-foreground">
+                                                                    Disponible
+                                                                </span>
+                                                            )}
                                                         </Button>
                                                     );
                                                 })}
@@ -1133,13 +1127,13 @@ function DateOption({
             className={cn(
                 'flex w-full flex-col rounded-2xl border-2 text-left transition duration-200',
                 compact ? 'min-h-[6.75rem] p-3 sm:min-h-[7.5rem] sm:p-4' : 'min-h-[7.5rem] p-3.5 sm:p-4',
-                'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-2 focus-visible:ring-offset-background',
+                'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background',
                 'active:scale-[0.98]',
                 selected
                     ? bookingOptionSelectedClasses
                     : suggested
                       ? bookingOptionSuggestedClasses
-                      : 'border-border/70 bg-secondary hover:border-emerald-500/40 hover:bg-muted',
+                      : 'border-border/70 bg-secondary hover:border-primary/45 hover:bg-muted',
             )}
         >
             <div className="flex items-start justify-between gap-1.5">
@@ -1156,10 +1150,7 @@ function DateOption({
                     {format(date, 'EEEE', { locale: es })}
                 </span>
                 {selected ? (
-                    <span
-                        aria-label="Fecha seleccionada"
-                        className="inline-flex shrink-0 items-center gap-1 rounded-full bg-white/20 px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-[0.08em] text-white sm:px-2 sm:text-[10px]"
-                    >
+                    <span aria-label="Fecha seleccionada" className={bookingOptionSelectedBadgeClasses}>
                         <Check className="h-3 w-3" aria-hidden />
                         <span className="hidden min-[380px]:inline">Elegido</span>
                     </span>
@@ -1243,7 +1234,7 @@ function BookingCheckoutSummary({
                 <CartRow label="Horario" value={selectedSlot.time_label} />
                 <div className="flex items-center justify-between gap-3 border-t border-border/70 pt-3">
                     <span className="text-sm font-semibold text-foreground">Total</span>
-                    <span className="font-mono-tabular text-2xl font-bold text-emerald-700 dark:text-emerald-400 md:text-3xl">
+                    <span className={bookingCheckoutPriceClasses}>
                         {formatMxn(price)}
                     </span>
                 </div>

@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react';
+import { MediaAutoplayUnlock } from '@/components/lapsique/MediaAutoplayUnlock';
 import { SiteHeader } from '@/components/lapsique/SiteHeader';
 import { SiteFooter } from '@/components/lapsique/SiteFooter';
 import { WhatsAppFab } from '@/components/lapsique/WhatsAppFab';
@@ -10,6 +11,7 @@ interface SiteLayoutProps {
 export default function SiteLayout({ children }: SiteLayoutProps) {
     return (
         <MotionSiteLayout>
+            <MediaAutoplayUnlock />
             <SiteHeader />
             <main className="mx-auto max-w-6xl px-4 pb-28 sm:px-6">{children}</main>
             <SiteFooter />

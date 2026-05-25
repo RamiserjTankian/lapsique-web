@@ -15,29 +15,30 @@ interface PortfolioIndexProps {
     availableTags: string[];
 }
 
-export default function PortfolioIndex({ items, featuredItem, availableTags }: PortfolioIndexProps) {
+export default function PortfolioIndex({ items, featuredItem }: PortfolioIndexProps) {
     const [activeIndex, setActiveIndex] = useState<number | null>(null);
-    const [tag, setTag] = useState<string | null>(null);
-
-    const filteredItems = useMemo(
-        () => (tag ? items.filter((i) => i.tags?.includes(tag)) : items),
-        [items, tag],
-    );
 
     const gridItems = useMemo(() => {
-        if (!featuredItem) return filteredItems;
-        return filteredItems.filter((i) => i.id !== featuredItem.id);
-    }, [filteredItems, featuredItem]);
+        const visibleItems = featuredItem
+            ? items.filter((i) => i.id !== featuredItem.id)
+            : items;
+
+        return arrangePortfolioMosaic(visibleItems);
+    }, [items, featuredItem]);
+
+    const galleryItems = useMemo(
+        () => (featuredItem ? [featuredItem, ...gridItems] : gridItems),
+        [featuredItem, gridItems],
+    );
 
     const openItem = (item: PortfolioItemData) => {
-        const idx = filteredItems.findIndex((i) => i.id === item.id);
+        const idx = galleryItems.findIndex((i) => i.id === item.id);
         setActiveIndex(idx >= 0 ? idx : null);
     };
 
     const openFeaturedInGallery = () => {
         if (!featuredItem) return;
-        const idx = filteredItems.findIndex((i) => i.id === featuredItem.id);
-        setActiveIndex(idx >= 0 ? idx : 0);
+        setActiveIndex(0);
     };
 
     return (
@@ -47,30 +48,15 @@ export default function PortfolioIndex({ items, featuredItem, availableTags }: P
                 <PortfolioHero item={featuredItem} onExplore={openFeaturedInGallery} />
             )}
             <GlassSection
-                eyebrow="Portafolio"
-                title="Trabajo reciente"
-                description="Fotografía y video con look cinematográfico — capturado con Sony α7."
+                title="Portafolio"
+                description="Fotografía y video con look cinematográfico."
             >
-                {availableTags.length > 0 && (
-                    <div className="mb-8 flex flex-wrap gap-2">
-                        <TagButton active={!tag} onClick={() => setTag(null)} label="Todos" />
-                        {availableTags.map((t) => (
-                            <TagButton
-                                key={t}
-                                active={tag === t}
-                                onClick={() => setTag(t)}
-                                label={t}
-                            />
-                        ))}
-                    </div>
-                )}
-
                 <motion.div
                     variants={staggerContainer}
                     initial="hidden"
                     whileInView="visible"
                     viewport={{ once: true, margin: '-60px' }}
-                    className="columns-2 gap-3 md:columns-3 lg:columns-4"
+                    className="grid grid-flow-row-dense auto-rows-[9rem] grid-cols-2 gap-3 md:auto-rows-[12rem] md:grid-cols-4 md:gap-4 xl:auto-rows-[13rem] xl:grid-cols-6"
                 >
                     {gridItems.map((item, index) => (
                         <PortfolioGridItem
@@ -78,18 +64,18 @@ export default function PortfolioIndex({ items, featuredItem, availableTags }: P
                             item={item}
                             index={index}
                             onSelect={openItem}
-                            className="mb-3 break-inside-avoid"
+                            className={getMosaicClassName(item, index)}
                         />
                     ))}
                 </motion.div>
 
                 {gridItems.length === 0 && (
-                    <p className="text-center text-muted-foreground">No hay proyectos con este filtro.</p>
+                    <p className="text-center text-muted-foreground">No hay proyectos disponibles.</p>
                 )}
             </GlassSection>
 
             <PortfolioLightbox
-                items={filteredItems}
+                items={galleryItems}
                 activeIndex={activeIndex}
                 onClose={() => setActiveIndex(null)}
                 onNavigate={setActiveIndex}
@@ -98,26 +84,50 @@ export default function PortfolioIndex({ items, featuredItem, availableTags }: P
     );
 }
 
-function TagButton({
-    active,
-    onClick,
-    label,
-}: {
-    active: boolean;
-    onClick: () => void;
-    label: string;
-}) {
-    return (
-        <button
-            type="button"
-            onClick={onClick}
-            className={`rounded-full px-4 py-1.5 text-xs uppercase tracking-wider transition-all duration-200 ${
-                active
-                    ? 'bg-primary text-primary-foreground shadow-[0_0_20px_oklch(0.78_0.14_75/0.35)]'
-                    : 'border border-border/60 bg-secondary/50 text-muted-foreground hover:border-primary/30 hover:text-foreground'
-            }`}
-        >
-            {label}
-        </button>
-    );
+function arrangePortfolioMosaic(items: PortfolioItemData[]): PortfolioItemData[] {
+    const photos = items.filter((item) => item.media_type === 'image');
+    const videos = items.filter((item) => item.media_type !== 'image');
+    const arranged: PortfolioItemData[] = [];
+    let photoIndex = 0;
+    let videoIndex = 0;
+
+    while (photoIndex < photos.length || videoIndex < videos.length) {
+        for (let i = 0; i < 5 && photoIndex < photos.length; i++) {
+            arranged.push(photos[photoIndex]);
+            photoIndex++;
+        }
+
+        if (videoIndex < videos.length) {
+            arranged.push(videos[videoIndex]);
+            videoIndex++;
+        }
+    }
+
+    return arranged;
+}
+
+function getMosaicClassName(item: PortfolioItemData, index: number): string {
+    if (item.media_type === 'video' || item.media_type === 'youtube') {
+        return index % 8 === 2
+            ? 'col-span-2 row-span-2 md:col-span-2 md:row-span-2 xl:col-span-3'
+            : 'col-span-2 row-span-2 md:col-span-2 md:row-span-2';
+    }
+
+    if (index % 17 === 0) {
+        return 'col-span-2 row-span-2 md:col-span-2 md:row-span-2 xl:col-span-3';
+    }
+
+    if (item.orientation === 'vertical' && index % 6 === 1) {
+        return 'col-span-1 row-span-2 md:col-span-1 md:row-span-2';
+    }
+
+    if (item.orientation === 'horizontal' && index % 9 === 3) {
+        return 'col-span-2 row-span-1 md:col-span-2 md:row-span-1';
+    }
+
+    if (index % 14 === 6) {
+        return 'col-span-2 row-span-2 md:col-span-2 md:row-span-2';
+    }
+
+    return 'col-span-1 row-span-1';
 }

@@ -25,6 +25,8 @@ class PortfolioItem extends Model implements HasMedia
         'source',
         'youtube_url',
         'youtube_id',
+        'asset_path',
+        'poster_path',
         'caption',
         'tags',
         'is_featured',
@@ -121,6 +123,10 @@ class PortfolioItem extends Model implements HasMedia
 
     public function getAssetUrlAttribute(): string
     {
+        if ($this->asset_path) {
+            return asset(ltrim($this->asset_path, '/'));
+        }
+
         if ($this->source === 'youtube' && $this->youtube_id) {
             return "https://img.youtube.com/vi/{$this->youtube_id}/maxresdefault.jpg";
         }
@@ -140,6 +146,10 @@ class PortfolioItem extends Model implements HasMedia
 
     public function getPosterUrlAttribute(): string
     {
+        if ($this->poster_path) {
+            return asset(ltrim($this->poster_path, '/'));
+        }
+
         $poster = $this->getFirstMedia('poster');
 
         if ($poster) {

@@ -68,6 +68,31 @@ class PageMetaTest extends TestCase
         $this->assertStringNotContainsString('booking-og.jpg', (string) $meta->ogImage);
     }
 
+    public function test_booking_og_image_falls_back_when_portfolio_file_is_missing(): void
+    {
+        Storage::fake('public');
+
+        $item = PortfolioItem::create([
+            'title' => 'Missing file portrait',
+            'slug' => 'missing-file-portrait',
+            'type' => 'photo',
+            'is_active' => true,
+            'is_featured' => true,
+            'priority' => 1,
+        ]);
+        $media = $item->addMedia(UploadedFile::fake()->image('portfolio.jpg', 1200, 800))
+            ->toMediaCollection('asset');
+
+        if ($media->hasGeneratedConversion('large')) {
+            @unlink($media->getPath('large'));
+        }
+        @unlink($media->getPath());
+
+        $meta = PageMeta::forBookingFunnel(null, 'https://lapsique.media/');
+
+        $this->assertStringContainsString('booking-og.jpg', (string) $meta->ogImage);
+    }
+
     public function test_djset_meta_uses_admin_upload(): void
     {
         Storage::fake('public');

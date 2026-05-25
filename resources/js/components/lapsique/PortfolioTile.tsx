@@ -14,6 +14,7 @@ interface PortfolioTileProps {
 
 export function PortfolioTile({ item, index = 0, onSelect }: PortfolioTileProps) {
     const { ziggy } = usePage<PageProps>().props;
+    const previewUrl = getPortfolioPreviewUrl(item);
 
     const tileClassName = cn(
         glassCardVariants(),
@@ -24,9 +25,9 @@ export function PortfolioTile({ item, index = 0, onSelect }: PortfolioTileProps)
 
     const tileContent = (
         <>
-            {item.asset_url && (
+            {previewUrl && (
                 <img
-                    src={item.asset_url}
+                    src={previewUrl}
                     alt={item.title ?? item.type}
                     className="absolute inset-0 h-full w-full object-cover transition duration-700 group-hover:scale-[1.06]"
                     loading="lazy"
@@ -66,4 +67,12 @@ function MotionCaption({ item }: { item: PortfolioItemData }) {
             </p>
         </div>
     );
+}
+
+function getPortfolioPreviewUrl(item: PortfolioItemData): string | null {
+    if (item.media_type === 'video' || item.media_type === 'youtube') {
+        return item.poster_url ?? item.asset_url ?? null;
+    }
+
+    return item.asset_url ?? item.poster_url ?? null;
 }

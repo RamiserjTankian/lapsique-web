@@ -89,7 +89,7 @@ class PageMeta
         $title = 'Grabación de DJ Set';
         $metaTitle = "{$title} · ".self::SITE_NAME;
         $description = self::truncate(
-            "Graba tu DJ set con 3 cámaras fijas y dron. Video final de una hora por $"
+            'Graba tu DJ set con 3 cámaras fijas y dron. Video final de una hora por $'
             .number_format($price, 0, '.', ',')
             .' MXN con agenda y pago en línea.',
         );
@@ -326,8 +326,8 @@ class PageMeta
             return $bookingFallback;
         }
 
-        if (file_exists(public_path('images/booking-og.jpg'))) {
-            return url('/images/booking-og.jpg');
+        if (self::staticPublicImageUrl('images/booking-og.jpg')) {
+            return self::staticPublicImageUrl('images/booking-og.jpg');
         }
 
         return self::defaultOgImageUrl();
@@ -345,8 +345,8 @@ class PageMeta
             return $portfolioImage;
         }
 
-        if (file_exists(public_path('images/booking-og.jpg'))) {
-            return url('/images/booking-og.jpg');
+        if (self::staticPublicImageUrl('images/booking-og.jpg')) {
+            return self::staticPublicImageUrl('images/booking-og.jpg');
         }
 
         return self::defaultOgImageUrl();
@@ -364,10 +364,13 @@ class PageMeta
             return null;
         }
 
-        return self::absoluteImageUrl(
-            $video->getFirstMediaUrl('thumbnail')
-                ?: $video->thumbnail_url,
-        );
+        $media = $video->getFirstMedia('thumbnail');
+
+        if ($media && self::mediaFileIsReadable($media)) {
+            return self::absoluteImageUrl($media->getUrl());
+        }
+
+        return self::absoluteImageUrl($video->thumbnail_url);
     }
 
     public static function portfolioOgImageUrl(): ?string
@@ -389,16 +392,47 @@ class PageMeta
             return null;
         }
 
+        $conversion = $media->hasGeneratedConversion('large') && self::mediaFileIsReadable($media, 'large')
+            ? 'large'
+            : null;
+
+        if ($conversion === null && ! self::mediaFileIsReadable($media)) {
+            return null;
+        }
+
         return self::absoluteImageUrl(
-            $media->hasGeneratedConversion('large')
-                ? $media->getUrl('large')
-                : $media->getUrl(),
+            $conversion ? $media->getUrl($conversion) : $media->getUrl(),
         );
     }
 
     public static function defaultOgImageUrl(): string
     {
-        return url('/images/og-default.jpg');
+        return self::staticPublicImageUrl('images/booking-og.jpg')
+            ?? self::staticPublicImageUrl('images/og-default.jpg')
+            ?? url('/images/og-default.jpg');
+    }
+
+    public static function staticPublicImageUrl(string $relativePath): ?string
+    {
+        $normalized = ltrim($relativePath, '/');
+        $path = public_path($normalized);
+
+        if (! is_readable($path)) {
+            return null;
+        }
+
+        return url('/'.$normalized);
+    }
+
+    public static function mediaFileIsReadable(\Spatie\MediaLibrary\MediaCollections\Models\Media $media, ?string $conversion = null): bool
+    {
+        try {
+            $path = filled($conversion) ? $media->getPath($conversion) : $media->getPath();
+        } catch (\Throwable) {
+            return false;
+        }
+
+        return is_string($path) && is_readable($path);
     }
 
     public static function absoluteImageUrl(?string $url): ?string

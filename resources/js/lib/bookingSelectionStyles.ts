@@ -1,40 +1,44 @@
-/** Green "selected" styling for booking / funnel form controls on the landing. */
+/** Golden selected styling for booking modal; green badge marks the active choice. */
 
 export const bookingOptionSelectedClasses =
-    'border-emerald-600 bg-emerald-600 text-white shadow-[0_8px_28px_rgb(16_185_129/0.35)]';
+    'border-primary bg-primary text-primary-foreground shadow-[0_0_40px_oklch(0.78_0.14_75/0.32)] ring-2 ring-primary/50 ring-offset-2 ring-offset-background';
 
-export const bookingOptionSelectedDayClasses = 'text-white/90';
-export const bookingOptionSelectedMonthClasses = 'text-white/85';
+export const bookingOptionSelectedDayClasses = 'text-primary-foreground/80';
+export const bookingOptionSelectedMonthClasses = 'text-primary-foreground/85';
+
+export const bookingOptionSelectedBadgeClasses =
+    'inline-flex shrink-0 items-center gap-1 rounded-full border border-emerald-600/35 bg-emerald-600 px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-[0.08em] text-white shadow-[0_4px_14px_rgb(16_185_129/0.28)] sm:px-2 sm:text-[10px]';
 
 export const bookingOptionSuggestedClasses =
-    'border-border border-dashed bg-muted/40 text-foreground hover:border-emerald-500/45 hover:bg-muted/70';
+    'border-primary/55 border-dashed bg-primary/12 text-foreground hover:border-primary hover:bg-primary/18';
 
-export const bookingOptionSuggestedLabelClasses = 'text-emerald-700 dark:text-emerald-400';
+export const bookingOptionSuggestedLabelClasses = 'text-primary';
 export const bookingOptionSuggestedBadgeClasses =
-    'border-emerald-600/30 bg-emerald-600/10 text-emerald-700 dark:text-emerald-400';
+    'border-primary/35 bg-primary/15 text-primary';
 
 export const bookingSlotSelectedClasses =
-    'border-emerald-600 bg-emerald-600 text-white shadow-[0_8px_24px_rgb(16_185_129/0.32)] hover:border-emerald-600 hover:bg-emerald-600 hover:text-white';
+    'border-primary bg-primary text-primary-foreground shadow-[0_0_24px_oklch(0.78_0.14_75/0.28)] ring-2 ring-primary ring-offset-2 ring-offset-background hover:border-primary hover:bg-primary hover:text-primary-foreground';
 
-export const bookingStepActiveSectionClasses = 'border-border/80 ring-1 ring-border/40';
-export const bookingStepCompleteSectionClasses = 'border-border/70';
+export const bookingStepActiveSectionClasses = 'border-primary/50 ring-2 ring-primary';
+export const bookingStepCompleteSectionClasses = 'border-primary/40';
 
-export const bookingWizardCompleteClasses = 'border-emerald-500/35 bg-emerald-500/10';
-export const bookingWizardActiveClasses = 'border-emerald-500 ring-1 ring-emerald-500/40 bg-emerald-500/8';
-export const bookingWizardCompleteTextClasses = 'text-emerald-700 dark:text-emerald-400';
+export const bookingWizardCompleteClasses = 'border-primary/45 bg-primary/15';
+export const bookingWizardActiveClasses = 'border-primary ring-2 ring-primary bg-primary/10';
+export const bookingWizardCompleteTextClasses = 'text-primary';
 
-export const bookingPaymentSelectedClasses =
-    'border-emerald-500/45 bg-emerald-500/8 ring-1 ring-emerald-500/25';
+export const bookingPaymentSelectedClasses = 'border-primary/40 bg-primary/5 ring-1 ring-primary/20';
 
 export const bookingCheckboxSelectedClasses =
-    'data-[state=checked]:border-emerald-600 data-[state=checked]:bg-emerald-600 data-[state=checked]:text-white';
+    'data-[state=checked]:border-primary data-[state=checked]:bg-primary data-[state=checked]:text-primary-foreground';
 
 /** Primary confirm / pay CTA inside the booking checkout form. */
 export const bookingConfirmButtonClasses =
-    'h-12 w-full rounded-xl border border-emerald-500/40 bg-[linear-gradient(135deg,rgb(4_120_87)_0%,rgb(5_150_105)_52%,rgb(16_185_129)_100%)] px-6 text-base font-bold tracking-[0.02em] !text-white shadow-[0_12px_32px_rgb(16_185_129/0.38),inset_0_1px_0_rgb(255_255_255/0.22)] transition-[transform,box-shadow,filter] duration-200 hover:-translate-y-0.5 hover:border-emerald-400/50 hover:brightness-[1.04] hover:shadow-[0_16px_40px_rgb(16_185_129/0.48),inset_0_1px_0_rgb(255_255_255/0.28)] active:translate-y-0 active:scale-[0.99] disabled:pointer-events-none disabled:opacity-50 disabled:shadow-none focus-visible:ring-2 focus-visible:ring-emerald-500/60 focus-visible:ring-offset-2 focus-visible:ring-offset-background';
+    'h-12 w-full rounded-xl border-0 bg-primary px-6 text-base font-bold tracking-[0.02em] text-primary-foreground shadow-[0_0_32px_oklch(0.78_0.14_75/0.35)] transition-all hover:bg-primary/90 hover:shadow-[0_0_48px_oklch(0.78_0.14_75/0.5)] active:scale-[0.99] disabled:pointer-events-none disabled:opacity-50 disabled:shadow-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-background';
 
 export const bookingCheckoutPanelClasses =
     'rounded-2xl border border-border/70 bg-muted/30';
 
 export const bookingCheckoutLinkClasses =
-    'font-semibold text-emerald-700 underline-offset-4 hover:text-emerald-800 hover:underline dark:text-emerald-400 dark:hover:text-emerald-300';
+    'font-semibold text-primary underline-offset-4 hover:text-primary/80 hover:underline';
+
+export const bookingCheckoutPriceClasses = 'font-mono-tabular text-2xl font-bold text-primary md:text-3xl';

@@ -13,6 +13,9 @@ interface PortfolioHeroProps {
 
 export function PortfolioHero({ item, onExplore }: PortfolioHeroProps) {
     const isPlayable = item.media_type === 'youtube' || item.media_type === 'video';
+    const previewUrl = isPlayable
+        ? (item.poster_url ?? item.asset_url)
+        : (item.asset_url ?? item.poster_url);
 
     return (
         <motion.section
@@ -28,9 +31,20 @@ export function PortfolioHero({ item, onExplore }: PortfolioHeroProps) {
                             item={item}
                             className="h-full min-h-[280px] w-full border-0 lg:min-h-[360px]"
                         />
-                    ) : item.asset_url ? (
+                    ) : isPlayable && item.playback_url ? (
+                        <video
+                            src={item.playback_url}
+                            poster={item.poster_url ?? undefined}
+                            muted
+                            autoPlay
+                            loop
+                            playsInline
+                            preload="metadata"
+                            className="absolute inset-0 h-full w-full object-cover"
+                        />
+                    ) : previewUrl ? (
                         <img
-                            src={item.asset_url}
+                            src={previewUrl}
                             alt={item.title ?? 'Destacado'}
                             className="absolute inset-0 h-full w-full object-cover"
                         />

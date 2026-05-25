@@ -5,7 +5,6 @@ namespace Database\Seeders;
 use App\Models\User;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
-use Database\Seeders\VideoSeeder;
 
 class DatabaseSeeder extends Seeder
 {
@@ -27,6 +26,7 @@ class DatabaseSeeder extends Seeder
             DjSeeder::class,
             LocationSeeder::class,
             VideoSeeder::class,
+            PortfolioAssetsSeeder::class,
             CampaignSeeder::class,
         ]);
     }

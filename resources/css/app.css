@@ -390,3 +390,37 @@
 .cinematic-scroll::-webkit-scrollbar-thumb:hover {
     background: var(--scrollbar-thumb-hover);
 }
+
+video.lapsique-autoplay-video,
+video[data-lapsique-autoplay] {
+    pointer-events: none;
+}
+
+video.lapsique-autoplay-video::-webkit-media-controls,
+video.lapsique-autoplay-video::-webkit-media-controls-enclosure,
+video.lapsique-autoplay-video::-webkit-media-controls-panel,
+video.lapsique-autoplay-video::-webkit-media-controls-start-playback-button,
+video.lapsique-autoplay-video::-webkit-media-controls-overlay-play-button,
+video.lapsique-autoplay-video::-webkit-media-controls-play-button,
+video[data-lapsique-autoplay]::-webkit-media-controls,
+video[data-lapsique-autoplay]::-webkit-media-controls-enclosure,
+video[data-lapsique-autoplay]::-webkit-media-controls-panel,
+video[data-lapsique-autoplay]::-webkit-media-controls-start-playback-button,
+video[data-lapsique-autoplay]::-webkit-media-controls-overlay-play-button,
+video[data-lapsique-autoplay]::-webkit-media-controls-play-button {
+    display: none !important;
+    opacity: 0 !important;
+    pointer-events: none !important;
+    -webkit-appearance: none;
+    appearance: none;
+}
+
+@keyframes portfolio-shimmer {
+    from {
+        transform: translateX(-100%);
+    }
+
+    to {
+        transform: translateX(100%);
+    }
+}

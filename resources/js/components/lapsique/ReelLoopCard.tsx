@@ -41,7 +41,7 @@ export function ReelLoopCard({
     bookingSource = 'reel_loop',
     eager = false,
     pauseWhenOffscreen = true,
-    preload = 'none',
+    preload = 'metadata',
     playbackEnabled = true,
     showBookingOverlay,
     onLoopSegmentComplete,

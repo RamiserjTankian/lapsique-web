@@ -1,7 +1,14 @@
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useReducedMotion } from 'framer-motion';
 import { useSaveDataConnection } from '@/hooks/useSaveDataConnection';
 import { cn } from '@/lib/utils';
+import { registerMediaAutoplaySync } from '@/lib/mediaAutoplayRegistry';
+import {
+    attemptVideoAutoplay,
+    isIosLikeDevice,
+    prepareVideoForAutoplay,
+    resolveVideoPreload,
+} from '@/lib/videoAutoplay';
 
 export interface AutoplayVideoProps {
     src: string;
@@ -44,9 +51,14 @@ export function AutoplayVideo({
     const videoRef = useRef<HTMLVideoElement>(null);
     const onLoopSegmentCompleteRef = useRef(onLoopSegmentComplete);
     const [isInView, setIsInView] = useState(eager);
+    const [isPlaying, setIsPlaying] = useState(false);
     const showPosterOnly = prefersReducedMotion || saveDataMode;
-    const resolvedPreload = preload ?? (eager ? 'auto' : 'none');
+    const resolvedPreload = resolveVideoPreload(eager, preload);
     const mediaClassName = cn('h-full w-full object-cover object-center', videoClassName);
+    const shouldPlay = playbackEnabled && (isInView || !pauseWhenOffscreen);
+    const showPosterOverlay =
+        Boolean(poster)
+        && ((pauseWhenOffscreen && !isInView) || (shouldPlay && !isPlaying));
 
     useEffect(() => {
         onLoopSegmentCompleteRef.current = onLoopSegmentComplete;
@@ -69,7 +81,7 @@ export function AutoplayVideo({
             ([entry]) => {
                 setIsInView(entry.isIntersecting);
             },
-            { rootMargin: offscreenRootMargin, threshold: 0.15 },
+            { rootMargin: offscreenRootMargin, threshold: 0.01 },
         );
 
         observer.observe(node);
@@ -81,8 +93,24 @@ export function AutoplayVideo({
         onInViewChange?.(isInView);
     }, [isInView, onInViewChange]);
 
+    const syncPlayback = useCallback(async () => {
+        const video = videoRef.current;
+
+        if (!video || showPosterOnly) {
+            return;
+        }
+
+        if (shouldPlay) {
+            await attemptVideoAutoplay(video);
+        } else if (pauseWhenOffscreen) {
+            video.pause();
+        }
+    }, [pauseWhenOffscreen, shouldPlay, showPosterOnly]);
+
+    useEffect(() => registerMediaAutoplaySync(syncPlayback), [syncPlayback]);
+
     useEffect(() => {
-        if (showPosterOnly || !pauseWhenOffscreen) {
+        if (showPosterOnly) {
             return;
         }
 
@@ -92,12 +120,56 @@ export function AutoplayVideo({
             return;
         }
 
-        if (isInView && playbackEnabled) {
-            void video.play().catch(() => undefined);
-        } else {
-            video.pause();
+        prepareVideoForAutoplay(video);
+        void syncPlayback();
+
+        const onReady = () => {
+            void syncPlayback();
+        };
+
+        const onPlaying = () => setIsPlaying(true);
+        const onPause = () => setIsPlaying(false);
+
+        video.addEventListener('loadeddata', onReady);
+        video.addEventListener('canplay', onReady);
+        video.addEventListener('playing', onPlaying);
+        video.addEventListener('pause', onPause);
+
+        const onVisibilityChange = () => {
+            if (document.visibilityState === 'visible') {
+                void syncPlayback();
+            }
+        };
+
+        document.addEventListener('visibilitychange', onVisibilityChange);
+
+        return () => {
+            video.removeEventListener('loadeddata', onReady);
+            video.removeEventListener('canplay', onReady);
+            video.removeEventListener('playing', onPlaying);
+            video.removeEventListener('pause', onPause);
+            document.removeEventListener('visibilitychange', onVisibilityChange);
+        };
+    }, [shouldPlay, showPosterOnly, src, syncPlayback]);
+
+    useEffect(() => {
+        if (showPosterOnly || !isIosLikeDevice()) {
+            return;
         }
-    }, [isInView, pauseWhenOffscreen, playbackEnabled, showPosterOnly, src]);
+
+        let attempts = 0;
+        const maxAttempts = 12;
+        const intervalId = window.setInterval(() => {
+            attempts += 1;
+            void syncPlayback();
+
+            if (attempts >= maxAttempts) {
+                window.clearInterval(intervalId);
+            }
+        }, 400);
+
+        return () => window.clearInterval(intervalId);
+    }, [shouldPlay, showPosterOnly, src, syncPlayback]);
 
     useEffect(() => {
         if (showPosterOnly || !loopSegmentSeconds || loopSegmentSeconds <= 0) {
@@ -144,30 +216,31 @@ export function AutoplayVideo({
 
     return (
         <div ref={containerRef} className={cn('relative overflow-hidden bg-black', className)}>
-            {isInView ? (
-                <video
-                    ref={videoRef}
-                    src={src}
-                    poster={poster ?? undefined}
-                    className={mediaClassName}
-                    autoPlay
-                    loop
-                    muted
-                    playsInline
-                    preload={resolvedPreload}
-                    aria-hidden={title ? undefined : true}
-                    title={title}
-                />
-            ) : poster ? (
+            <video
+                ref={videoRef}
+                src={src}
+                className={cn('pointer-events-none lapsique-autoplay-video', mediaClassName)}
+                data-lapsique-autoplay=""
+                autoPlay
+                loop
+                muted
+                playsInline
+                controls={false}
+                disablePictureInPicture
+                disableRemotePlayback
+                preload={resolvedPreload}
+                aria-hidden={title ? undefined : true}
+                title={title}
+            />
+            {showPosterOverlay ? (
                 <img
-                    src={poster}
+                    src={poster ?? undefined}
                     alt={title ?? ''}
-                    className={mediaClassName}
-                    loading="lazy"
+                    className={cn('pointer-events-none absolute inset-0 z-[1]', mediaClassName)}
+                    loading={eager ? 'eager' : 'lazy'}
+                    aria-hidden
                 />
-            ) : (
-                <div className={cn('h-full w-full bg-black', videoClassName)} aria-hidden />
-            )}
+            ) : null}
         </div>
     );
 }

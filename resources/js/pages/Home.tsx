@@ -27,7 +27,6 @@ import { BookingCtaButton } from '@/components/lapsique/BookingCtaButton';
 import { BookingCtaSection } from '@/components/lapsique/BookingCtaSection';
 import { StickyBookingBar } from '@/components/lapsique/StickyBookingBar';
 import { trackBookingEvent } from '@/hooks/useBookingAnalytics';
-import { useIsMobileViewport } from '@/hooks/useMediaQuery';
 import { useSectionEvent } from '@/hooks/useSectionEvent';
 import { formatMxn } from '@/lib/utils';
 import {
@@ -335,11 +334,10 @@ function BusinessHero({
     heroProofVideo: HeroProofVideoData | null;
     onBook: () => void;
 }) {
-    const isMobile = useIsMobileViewport();
     const proofVideo =
         heroProofVideo
         ?? (landingHero ? landingEntryToHeroProof(landingHero) : null);
-    const heroVideoEager = !isMobile && !heroBackgroundImage?.url;
+    const heroVideoEager = !heroBackgroundImage?.url;
 
     return (
         <section className="relative -mx-4 overflow-hidden sm:-mx-6">
@@ -405,7 +403,7 @@ function BusinessHero({
                     </div>
                 </div>
 
-                <HeroProofPanel video={proofVideo} eager={!isMobile} />
+                <HeroProofPanel video={proofVideo} eager />
             </div>
         </section>
     );
