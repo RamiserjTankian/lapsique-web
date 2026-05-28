@@ -4,6 +4,7 @@ import SiteLayout from '@/layouts/SiteLayout';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { useTranslations } from '@/hooks/useTranslations';
 import { glassCardVariants } from '@/lib/variants';
 import { cn } from '@/lib/utils';
 import { route } from '@/lib/route';
@@ -16,6 +17,7 @@ interface ResetPasswordProps {
 
 export default function CustomerResetPassword({ token, email }: ResetPasswordProps) {
     const { ziggy } = usePage<PageProps>().props;
+    const { t } = useTranslations();
     const { data, setData, post, processing, errors } = useForm({
         token,
         email,
@@ -30,17 +32,17 @@ export default function CustomerResetPassword({ token, email }: ResetPasswordPro
 
     return (
         <SiteLayout>
-            <Head title="Nueva contraseña" />
+            <Head title={t('customer.reset.title')} />
             <div className="mx-auto max-w-md py-16">
-                <h1 className="font-display text-3xl font-bold">Nueva contraseña</h1>
+                <h1 className="font-display text-3xl font-bold">{t('customer.reset.title')}</h1>
                 <p className="mt-3 text-sm text-muted-foreground">
-                    Elige una contraseña segura para tu portal.
+                    {t('customer.reset.subtitle')}
                 </p>
 
                 <div className={cn(glassCardVariants({ elevated: true }), 'mt-8 p-8')}>
                     <form onSubmit={submit} className="space-y-4">
                         <div className="space-y-2">
-                            <Label htmlFor="email">Email</Label>
+                            <Label htmlFor="email">{t('common.form.email')}</Label>
                             <Input
                                 id="email"
                                 type="email"
@@ -50,7 +52,7 @@ export default function CustomerResetPassword({ token, email }: ResetPasswordPro
                             />
                         </div>
                         <div className="space-y-2">
-                            <Label htmlFor="password">Nueva contraseña</Label>
+                            <Label htmlFor="password">{t('customer.reset.title')}</Label>
                             <Input
                                 id="password"
                                 type="password"
@@ -64,7 +66,7 @@ export default function CustomerResetPassword({ token, email }: ResetPasswordPro
                             )}
                         </div>
                         <div className="space-y-2">
-                            <Label htmlFor="password_confirmation">Confirmar contraseña</Label>
+                            <Label htmlFor="password_confirmation">{t('customer.reset.confirm')}</Label>
                             <Input
                                 id="password_confirmation"
                                 type="password"
@@ -75,7 +77,7 @@ export default function CustomerResetPassword({ token, email }: ResetPasswordPro
                             />
                         </div>
                         <Button type="submit" variant="cinematic" className="w-full" disabled={processing}>
-                            Guardar contraseña
+                            {t('customer.reset.submit')}
                         </Button>
                     </form>
 
@@ -84,7 +86,7 @@ export default function CustomerResetPassword({ token, email }: ResetPasswordPro
                             href={route('customers.login', undefined, false, ziggy)}
                             className="text-primary hover:underline"
                         >
-                            Volver al login
+                            {t('customer.reset.back')}
                         </Link>
                     </p>
                 </div>

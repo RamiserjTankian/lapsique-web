@@ -4,6 +4,7 @@ import {
     getPaymentTrustContent,
     type PaymentTrustVariant,
 } from '@/lib/paymentTrustCopy';
+import { useTranslations } from '@/hooks/useTranslations';
 import { cn } from '@/lib/utils';
 import type { PageProps } from '@/types';
 
@@ -30,7 +31,8 @@ export function PaymentTrustPanel({
     hidePromises = false,
     onDark = false,
 }: PaymentTrustPanelProps) {
-    const content = getPaymentTrustContent(variant);
+    const { t } = useTranslations();
+    const content = getPaymentTrustContent(t, variant);
     const showExtended = !hidePromises && layout !== 'compact';
 
     return (
@@ -119,6 +121,8 @@ export function PaymentTrustTestModeNote({
     className?: string;
     onDark?: boolean;
 }) {
+    const { t } = useTranslations();
+
     return (
         <p
             className={cn(
@@ -127,7 +131,7 @@ export function PaymentTrustTestModeNote({
                 className,
             )}
         >
-            Modo prueba — sin cobro real en este entorno.
+            {t('common.test_mode.note')}
         </p>
     );
 }

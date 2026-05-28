@@ -2,7 +2,10 @@ import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ChevronLeft, ChevronRight, X } from 'lucide-react';
 import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
+import { modalShellGallery } from '@/lib/modalLayout';
 import { Button } from '@/components/ui/button';
+import { cn } from '@/lib/utils';
+import { useTranslations } from '@/hooks/useTranslations';
 import type { DjGalleryImage } from '@/types';
 
 interface DjGalleryProps {
@@ -11,6 +14,7 @@ interface DjGalleryProps {
 }
 
 export function DjGallery({ images, djName }: DjGalleryProps) {
+    const { t } = useTranslations();
     const [activeIndex, setActiveIndex] = useState<number | null>(null);
 
     if (images.length === 0) {
@@ -31,7 +35,7 @@ export function DjGallery({ images, djName }: DjGalleryProps) {
 
     return (
         <section className="pb-16">
-            <h2 className="font-display mb-6 text-xl font-semibold">Galería</h2>
+            <h2 className="font-display mb-6 text-xl font-semibold">{t('pages.djs.gallery')}</h2>
             <div className="columns-2 gap-3 sm:columns-3 md:gap-4">
                 {images.map((image, index) => (
                     <button
@@ -51,8 +55,8 @@ export function DjGallery({ images, djName }: DjGalleryProps) {
             </div>
 
             <Dialog open={activeIndex !== null} onOpenChange={(open) => !open && setActiveIndex(null)}>
-                <DialogContent showCloseButton={false} className="max-h-[92vh] max-w-[min(96vw,1000px)] border-border/70 bg-card p-0">
-                    <DialogTitle className="sr-only">Galería de {djName}</DialogTitle>
+                <DialogContent showCloseButton={false} className={cn(modalShellGallery, 'w-[min(calc(100vw-1.5rem),62.5rem)]')}>
+                    <DialogTitle className="sr-only">{t('pages.djs.gallery_of', { name: djName })}</DialogTitle>
                     <div className="relative flex min-h-[50vh] items-center justify-center bg-muted/30">
                         <Button
                             type="button"
@@ -60,7 +64,7 @@ export function DjGallery({ images, djName }: DjGalleryProps) {
                             size="icon"
                             className="absolute top-3 right-3 z-20 rounded-full bg-background/70"
                             onClick={() => setActiveIndex(null)}
-                            aria-label="Cerrar"
+                            aria-label={t('common.actions.close')}
                         >
                             <X className="h-5 w-5" />
                         </Button>
@@ -72,7 +76,7 @@ export function DjGallery({ images, djName }: DjGalleryProps) {
                                     size="icon"
                                     className="absolute left-3 z-20 hidden h-11 w-11 rounded-full bg-background/60 sm:flex"
                                     onClick={goPrev}
-                                    aria-label="Anterior"
+                                    aria-label={t('common.actions.previous')}
                                 >
                                     <ChevronLeft className="h-6 w-6" />
                                 </Button>
@@ -82,7 +86,7 @@ export function DjGallery({ images, djName }: DjGalleryProps) {
                                     size="icon"
                                     className="absolute right-3 z-20 hidden h-11 w-11 rounded-full bg-background/60 sm:flex"
                                     onClick={goNext}
-                                    aria-label="Siguiente"
+                                    aria-label={t('common.actions.next')}
                                 >
                                     <ChevronRight className="h-6 w-6" />
                                 </Button>

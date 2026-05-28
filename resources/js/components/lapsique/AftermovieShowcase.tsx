@@ -1,4 +1,5 @@
 import { AutoplayVideo } from '@/components/lapsique/AutoplayVideo';
+import { videoSurfaceFrameClass } from '@/lib/videoSurface';
 import type { LandingVideoEntry } from '@/types';
 
 interface AftermovieShowcaseProps {
@@ -15,7 +16,7 @@ export function AftermovieShowcase({ videos }: AftermovieShowcaseProps) {
             {videos.map((video) => (
                 <figure
                     key={video.src}
-                    className="group relative aspect-[9/16] overflow-hidden rounded-xl border border-border/70 bg-black"
+                    className={`group relative aspect-[9/16] ${videoSurfaceFrameClass}`}
                 >
                     <AutoplayVideo
                         src={video.src}

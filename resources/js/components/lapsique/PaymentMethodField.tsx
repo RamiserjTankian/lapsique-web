@@ -1,5 +1,6 @@
 import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { useTranslations } from '@/hooks/useTranslations';
 import { cn } from '@/lib/utils';
 import { bookingPaymentSelectedClasses } from '@/lib/bookingSelectionStyles';
 import { CreditCard } from 'lucide-react';
@@ -17,16 +18,17 @@ export function PaymentMethodField({
     stripeConfigured = true,
     mercadopagoConfigured = true,
 }: PaymentMethodFieldProps) {
+    const { t } = useTranslations();
     const hasAny = stripeConfigured || mercadopagoConfigured;
 
     return (
         <div className="glass-panel space-y-3 rounded-xl p-4">
             <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                Método de pago
+                {t('booking.payment.method_label')}
             </p>
             {!hasAny && (
                 <p className="text-sm text-destructive">
-                    No hay proveedores de pago configurados. Contacta al administrador.
+                    {t('booking.payment.no_providers')}
                 </p>
             )}
             <RadioGroup value={value} onValueChange={onChange} className="space-y-2">
@@ -41,7 +43,7 @@ export function PaymentMethodField({
                         <Label htmlFor="mp" className="cursor-pointer font-normal">
                             Mercado Pago
                             <span className="mt-0.5 block text-xs text-muted-foreground">
-                                OXXO, SPEI y tarjetas en México
+                                {t('booking.payment.mercadopago_hint')}
                             </span>
                         </Label>
                     </div>
@@ -57,9 +59,9 @@ export function PaymentMethodField({
                         <Label htmlFor="stripe" className="flex flex-1 cursor-pointer items-start gap-2 font-normal">
                             <CreditCard className="mt-0.5 h-4 w-4 shrink-0 text-muted-foreground" />
                             <span>
-                                Tarjeta internacional
+                                {t('booking.payment.stripe_hint')}
                                 <span className="mt-0.5 block text-xs text-muted-foreground">
-                                    Pago seguro con Stripe Checkout
+                                    {t('booking.payment.stripe_subhint')}
                                 </span>
                             </span>
                         </Label>

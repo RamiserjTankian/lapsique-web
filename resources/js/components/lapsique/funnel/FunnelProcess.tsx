@@ -1,35 +1,43 @@
+import { useMemo } from 'react';
 import { GlassSection } from '@/components/lapsique/GlassSection';
 import { CONTENT_REEL_DURATION_SECONDS } from '@/data/contentOffer';
 import { useSectionEvent } from '@/hooks/useSectionEvent';
+import { useTranslations } from '@/hooks/useTranslations';
 import { cn } from '@/lib/utils';
 import { glassCardVariants } from '@/lib/variants';
 
-const steps = [
-    {
-        step: '01',
-        title: 'Agenda tu horario',
-        description: 'Elige fecha, comparte tu idea y asegura la producción desde el home.',
-    },
-    {
-        step: '02',
-        title: 'Dirigimos la sesión',
-        description: `Capturamos en tierra y desde el aire con dron DJI: dirección, ritmo y tomas pensadas para tu reel de ${CONTENT_REEL_DURATION_SECONDS} segundos con cámara Sony.`,
-    },
-    {
-        step: '03',
-        title: 'Recibes material listo para vender',
-        description: `Entregamos reel de ${CONTENT_REEL_DURATION_SECONDS} s con cámara Sony, tomas de dron DJI y fotos editadas listas para campañas y redes.`,
-    },
-];
-
 export function FunnelProcess() {
+    const { t } = useTranslations();
     const ref = useSectionEvent('process_viewed', { section: 'process' });
+
+    const steps = useMemo(
+        () => [
+            {
+                step: '01',
+                title: t('funnel.process.step_1_title'),
+                description: t('funnel.process.step_1_description'),
+            },
+            {
+                step: '02',
+                title: t('funnel.process.step_2_title'),
+                description: t('funnel.process.step_2_description'),
+            },
+            {
+                step: '03',
+                title: t('funnel.process.step_3_title'),
+                description: t('funnel.process.step_3_description', {
+                    seconds: CONTENT_REEL_DURATION_SECONDS,
+                }),
+            },
+        ],
+        [t],
+    );
 
     return (
         <GlassSection
-            eyebrow="Proceso"
-            title="Así se cierra en tres pasos"
-            description="La compra es simple y la experiencia se siente boutique: poca fricción, dirección clara y entrega profesional."
+            eyebrow={t('funnel.process.section_eyebrow')}
+            title={t('funnel.process.title')}
+            description={t('funnel.process.section_description')}
         >
             <section ref={ref} className="grid gap-4 lg:grid-cols-3">
                 {steps.map((step) => (

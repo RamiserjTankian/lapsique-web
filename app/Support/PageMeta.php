@@ -30,53 +30,53 @@ class PageMeta
             'events.show' => self::forEvent($request->route('event'), $canonicalUrl),
             'posts.show' => self::forPost($request->route('post'), $canonicalUrl),
             'djs.index' => self::forSection(
-                'DJs',
-                'Descubre DJs, sets y perfiles de la escena electrónica con lapsique.media.',
+                __('pages.djs.title'),
+                __('seo.djs_index.description'),
                 $canonicalUrl,
-                'DJs, música electrónica, techno, house, sets en vivo, lapsique.media',
+                __('seo.djs_index.keywords'),
             ),
             'videos.index' => self::forSection(
-                'Videos',
-                'Sets, aftermovies y piezas audiovisuales de la escena electrónica en Riviera Maya.',
+                __('pages.videos.title'),
+                __('seo.videos_index.description'),
                 $canonicalUrl,
-                'videos, DJ sets, música electrónica, lapsique.media',
+                __('seo.videos_index.keywords'),
             ),
             'portfolio.index' => self::forSection(
-                'Portafolio',
-                'Producción audiovisual, sesiones de contenido y piezas para marcas que quieren verse premium.',
+                __('pages.portfolio.title'),
+                __('seo.portfolio_index.description'),
                 $canonicalUrl,
-                'portafolio, producción audiovisual, sesión de contenido, reels, fotografía, lapsique.media',
+                __('seo.portfolio_index.keywords'),
             ),
             'booking.confirm' => self::forBookingStatus(
-                'Reserva confirmada',
-                'Tu sesión de contenido quedó confirmada. Revisa los detalles en lapsique.media.',
+                __('seo.booking_confirm.title'),
+                __('seo.booking_confirm.description'),
                 $canonicalUrl,
                 noindex: true,
             ),
             'booking.pending' => self::forBookingStatus(
-                'Pago pendiente',
-                'Estamos procesando tu pago de la sesión de contenido en lapsique.media.',
+                __('seo.booking_pending.title'),
+                __('seo.booking_pending.description'),
                 $canonicalUrl,
                 noindex: true,
             ),
             'booking.failure' => self::forBookingStatus(
-                'Pago no completado',
-                'El pago de tu sesión no se completó. Puedes reintentar desde lapsique.media.',
+                __('seo.booking_failure.title'),
+                __('seo.booking_failure.description'),
                 $canonicalUrl,
                 noindex: true,
             ),
             'customers.login', 'customers.password.request', 'customers.password.reset' => self::forSection(
-                'Acceso al portal',
-                'Inicia sesión en tu portal de cliente de lapsique.media.',
+                __('seo.customer_login.title'),
+                __('seo.customer_login.description'),
                 $canonicalUrl,
-                'portal cliente, lapsique.media',
+                __('seo.customer_login.keywords'),
                 noindex: true,
             ),
             'customers.portal' => self::forSection(
-                'Mi portal',
-                'Consulta tus reservas y entregables en lapsique.media.',
+                __('seo.customer_portal.title'),
+                __('seo.customer_portal.description'),
                 $canonicalUrl,
-                'portal cliente, lapsique.media',
+                __('seo.customer_portal.keywords'),
                 noindex: true,
             ),
             default => self::forDefault($canonicalUrl),
@@ -86,15 +86,13 @@ class PageMeta
     public static function forDjSet(?SiteSetting $settings, string $canonicalUrl): PageMetaData
     {
         $price = (int) config('booking.dj_set_price', 12000);
-        $title = 'Grabación de DJ Set';
+        $title = __('seo.djset.title');
         $metaTitle = "{$title} · ".self::SITE_NAME;
         $description = self::truncate(
-            'Graba tu DJ set con 3 cámaras fijas y dron. Video final de una hora por $'
-            .number_format($price, 0, '.', ',')
-            .' MXN con agenda y pago en línea.',
+            __('seo.djset.description', ['price' => number_format($price, 0, '.', ',')]),
         );
         $ogImage = self::djsetOgImageUrl($settings);
-        $ogImageAlt = 'Grabación de DJ set — '.self::SITE_NAME;
+        $ogImageAlt = __('seo.djset.og_alt');
 
         return new PageMetaData(
             title: $title,
@@ -104,7 +102,7 @@ class PageMeta
             ogType: 'website',
             ogImage: $ogImage,
             ogImageAlt: $ogImageAlt,
-            keywords: 'grabación de DJ set, video DJ, DJ set Tulum, 3 cámaras fijas y dron, lapsique.media',
+            keywords: __('seo.djset.keywords'),
         );
     }
 
@@ -113,16 +111,15 @@ class PageMeta
         $price = (int) ($settings?->booking_price ?? config('booking.content_price', 4000));
         $subtitle = $settings?->booking_subtitle
             ?: ContentSessionOffer::defaultSubtitle();
-        $bookingTitle = $settings?->booking_title
-            ?: 'Reels cinematográficos para negocios';
+        $bookingTitle = LocalizedBookingCopy::title($settings?->booking_title);
 
-        $title = 'Agenda reels para tu negocio';
+        $title = __('seo.home.title');
         $metaTitle = "{$title} · ".self::SITE_NAME;
         $description = self::truncate(
-            "{$subtitle} Sesión reservable desde $".number_format($price, 0, '.', ',').' MXN.',
+            trim("{$subtitle} ".__('seo.home.description', ['price' => number_format($price, 0, '.', ',')])),
         );
         $ogImage = self::bookingOgImageUrl($settings);
-        $ogImageAlt = 'Sesión de contenido profesional — '.self::SITE_NAME;
+        $ogImageAlt = __('seo.content_session_alt');
 
         $jsonLd = [
             '@context' => 'https://schema.org',
@@ -152,7 +149,7 @@ class PageMeta
             ogType: 'website',
             ogImage: $ogImage,
             ogImageAlt: $ogImageAlt,
-            keywords: 'reels para negocios, sesión de contenido, aftermovies, fotografía profesional, anuncios, producción audiovisual, lapsique.media',
+            keywords: __('seo.home.keywords'),
             jsonLd: $jsonLd,
         );
     }
@@ -165,7 +162,7 @@ class PageMeta
 
         $title = $dj->name;
         $metaTitle = "{$title} · ".self::SITE_NAME;
-        $description = self::truncate($dj->bio ?: "Perfil de {$dj->name} en lapsique.media.");
+        $description = self::truncate($dj->bio ?: __('seo.dj_profile', ['name' => $dj->name]));
         $ogImage = self::absoluteImageUrl(
             $dj->getFirstMediaUrl('profile', 'card')
                 ?: $dj->getFirstMediaUrl('profile', 'hero')
@@ -193,7 +190,7 @@ class PageMeta
 
         $title = $video->title;
         $metaTitle = "{$title} · ".self::SITE_NAME;
-        $description = self::truncate($video->description ?: "Video: {$video->title} en lapsique.media.");
+        $description = self::truncate($video->description ?: __('seo.video_description', ['title' => $video->title]));
         $ogImage = self::absoluteImageUrl(
             $video->getFirstMediaUrl('thumbnail')
                 ?: $video->thumbnail_url,
@@ -225,7 +222,7 @@ class PageMeta
             collect([$event->description, $location, $datePart])
                 ->filter()
                 ->implode(' · ')
-                ?: "Evento {$event->title} en lapsique.media.",
+                ?: __('seo.event_fallback', ['title' => $event->title]),
         );
         $ogImage = self::absoluteImageUrl($event->getFirstMediaUrl('cover', 'large'));
 
@@ -297,10 +294,10 @@ class PageMeta
     public static function forDefault(string $canonicalUrl): PageMetaData
     {
         return self::forSection(
-            self::SITE_NAME,
-            'Sesiones de contenido premium: '.ContentSessionOffer::description().' para elevar tu marca.',
+            __('seo.default.title'),
+            __('seo.default.description').': '.ContentSessionOffer::description(),
             $canonicalUrl,
-            'sesión de contenido, producción audiovisual, reels, lapsique.media',
+            __('seo.default.keywords'),
         );
     }
 

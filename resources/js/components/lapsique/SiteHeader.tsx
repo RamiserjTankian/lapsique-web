@@ -10,7 +10,9 @@ import {
     SheetTitle,
     SheetTrigger,
 } from '@/components/ui/sheet';
+import { LanguageToggle } from '@/components/lapsique/LanguageToggle';
 import { ThemeToggle } from '@/components/lapsique/ThemeToggle';
+import { useTranslations } from '@/hooks/useTranslations';
 import { markBookingModalPending, openBookingModal } from '@/lib/openBookingModal';
 import { route } from '@/lib/route';
 import type { PageProps } from '@/types';
@@ -45,6 +47,7 @@ function MotionHeaderActions({
     siteName: string;
 }) {
     const { ziggy, customer } = usePage<PageProps>().props;
+    const { t } = useTranslations();
     const homeAgenda = `${route('home', undefined, false, ziggy)}#agenda`;
     const openBookingPopup = (event: MouseEvent<HTMLAnchorElement>) => {
         if (document.getElementById('agenda')) {
@@ -62,15 +65,19 @@ function MotionHeaderActions({
 
     return (
         <div className="flex items-center gap-2">
+            <Button variant="ghost" size="sm" className="hidden md:inline-flex" asChild>
+                <Link href={route('portfolio.index', undefined, false, ziggy)}>{t('common.nav.portfolio')}</Link>
+            </Button>
             {customer && (
                 <Button variant="ghost" size="sm" className="hidden md:inline-flex" asChild>
-                    <Link href={route('customers.portal', undefined, false, ziggy)}>Mi portal</Link>
+                    <Link href={route('customers.portal', undefined, false, ziggy)}>{t('common.nav.my_portal')}</Link>
                 </Button>
             )}
+            <LanguageToggle className="hidden sm:inline-flex" />
             <ThemeToggle />
             <BookingCtaButton compact className="hidden md:inline-flex" asChild>
                 <Link href={homeAgenda} onClick={openBookingPopup}>
-                    Agendar sesión
+                    {t('common.nav.book_session')}
                 </Link>
             </BookingCtaButton>
 
@@ -85,10 +92,21 @@ function MotionHeaderActions({
                         <SheetTitle className="font-display">{siteName}</SheetTitle>
                     </SheetHeader>
                     <div className="mt-6 flex items-center justify-between">
-                        <span className="text-xs uppercase tracking-wider text-muted-foreground">Tema</span>
-                        <ThemeToggle />
+                        <span className="text-xs uppercase tracking-wider text-muted-foreground">{t('common.nav.theme')}</span>
+                        <div className="flex items-center gap-2">
+                            <LanguageToggle />
+                            <ThemeToggle />
+                        </div>
                     </div>
-                    <div className="mt-8">
+                    <div className="mt-8 flex flex-col gap-3">
+                        <Button variant="outline" asChild className="w-full">
+                            <Link
+                                href={route('portfolio.index', undefined, false, ziggy)}
+                                onClick={() => setOpen(false)}
+                            >
+                                {t('common.nav.portfolio')}
+                            </Link>
+                        </Button>
                         <BookingCtaButton asChild className="w-full">
                             <Link
                                 href={homeAgenda}
@@ -97,7 +115,7 @@ function MotionHeaderActions({
                                     openBookingPopup(event);
                                 }}
                             >
-                                Agendar sesión
+                                {t('common.nav.book_session')}
                             </Link>
                         </BookingCtaButton>
                     </div>

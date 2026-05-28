@@ -2,22 +2,24 @@ import { GlassSection } from '@/components/lapsique/GlassSection';
 import { InstagramProfileEmbed } from '@/components/lapsique/InstagramProfileEmbed';
 import { CREATOR_PROFILE } from '@/data/creatorProfile';
 import { useSectionEvent } from '@/hooks/useSectionEvent';
+import { useTranslations } from '@/hooks/useTranslations';
 
 export function FunnelTeam() {
+    const { t } = useTranslations();
     const ref = useSectionEvent('proof_section_viewed', { section: 'team' });
 
     return (
         <GlassSection
-            title="Quién está detrás"
+            title={t('funnel.team.title')}
             description={`${CREATOR_PROFILE.name} · videomaker · photographer`}
-            className="text-center [&>div:first-child]:justify-center [&>div:first-child]:text-center"
+            className="text-center [&_.relative.z-10]:justify-center [&_.relative.z-10>div]:text-center"
         >
             <section
                 ref={ref}
                 className="mx-auto flex max-w-md flex-col items-center gap-8"
             >
                 <p className="max-w-sm text-sm leading-relaxed text-muted-foreground">
-                    Dirección y captura para piezas que se sienten premium en cámara y en pauta.
+                    {t('funnel.team.body')}
                 </p>
 
                 <InstagramProfileEmbed

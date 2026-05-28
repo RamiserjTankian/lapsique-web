@@ -1,9 +1,9 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Play } from 'lucide-react';
 import { glassCardVariants } from '@/lib/variants';
 import { cn } from '@/lib/utils';
 import { fadeUp } from '@/lib/motion';
+import { useTranslations } from '@/hooks/useTranslations';
 import type { PortfolioItemData } from '@/types';
 
 interface PortfolioGridItemProps {
@@ -19,6 +19,7 @@ export function PortfolioGridItem({
     onSelect,
     className,
 }: PortfolioGridItemProps) {
+    const { t } = useTranslations();
     const previewUrl = getPortfolioPreviewUrl(item);
     const canAutoplayPreview = item.media_type === 'video' && Boolean(item.playback_url);
     const [isLoaded, setIsLoaded] = useState(false);
@@ -32,7 +33,9 @@ export function PortfolioGridItem({
             viewport={{ once: true, margin: '-40px' }}
             custom={index}
             onClick={() => onSelect(item)}
-            aria-label={`Abrir ${item.title ?? 'proyecto de portafolio'}`}
+            aria-label={t('common.alt.open_portfolio', {
+                title: item.title ?? t('common.alt.portfolio_project'),
+            })}
             className={cn(
                 glassCardVariants(),
                 'group relative block h-full min-h-[9rem] w-full overflow-hidden text-left',
@@ -71,15 +74,8 @@ export function PortfolioGridItem({
                 />
             ) : (
                 <div className="absolute inset-0 flex items-center justify-center bg-muted/30">
-                    <span className="text-xs text-muted-foreground">Sin preview</span>
+                    <span className="text-xs text-muted-foreground">{t('common.empty.no_preview')}</span>
                 </div>
-            )}
-            {(item.media_type === 'youtube' || item.media_type === 'video') && (
-                <span className="pointer-events-none absolute inset-0 z-10 flex items-center justify-center opacity-0 transition-opacity group-hover:opacity-100">
-                    <span className="flex h-12 w-12 items-center justify-center rounded-full border border-primary/40 bg-background/70 text-primary backdrop-blur-sm">
-                        <Play className="ml-0.5 h-5 w-5 fill-current" />
-                    </span>
-                </span>
             )}
             <motionOverlay />
             <motionHoverRing />

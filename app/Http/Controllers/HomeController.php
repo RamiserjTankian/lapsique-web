@@ -5,7 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Resources\BookingSlotResource;
 use App\Http\Resources\PortfolioItemResource;
 use App\Models\PortfolioItem;
-use App\Support\ContentSessionOffer;
+use App\Support\LocalizedBookingCopy;
 use App\Support\HomeHeroBackground;
 use App\Support\HomeHeroProofVideos;
 use App\Support\HomeReelDistribution;
@@ -41,8 +41,8 @@ class HomeController extends Controller
         }
 
         return Inertia::render('Home', [
-            'title' => $settings?->booking_title ?: 'Reels cinematográficos para negocios',
-            'subtitle' => $settings?->booking_subtitle ?: ContentSessionOffer::defaultSubtitle(),
+            'title' => LocalizedBookingCopy::title($settings?->booking_title),
+            'subtitle' => LocalizedBookingCopy::subtitle($settings?->booking_subtitle),
             'price' => $bookingData['price'],
             'slots' => BookingSlotResource::collection($bookingData['slots'])->resolve(),
             'portfolioItems' => PortfolioItemResource::collection($portfolioItems)->resolve(),

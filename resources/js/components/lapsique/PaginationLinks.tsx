@@ -1,4 +1,5 @@
 import { Link } from '@inertiajs/react';
+import { useTranslations } from '@/hooks/useTranslations';
 import { cn } from '@/lib/utils';
 
 interface PaginationLink {
@@ -25,6 +26,7 @@ function normalizePaginationLinks(links: PaginationLink[] | Record<string, strin
 }
 
 export function PaginationLinks({ links = [], className }: PaginationLinksProps) {
+    const { t } = useTranslations();
     const safeLinks = normalizePaginationLinks(links as PaginationLink[] | Record<string, string | null>);
     const pageLinks = safeLinks.filter(
         (link) => link.label !== '&laquo; Previous' && link.label !== 'Next &raquo;',
@@ -35,7 +37,7 @@ export function PaginationLinks({ links = [], className }: PaginationLinksProps)
     }
 
     return (
-        <nav className={cn('mt-10 flex flex-wrap justify-center gap-2', className)} aria-label="Paginación">
+        <nav className={cn('mt-10 flex flex-wrap justify-center gap-2', className)} aria-label={t('common.pagination.label')}>
             {safeLinks.map((link, index) => {
                 if (!link.url) {
                     return (

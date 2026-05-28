@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { cn } from '@/lib/utils';
+import { useTranslations } from '@/hooks/useTranslations';
 import type { PortfolioItemData } from '@/types';
 
 interface PortfolioMediaViewerProps {
@@ -9,14 +10,16 @@ interface PortfolioMediaViewerProps {
 }
 
 export function PortfolioMediaViewer({ item, className }: PortfolioMediaViewerProps) {
+    const { t } = useTranslations();
     const [isLoaded, setIsLoaded] = useState(false);
+    const portfolioVideoTitle = t('common.alt.portfolio_video');
 
     if (item.media_type === 'youtube' && item.embed_url) {
         return (
             <div className="relative w-full overflow-hidden rounded-xl bg-muted/40">
                 {!isLoaded && <MediaViewerSkeleton />}
                 <iframe
-                    title={item.title ?? 'Video de portafolio'}
+                    title={item.title ?? portfolioVideoTitle}
                     src={item.embed_url}
                     onLoad={() => setIsLoaded(true)}
                     className={cn(

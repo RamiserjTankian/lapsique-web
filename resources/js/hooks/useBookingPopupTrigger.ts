@@ -5,12 +5,13 @@ import {
     markBookingAutoShown,
     requestBookingAutoOpen,
 } from '@/lib/funnelModalEvents';
+import { attachScrollDepthTrigger } from '@/lib/funnelScrollTrigger';
 
 const BOOKING_AUTO_DELAY_MS = 22_000;
-const BOOKING_SCROLL_THRESHOLD = 50;
 
 export function useBookingPopupTrigger(enabled: boolean): void {
     const triggeredRef = useRef(false);
+    const mountTimeRef = useRef(Date.now());
 
     useEffect(() => {
         if (!enabled) {
@@ -36,28 +37,15 @@ export function useBookingPopupTrigger(enabled: boolean): void {
             requestBookingAutoOpen();
         };
 
-        const onScroll = () => {
-            const doc = document.documentElement;
-            const scrollable = doc.scrollHeight - window.innerHeight;
-
-            if (scrollable <= 0) {
-                return;
-            }
-
-            const percent = (window.scrollY / scrollable) * 100;
-
-            if (percent >= BOOKING_SCROLL_THRESHOLD) {
-                tryOpen();
-            }
-        };
+        const detachScroll = attachScrollDepthTrigger(() => tryOpen(), {
+            mountTime: mountTimeRef.current,
+        });
 
         const timer = window.setTimeout(tryOpen, BOOKING_AUTO_DELAY_MS);
 
-        window.addEventListener('scroll', onScroll, { passive: true });
-
         return () => {
             window.clearTimeout(timer);
-            window.removeEventListener('scroll', onScroll);
+            detachScroll();
         };
     }, [enabled]);
 }

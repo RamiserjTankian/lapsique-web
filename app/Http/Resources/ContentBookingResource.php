@@ -49,6 +49,11 @@ class ContentBookingResource extends JsonResource
                     ])->values();
                 },
             ),
+            'was_rescheduled' => (bool) (
+                data_get($this->metadata, 'rescheduled', false)
+                || data_get($this->metadata, 'rescheduled_at', false)
+                || data_get($this->metadata, 'reschedule_count', 0)
+            ),
             'is_test_booking' => (bool) data_get($this->metadata, 'skip_payment_mode', false),
             'slot' => $this->slot ? [
                 'date' => $this->slot->date->format('Y-m-d'),

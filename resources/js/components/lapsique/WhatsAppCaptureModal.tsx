@@ -1,0 +1,149 @@
+import { useEffect, useMemo } from 'react';
+import { usePage } from '@inertiajs/react';
+import { CalendarDays, MessageCircle } from 'lucide-react';
+import { PremiumSplitDialog } from '@/components/lapsique/PremiumSplitDialog';
+import { Button } from '@/components/ui/button';
+import { trackBookingEvent } from '@/hooks/useBookingAnalytics';
+import { useTranslations } from '@/hooks/useTranslations';
+import { markWhatsAppPopupSeen } from '@/lib/funnelModalEvents';
+import { openBookingModal } from '@/lib/openBookingModal';
+import {
+    getPopupVisualCopy,
+    resolvePopupImage,
+    type PopupVariant,
+} from '@/lib/popupMedia';
+import type { HeroProofVideoData, PageProps, PortfolioItemData, VideoItem } from '@/types';
+
+interface WhatsAppCaptureModalProps {
+    open: boolean;
+    onOpenChange: (open: boolean) => void;
+    variant: PopupVariant;
+    portfolioItems?: PortfolioItemData[];
+    heroProofVideo?: HeroProofVideoData | null;
+    originals?: VideoItem[];
+    source?: string;
+}
+
+export function WhatsAppCaptureModal({
+    open,
+    onOpenChange,
+    variant,
+    portfolioItems = [],
+    heroProofVideo = null,
+    originals = [],
+    source = 'auto',
+}: WhatsAppCaptureModalProps) {
+    const { site } = usePage<PageProps>().props;
+    const { t } = useTranslations();
+    const visual = useMemo(() => getPopupVisualCopy(t, variant, 'whatsapp'), [t, variant]);
+    const image = useMemo(
+        () =>
+            resolvePopupImage(t, {
+                variant,
+                portfolioItems,
+                heroProofVideo,
+                originals,
+            }),
+        [t, variant, portfolioItems, heroProofVideo, originals],
+    );
+
+    const whatsappHref = useMemo(() => {
+        if (!site.whatsapp) {
+            return '';
+        }
+
+        const prefillKey = variant === 'djset' ? 'funnel.whatsapp.prefill_djset' : 'funnel.whatsapp.prefill_home';
+
+        return `https://wa.me/${site.whatsapp}?text=${encodeURIComponent(t(prefillKey))}`;
+    }, [site.whatsapp, t, variant]);
+
+    useEffect(() => {
+        if (!open) {
+            return;
+        }
+
+        trackBookingEvent('whatsapp_popup_shown', { variant, source });
+    }, [open, source, variant]);
+
+    const handleOpenChange = (next: boolean) => {
+        if (!next) {
+            markWhatsAppPopupSeen();
+            trackBookingEvent('whatsapp_popup_dismissed', { variant, source });
+        }
+
+        onOpenChange(next);
+    };
+
+    const handleWhatsAppClick = () => {
+        trackBookingEvent('whatsapp_popup_clicked', { variant, source });
+        markWhatsAppPopupSeen();
+        onOpenChange(false);
+    };
+
+    const handleBookClick = () => {
+        onOpenChange(false);
+        openBookingModal({
+            source: 'whatsapp_popup',
+            analyticsEvent: 'whatsapp_popup_booking_clicked',
+            analyticsPayload: { variant },
+        });
+    };
+
+    if (!site.whatsapp) {
+        return null;
+    }
+
+    return (
+        <PremiumSplitDialog
+            open={open}
+            onOpenChange={handleOpenChange}
+            layout="promo"
+            imageUrl={image.url}
+            imageAlt={image.alt}
+            badge={visual.badge}
+            title={visual.title}
+            description={visual.description}
+            caption={visual.caption}
+            contentClassName="px-4 py-4 sm:px-5 sm:py-5"
+        >
+            <div className="flex min-h-0 flex-col justify-center space-y-4">
+                <ul className="space-y-2 text-sm text-muted-foreground">
+                    <li className="flex items-start gap-2">
+                        <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-[#25D366]" />
+                        {t('funnel.whatsapp.bullet_1')}
+                    </li>
+                    <li className="flex items-start gap-2">
+                        <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-[#25D366]" />
+                        {t('funnel.whatsapp.bullet_2')}
+                    </li>
+                    <li className="flex items-start gap-2">
+                        <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-[#25D366]" />
+                        {t('funnel.whatsapp.bullet_3')}
+                    </li>
+                </ul>
+
+                <div className="space-y-3">
+                    <Button
+                        asChild
+                        className="w-full bg-[#25D366] text-white hover:bg-[#20bd5a]"
+                    >
+                        <a
+                            href={whatsappHref}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            onClick={handleWhatsAppClick}
+                        >
+                            <MessageCircle className="h-4 w-4" />
+                            {t('funnel.whatsapp.cta_write')}
+                        </a>
+                    </Button>
+
+                    <Button type="button" variant="outline" className="w-full" onClick={handleBookClick}>
+                        <CalendarDays className="h-4 w-4" />
+                        {t('funnel.whatsapp.cta_book')}
+                    </Button>
+                </div>
+            </div>
+        </PremiumSplitDialog>
+    );
+}

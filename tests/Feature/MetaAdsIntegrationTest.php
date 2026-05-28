@@ -175,6 +175,62 @@ class MetaAdsIntegrationTest extends TestCase
         });
     }
 
+    public function test_conversions_api_uses_shared_event_id_for_initiate_checkout(): void
+    {
+        $this->configureMetaCapi();
+
+        Http::fake([
+            'graph.facebook.com/*' => Http::response(['events_received' => 1]),
+        ]);
+
+        $booking = ContentBooking::create([
+            'public_id' => (string) \Illuminate\Support\Str::uuid(),
+            'client_name' => 'Cliente Checkout',
+            'client_email' => 'checkout@example.com',
+            'client_phone' => '9990000000',
+            'amount' => 3000,
+            'currency' => 'MXN',
+            'status' => 'pending_payment',
+            'metadata' => ['checkout_event_id' => 'browser-evt-123'],
+        ]);
+
+        app(MetaConversionsApiService::class)->sendInitiateCheckoutForBooking($booking);
+
+        Http::assertSent(function ($request) {
+            $body = $request->data();
+
+            return data_get($body, 'data.0.event_name') === 'InitiateCheckout'
+                && data_get($body, 'data.0.event_id') === 'browser-evt-123';
+        });
+    }
+
+    public function test_purchase_is_only_sent_once_per_booking(): void
+    {
+        $this->configureMetaCapi();
+
+        Http::fake([
+            'graph.facebook.com/*' => Http::response(['events_received' => 1]),
+        ]);
+
+        $booking = ContentBooking::create([
+            'public_id' => (string) \Illuminate\Support\Str::uuid(),
+            'client_name' => 'Cliente Idempotente',
+            'client_email' => 'idempotent@example.com',
+            'client_phone' => '9990000000',
+            'amount' => 5000,
+            'currency' => 'MXN',
+            'status' => 'confirmed',
+            'paid_at' => now(),
+        ]);
+
+        $service = app(MetaConversionsApiService::class);
+        $service->sendPurchaseForBooking($booking);
+        $service->sendPurchaseForBooking($booking->fresh());
+
+        $this->assertTrue((bool) data_get($booking->fresh()->metadata, 'capi_purchase_sent'));
+        Http::assertSentCount(1);
+    }
+
     public function test_conversions_api_sends_external_id_for_customer_on_purchase(): void
     {
         $this->configureMetaCapi();

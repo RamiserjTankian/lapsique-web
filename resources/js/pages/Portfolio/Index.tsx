@@ -6,6 +6,7 @@ import { PortfolioGridItem } from '@/components/lapsique/PortfolioGridItem';
 import { PortfolioLightbox } from '@/components/lapsique/PortfolioLightbox';
 import { GlassSection } from '@/components/lapsique/GlassSection';
 import { PaginationLinks } from '@/components/lapsique/PaginationLinks';
+import { useTranslations } from '@/hooks/useTranslations';
 import { staggerContainer } from '@/lib/motion';
 import type { Paginated, PortfolioItemData } from '@/types';
 
@@ -15,6 +16,7 @@ interface PortfolioIndexProps {
 }
 
 export default function PortfolioIndex({ items }: PortfolioIndexProps) {
+    const { t } = useTranslations();
     const [activeIndex, setActiveIndex] = useState<number | null>(null);
 
     const pageItems = items?.data ?? [];
@@ -27,10 +29,10 @@ export default function PortfolioIndex({ items }: PortfolioIndexProps) {
 
     return (
         <SiteLayout>
-            <Head title="Portafolio" />
+            <Head title={t('pages.portfolio.title')} />
             <GlassSection
-                title="Portafolio"
-                description="Fotografía y video con look cinematográfico."
+                title={t('pages.portfolio.title')}
+                description={t('pages.portfolio.description')}
             >
                 <motion.div
                     variants={staggerContainer}
@@ -51,7 +53,7 @@ export default function PortfolioIndex({ items }: PortfolioIndexProps) {
                 </motion.div>
 
                 {gridItems.length === 0 && (
-                    <p className="text-center text-muted-foreground">No hay proyectos disponibles.</p>
+                    <p className="text-center text-muted-foreground">{t('pages.portfolio.empty')}</p>
                 )}
 
                 {gridItems.length > 0 && (

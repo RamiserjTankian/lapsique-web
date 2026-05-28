@@ -2,6 +2,7 @@ import { Head } from '@inertiajs/react';
 import SiteLayout from '@/layouts/SiteLayout';
 import { glassCardVariants } from '@/lib/variants';
 import { cn } from '@/lib/utils';
+import { useTranslations } from '@/hooks/useTranslations';
 import type { VideoItem } from '@/types';
 
 interface VideosShowProps {
@@ -10,6 +11,7 @@ interface VideosShowProps {
 }
 
 export default function VideosShow({ video, instagramUrl }: VideosShowProps) {
+    const { t } = useTranslations();
     const embedId = video.youtube_url?.match(/(?:v=|\/)([\w-]{11})/)?.[1];
 
     return (
@@ -36,7 +38,7 @@ export default function VideosShow({ video, instagramUrl }: VideosShowProps) {
                     rel="noopener noreferrer"
                     className="mt-6 inline-block text-sm text-primary hover:underline"
                 >
-                    Síguenos en Instagram →
+                    {t('pages.videos.show_instagram')}
                 </a>
             </article>
         </SiteLayout>

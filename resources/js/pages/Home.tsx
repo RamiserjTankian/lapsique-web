@@ -1,21 +1,24 @@
 import { usePage } from '@inertiajs/react';
-import { ArrowRight, CalendarDays, Play } from 'lucide-react';
+import { ArrowRight, CalendarDays } from 'lucide-react';
 import { useEffect, useRef, type RefObject } from 'react';
 import { SeoHead } from '@/components/lapsique/SeoHead';
 import SiteLayout from '@/layouts/SiteLayout';
 import { BookingWidget } from '@/components/lapsique/BookingWidget';
 import { GlassSection } from '@/components/lapsique/GlassSection';
+import { LandingPageSection } from '@/components/lapsique/LandingPageSection';
 import { ReelPlayerModal } from '@/components/lapsique/ReelPlayerModal';
 import { ReelLoopCard } from '@/components/lapsique/ReelLoopCard';
 import { useReelLibraryPlayback } from '@/hooks/useReelLibraryPlayback';
 import { ReelPlayerProvider } from '@/hooks/useReelPlayerModal';
 import { openBookingModal } from '@/lib/openBookingModal';
+import { videoSurfaceFrameClass } from '@/lib/videoSurface';
 import { HeroProofVideoCard } from '@/components/lapsique/HeroProofVideoCard';
 import {
     LoopingVideoBackground,
     PortfolioPhotoBackground,
 } from '@/components/lapsique/LoopingVideoBackground';
 import { ContentPackageSection } from '@/components/lapsique/funnel/ContentPackageSection';
+import { PortfolioTrustSection } from '@/components/lapsique/funnel/PortfolioTrustSection';
 import { RecordingGearSection } from '@/components/lapsique/funnel/RecordingGearSection';
 import { WorkflowSection } from '@/components/lapsique/funnel/WorkflowSection';
 import { FunnelTeam } from '@/components/lapsique/funnel/FunnelTeam';
@@ -26,13 +29,15 @@ import { PaymentTrustOrTestMode } from '@/components/lapsique/PaymentTrustPanel'
 import { BookingCtaButton } from '@/components/lapsique/BookingCtaButton';
 import { BookingCtaSection } from '@/components/lapsique/BookingCtaSection';
 import { StickyBookingBar } from '@/components/lapsique/StickyBookingBar';
+import { useTranslations } from '@/hooks/useTranslations';
 import { trackBookingEvent } from '@/hooks/useBookingAnalytics';
 import { useSectionEvent } from '@/hooks/useSectionEvent';
+import { landingPageStackClass } from '@/lib/landingSection';
 import { cn, formatMxn } from '@/lib/utils';
 import {
     CONTENT_DRONE_SHOTS,
-    CONTENT_OFFER_SHORT,
     CONTENT_REEL_DURATION_SECONDS,
+    getContentOfferShort,
     LANDING_VIDEO_LOOP_SECONDS,
 } from '@/data/contentOffer';
 import type {
@@ -75,6 +80,47 @@ function isPlayableLandingVideo(
     return Boolean(entry?.src?.trim());
 }
 
+function pickUniquePlayableVideos(
+    entries: Array<LandingVideoEntry | null | undefined>,
+    limit = 3,
+): LandingVideoEntry[] {
+    const seen = new Set<string>();
+    const result: LandingVideoEntry[] = [];
+
+    for (const entry of entries) {
+        if (!isPlayableLandingVideo(entry) || seen.has(entry.src)) {
+            continue;
+        }
+
+        seen.add(entry.src);
+        result.push(entry);
+
+        if (result.length >= limit) {
+            break;
+        }
+    }
+
+    return result;
+}
+
+function buildFeaturedReelFallbackPool(
+    landingVideos: LandingVideosProps | null | undefined,
+): Array<LandingVideoEntry | null | undefined> {
+    if (!landingVideos) {
+        return [];
+    }
+
+    return [
+        landingVideos.pauta,
+        landingVideos.package ?? landingVideos.gear,
+        landingVideos.floats?.[0],
+        landingVideos.floats?.[1],
+        ...landingVideos.creative,
+        ...landingVideos.equipment,
+        ...landingVideos.aftermovies,
+    ];
+}
+
 export default function Home({
     title,
     subtitle,
@@ -88,6 +134,7 @@ export default function Home({
     errors,
 }: HomeProps) {
     const { site } = usePage<PageProps>().props;
+    const { t } = useTranslations();
     const adProofRef = useSectionEvent<HTMLDivElement>('proof_section_viewed', {
         section: 'business_reel_formats',
     });
@@ -97,20 +144,21 @@ export default function Home({
     const portfolioImages = portfolioItems.filter((item) => (
         item.media_type === 'image' && Boolean(item.asset_url || item.poster_url)
     ));
+    const featuredReelFallbackPool = buildFeaturedReelFallbackPool(landingVideos);
     useEffect(() => {
         trackBookingEvent('booking_page_viewed', {
             section: 'home_business_content',
-            content_name: 'Contenido para negocios',
+            content_name: t('pages.home.hero_eyebrow'),
             content_category: 'business_content_booking',
         });
-    }, []);
+    }, [t]);
 
     const openBooking = () => {
         openBookingModal({
             source: 'home_business',
             analyticsEvent: 'hero_cta_clicked',
             analyticsPayload: {
-                content_name: 'Contenido para negocios',
+                content_name: t('pages.home.hero_eyebrow'),
                 content_category: 'business_content_booking',
             },
         });
@@ -121,6 +169,7 @@ export default function Home({
             <ReelPlayerProvider>
             <SeoHead />
 
+            <div className={landingPageStackClass}>
             <BusinessHero
                 title={title}
                 subtitle={subtitle}
@@ -132,10 +181,12 @@ export default function Home({
             />
 
             <GlassSection
-                eyebrow="Oferta"
-                title="Crea contenido cinematográfico para tu negocio y sube de nivel"
-                description={`Reel de ${CONTENT_REEL_DURATION_SECONDS} segundos con cámara Sony, ${CONTENT_DRONE_SHOTS} tomas de dron DJI, fotos editadas y producción lista para pauta en Meta.`}
-                className="pt-8"
+                eyebrow={t('pages.home.offer_eyebrow')}
+                title={t('pages.home.offer_title')}
+                description={t('pages.home.offer_description', {
+                    seconds: CONTENT_REEL_DURATION_SECONDS,
+                    drone_shots: CONTENT_DRONE_SHOTS,
+                })}
             >
                 <div className="relative z-[1]">
                     <PaymentTrustOrTestMode variant="stripe" layout="card" />
@@ -157,6 +208,7 @@ export default function Home({
                     landingVideos?.package ?? landingVideos?.gear ?? null,
                     landingVideos?.floats?.[0] ?? null,
                 ]}
+                fallbackPool={featuredReelFallbackPool}
                 bookingSource="featured_reel_pauta"
             />
 
@@ -173,17 +225,18 @@ export default function Home({
 
             <FeaturedReel
                 video={landingVideos?.package ?? landingVideos?.gear ?? null}
+                fallbackPool={featuredReelFallbackPool}
                 bookingSource="featured_reel_package"
             />
 
             <GlassSection
-                eyebrow="Pauta"
-                title="Contenido que muestra seriedad en tu marca"
-                description="Cuando tu marca se ve cinematográfica, el cliente percibe orden, criterio y nivel. Esa seriedad abre la puerta a quienes pagan más y deciden con confianza."
+                eyebrow={t('pages.home.ads_cta')}
+                title={t('pages.home.ads_title')}
+                description={t('pages.home.ads_description')}
             >
                 <BookingCtaSection className="pt-0 pb-4">
                     <BookingCtaButton type="button" onClick={openBooking}>
-                        Elegir fecha
+                        {t('pages.home.ads_cta')}
                         <CalendarDays className="h-5 w-5" />
                     </BookingCtaButton>
                 </BookingCtaSection>
@@ -196,8 +249,11 @@ export default function Home({
 
             <ContentPackageSection />
 
+            <PortfolioTrustSection portfolioItems={portfolioItems} />
+
             <FeaturedReel
                 video={landingVideos?.floats?.[0] ?? null}
+                fallbackPool={featuredReelFallbackPool}
                 bookingSource="featured_reel_pre_workflow"
             />
 
@@ -218,9 +274,9 @@ export default function Home({
             />
 
             <GlassSection
-                eyebrow="Casos de éxito"
-                title="Más de 100 producciones exitosas"
-                description="Amplia experiencia para mostrar tu marca al mejor nivel: más de 100 producciones realizadas para más de 60 clientes únicos en marcas y negocios de la economía local."
+                eyebrow={t('pages.home.success_title')}
+                title={t('pages.home.success_title')}
+                description={t('pages.home.success_description')}
             >
                 <ReelLibraryShowcase
                     sectionRef={reelLibraryRef}
@@ -237,6 +293,7 @@ export default function Home({
                 heroProofVideo={heroProofVideo}
             />
             <StickyBookingBar whatsapp={site.whatsapp} />
+            </div>
             <ReelPlayerModal />
             </ReelPlayerProvider>
         </SiteLayout>
@@ -277,13 +334,6 @@ function ReelLibraryShowcase({
                             handleBook();
                             openBookingModal({ source: 'reel_library', skipAnalytics: true });
                         }}
-                        footer={
-                            <div className="pointer-events-none absolute inset-x-0 bottom-0 flex justify-end p-3">
-                                <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full border border-white/20 bg-black/35 text-primary backdrop-blur">
-                                    <Play className="h-3 w-3 fill-current" />
-                                </span>
-                            </div>
-                        }
                     />
                 ))}
             </div>
@@ -294,45 +344,51 @@ function ReelLibraryShowcase({
 function FeaturedReel({
     video,
     videos,
+    fallbackPool = [],
     bookingSource,
 }: {
     video?: LandingVideoEntry | null;
     videos?: Array<LandingVideoEntry | null | undefined>;
+    fallbackPool?: Array<LandingVideoEntry | null | undefined>;
     bookingSource: string;
 }) {
-    const playableVideos = (videos ?? [video])
-        .filter(isPlayableLandingVideo)
-        .slice(0, 3);
+    const { t } = useTranslations();
+    const playableVideos = pickUniquePlayableVideos(
+        [...(videos ?? [video]), ...fallbackPool],
+        3,
+    );
 
     if (playableVideos.length === 0) {
         return null;
     }
 
+    const showMultiColumn = playableVideos.length > 1;
+
     return (
-        <section className="pb-8 pt-2" aria-label="Ejemplo de reel para pauta">
-            <div className="mx-auto grid w-full max-w-[22rem] grid-cols-1 gap-4 md:max-w-4xl md:grid-cols-3 xl:max-w-5xl">
-                {playableVideos.map((entry, index) => (
+        <LandingPageSection
+            aria-label={t('pages.home.featured_reel_aria')}
+            data-analytics-section={`featured_reel_${bookingSource}`}
+            innerClassName={cn(
+                'mx-auto grid w-full gap-4',
+                showMultiColumn
+                    ? 'max-w-[22rem] grid-cols-1 md:max-w-4xl md:grid-cols-3 xl:max-w-5xl'
+                    : 'max-w-[22rem] grid-cols-1',
+            )}
+        >
+            {playableVideos.map((entry, index) => (
+                <div
+                    key={`${entry.src}-${index}`}
+                    className={cn('min-w-0', index > 0 && 'max-md:hidden')}
+                >
                     <ReelLoopCard
-                        key={`${entry.src}-${index}`}
                         src={entry.src}
                         poster={entry.poster}
                         title={entry.title ?? undefined}
                         bookingSource={bookingSource}
-                        articleClassName={cn(
-                            'rounded-xl border border-border/70 bg-black shadow-lg',
-                            index > 0 && 'hidden md:block',
-                        )}
-                        footer={
-                            <div className="pointer-events-none absolute inset-x-0 bottom-0 flex justify-end p-3">
-                                <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full border border-white/20 bg-black/35 text-primary backdrop-blur">
-                                    <Play className="h-3 w-3 fill-current" />
-                                </span>
-                            </div>
-                        }
                     />
-                ))}
-            </div>
-        </section>
+                </div>
+            ))}
+        </LandingPageSection>
     );
 }
 
@@ -353,13 +409,15 @@ function BusinessHero({
     heroProofVideo: HeroProofVideoData | null;
     onBook: () => void;
 }) {
+    const { t } = useTranslations();
+    const offerShort = getContentOfferShort(t);
     const proofVideo =
         heroProofVideo
         ?? (landingHero ? landingEntryToHeroProof(landingHero) : null);
     const heroVideoEager = !heroBackgroundImage?.url;
 
     return (
-        <section className="relative -mx-4 overflow-hidden sm:-mx-6">
+        <section className="relative -mx-4 overflow-hidden rounded-b-2xl shadow-[0_20px_50px_var(--glass-panel-shadow)] sm:-mx-6">
             <div className="absolute inset-0 bg-background">
                 {heroBackgroundImage?.url ? (
                     <PortfolioPhotoBackground
@@ -385,7 +443,7 @@ function BusinessHero({
             <div className="relative mx-auto grid min-h-[min(520px,85svh)] max-w-6xl content-center gap-6 px-4 pb-6 pt-8 sm:px-6 lg:min-h-[min(640px,calc(100svh-10rem))] lg:grid-cols-[minmax(0,1fr)_360px] lg:items-center">
                 <div className="order-1 max-w-4xl lg:order-none">
                     <p className="text-xs font-semibold uppercase tracking-[0.24em] text-primary">
-                        Lapsique para negocios
+                        {t('pages.home.hero_eyebrow')}
                     </p>
                     <h1 className="mt-3 max-w-4xl font-display text-4xl font-bold leading-[0.98] tracking-tight text-white drop-shadow-[0_3px_28px_rgb(0_0_0/0.55)] sm:text-5xl md:text-6xl lg:text-7xl">
                         {title}
@@ -394,13 +452,13 @@ function BusinessHero({
                         {subtitle}
                     </p>
                     <p className="mt-2 text-sm font-medium uppercase tracking-[0.14em] text-primary/90">
-                        {CONTENT_OFFER_SHORT}
+                        {offerShort}
                     </p>
 
                     <div className="mt-6 space-y-6">
                         <div className="w-full max-w-md rounded-2xl border border-primary/35 bg-black/70 px-5 py-4 shadow-[0_16px_48px_rgb(0_0_0/0.45)] backdrop-blur-md lg:mx-auto">
                             <p className="text-xs font-semibold uppercase tracking-[0.2em] text-primary">
-                                Sesión lista para reservar
+                                {t('pages.home.ready_to_book')}
                             </p>
                             <p className="mt-2 font-mono-tabular text-4xl font-bold text-primary drop-shadow-[0_2px_12px_rgb(0_0_0/0.4)] md:text-5xl">
                                 {formatMxn(price)}
@@ -415,7 +473,7 @@ function BusinessHero({
                         <BookingCtaSection hero className="py-0">
                             <BookingCtaButton type="button" hero onClick={onBook}>
                                 <CalendarDays className="h-5 w-5" />
-                                Agendar ahora
+                                {t('common.cta.book_now')}
                                 <ArrowRight className="h-5 w-5" />
                             </BookingCtaButton>
                         </BookingCtaSection>
@@ -453,12 +511,13 @@ function BusinessCreativeBoard({
     landingCreative: LandingVideoEntry[];
     sectionRef: RefObject<HTMLDivElement | null>;
 }) {
+    const { t } = useTranslations();
     const displayImages = [images[4], images[5], images[6]].filter(Boolean) as PortfolioItemData[];
     const creativeImages = displayImages.length > 0 ? displayImages : images.slice(0, 3);
     const creativeSlots = [
-        { label: 'Gancho', title: 'Para detener el scroll en el feed' },
-        { label: 'Reel', title: 'Formato vertical listo para pauta' },
-        { label: 'Conversión', title: 'CTA claro para clic o mensaje' },
+        { label: t('pages.home.creative_label_hook'), title: t('pages.home.creative_hook') },
+        { label: 'Reel', title: t('pages.home.creative_reel') },
+        { label: 'CTA', title: t('pages.home.creative_conversion') },
     ] as const;
 
     return (
@@ -502,7 +561,7 @@ function VerticalCreativeVideoFrame({
     title: string;
 }) {
     return (
-        <figure className="group relative aspect-[9/16] w-full overflow-hidden rounded-xl border border-border/70 bg-black">
+        <figure className={`group relative aspect-[9/16] w-full ${videoSurfaceFrameClass}`}>
             <ReelLoopCard
                 src={video.src}
                 poster={video.poster}

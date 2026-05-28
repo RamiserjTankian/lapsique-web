@@ -27,6 +27,7 @@ const trackerApi = {
     getContext,
     track,
     trackPageview,
+    pageview: handleSpaPageview,
     syncForms: syncTrackingForms,
 };
 
@@ -115,6 +116,21 @@ function trackPageview(overrides = {}) {
         timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
         language: navigator.language,
     });
+}
+
+function handleSpaPageview(overrides = {}) {
+    // Reset per-page engagement counters so SPA navigations report fresh metrics.
+    pageStartAt = Date.now();
+    exitReported = false;
+    trackedScrollDepths.clear();
+    trackedSections.clear();
+
+    trackPageview(overrides);
+    syncTrackingForms();
+
+    if (sampledVisitor) {
+        initSectionTracking();
+    }
 }
 
 function initClickTracking() {

@@ -2,6 +2,8 @@ declare global {
     interface Window {
         LapsiqueTracker?: {
             track: (name: string, options?: Record<string, unknown>) => void;
+            getContext?: () => Record<string, unknown>;
+            pageview?: (overrides?: Record<string, unknown>) => void;
         };
         trackMetaPixel?: (
             event: string,

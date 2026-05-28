@@ -12,11 +12,14 @@ import { useReelPlayerModal } from '@/hooks/useReelPlayerModal';
 import { useReelWatchMilestones } from '@/hooks/useReelWatchMilestones';
 import { trackBookingEvent } from '@/hooks/useBookingAnalytics';
 import { buildReelAnalyticsPayload } from '@/lib/reelAnalytics';
+import { modalOverlayMedia, modalShellMediaReel } from '@/lib/modalLayout';
 import { bookingConfirmButtonClasses } from '@/lib/bookingSelectionStyles';
+import { useTranslations } from '@/hooks/useTranslations';
 import { openBookingModal } from '@/lib/openBookingModal';
 import { cn } from '@/lib/utils';
 
 export function ReelPlayerModal() {
+    const { t } = useTranslations();
     const { activeReel, closeReelPlayer } = useReelPlayerModal();
     const prefersReducedMotion = useReducedMotion();
     const saveDataMode = useSaveDataConnection();
@@ -121,14 +124,11 @@ export function ReelPlayerModal() {
             }}
         >
             <DialogContent
-                className={cn(
-                    'aspect-[9/16] max-h-[min(96dvh,920px)] w-[min(92vw,420px)] max-w-none gap-0 overflow-hidden',
-                    'border-white/10 bg-black p-0 shadow-2xl',
-                )}
-                overlayClassName="!bg-black/92 backdrop-blur-sm"
+                className={modalShellMediaReel}
+                overlayClassName={modalOverlayMedia}
             >
                 <DialogTitle className="sr-only">
-                    {activeReel?.title ?? 'Reel de portafolio'}
+                    {activeReel?.title ?? t('funnel.reel_player.title_fallback')}
                 </DialogTitle>
 
                 {activeReel ? (
@@ -139,6 +139,7 @@ export function ReelPlayerModal() {
                         showCta={showCta}
                         videoRef={videoRef}
                         onAgendar={handleAgendar}
+                        bookLabel={t('common.cta.book')}
                     />
                 ) : null}
             </DialogContent>
@@ -153,6 +154,7 @@ function ReelPlayerFrame({
     showCta,
     videoRef,
     onAgendar,
+    bookLabel,
 }: {
     src: string;
     poster?: string | null;
@@ -160,6 +162,7 @@ function ReelPlayerFrame({
     showCta: boolean;
     videoRef: RefObject<HTMLVideoElement | null>;
     onAgendar: () => void;
+    bookLabel: string;
 }) {
     const prefersReducedMotion = useReducedMotion();
 
@@ -224,7 +227,7 @@ function ReelPlayerFrame({
                                 className={cn(bookingConfirmButtonClasses, 'max-w-[240px]')}
                                 onClick={onAgendar}
                             >
-                                Agendar
+                                {bookLabel}
                             </Button>
                         </motion.div>
                     </motion.div>

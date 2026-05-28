@@ -1,3 +1,5 @@
+import type { TranslateFn } from '@/hooks/useTranslations';
+
 export type PaymentTrustVariant = 'stripe' | 'dual';
 
 export interface PaymentTrustBadge {
@@ -13,28 +15,31 @@ export interface PaymentTrustContent {
     protectedPaymentChip: string;
 }
 
-const SHARED_BADGES: PaymentTrustBadge[] = [
-    { id: 'protected', label: 'Compra protegida' },
-    { id: 'cards', label: 'Acepta tarjetas' },
-    { id: 'reserve', label: 'Paga ahora · reserva tu sesión' },
-];
+export function getPaymentTrustContent(
+    t: TranslateFn,
+    variant: PaymentTrustVariant,
+): PaymentTrustContent {
+    const badges: PaymentTrustBadge[] = [
+        { id: 'protected', label: t('booking.trust.badge_protected') },
+        { id: 'cards', label: t('booking.trust.badge_cards') },
+        { id: 'reserve', label: t('booking.trust.badge_reserve') },
+    ];
 
-export function getPaymentTrustContent(variant: PaymentTrustVariant): PaymentTrustContent {
     if (variant === 'stripe') {
         return {
-            badges: SHARED_BADGES,
-            headline: 'Pago con tarjeta · 100% cubierto',
-            body: 'Cobro seguro con Stripe y protección al comprador. Si no realizamos tu sesión según lo acordado, gestionamos la devolución del 100% de tu pago.',
-            footnote: 'Paga con tarjeta, confirma tu fecha y aparta producción al instante.',
-            protectedPaymentChip: 'Tarjeta con Stripe · reembolso 100% si no hay sesión',
+            badges,
+            headline: t('booking.trust.stripe_headline'),
+            body: t('booking.trust.stripe_body'),
+            footnote: t('booking.trust.stripe_footnote'),
+            protectedPaymentChip: t('booking.trust.stripe_chip'),
         };
     }
 
     return {
-        badges: SHARED_BADGES,
-        headline: 'Checkout seguro al reservar',
-        body: 'Puedes pagar con tarjeta (Stripe) o Mercado Pago. Al pagar con tarjeta, aplica reembolso del 100% si no realizamos tu sesión según lo acordado.',
-        footnote: 'Elige fecha real en agenda y confirma tu reserva en minutos.',
-        protectedPaymentChip: 'Compra protegida · pago seguro al confirmar',
+        badges,
+        headline: t('booking.trust.dual_headline'),
+        body: t('booking.trust.dual_body'),
+        footnote: t('booking.trust.dual_footnote'),
+        protectedPaymentChip: t('booking.trust.dual_chip'),
     };
 }

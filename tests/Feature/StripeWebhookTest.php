@@ -39,6 +39,13 @@ class StripeWebhookTest extends TestCase
         );
     }
 
+    protected function stripeSignatureHeader(string $payload, string $secret, ?int $timestamp = null): string
+    {
+        $timestamp ??= time();
+
+        return 't='.$timestamp.',v1='.hash_hmac('sha256', $timestamp.'.'.$payload, $secret);
+    }
+
     protected function createAvailableSlot(): BookingSlot
     {
         return BookingSlot::create([
@@ -397,5 +404,59 @@ class StripeWebhookTest extends TestCase
         );
 
         $response->assertStatus(401);
+    }
+
+    public function test_valid_webhook_signature_is_accepted(): void
+    {
+        config(['stripe.webhook_secret' => 'whsec_test_secret']);
+
+        $payload = json_encode([
+            'id' => 'evt_valid_sig',
+            'type' => 'checkout.session.completed',
+            'data' => ['object' => []],
+        ]);
+
+        $response = $this->call(
+            'POST',
+            route('webhooks.stripe'),
+            [],
+            [],
+            [],
+            [
+                'CONTENT_TYPE' => 'application/json',
+                'HTTP_STRIPE_SIGNATURE' => $this->stripeSignatureHeader($payload, 'whsec_test_secret'),
+            ],
+            $payload,
+        );
+
+        $response->assertNoContent();
+    }
+
+    public function test_webhook_signature_accepts_any_valid_v1_signature(): void
+    {
+        config(['stripe.webhook_secret' => 'whsec_test_secret']);
+
+        $timestamp = time();
+        $payload = json_encode([
+            'id' => 'evt_multiple_sigs',
+            'type' => 'checkout.session.completed',
+            'data' => ['object' => []],
+        ]);
+        $validSignature = hash_hmac('sha256', $timestamp.'.'.$payload, 'whsec_test_secret');
+
+        $response = $this->call(
+            'POST',
+            route('webhooks.stripe'),
+            [],
+            [],
+            [],
+            [
+                'CONTENT_TYPE' => 'application/json',
+                'HTTP_STRIPE_SIGNATURE' => 't='.$timestamp.',v1='.$validSignature.',v1=invalid',
+            ],
+            $payload,
+        );
+
+        $response->assertNoContent();
     }
 }

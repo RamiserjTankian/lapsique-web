@@ -1,12 +1,13 @@
 import { motion } from 'framer-motion';
 import { glassCardVariants } from '@/lib/variants';
+import { useTranslations } from '@/hooks/useTranslations';
+import { getDateFnsLocale } from '@/lib/dateLocale';
 import { cn } from '@/lib/utils';
 import { route } from '@/lib/route';
 import { Link, usePage } from '@inertiajs/react';
 import { fadeUp } from '@/lib/motion';
 import type { EventItem, PageProps } from '@/types';
 import { format, parseISO } from 'date-fns';
-import { es } from 'date-fns/locale';
 import { Calendar } from 'lucide-react';
 
 interface EventTeaserProps {
@@ -16,8 +17,9 @@ interface EventTeaserProps {
 
 export function EventTeaser({ event, index = 0 }: EventTeaserProps) {
     const { ziggy } = usePage<PageProps>().props;
+    const { locale } = useTranslations();
     const dateLabel = event.starts_at
-        ? format(parseISO(event.starts_at), "d MMM yyyy", { locale: es })
+        ? format(parseISO(event.starts_at), 'd MMM yyyy', { locale: getDateFnsLocale(locale) })
         : null;
 
     return (

@@ -1,5 +1,4 @@
 import { motion } from 'framer-motion';
-import { Play } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { glassCardVariants } from '@/lib/variants';
 import { cn } from '@/lib/utils';
@@ -46,11 +45,6 @@ export function VideoCardCompact({ video, index = 0, className }: VideoCardCompa
                     ) : (
                         <div className="h-full w-full bg-muted/40" />
                     )}
-                    <div className="absolute inset-0 flex items-center justify-center bg-black/30 opacity-0 transition-opacity group-hover:opacity-100">
-                        <span className="flex h-9 w-9 items-center justify-center rounded-full bg-primary/90 text-primary-foreground">
-                            <Play className="h-4 w-4 fill-current" />
-                        </span>
-                    </div>
                 </div>
                 <div className="flex min-w-0 flex-1 flex-col justify-center gap-1.5 p-3">
                     {isOriginal && (

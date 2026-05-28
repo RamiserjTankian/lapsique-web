@@ -1,8 +1,9 @@
+import type { TranslateFn } from '@/hooks/useTranslations';
 import type { HeroProofVideoData, PortfolioItemData, VideoItem } from '@/types';
 
 export type PopupVariant = 'home' | 'djset';
 
-export type PopupMediaPurpose = 'booking' | 'newsletter';
+export type PopupMediaPurpose = 'booking' | 'newsletter' | 'whatsapp';
 
 export interface ResolvePopupImageInput {
     variant: PopupVariant;
@@ -22,11 +23,6 @@ const FALLBACK_IMAGES: Record<PopupVariant, string> = {
     djset: '/images/equipment/sony-a6700.svg',
 };
 
-const FALLBACK_ALTS: Record<PopupVariant, string> = {
-    home: 'Producción de contenido con cámara Sony full frame',
-    djset: 'Grabación de DJ set con producción multicámara',
-};
-
 function firstPortfolioImage(
     items: PortfolioItemData[] | undefined,
 ): PortfolioItemData | undefined {
@@ -40,9 +36,7 @@ function firstPortfolioImage(
     );
 }
 
-function firstVideoPoster(
-    items: PortfolioItemData[] | undefined,
-): string | null {
+function firstVideoPoster(items: PortfolioItemData[] | undefined): string | null {
     if (!items?.length) {
         return null;
     }
@@ -66,12 +60,15 @@ function firstOriginalThumbnail(originals: VideoItem[] | undefined): string | nu
     return featured?.thumbnail_url ?? originals.find((item) => item.thumbnail_url)?.thumbnail_url ?? null;
 }
 
-export function resolvePopupImage({
-    variant,
-    portfolioItems = [],
-    originals = [],
-    heroProofVideo = null,
-}: ResolvePopupImageInput): ResolvedPopupImage {
+export function resolvePopupImage(
+    t: TranslateFn,
+    {
+        variant,
+        portfolioItems = [],
+        originals = [],
+        heroProofVideo = null,
+    }: ResolvePopupImageInput,
+): ResolvedPopupImage {
     const featuredImage = firstPortfolioImage(portfolioItems);
     const posterFromPortfolio = firstVideoPoster(portfolioItems);
     const posterFromProof = heroProofVideo?.poster_url ?? null;
@@ -87,43 +84,61 @@ export function resolvePopupImage({
     const alt =
         featuredImage?.title
         ?? heroProofVideo?.title
-        ?? FALLBACK_ALTS[variant];
+        ?? (variant === 'djset'
+            ? t('funnel.popup.fallback_alt_djset')
+            : t('funnel.popup.fallback_alt_home'));
 
     return { url, alt };
 }
 
 export function getPopupVisualCopy(
+    t: TranslateFn,
     variant: PopupVariant,
     purpose: PopupMediaPurpose,
 ): { badge: string; title: string; description: string; caption?: string } {
     if (purpose === 'booking') {
         return variant === 'djset'
             ? {
-                  badge: 'Reserva DJ set',
-                  title: 'Tu set, capturado como contenido principal',
-                  description: '3 cámaras fijas, dron y video final de una hora listo para mostrar tu sonido.',
-                  caption: 'Compra protegida · tarjeta · fecha real del equipo',
+                  badge: t('funnel.popup.booking_djset_badge'),
+                  title: t('funnel.popup.booking_djset_title'),
+                  description: t('funnel.popup.booking_djset_description'),
+                  caption: t('funnel.popup.booking_djset_caption'),
               }
             : {
-                  badge: 'Agenda tu sesión',
-                  title: 'Reel de 30 s · cámara Sony + dron DJI',
-                  description:
-                      '3 tomas aéreas con dron DJI, reel de 30 s con cámara Sony y fotos con dirección en set.',
-                  caption: 'Checkout seguro · entrega en días hábiles',
+                  badge: t('funnel.popup.booking_home_badge'),
+                  title: t('funnel.popup.booking_home_title'),
+                  description: t('funnel.popup.booking_home_description'),
+                  caption: t('funnel.popup.booking_home_caption'),
+              };
+    }
+
+    if (purpose === 'newsletter') {
+        return variant === 'djset'
+            ? {
+                  badge: t('funnel.popup.newsletter_djset_badge'),
+                  title: t('funnel.popup.newsletter_djset_title'),
+                  description: t('funnel.popup.newsletter_djset_description'),
+                  caption: t('funnel.popup.newsletter_djset_caption'),
+              }
+            : {
+                  badge: t('funnel.popup.newsletter_home_badge'),
+                  title: t('funnel.popup.newsletter_home_title'),
+                  description: t('funnel.popup.newsletter_home_description'),
+                  caption: t('funnel.popup.newsletter_home_caption'),
               };
     }
 
     return variant === 'djset'
         ? {
-              badge: 'Comunidad Lapsique',
-              title: 'Sets, fechas y la escena en tu inbox',
-              description: 'Entérate antes que nadie de grabaciones, DJs y oportunidades para mostrar tu cabina.',
-              caption: 'Sin spam · solo lo relevante para artistas',
+              badge: t('funnel.popup.whatsapp_badge'),
+              title: t('funnel.popup.whatsapp_djset_title'),
+              description: t('funnel.popup.whatsapp_djset_description'),
+              caption: t('funnel.popup.whatsapp_djset_caption'),
           }
         : {
-              badge: 'Newsletter Lapsique',
-              title: 'Eventos, reels y fechas antes que se llenen',
-              description: 'Recibe lanzamientos, behind the scenes y acceso anticipado a producción y eventos.',
-              caption: 'Un email cuando vale la pena abrirlo',
+              badge: t('funnel.popup.whatsapp_badge'),
+              title: t('funnel.popup.whatsapp_home_title'),
+              description: t('funnel.popup.whatsapp_home_description'),
+              caption: t('funnel.popup.whatsapp_home_caption'),
           };
 }

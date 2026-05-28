@@ -5,6 +5,7 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { glassCardVariants } from '@/lib/variants';
 import { cn, formatMxn } from '@/lib/utils';
 import { route } from '@/lib/route';
+import { useTranslations } from '@/hooks/useTranslations';
 import type { ContentBookingData, PageProps } from '@/types';
 import { XCircle } from 'lucide-react';
 import { useEffect } from 'react';
@@ -16,6 +17,7 @@ interface BookingFailureProps {
 
 export default function BookingFailure({ booking }: BookingFailureProps) {
     const { ziggy } = usePage<PageProps>().props;
+    const { t } = useTranslations();
 
     useEffect(() => {
         trackBookingEvent('booking_payment_failed', {
@@ -28,16 +30,16 @@ export default function BookingFailure({ booking }: BookingFailureProps) {
 
     return (
         <SiteLayout>
-            <Head title="Pago no completado" />
+            <Head title={t('booking.failure.title')} />
             <div className={cn(glassCardVariants({ elevated: true }), 'mx-auto mt-16 max-w-lg p-8')}>
                 <XCircle className="mx-auto h-12 w-12 text-destructive" />
                 <h1 className="font-display mt-6 text-center text-2xl font-bold">
-                    Pago no completado
+                    {t('booking.failure.title')}
                 </h1>
                 <Alert className="mt-6">
-                    <AlertTitle>Tu horario fue liberado</AlertTitle>
+                    <AlertTitle>{t('booking.failure.alert_title')}</AlertTitle>
                     <AlertDescription>
-                        El pago no se procesó. Puedes elegir otro horario o reintentar.
+                        {t('booking.failure.alert_body')}
                     </AlertDescription>
                 </Alert>
                 <p className="mt-4 text-center font-mono-tabular">{formatMxn(booking.amount)}</p>
@@ -50,13 +52,13 @@ export default function BookingFailure({ booking }: BookingFailureProps) {
                             )
                         }
                     >
-                        Reintentar pago
+                        {t('booking.failure.retry')}
                     </Button>
                     <Button variant="glass" asChild>
                         <a href={(booking.service_type === 'dj_set'
                             ? route('djset.show', undefined, false, ziggy)
                             : route('home', undefined, false, ziggy)) + '#agenda'}>
-                            Elegir otro horario
+                            {t('booking.failure.choose_slot')}
                         </a>
                     </Button>
                 </div>

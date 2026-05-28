@@ -3,10 +3,11 @@ import SiteLayout from '@/layouts/SiteLayout';
 import { Button } from '@/components/ui/button';
 import { glassCardVariants } from '@/lib/variants';
 import { cn } from '@/lib/utils';
+import { useTranslations } from '@/hooks/useTranslations';
+import { getDateFnsLocale } from '@/lib/dateLocale';
 import { route } from '@/lib/route';
 import type { EventItem, PageProps } from '@/types';
 import { format, parseISO } from 'date-fns';
-import { es } from 'date-fns/locale';
 
 interface EventsShowProps {
     event: EventItem & { description?: string | null };
@@ -14,8 +15,9 @@ interface EventsShowProps {
 
 export default function EventsShow({ event }: EventsShowProps) {
     const { ziggy } = usePage<PageProps>().props;
+    const { t, locale } = useTranslations();
     const dateLabel = event.starts_at
-        ? format(parseISO(event.starts_at), "EEEE d MMMM yyyy", { locale: es })
+        ? format(parseISO(event.starts_at), 'EEEE d MMMM yyyy', { locale: getDateFnsLocale(locale) })
         : null;
 
     return (
@@ -44,7 +46,7 @@ export default function EventsShow({ event }: EventsShowProps) {
                 )}
                 <Button variant="cinematic" className="mt-8" asChild>
                     <Link href={route('tickets.checkout.show', { event: event.slug }, false, ziggy)}>
-                        Comprar tickets
+                        {t('pages.events.buy_tickets')}
                     </Link>
                 </Button>
             </article>

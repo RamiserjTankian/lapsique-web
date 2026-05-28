@@ -138,13 +138,15 @@ Route::get('/unsubscribe', [LeadCaptureController::class, 'unsubscribe'])->name(
 Route::post('/unsubscribe', [LeadCaptureController::class, 'unsubscribe']);
 
 Route::get('/locale/{locale}', function (string $locale) {
-    if (! in_array($locale, ['es', 'en'])) {
+    if (! in_array($locale, ['es', 'en'], true)) {
         abort(404);
     }
 
     session(['locale' => $locale]);
 
-    return redirect()->back();
+    return redirect()
+        ->back()
+        ->cookie('locale', $locale, 60 * 24 * 365);
 })->name('locale.switch');
 
 Route::post('/theme', function () {

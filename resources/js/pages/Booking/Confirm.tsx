@@ -5,9 +5,10 @@ import { cn, formatMxn } from '@/lib/utils';
 import { CheckCircle2 } from 'lucide-react';
 import { useEffect } from 'react';
 import { bookingMetaEventId, trackBookingEvent } from '@/hooks/useBookingAnalytics';
+import { useTranslations } from '@/hooks/useTranslations';
+import { getDateFnsLocale } from '@/lib/dateLocale';
 import type { ContentBookingData, PageProps } from '@/types';
 import { format, parseISO } from 'date-fns';
-import { es } from 'date-fns/locale';
 
 interface BookingConfirmProps {
     booking: ContentBookingData;
@@ -17,8 +18,10 @@ interface BookingConfirmProps {
 
 export default function BookingConfirm({ booking, paymentVerified, isTestBooking = false }: BookingConfirmProps) {
     const { flash } = usePage<PageProps>().props;
+    const { t, locale } = useTranslations();
+    const dateLocale = getDateFnsLocale(locale);
     const slotLabel = booking.slot
-        ? `${format(parseISO(booking.slot.date), 'd MMM yyyy', { locale: es })} · ${booking.slot.time_label}`
+        ? `${format(parseISO(booking.slot.date), 'd MMM yyyy', { locale: dateLocale })} · ${booking.slot.time_label}`
         : null;
 
     useEffect(() => {
@@ -63,9 +66,23 @@ export default function BookingConfirm({ booking, paymentVerified, isTestBooking
         paymentVerified,
     ]);
 
+    const title = isTestBooking
+        ? t('booking.confirm.test_title')
+        : paymentVerified
+          ? t('booking.confirm.title_service', { service: booking.service_short_name })
+          : t('booking.confirm.title_processing');
+
+    const body = isTestBooking
+        ? t('booking.confirm.test_body')
+        : paymentVerified
+          ? t('booking.confirm.verified_body', { service: booking.service_short_name.toLowerCase() })
+          : booking.payment_provider === 'stripe'
+            ? t('booking.confirm.stripe_pending')
+            : t('booking.confirm.generic_pending');
+
     return (
         <SiteLayout>
-            <Head title={paymentVerified ? 'Reserva confirmada' : 'Pago en revisión'} />
+            <Head title={paymentVerified ? t('booking.confirm.title_confirmed') : t('booking.confirm.title_pending')} />
             <div className={cn(glassCardVariants({ elevated: true }), 'mx-auto mt-16 max-w-lg p-8 text-center')}>
                 <CheckCircle2
                     className={cn(
@@ -73,22 +90,8 @@ export default function BookingConfirm({ booking, paymentVerified, isTestBooking
                         paymentVerified ? 'text-primary' : 'text-muted-foreground',
                     )}
                 />
-                <h1 className="font-display mt-6 text-2xl font-bold">
-                    {isTestBooking
-                      ? 'Reserva de prueba confirmada'
-                      : paymentVerified
-                          ? `${booking.service_short_name} confirmado`
-                          : 'Pago en proceso'}
-                </h1>
-                <p className="mt-3 text-muted-foreground">
-                    {isTestBooking
-                        ? 'La sesión quedó apartada en modo prueba, sin cobro real. Revisa tu correo o logs según tu configuración.'
-                        : paymentVerified
-                          ? `Tu ${booking.service_short_name.toLowerCase()} está agendado. Revisa tu correo con la confirmación y los detalles.`
-                          : booking.payment_provider === 'stripe'
-                            ? 'Stripe está procesando tu pago. Recibirás un correo en cuanto se confirme.'
-                            : 'Estamos verificando tu pago. Te notificaremos en cuanto se confirme.'}
-                </p>
+                <h1 className="font-display mt-6 text-2xl font-bold">{title}</h1>
+                <p className="mt-3 text-muted-foreground">{body}</p>
                 {flash.success && (
                     <p className="mt-4 rounded-xl border border-primary/20 bg-primary/10 px-4 py-3 text-sm text-primary">
                         {flash.success}

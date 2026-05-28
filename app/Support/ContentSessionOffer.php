@@ -19,14 +19,18 @@ class ContentSessionOffer
         return (int) config('booking.content_photos_count', 10);
     }
 
+    public static function translationReplacements(): array
+    {
+        return [
+            'seconds' => self::reelDurationSeconds(),
+            'drone_shots' => self::droneShots(),
+            'photos_count' => self::photosCount(),
+        ];
+    }
+
     public static function description(): string
     {
-        return sprintf(
-            'Reel de %ds · cámara Sony + %d tomas aéreas con dron DJI + %d fotografías editadas',
-            self::reelDurationSeconds(),
-            self::droneShots(),
-            self::photosCount(),
-        );
+        return __('funnel.offer.description', self::translationReplacements());
     }
 
     public static function stripeProductName(): string
@@ -40,11 +44,6 @@ class ContentSessionOffer
 
     public static function defaultSubtitle(): string
     {
-        return sprintf(
-            'Reel de %ds con %d tomas aéreas DJI y %d fotos editadas. Producción dirigida con Sony full frame para pauta y redes.',
-            self::reelDurationSeconds(),
-            self::droneShots(),
-            self::photosCount(),
-        );
+        return __('funnel.offer.default_subtitle', self::translationReplacements());
     }
 }

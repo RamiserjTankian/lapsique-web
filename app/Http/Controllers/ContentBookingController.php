@@ -15,6 +15,7 @@ use App\Services\Meta\MetaConversionsApiService;
 use App\Services\StripeService;
 use App\Support\BookingMode;
 use App\Support\ContentSessionOffer;
+use App\Support\LocalizedBookingCopy;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Arr;
@@ -34,8 +35,8 @@ class ContentBookingController extends Controller
         $settings = $data['settings'];
 
         return Inertia::render('Booking/Show', [
-            'title' => $settings?->booking_title ?: 'Sesión de Contenido Profesional',
-            'subtitle' => $settings?->booking_subtitle ?: ContentSessionOffer::defaultSubtitle(),
+            'title' => LocalizedBookingCopy::bookingPageTitle($settings?->booking_title),
+            'subtitle' => LocalizedBookingCopy::subtitle($settings?->booking_subtitle),
             'price' => $data['price'],
             'slots' => BookingSlotResource::collection($data['slots'])->resolve(),
             'errors' => session('errors')?->getBag('default')?->getMessages() ?? [],
@@ -205,6 +206,7 @@ class ContentBookingController extends Controller
             'client_instagram' => ['nullable', 'string', 'max:255'],
             'notes' => ['nullable', 'string', 'max:1000'],
             'payment_provider' => ['nullable', 'string', 'in:mercadopago,stripe'],
+            'checkout_event_id' => ['nullable', 'string', 'max:64'],
             'terms_accepted' => ['accepted'],
         ]);
 
@@ -282,11 +284,14 @@ class ContentBookingController extends Controller
                     'fbc' => $request->input('fbc'),
                     'referrer' => $request->input('referrer'),
                     'landing_url' => $request->input('landing_url'),
+                    'client_ip_address' => $request->ip(),
+                    'client_user_agent' => $request->userAgent(),
                     'metadata' => [
                         'created_from_host' => $request->getHost(),
                         'skip_payment_mode' => BookingMode::shouldSkipPayment($request),
                         'service_type' => $serviceType,
                         'checkout_route' => $request->route()?->getName(),
+                        'checkout_event_id' => $request->input('checkout_event_id'),
                     ],
                 ]);
 

@@ -2,6 +2,7 @@ import { Play } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { PortfolioMediaViewer } from '@/components/lapsique/PortfolioMediaViewer';
+import { useTranslations } from '@/hooks/useTranslations';
 import { fadeUp } from '@/lib/motion';
 import type { PortfolioItemData } from '@/types';
 
@@ -11,6 +12,7 @@ interface PortfolioHeroProps {
 }
 
 export function PortfolioHero({ item, onExplore }: PortfolioHeroProps) {
+    const { t } = useTranslations();
     const isPlayable = item.media_type === 'youtube' || item.media_type === 'video';
     const previewUrl = isPlayable
         ? (item.poster_url ?? item.asset_url)
@@ -55,16 +57,16 @@ export function PortfolioHero({ item, onExplore }: PortfolioHeroProps) {
 
                 <div className="flex flex-col justify-center p-6 md:p-8">
                     <span className="text-[10px] font-semibold uppercase tracking-[0.24em] text-primary">
-                        Destacado del portafolio
+                        {t('pages.portfolio.hero_badge')}
                     </span>
                     <Button variant="cinematic" size="lg" className="mt-6 w-fit rounded-xl" onClick={onExplore}>
                         {isPlayable ? (
                             <>
                                 <Play className="mr-2 h-4 w-4 fill-current" />
-                                Ver en galería
+                                {t('pages.portfolio.view_gallery')}
                             </>
                         ) : (
-                            'Explorar galería'
+                            t('pages.portfolio.explore_gallery')
                         )}
                     </Button>
                 </div>

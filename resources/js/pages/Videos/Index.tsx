@@ -4,6 +4,7 @@ import { GlassSection } from '@/components/lapsique/GlassSection';
 import { VideoCard } from '@/components/lapsique/VideoCard';
 import { VideosFeaturedHero } from '@/components/lapsique/VideosFeaturedHero';
 import { PaginationLinks } from '@/components/lapsique/PaginationLinks';
+import { useTranslations } from '@/hooks/useTranslations';
 import type { Paginated, VideoItem } from '@/types';
 
 interface VideosIndexProps {
@@ -13,17 +14,19 @@ interface VideosIndexProps {
 }
 
 export default function VideosIndex({ featuredVideo, videos, highlightedDjName }: VideosIndexProps) {
+    const { t } = useTranslations();
+
     return (
         <SiteLayout>
-            <Head title="Videos" />
+            <Head title={t('pages.videos.title')} />
             {featuredVideo && <VideosFeaturedHero video={featuredVideo} />}
             <GlassSection
-                eyebrow="Biblioteca"
-                title={featuredVideo ? 'Más videos' : 'Videos'}
+                eyebrow={t('pages.videos.library')}
+                title={featuredVideo ? t('pages.videos.more') : t('pages.videos.title')}
                 description={
                     highlightedDjName
-                        ? `Sets y producción audiovisual — destacando ${highlightedDjName}`
-                        : 'Sets, aftermovies y producción audiovisual.'
+                        ? t('pages.videos.highlighting_dj', { name: highlightedDjName })
+                        : t('pages.videos.index_description')
                 }
             >
                 {(videos?.data ?? []).length > 0 ? (
@@ -37,7 +40,7 @@ export default function VideosIndex({ featuredVideo, videos, highlightedDjName }
                     </>
                 ) : (
                     !featuredVideo && (
-                        <p className="text-center text-muted-foreground">No hay videos publicados aún.</p>
+                        <p className="text-center text-muted-foreground">{t('pages.videos.index_empty')}</p>
                     )
                 )}
             </GlassSection>

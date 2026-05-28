@@ -1,7 +1,9 @@
+import { useMemo } from 'react';
 import { Clock3, Cloud, Film, Images, Plane } from 'lucide-react';
 import { GlassSection } from '@/components/lapsique/GlassSection';
-import { CONTENT_PACKAGE_ITEMS } from '@/data/contentPackage';
+import { getContentPackageItems } from '@/data/contentPackage';
 import { useSectionEvent } from '@/hooks/useSectionEvent';
+import { useTranslations } from '@/hooks/useTranslations';
 import { cn } from '@/lib/utils';
 import { glassCardVariants } from '@/lib/variants';
 import type { LucideIcon } from 'lucide-react';
@@ -23,21 +25,22 @@ const ITEM_ICON_STYLES: Record<string, string> = {
 };
 
 export function ContentPackageSection() {
+    const { t } = useTranslations();
+    const items = useMemo(() => getContentPackageItems(t), [t]);
     const ref = useSectionEvent('package_includes_viewed', { section: 'content_package' });
 
     return (
         <GlassSection
-            eyebrow="Paquete"
-            title="Qué contiene tu paquete de contenido"
-            description="Todo lo que apartas al reservar: reel de 30 s con cámara Sony, tomas de dron DJI, fotos editadas y respaldo en la nube."
-            className="py-12 md:py-16"
+            eyebrow={t('funnel.package.section_eyebrow')}
+            title={t('funnel.package.section_title')}
+            description={t('funnel.package.section_description')}
         >
             <section
                 ref={ref}
                 id="que-incluye"
                 className="scroll-mt-24 grid gap-3 sm:grid-cols-2"
             >
-                {CONTENT_PACKAGE_ITEMS.map((item) => {
+                {items.map((item) => {
                     const Icon = ITEM_ICONS[item.id] ?? Film;
 
                     return (

@@ -1,7 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { useForm, usePage } from '@inertiajs/react';
 import { format, parseISO, startOfDay } from 'date-fns';
-import { es } from 'date-fns/locale';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { BookingCtaButton } from '@/components/lapsique/BookingCtaButton';
 import { BookingCtaSection } from '@/components/lapsique/BookingCtaSection';
@@ -15,7 +14,7 @@ import {
 } from '@/components/ui/dialog';
 import { PremiumSplitDialog } from '@/components/lapsique/PremiumSplitDialog';
 import { getPaymentTrustContent, type PaymentTrustVariant } from '@/lib/paymentTrustCopy';
-import { setActiveFunnelModal } from '@/lib/funnelModalEvents';
+import { setActiveFunnelModal, BOOKING_MODAL_CLOSED_EVENT } from '@/lib/funnelModalEvents';
 import {
     getPopupVisualCopy,
     resolvePopupImage,
@@ -27,7 +26,11 @@ import { Textarea } from '@/components/ui/textarea';
 import { PaymentMethodField } from '@/components/lapsique/PaymentMethodField';
 import { trackBookingEvent } from '@/hooks/useBookingAnalytics';
 import { useSectionEvent } from '@/hooks/useSectionEvent';
+import { useTranslations } from '@/hooks/useTranslations';
+import { getContentSessionProduct } from '@/lib/bookingProducts';
+import { getDateFnsLocale } from '@/lib/dateLocale';
 import { consumeBookingModalPending } from '@/lib/openBookingModal';
+import { modalShellDocument } from '@/lib/modalLayout';
 import { route } from '@/lib/route';
 import { cn, formatMxn, parseSlotDate } from '@/lib/utils';
 import {
@@ -47,6 +50,7 @@ import {
     bookingStepActiveSectionClasses,
     bookingStepCompleteSectionClasses,
 } from '@/lib/bookingSelectionStyles';
+import { LandingPageSection } from '@/components/lapsique/LandingPageSection';
 import { glassCardVariants } from '@/lib/variants';
 import type { BookingSlot, HeroProofVideoData, PageProps, PortfolioItemData, VideoItem } from '@/types';
 import {
@@ -86,46 +90,15 @@ export interface BookingWidgetProduct {
     unavailableWhatsApp: string;
 }
 
-import {
-    CONTENT_DELIVERY_BUSINESS_DAYS,
-    CONTENT_DRONE_SHOTS,
-    CONTENT_OFFER_CHECKOUT_SUMMARY_LINES,
-    CONTENT_OFFER_ONE_LINER,
-    CONTENT_OFFER_SHORT,
-    CONTENT_PHOTOS_COUNT,
-    CONTENT_REEL_DURATION_SECONDS,
-    CONTENT_SESSION_DURATION,
-} from '@/data/contentOffer';
-
-const contentSessionProduct: BookingWidgetProduct = {
-    checkoutLabel: 'Checkout de sesión',
-    headerTitle: 'Agenda tu sesión ahora',
-    headerDescription: `Reel de ${CONTENT_REEL_DURATION_SECONDS} s con cámara Sony, ${CONTENT_DRONE_SHOTS} tomas de dron DJI y dirección en set`,
-    summaryTitle: 'Sesión de contenido',
-    summaryDescription: CONTENT_OFFER_ONE_LINER,
-    summaryDescriptionLines: CONTENT_OFFER_CHECKOUT_SUMMARY_LINES,
-    cartService: CONTENT_OFFER_ONE_LINER,
-    cartDuration: CONTENT_SESSION_DURATION,
-    summaryPerks: [
-        `Reel editado de ${CONTENT_REEL_DURATION_SECONDS} segundos con cámara Sony, listo para Meta Ads`,
-        `${CONTENT_DRONE_SHOTS} tomas aéreas con dron DJI integradas al reel`,
-        `${CONTENT_PHOTOS_COUNT} fotografías editadas`,
-        `Sesión de ${CONTENT_SESSION_DURATION} con dirección en set`,
-        'Captura Sony α7 full frame',
-        `Entrega en ${CONTENT_DELIVERY_BUSINESS_DAYS} días hábiles`,
-    ],
-    terms: [
-        'La reserva queda sujeta a disponibilidad real del horario elegido y a la confirmación del flujo de pago o modo prueba.',
-        `La sesión estándar tiene duración de ${CONTENT_SESSION_DURATION}. Tiempo adicional, locaciones extra o cambios de alcance pueden cotizarse aparte.`,
-        `Incluye 1 reel editado de ${CONTENT_REEL_DURATION_SECONDS} segundos con cámara Sony, ${CONTENT_DRONE_SHOTS} tomas aéreas con dron DJI (cuando locación, permisos y condiciones de vuelo lo permiten) y ${CONTENT_PHOTOS_COUNT} fotografías editadas. Material bruto, versiones adicionales o entregas urgentes no están incluidos salvo acuerdo escrito.`,
-        'Puedes solicitar cambios de fecha con mínimo 24 horas de anticipación. Cambios tardíos o inasistencias pueden perder el horario reservado.',
-        'Autorizas el uso del material producido para portafolio de lapsique.media salvo que se acuerde confidencialidad antes de la sesión.',
-    ],
-    paymentCopy: 'Pago seguro con tarjeta vía Stripe.',
-    unavailableWhatsApp: 'Hola, me interesa una sesión de contenido y no veo horarios publicados.',
-};
-
 const BOOKING_FORM_DRAFT_KEY = 'lapsique_booking_form_draft';
+
+function generateCheckoutEventId(): string {
+    if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
+        return crypto.randomUUID();
+    }
+
+    return `chk_${Date.now()}_${Math.random().toString(36).slice(2)}`;
+}
 
 export function BookingWidget({
     slots,
@@ -134,12 +107,17 @@ export function BookingWidget({
     errors = {},
     checkoutRoute = 'booking.checkout',
     paymentProvider = 'mercadopago',
-    product = contentSessionProduct,
+    product: productProp,
     popupVariant = 'home',
     popupPortfolioItems = [],
     popupHeroProofVideo = null,
     popupOriginals = [],
 }: BookingWidgetProps) {
+    const { t, locale } = useTranslations();
+    const product = useMemo(
+        () => productProp ?? getContentSessionProduct(t),
+        [productProp, t],
+    );
     const { ziggy, booking, payments } = usePage<PageProps>().props;
     const isTestMode = booking.skipPayment;
     const sectionRef = useSectionEvent<HTMLElement>('booking_widget_viewed', { section: 'agenda' });
@@ -226,8 +204,8 @@ export function BookingWidget({
     }, [popupVariant, paymentProvider, data.payment_provider]);
 
     const trustContent = useMemo(
-        () => getPaymentTrustContent(trustVariant),
-        [trustVariant],
+        () => getPaymentTrustContent(t, trustVariant),
+        [t, trustVariant],
     );
 
     const showStripePopupOverlay =
@@ -260,25 +238,38 @@ export function BookingWidget({
     }, [setData]);
 
     const bookingPopupVisual = useMemo(
-        () => getPopupVisualCopy(popupVariant, 'booking'),
-        [popupVariant],
+        () => getPopupVisualCopy(t, popupVariant, 'booking'),
+        [t, popupVariant],
     );
 
     const bookingPopupImage = useMemo(
         () =>
-            resolvePopupImage({
+            resolvePopupImage(t, {
                 variant: popupVariant,
                 purpose: 'booking',
                 portfolioItems: popupPortfolioItems,
                 heroProofVideo: popupHeroProofVideo,
                 originals: popupOriginals,
             }),
-        [popupVariant, popupPortfolioItems, popupHeroProofVideo, popupOriginals],
+        [t, popupVariant, popupPortfolioItems, popupHeroProofVideo, popupOriginals],
     );
 
     const handleBookingModalOpenChange = useCallback(
         (next: boolean) => {
-            setIsBookingModalOpen(next);
+            setIsBookingModalOpen((prev) => {
+                if (prev && !next && !submittedRef.current) {
+                    window.dispatchEvent(
+                        new CustomEvent(BOOKING_MODAL_CLOSED_EVENT, {
+                            detail: {
+                                hadSlot: selectedSlotRef.current !== null,
+                                hadFormProgress: formStartedRef.current,
+                            },
+                        }),
+                    );
+                }
+
+                return next;
+            });
             setActiveFunnelModal(next ? 'booking' : null);
         },
         [],
@@ -535,6 +526,8 @@ export function BookingWidget({
         e.preventDefault();
         submittedRef.current = true;
         const trackingContext = window.LapsiqueTracker?.getContext?.() ?? {};
+        // event_id compartido entre el pixel (browser) y el CAPI (servidor) para deduplicar InitiateCheckout.
+        const checkoutEventId = generateCheckoutEventId();
 
         trackBookingEvent('booking_form_submitted', {
             skip_payment: isTestMode,
@@ -547,6 +540,7 @@ export function BookingWidget({
         trackBookingEvent('booking_checkout_started', {
             skip_payment: isTestMode,
             payment_provider: isTestMode ? 'none' : data.payment_provider,
+            event_id: checkoutEventId,
             value: price,
             currency: 'MXN',
             client_email: data.client_email,
@@ -555,6 +549,7 @@ export function BookingWidget({
         });
         transform((current) => ({
             ...current,
+            checkout_event_id: checkoutEventId,
             analytics_visitor_id: trackingContext.visitor_id,
             analytics_session_id: trackingContext.session_id,
             utm_source: trackingContext.utm_source,
@@ -572,11 +567,11 @@ export function BookingWidget({
 
     if (slots.length === 0) {
         return (
-            <section
+            <LandingPageSection
                 id="agenda"
                 ref={sectionRef}
-                className="scroll-mt-20 space-y-6"
                 data-analytics-section="booking_widget"
+                innerClassName="space-y-6"
             >
                 <BookingHeader isTestMode={isTestMode} product={product} />
                 <div className={cn(glassCardVariants({ elevated: true }), 'space-y-5 p-8 text-center md:p-10')}>
@@ -584,11 +579,9 @@ export function BookingWidget({
                         <CalendarRange className="h-7 w-7" />
                     </span>
                     <div className="space-y-2">
-                        <h3 className="text-xl font-semibold text-foreground">No hay horarios publicados</h3>
+                        <h3 className="text-xl font-semibold text-foreground">{t('booking.empty.title')}</h3>
                         <p className="mx-auto max-w-2xl text-sm leading-relaxed text-muted-foreground">
-                            {isTestMode
-                                ? 'El calendario todavia no tiene fechas disponibles. Si eres del equipo, publica horarios con php artisan booking:ensure-slots y vuelve a cargar esta pagina.'
-                                : 'El calendario todavia no tiene fechas disponibles. Puedes escribirnos para coordinar manualmente una fecha.'}
+                            {isTestMode ? t('booking.empty.message_test') : t('booking.empty.message')}
                         </p>
                     </div>
                     {whatsapp && (
@@ -599,22 +592,22 @@ export function BookingWidget({
                                     target="_blank"
                                     rel="noopener noreferrer"
                                 >
-                                    Coordinar por WhatsApp
+                                    {t('booking.empty.cta_whatsapp')}
                                 </a>
                             </BookingCtaButton>
                         </BookingCtaSection>
                     )}
                 </div>
-            </section>
+            </LandingPageSection>
         );
     }
 
     return (
-        <section
+        <LandingPageSection
             id="agenda"
             ref={sectionRef}
-            className="scroll-mt-20 space-y-6 py-4 md:py-6"
             data-analytics-section="booking_widget"
+            innerClassName="space-y-6"
         >
             <BookingHeader isTestMode={isTestMode} product={product} />
 
@@ -625,10 +618,10 @@ export function BookingWidget({
                 >
                     <div>
                         <p className="text-[10px] font-semibold uppercase tracking-[0.24em] text-primary/80">
-                            Agenda ahora
+                            {t('booking.calendar.intro_badge')}
                         </p>
                         <p className="mt-1 max-w-2xl text-base font-medium text-foreground md:text-lg">
-                            Elige fecha, toma un horario y deja cerrada tu reserva en este momento.
+                            {t('booking.calendar.intro')}
                         </p>
                     </div>
 
@@ -636,18 +629,18 @@ export function BookingWidget({
                             <div className="flex flex-wrap items-end justify-between gap-3">
                                 <div>
                                     <p className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">
-                                        1. Escoge día
+                                        {t('booking.step.date_label')}
                                     </p>
                                     <h3 className="mt-1 text-xl font-bold md:text-2xl">
-                                        Fechas disponibles
+                                        {t('booking.step.date_title')}
                                     </h3>
                                     <p className="mt-2 max-w-xl text-sm text-muted-foreground">
-                                        Elige tu día — la fecha resaltada es una sugerencia; confírmala con un toque.
+                                        {t('booking.step.date_hint')}
                                     </p>
                                 </div>
                                 <span className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/10 px-3 py-1 text-xs font-medium text-primary">
                                     <CalendarDays className="h-4 w-4" />
-                                    Próximas fechas
+                                    {t('booking.step.upcoming_dates')}
                                 </span>
                             </div>
 
@@ -676,6 +669,7 @@ export function BookingWidget({
             <PremiumSplitDialog
                 open={isBookingModalOpen}
                 onOpenChange={handleBookingModalOpenChange}
+                layout="form"
                 imageUrl={bookingPopupImage.url}
                 imageAlt={bookingPopupImage.alt}
                 badge={bookingPopupVisual.badge}
@@ -687,7 +681,7 @@ export function BookingWidget({
                         <p className="font-mono-tabular text-2xl font-bold text-white">{formatMxn(price)}</p>
                         {showStripePopupOverlay && (
                             <p className="text-xs font-medium text-primary">
-                                Compra protegida · reembolso 100% si no hay sesión
+                                {trustContent.protectedPaymentChip}
                             </p>
                         )}
                         <ul className="space-y-1 text-xs text-white/75">
@@ -705,7 +699,7 @@ export function BookingWidget({
                 <div className="space-y-4 sm:space-y-5">
                     <div className="lg:hidden">
                         <h2 className="font-display text-xl font-bold leading-tight sm:text-2xl">
-                            Agendar tu sesión
+                            {t('booking.modal.title')}
                         </h2>
                     </div>
 
@@ -722,17 +716,17 @@ export function BookingWidget({
                                 >
                                     <div>
                                         <p className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">
-                                            1. Escoge día
+                                            {t('booking.step.date_label')}
                                         </p>
                                         <h3
                                             data-step-focus
                                             tabIndex={-1}
                                             className="mt-1 text-base font-bold outline-none sm:text-lg"
                                         >
-                                            Fechas disponibles
+                                            {t('booking.step.date_title')}
                                         </h3>
                                         <p className="mt-1.5 hidden text-sm text-muted-foreground sm:block">
-                                            Elige tu día — puedes cambiar la fecha cuando quieras.
+                                            {t('booking.step.date_hint_modal')}
                                         </p>
                                     </div>
                                     <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 sm:gap-3">
@@ -771,20 +765,20 @@ export function BookingWidget({
                                     >
                                         <div>
                                             <p className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">
-                                                2. Elige horario
+                                                {t('booking.step.time_label')}
                                             </p>
                                             <h3
                                                 data-step-focus
                                                 tabIndex={-1}
                                                 className="mt-1 text-lg font-bold outline-none"
                                             >
-                                                {format(selectedDate, "EEEE d 'de' MMMM", { locale: es })}
+                                                {format(selectedDate, "EEEE d 'de' MMMM", { locale: getDateFnsLocale(locale) })}
                                             </h3>
                                         </div>
 
                                         {daySlots.length === 0 && (
                                             <p className="rounded-xl border border-dashed border-border/70 px-4 py-3 text-sm text-muted-foreground">
-                                                Ese día ya no tiene horarios disponibles. Elige otra fecha arriba.
+                                                {t('booking.step.no_slots')}
                                             </p>
                                         )}
 
@@ -812,11 +806,11 @@ export function BookingWidget({
                                                             {isSelected ? (
                                                                 <span className={bookingOptionSelectedBadgeClasses}>
                                                                     <Check className="h-3 w-3" aria-hidden />
-                                                                    Elegido
+                                                                    {t('booking.step.selected')}
                                                                 </span>
                                                             ) : (
                                                                 <span className="text-xs font-semibold uppercase tracking-[0.12em] text-muted-foreground">
-                                                                    Disponible
+                                                                    {t('booking.step.available')}
                                                                 </span>
                                                             )}
                                                         </Button>
@@ -839,7 +833,7 @@ export function BookingWidget({
                                         )}
                                     >
                                         <p className="mb-4 text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">
-                                            3. Datos y pago
+                                            {t('booking.step.form_label')}
                                         </p>
                                         <BookingForm
                                             data={data}
@@ -878,7 +872,7 @@ export function BookingWidget({
                 }
             />
 
-        </section>
+        </LandingPageSection>
     );
 }
 
@@ -926,12 +920,14 @@ function BookingForm({
     fixedPaymentProvider?: 'stripe';
     trustBody?: string;
 }) {
+    const { t, locale } = useTranslations();
+
     return (
         <div className={cn(glassCardVariants({ elevated: true }), 'space-y-6 border p-5 md:p-6')}>
                     <div className="flex items-start justify-between gap-4">
                         <div>
                             <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-muted-foreground">
-                                {isTestMode ? 'Paso 2 - datos y confirmacion' : 'Paso 2 - datos y pago'}
+                                {isTestMode ? t('booking.form.step_test') : t('booking.form.step_live')}
                             </p>
                             <h3
                                 data-step-focus
@@ -939,17 +935,17 @@ function BookingForm({
                                 className="text-lg font-bold outline-none"
                             >
                                 {isTestMode
-                                    ? 'Completa para confirmar tu reserva de prueba'
-                                    : 'Completa y paga para confirmar'}
+                                    ? t('booking.form.title_test')
+                                    : t('booking.form.title_live')}
                             </h3>
                             <p className="text-sm font-bold text-foreground">
-                                {format(parseISO(selectedSlot.date), 'd MMM yyyy', { locale: es })} ·{' '}
+                                {format(parseISO(selectedSlot.date), 'd MMM yyyy', { locale: getDateFnsLocale(locale) })} ·{' '}
                                 {selectedSlot.time_label}
                             </p>
                         </div>
                         <Button type="button" variant="ghost" size="sm" onClick={clearSelection}>
                             <X className="h-4 w-4" />
-                            Cambiar
+                            {t('booking.form.change')}
                         </Button>
                     </div>
 
@@ -965,7 +961,7 @@ function BookingForm({
 
                     <form onSubmit={submitCheckout} className="space-y-5">
                         <div className="grid gap-4 sm:grid-cols-2">
-                            <Field label="Nombre completo *">
+                            <Field label={t('booking.form.full_name')}>
                                 <Input
                                     value={data.client_name}
                                     onChange={(e) => setData('client_name', e.target.value)}
@@ -973,7 +969,7 @@ function BookingForm({
                                     className="bg-input/50"
                                 />
                             </Field>
-                            <Field label="Email *">
+                            <Field label={`${t('common.form.email')} *`}>
                                 <Input
                                     type="email"
                                     value={data.client_email}
@@ -982,7 +978,7 @@ function BookingForm({
                                     className="bg-input/50"
                                 />
                             </Field>
-                            <Field label="WhatsApp *">
+                            <Field label={t('booking.form.whatsapp')}>
                                 <Input
                                     type="tel"
                                     value={data.client_phone}
@@ -991,17 +987,17 @@ function BookingForm({
                                     className="bg-input/50"
                                 />
                             </Field>
-                            <Field label="Instagram">
+                            <Field label={t('booking.form.instagram')}>
                                 <Input
                                     value={data.client_instagram}
                                     onChange={(e) => setData('client_instagram', e.target.value)}
-                                    placeholder="@tuusuario (opcional)"
+                                    placeholder={t('common.form.placeholder_instagram_optional')}
                                     className="bg-input/50"
                                 />
                             </Field>
                         </div>
 
-                        <Field label="Notas (opcional)">
+                        <Field label={t('booking.form.notes')}>
                             <Textarea
                                 value={data.notes}
                                 onChange={(e) => setData('notes', e.target.value)}
@@ -1020,9 +1016,9 @@ function BookingForm({
                         )}
                         {!isTestMode && fixedPaymentProvider === 'stripe' && (
                             <div className={cn(bookingCheckoutPanelClasses, 'px-4 py-3 text-sm')}>
-                                <p className="font-semibold text-foreground">Pago con tarjeta</p>
+                                <p className="font-semibold text-foreground">{t('booking.payment.card_title')}</p>
                                 <p className="mt-1 text-muted-foreground">
-                                    El cobro se completa en Stripe al confirmar esta reserva.
+                                    {t('booking.payment.card_body')}
                                 </p>
                             </div>
                         )}
@@ -1043,15 +1039,15 @@ function BookingForm({
                                     required
                                 />
                                 <span className="text-muted-foreground">
-                                    Acepto los{' '}
+                                    {t('booking.terms.accept_lead')}{' '}
                                     <button
                                         type="button"
                                         className={bookingCheckoutLinkClasses}
                                         onClick={openTerms}
                                     >
-                                        términos y condiciones
+                                        {t('booking.terms.link')}
                                     </button>{' '}
-                                    de la reserva, incluyendo política de cambios, entregables y uso de material.
+                                    {t('booking.terms.accept_rest')}
                                 </span>
                             </label>
                             {errors.terms_accepted && (
@@ -1072,15 +1068,15 @@ function BookingForm({
                             disabled={processing || !data.terms_accepted}
                         >
                             {processing ? (
-                                'Redirigiendo a pago seguro…'
+                                t('booking.submit.redirecting')
                             ) : (
                                 <>
                                     {!isTestMode ? (
                                         <ShieldCheck className="h-5 w-5 shrink-0" aria-hidden />
                                     ) : null}
                                     {isTestMode
-                                        ? 'Confirmar reserva de prueba'
-                                        : `Pagar ${formatMxn(price)}`}
+                                        ? t('booking.submit.test')
+                                        : t('booking.submit.pay', { amount: formatMxn(price) })}
                                 </>
                             )}
                         </Button>
@@ -1090,17 +1086,19 @@ function BookingForm({
 }
 
 function BookingHeader({ isTestMode, product }: { isTestMode: boolean; product: BookingWidgetProduct }) {
+    const { t } = useTranslations();
+
     return (
         <div className="space-y-3 text-center">
             <span className="inline-block rounded-full border border-primary/30 bg-primary/10 px-4 py-1 text-xs font-semibold uppercase tracking-widest text-primary">
-                Cierra tu cita
+                {t('booking.header.badge')}
             </span>
             <h2 className="font-display text-3xl font-bold md:text-5xl">
                 {product.headerTitle}
             </h2>
             <p className="mx-auto max-w-2xl text-sm text-muted-foreground md:text-base">
                 {product.headerDescription}{' '}
-                {isTestMode ? '· confirmacion sin cobro real en este entorno.' : '· pago seguro al confirmar.'}
+                {isTestMode ? t('booking.header.test_suffix') : t('booking.header.live_suffix')}
             </p>
         </div>
     );
@@ -1119,6 +1117,9 @@ function DateOption({
     compact?: boolean;
     onClick: () => void;
 }) {
+    const { t, locale } = useTranslations();
+    const dateLocale = getDateFnsLocale(locale);
+
     return (
         <button
             type="button"
@@ -1147,12 +1148,12 @@ function DateOption({
                               : 'text-muted-foreground',
                     )}
                 >
-                    {format(date, 'EEEE', { locale: es })}
+                    {format(date, 'EEEE', { locale: dateLocale })}
                 </span>
                 {selected ? (
-                    <span aria-label="Fecha seleccionada" className={bookingOptionSelectedBadgeClasses}>
+                    <span aria-label={t('booking.step.date_title')} className={bookingOptionSelectedBadgeClasses}>
                         <Check className="h-3 w-3" aria-hidden />
-                        <span className="hidden min-[380px]:inline">Elegido</span>
+                        <span className="hidden min-[380px]:inline">{t('booking.step.selected')}</span>
                     </span>
                 ) : null}
                 {suggested && !selected ? (
@@ -1162,7 +1163,7 @@ function DateOption({
                             bookingOptionSuggestedBadgeClasses,
                         )}
                     >
-                        Sugerido
+                        {t('booking.step.suggested')}
                     </span>
                 ) : null}
             </div>
@@ -1172,7 +1173,7 @@ function DateOption({
                     compact ? 'text-2xl sm:text-3xl' : 'text-[2rem] sm:text-3xl md:text-4xl',
                 )}
             >
-                {format(date, 'd', { locale: es })}
+                {format(date, 'd', { locale: dateLocale })}
             </span>
             <span
                 className={cn(
@@ -1180,7 +1181,7 @@ function DateOption({
                     selected ? bookingOptionSelectedMonthClasses : 'text-muted-foreground',
                 )}
             >
-                {format(date, 'MMMM', { locale: es })}
+                {format(date, 'MMMM', { locale: dateLocale })}
             </span>
         </button>
     );
@@ -1197,11 +1198,14 @@ function BookingCheckoutSummary({
     selectedSlot: BookingSlot;
     product: BookingWidgetProduct;
 }) {
+    const { t, locale } = useTranslations();
+    const dateLocale = getDateFnsLocale(locale);
+
     return (
         <div className="space-y-3 border-t border-border/70 pt-5">
             <div>
                 <p className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">
-                    Resumen de tu reserva
+                    {t('booking.summary.title')}
                 </p>
                 <p className="mt-1 font-display text-lg font-bold">{product.summaryTitle}</p>
                 {product.summaryDescriptionLines?.length ? (
@@ -1221,19 +1225,19 @@ function BookingCheckoutSummary({
             </div>
 
             <div className={cn(bookingCheckoutPanelClasses, 'space-y-2 p-4')}>
-                <CartRow label="Servicio" value={product.cartService} />
-                <CartRow label="Duración de la sesión" value={product.cartDuration} />
+                <CartRow label={t('booking.summary.service')} value={product.cartService} />
+                <CartRow label={t('booking.summary.duration')} value={product.cartDuration} />
                 <CartRow
-                    label="Fecha"
+                    label={t('booking.summary.date')}
                     value={
                         selectedDate
-                            ? format(selectedDate, 'd MMM yyyy', { locale: es })
-                            : format(parseISO(selectedSlot.date), 'd MMM yyyy', { locale: es })
+                            ? format(selectedDate, 'd MMM yyyy', { locale: dateLocale })
+                            : format(parseISO(selectedSlot.date), 'd MMM yyyy', { locale: dateLocale })
                     }
                 />
-                <CartRow label="Horario" value={selectedSlot.time_label} />
+                <CartRow label={t('booking.summary.time')} value={selectedSlot.time_label} />
                 <div className="flex items-center justify-between gap-3 border-t border-border/70 pt-3">
-                    <span className="text-sm font-semibold text-foreground">Total</span>
+                    <span className="text-sm font-semibold text-foreground">{t('booking.summary.total')}</span>
                     <span className={bookingCheckoutPriceClasses}>
                         {formatMxn(price)}
                     </span>
@@ -1265,25 +1269,26 @@ function TermsModal({
     isTestMode: boolean;
     usesStripeCheckout?: boolean;
 }) {
+    const { t } = useTranslations();
     const showStripeProtection = usesStripeCheckout;
-    const stripeTrust = getPaymentTrustContent('stripe');
+    const stripeTrust = getPaymentTrustContent(t, 'stripe');
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
             <DialogContent
                 layer="stacked"
-                className="theme-scrollbar max-h-[min(90vh,760px)] max-w-[min(94vw,680px)] overflow-y-auto border-primary/25 p-0 shadow-[0_24px_80px_oklch(0_0_0/0.55)]"
+                className={modalShellDocument}
             >
                 <div className="space-y-5 p-5 md:p-7">
                     <div className="space-y-2">
                         <span className="inline-flex rounded-full border border-primary/25 bg-primary/10 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.24em] text-primary">
-                            Términos de reserva
+                            {t('booking.terms.modal_badge')}
                         </span>
                         <DialogTitle className="font-display text-2xl md:text-3xl">
-                            Condiciones claras antes de cerrar tu cita
+                            {t('booking.terms.modal_title')}
                         </DialogTitle>
                         <DialogDescription className="text-sm leading-relaxed text-muted-foreground">
-                            Estos puntos protegen el tiempo de producción y evitan confusiones sobre alcance, cambios y entrega.
+                            {t('booking.terms.modal_description')}
                         </DialogDescription>
                     </div>
 
@@ -1313,7 +1318,7 @@ function TermsModal({
                     </div>
 
                     <Button type="button" variant="cinematic" className="w-full" onClick={() => onOpenChange(false)}>
-                        Entendido
+                        {t('booking.terms.understood')}
                     </Button>
                 </div>
             </DialogContent>

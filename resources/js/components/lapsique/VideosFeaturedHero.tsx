@@ -1,9 +1,9 @@
 import { Link, usePage } from '@inertiajs/react';
-import { Play } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { SpecBadge } from '@/components/lapsique/SpecBadge';
+import { useTranslations } from '@/hooks/useTranslations';
 import { tagBadgeClass } from '@/lib/variants';
 import { route } from '@/lib/route';
 import { fadeUp } from '@/lib/motion';
@@ -16,6 +16,7 @@ interface VideosFeaturedHeroProps {
 
 export function VideosFeaturedHero({ video }: VideosFeaturedHeroProps) {
     const { ziggy } = usePage<PageProps>().props;
+    const { t } = useTranslations();
     const djsList = Array.isArray(video.djs)
         ? video.djs
         : ((video.djs as { data?: VideoItem['djs'] })?.data ?? []);
@@ -44,16 +45,11 @@ export function VideosFeaturedHero({ video }: VideosFeaturedHeroProps) {
                         <div className="absolute inset-0 bg-muted/40" />
                     )}
                     <div className="absolute inset-0 bg-gradient-to-t from-background/90 via-background/20 to-transparent" />
-                    <span className="absolute inset-0 flex items-center justify-center opacity-0 transition-opacity group-hover:opacity-100">
-                        <span className="flex h-16 w-16 items-center justify-center rounded-full border border-primary/40 bg-primary/20 text-primary backdrop-blur-md">
-                            <Play className="ml-1 h-7 w-7 fill-current" />
-                        </span>
-                    </span>
                 </Link>
 
                 <div className="flex flex-col justify-center p-6 md:p-8">
                     <span className="text-[10px] font-semibold uppercase tracking-[0.24em] text-primary">
-                        Destacado
+                        {t('pages.videos.featured_badge')}
                     </span>
                     {isOriginal && (
                         <span
@@ -81,7 +77,7 @@ export function VideosFeaturedHero({ video }: VideosFeaturedHeroProps) {
                                 <AvatarFallback>{primaryDj.name.slice(0, 2).toUpperCase()}</AvatarFallback>
                             </Avatar>
                             <div className="min-w-0 flex-1">
-                                <p className="text-[10px] uppercase tracking-widest text-muted-foreground">Artista</p>
+                                <p className="text-[10px] uppercase tracking-widest text-muted-foreground">{t('pages.videos.artist_label')}</p>
                                 <Link
                                     href={route('djs.show', { dj: primaryDj.slug }, false, ziggy)}
                                     className="font-display text-lg font-semibold text-foreground hover:text-primary"
@@ -105,7 +101,7 @@ export function VideosFeaturedHero({ video }: VideosFeaturedHeroProps) {
 
                     <Button variant="cinematic" size="lg" className="mt-6 w-fit rounded-xl" asChild>
                         <Link href={route('videos.show', { video: video.slug }, false, ziggy)}>
-                            Ver video completo
+                            {t('pages.videos.watch_full')}
                         </Link>
                     </Button>
                 </div>

@@ -1,6 +1,7 @@
 import { AtSign, ExternalLink, RefreshCw } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { cn } from '@/lib/utils';
+import { useTranslations } from '@/hooks/useTranslations';
 
 interface InstagramProfileEmbedProps {
     username: string;
@@ -28,6 +29,7 @@ export function InstagramProfileEmbed({
     featuredPostUrls = [],
     className,
 }: InstagramProfileEmbedProps) {
+    const { t } = useTranslations();
     const containerRef = useRef<HTMLDivElement>(null);
     const [shouldLoadEmbed, setShouldLoadEmbed] = useState(false);
     const [embedLoaded, setEmbedLoaded] = useState(false);
@@ -107,7 +109,7 @@ export function InstagramProfileEmbed({
                             ))}
                         </div>
                         <p className="text-center text-xs text-zinc-500 dark:text-zinc-400">
-                            Cargando publicaciones de Instagram…
+                            {t('common.loading.instagram_posts')}
                         </p>
                     </div>
                 )}
@@ -115,7 +117,7 @@ export function InstagramProfileEmbed({
                 {embedFailed && !embedLoaded ? (
                     <div className="space-y-4 bg-gradient-to-b from-zinc-50 to-white px-4 py-6 dark:from-zinc-900 dark:to-zinc-950">
                         <p className="text-center text-sm text-zinc-600 dark:text-zinc-300">
-                            No pudimos cargar el preview embebido. Abre el perfil directamente en Instagram.
+                            {t('common.instagram.embed_failed')}
                         </p>
                         <div className="flex flex-col gap-2 sm:flex-row sm:justify-center">
                             <a
@@ -125,7 +127,7 @@ export function InstagramProfileEmbed({
                                 className="inline-flex items-center justify-center gap-2 rounded-lg bg-[#0095f6] px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-[#1877f2]"
                             >
                                 <AtSign className="h-4 w-4" aria-hidden />
-                                Ver perfil en Instagram
+                                {t('common.instagram.view_profile')}
                                 <ExternalLink className="h-3.5 w-3.5 opacity-80" aria-hidden />
                             </a>
                             <button
@@ -134,7 +136,7 @@ export function InstagramProfileEmbed({
                                 className="inline-flex items-center justify-center gap-2 rounded-lg border border-zinc-200 bg-white px-4 py-2.5 text-sm font-medium text-zinc-700 transition hover:bg-zinc-50 dark:border-white/15 dark:bg-zinc-900 dark:text-zinc-200 dark:hover:bg-zinc-800"
                             >
                                 <RefreshCw className="h-4 w-4" aria-hidden />
-                                Reintentar
+                                {t('common.instagram.retry')}
                             </button>
                         </div>
                     </div>

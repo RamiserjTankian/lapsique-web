@@ -4,6 +4,7 @@ import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { VideoCardCompact } from '@/components/lapsique/VideoCardCompact';
 import { useSectionEvent } from '@/hooks/useSectionEvent';
+import { useTranslations } from '@/hooks/useTranslations';
 import { staggerContainer } from '@/lib/motion';
 import type { VideoItem } from '@/types';
 
@@ -13,6 +14,7 @@ interface VideoStripProps {
 }
 
 export function VideoStrip({ videos, className }: VideoStripProps) {
+    const { t } = useTranslations();
     const scrollRef = useRef<HTMLDivElement>(null);
     const sectionRef = useSectionEvent<HTMLDivElement>('proof_section_viewed', { section: 'videos' });
 
@@ -34,7 +36,7 @@ export function VideoStrip({ videos, className }: VideoStripProps) {
                     size="icon"
                     className="h-8 w-8 rounded-full border border-border/60 bg-background/40 backdrop-blur-sm"
                     onClick={() => scroll('left')}
-                    aria-label="Anterior"
+                    aria-label={t('common.actions.previous')}
                 >
                     <ChevronLeft className="h-4 w-4" />
                 </Button>
@@ -44,7 +46,7 @@ export function VideoStrip({ videos, className }: VideoStripProps) {
                     size="icon"
                     className="h-8 w-8 rounded-full border border-border/60 bg-background/40 backdrop-blur-sm"
                     onClick={() => scroll('right')}
-                    aria-label="Siguiente"
+                    aria-label={t('common.actions.next')}
                 >
                     <ChevronRight className="h-4 w-4" />
                 </Button>

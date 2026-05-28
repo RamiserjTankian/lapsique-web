@@ -1,8 +1,10 @@
+import { useMemo } from 'react';
 import { Aperture, Camera, Plane, Zap } from 'lucide-react';
 import { GlassSection } from '@/components/lapsique/GlassSection';
 import { LandingReelPreviewGrid } from '@/components/lapsique/LandingReelPreviewGrid';
-import { RECORDING_GEAR_GROUPS, type RecordingGearGroup } from '@/data/recordingGear';
+import { getRecordingGearGroups, type RecordingGearGroup } from '@/data/recordingGear';
 import { useSectionEvent } from '@/hooks/useSectionEvent';
+import { useTranslations } from '@/hooks/useTranslations';
 import { cn } from '@/lib/utils';
 import { glassCardVariants } from '@/lib/variants';
 import type { LandingVideoEntry } from '@/types';
@@ -48,14 +50,15 @@ export function RecordingGearSection({
     videos?: Array<LandingVideoEntry | null | undefined>;
     bookingSource?: string;
 }) {
+    const { t } = useTranslations();
+    const gearGroups = useMemo(() => getRecordingGearGroups(t), [t]);
     const ref = useSectionEvent('gear_section_viewed', { section: 'recording_gear' });
 
     return (
         <GlassSection
-            eyebrow="Gear"
-            title="Equipo de grabación"
-            description="Set listo para multicámara, 3 tomas aéreas con dron DJI y luz en locación."
-            className="py-12 md:py-16"
+            eyebrow={t('funnel.gear.section_eyebrow')}
+            title={t('funnel.gear.section_title')}
+            description={t('funnel.gear.section_description')}
         >
             <section ref={ref} id="equipo-grabacion" className="scroll-mt-24 space-y-6">
                 <div className="flex flex-wrap items-center justify-center gap-3 rounded-xl border border-border/70 bg-muted/30 px-4 py-3 sm:justify-start">
@@ -70,12 +73,12 @@ export function RecordingGearSection({
                     </span>
                     <span className="hidden h-4 w-px bg-border sm:block" aria-hidden />
                     <p className="text-center text-sm text-muted-foreground sm:text-left">
-                        Multicámara Sony · Dron DJI Air 3 · Óptica full frame y luz Godox en set
+                        {t('funnel.gear.summary')}
                     </p>
                 </div>
 
                 <div className="grid gap-3 sm:grid-cols-2">
-                    {RECORDING_GEAR_GROUPS.map((group) => (
+                    {gearGroups.map((group) => (
                         <GearGroupCard key={group.id} group={group} />
                     ))}
                 </div>

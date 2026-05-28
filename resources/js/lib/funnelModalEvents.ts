@@ -1,11 +1,14 @@
-export type FunnelModalType = 'booking' | 'newsletter';
+export type FunnelModalType = 'booking' | 'newsletter' | 'whatsapp';
 
 export const FUNNEL_MODAL_STATE_EVENT = 'lapsique:funnel-modal-state';
 export const NEWSLETTER_OPEN_EVENT = 'lapsique:newsletter-open';
 export const BOOKING_AUTO_OPEN_EVENT = 'lapsique:booking-auto-open';
+export const BOOKING_MODAL_CLOSED_EVENT = 'lapsique:booking-modal-closed';
 
 export const BOOKING_POPUP_AUTO_SESSION_KEY = 'lapsique_booking_popup_auto';
 export const NEWSLETTER_POPUP_SEEN_KEY = 'lapsique_newsletter_popup_seen';
+export const WHATSAPP_POPUP_SEEN_KEY = 'lapsique_whatsapp_popup_seen';
+export const WHATSAPP_POPUP_SESSION_KEY = 'lapsique_whatsapp_popup_session';
 
 let activeModal: FunnelModalType | null = null;
 
@@ -78,5 +81,45 @@ export function markNewsletterPopupSeen(): void {
         localStorage.setItem(NEWSLETTER_POPUP_SEEN_KEY, Date.now().toString());
     } catch {
         // Private browsing
+    }
+}
+
+export function hasSeenWhatsAppPopupWithinDays(days = 3): boolean {
+    try {
+        const lastSeen = localStorage.getItem(WHATSAPP_POPUP_SEEN_KEY);
+
+        if (!lastSeen) {
+            return false;
+        }
+
+        const daysSince = (Date.now() - Number.parseInt(lastSeen, 10)) / (1000 * 60 * 60 * 24);
+
+        return daysSince < days;
+    } catch {
+        return false;
+    }
+}
+
+export function markWhatsAppPopupSeen(): void {
+    try {
+        localStorage.setItem(WHATSAPP_POPUP_SEEN_KEY, Date.now().toString());
+    } catch {
+        // Private browsing
+    }
+}
+
+export function markWhatsAppPopupShownThisSession(): void {
+    try {
+        sessionStorage.setItem(WHATSAPP_POPUP_SESSION_KEY, '1');
+    } catch {
+        // Private browsing
+    }
+}
+
+export function hasWhatsAppPopupShownThisSession(): boolean {
+    try {
+        return sessionStorage.getItem(WHATSAPP_POPUP_SESSION_KEY) === '1';
+    } catch {
+        return false;
     }
 }

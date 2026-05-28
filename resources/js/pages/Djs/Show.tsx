@@ -5,6 +5,7 @@ import { VideoCard } from '@/components/lapsique/VideoCard';
 import { DjGallery } from '@/components/lapsique/DjGallery';
 import { DjProfileSections } from '@/components/lapsique/DjProfileSections';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { useTranslations } from '@/hooks/useTranslations';
 import { fadeUp } from '@/lib/motion';
 import type { DjItem, VideoItem } from '@/types';
 
@@ -14,6 +15,7 @@ interface DjsShowProps {
 }
 
 export function DjsShow({ dj, videos }: DjsShowProps) {
+    const { t } = useTranslations();
     const initials = dj.name
         .split(' ')
         .map((n) => n[0])
@@ -52,7 +54,7 @@ export function DjsShow({ dj, videos }: DjsShowProps) {
                         <div className="min-w-0 flex-1 pb-1">
                             {dj.is_highlighted && (
                                 <span className="mb-2 inline-block rounded-full bg-primary/20 px-3 py-1 text-xs font-medium uppercase tracking-wider text-primary">
-                                    Artista destacado
+                                    {t('pages.djs.featured_label')}
                                 </span>
                             )}
                             <h1 className="font-display text-3xl font-bold tracking-tight md:text-4xl">{dj.name}</h1>
@@ -72,7 +74,7 @@ export function DjsShow({ dj, videos }: DjsShowProps) {
                     viewport={{ once: true }}
                     className="pb-16"
                 >
-                    <h2 className="font-display mb-6 text-xl font-semibold">Sets y videos</h2>
+                    <h2 className="font-display mb-6 text-xl font-semibold">{t('pages.djs.sets_videos')}</h2>
                     <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
                         {videos.map((video) => (
                             <VideoCard key={video.id} video={video} />

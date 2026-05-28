@@ -5,6 +5,8 @@ namespace App\Http\Middleware;
 use App\Models\SiteSetting;
 use App\Services\StripeIntegrationService;
 use App\Support\BookingMode;
+use App\Support\FrontendTranslations;
+use App\Support\LocaleResolver;
 use App\Support\PageMeta;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -60,6 +62,8 @@ class HandleInertiaRequests extends Middleware
                 'email',
             ]),
             'locale' => fn () => app()->getLocale(),
+            'availableLocales' => LocaleResolver::SUPPORTED,
+            'translations' => fn () => FrontendTranslations::all(app()->getLocale()),
             'seo' => fn () => PageMeta::forRequest($request)->toArray(),
         ];
     }

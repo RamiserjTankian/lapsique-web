@@ -44,7 +44,7 @@ class MetaConversionsApiService
 
         $this->sendEvent(
             eventName: 'InitiateCheckout',
-            eventId: 'booking_checkout_'.$booking->public_id,
+            eventId: data_get($booking->metadata, 'checkout_event_id') ?: 'booking_checkout_'.$booking->public_id,
             eventSourceUrl: $booking->landing_url ?: config('app.url'),
             userData: $this->userDataFromBooking($booking),
             customData: $this->purchaseCustomData($booking),
@@ -57,6 +57,11 @@ class MetaConversionsApiService
             return;
         }
 
+        // Idempotencia explícita: evita Purchase duplicado ante reintentos de webhook.
+        if (data_get($booking->metadata, 'capi_purchase_sent')) {
+            return;
+        }
+
         $this->sendEvent(
             eventName: 'Purchase',
             eventId: 'booking_'.$booking->public_id,
@@ -64,6 +69,13 @@ class MetaConversionsApiService
             userData: $this->userDataFromBooking($booking),
             customData: $this->purchaseCustomData($booking),
         );
+
+        $booking->forceFill([
+            'metadata' => array_merge(
+                is_array($booking->metadata) ? $booking->metadata : [],
+                ['capi_purchase_sent' => true],
+            ),
+        ])->save();
     }
 
     public function sendPurchaseForTicketOrder(TicketOrder $order): void
@@ -170,10 +182,16 @@ class MetaConversionsApiService
             ? $this->hash('customer_'.$booking->customer_id)
             : ($booking->public_id ? $this->hash('booking_'.$booking->public_id) : null);
 
+        [$firstName, $lastName] = $this->splitName($booking->client_name);
+
         return array_filter([
             'em' => $this->hash($booking->client_email),
             'ph' => $this->hashPhone($booking->client_phone),
+            'fn' => $this->hash($firstName),
+            'ln' => $this->hash($lastName),
             'external_id' => $externalId,
+            'client_ip_address' => $booking->client_ip_address,
+            'client_user_agent' => $booking->client_user_agent,
             'fbc' => $booking->fbc,
             'fbp' => $booking->fbp,
         ]);
@@ -207,6 +225,24 @@ class MetaConversionsApiService
             'content_name' => $booking->service_name,
             'content_category' => $booking->isDjSet() ? 'dj_set_booking' : 'content_booking',
         ];
+    }
+
+    /**
+     * @return array{0: ?string, 1: ?string}
+     */
+    protected function splitName(?string $name): array
+    {
+        $clean = trim((string) $name);
+
+        if ($clean === '') {
+            return [null, null];
+        }
+
+        $parts = preg_split('/\s+/', $clean) ?: [];
+        $first = array_shift($parts);
+        $last = $parts !== [] ? implode(' ', $parts) : null;
+
+        return [$first, $last];
     }
 
     protected function hash(?string $value): ?string

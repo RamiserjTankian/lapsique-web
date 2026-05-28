@@ -55,6 +55,8 @@ class ContentBooking extends Model implements HasMedia
         'fbc',
         'referrer',
         'landing_url',
+        'client_ip_address',
+        'client_user_agent',
         'metadata',
         'admin_notes',
         'deliverables_ready_at',

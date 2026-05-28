@@ -1,4 +1,3 @@
-import { Play } from 'lucide-react';
 import { ReelLoopCard } from '@/components/lapsique/ReelLoopCard';
 import { cn } from '@/lib/utils';
 import type { LandingVideoEntry } from '@/types';
@@ -39,16 +38,7 @@ export function LandingReelPreviewGrid({
                     poster={video.poster}
                     title={video.title ?? undefined}
                     bookingSource={bookingSource}
-                    articleClassName="rounded-xl border border-border/70 bg-black shadow-lg"
                     videoClassName="group-hover:scale-[1.04]"
-                    footer={
-                        <div className="pointer-events-none absolute inset-x-0 bottom-0 flex items-end justify-between gap-2 p-3">
-                            <span />
-                            <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full border border-white/20 bg-black/35 text-primary backdrop-blur">
-                                <Play className="h-3 w-3 fill-current" />
-                            </span>
-                        </div>
-                    }
                 />
             ))}
         </div>

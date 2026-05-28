@@ -1,3 +1,4 @@
+import { useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { BookingCtaButton } from '@/components/lapsique/BookingCtaButton';
 import { BookingCtaSection } from '@/components/lapsique/BookingCtaSection';
@@ -11,6 +12,8 @@ import {
     CONTENT_PHOTOS_COUNT,
     CONTENT_REEL_DURATION_SECONDS,
 } from '@/data/contentOffer';
+import { trackBookingEvent } from '@/hooks/useBookingAnalytics';
+import { useTranslations } from '@/hooks/useTranslations';
 import { fadeUp } from '@/lib/motion';
 import { openBookingModal } from '@/lib/openBookingModal';
 import type { PortfolioItemData } from '@/types';
@@ -37,6 +40,16 @@ export function CinematicHero({
     showAgendaCta = true,
     portfolioItems = [],
 }: CinematicHeroProps) {
+    const { t } = useTranslations();
+    const specReplacements = useMemo(
+        () => ({
+            seconds: CONTENT_REEL_DURATION_SECONDS,
+            drone_shots: CONTENT_DRONE_SHOTS,
+            photos_count: CONTENT_PHOTOS_COUNT,
+        }),
+        [],
+    );
+
     const openBooking = () => {
         openBookingModal({
             source: 'cinematic_hero',
@@ -55,7 +68,7 @@ export function CinematicHero({
 
             <motion.div variants={fadeUp} className="relative z-10">
                 <span className="inline-block rounded-full border border-primary/30 bg-primary/10 px-4 py-1 text-xs font-medium uppercase tracking-widest text-primary">
-                    Contenido premium que vende mejor
+                    {t('booking.hero.badge')}
                 </span>
             </motion.div>
 
@@ -79,10 +92,10 @@ export function CinematicHero({
                 variants={fadeUp}
                 className="relative z-10 mt-10 flex flex-wrap justify-center gap-2"
             >
-                <SpecBadge highlight>Sony α7 · full frame</SpecBadge>
-                <SpecBadge>Reel {CONTENT_REEL_DURATION_SECONDS} s · Meta Ads</SpecBadge>
-                <SpecBadge>{CONTENT_DRONE_SHOTS} tomas dron DJI</SpecBadge>
-                <SpecBadge>{CONTENT_PHOTOS_COUNT} fotos editadas</SpecBadge>
+                <SpecBadge highlight>{t('booking.hero.spec_sony')}</SpecBadge>
+                <SpecBadge>{t('booking.hero.spec_reel', specReplacements)}</SpecBadge>
+                <SpecBadge>{t('booking.hero.spec_drone', specReplacements)}</SpecBadge>
+                <SpecBadge>{t('booking.hero.spec_photos', specReplacements)}</SpecBadge>
             </motion.div>
 
             <motion.div variants={fadeUp} className="relative z-10 mt-8">
@@ -90,7 +103,7 @@ export function CinematicHero({
                     {formatMxn(price)}
                 </p>
                 <p className="mt-1 text-sm text-muted-foreground">
-                    Sesión completa · pago seguro en línea
+                    {t('booking.hero.price_subtitle')}
                 </p>
             </motion.div>
 
@@ -98,7 +111,7 @@ export function CinematicHero({
                 <motion.div variants={fadeUp} className="relative z-10 mt-10 px-4 sm:px-6">
                     <BookingCtaSection hero className="py-0">
                         <BookingCtaButton hero onClick={openBooking}>
-                            Agendar mi sesión
+                            {t('booking.hero.cta_book')}
                         </BookingCtaButton>
                     </BookingCtaSection>
                 </motion.div>
@@ -116,7 +129,7 @@ export function CinematicHero({
                                 trackBookingEvent('hero_cta_clicked', { target: 'que_incluye' })
                             }
                         >
-                            Ver qué incluye
+                            {t('booking.hero.cta_includes')}
                         </a>
                     </Button>
                 </div>
@@ -127,16 +140,16 @@ export function CinematicHero({
                 className="relative z-10 mx-auto mt-10 grid max-w-4xl gap-3 rounded-[2rem] border border-border/70 bg-secondary p-4 text-left backdrop-blur-md md:grid-cols-3 md:p-5"
             >
                 <div>
-                    <p className="text-[10px] uppercase tracking-[0.24em] text-primary/80">Promesa</p>
-                    <p className="mt-2 text-sm text-foreground">Contenido con intención comercial, no solo visual.</p>
+                    <p className="text-[10px] uppercase tracking-[0.24em] text-primary/80">{t('booking.hero.promise_label')}</p>
+                    <p className="mt-2 text-sm text-foreground">{t('booking.hero.promise')}</p>
                 </div>
                 <div>
-                    <p className="text-[10px] uppercase tracking-[0.24em] text-primary/80">Ideal para</p>
-                    <p className="mt-2 text-sm text-foreground">Marcas, artistas, negocios y campañas que necesitan verse premium.</p>
+                    <p className="text-[10px] uppercase tracking-[0.24em] text-primary/80">{t('booking.hero.ideal_for_label')}</p>
+                    <p className="mt-2 text-sm text-foreground">{t('booking.hero.ideal_for')}</p>
                 </div>
                 <div>
-                    <p className="text-[10px] uppercase tracking-[0.24em] text-primary/80">Conversión</p>
-                    <p className="mt-2 text-sm text-foreground">Agenda directa desde el home con checkout seguro o prueba sin cobro real.</p>
+                    <p className="text-[10px] uppercase tracking-[0.24em] text-primary/80">{t('booking.hero.conversion_label')}</p>
+                    <p className="mt-2 text-sm text-foreground">{t('booking.hero.conversion_body')}</p>
                 </div>
             </motion.div>
         </motion.section>

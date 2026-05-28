@@ -7,6 +7,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { trackNewsletterEvent } from '@/hooks/useNewsletterAnalytics';
+import { useTranslations } from '@/hooks/useTranslations';
 import { markNewsletterPopupSeen } from '@/lib/funnelModalEvents';
 import {
     getPopupVisualCopy,
@@ -16,11 +17,11 @@ import {
 import { route } from '@/lib/route';
 import type { HeroProofVideoData, PageProps, PortfolioItemData, VideoItem } from '@/types';
 
-const INTEREST_OPTIONS = [
-    { id: 'events', label: 'Eventos' },
-    { id: 'djs', label: 'DJs y sets' },
-    { id: 'production', label: 'Producción' },
-    { id: 'business', label: 'Negocios / reels' },
+const INTEREST_OPTION_KEYS = [
+    { id: 'events', labelKey: 'funnel.newsletter.interest_events' },
+    { id: 'djs', labelKey: 'funnel.newsletter.interest_djs' },
+    { id: 'production', labelKey: 'funnel.newsletter.interest_production' },
+    { id: 'business', labelKey: 'funnel.newsletter.interest_business' },
 ] as const;
 
 interface NewsletterCaptureModalProps {
@@ -65,17 +66,18 @@ export function NewsletterCaptureModal({
     source = 'auto',
 }: NewsletterCaptureModalProps) {
     const { ziggy } = usePage<PageProps>().props;
-    const visual = useMemo(() => getPopupVisualCopy(variant, 'newsletter'), [variant]);
+    const { t } = useTranslations();
+    const visual = useMemo(() => getPopupVisualCopy(t, variant, 'newsletter'), [t, variant]);
     const image = useMemo(
         () =>
-            resolvePopupImage({
+            resolvePopupImage(t, {
                 variant,
                 purpose: 'newsletter',
                 portfolioItems,
                 heroProofVideo,
                 originals,
             }),
-        [variant, portfolioItems, heroProofVideo, originals],
+        [t, variant, portfolioItems, heroProofVideo, originals],
     );
 
     const [name, setName] = useState('');
@@ -120,7 +122,7 @@ export function NewsletterCaptureModal({
             const token = document.querySelector<HTMLMetaElement>('meta[name="csrf-token"]')?.content;
 
             if (!token) {
-                setErrorMessage('No se pudo validar la sesión. Recarga la página e inténtalo de nuevo.');
+                setErrorMessage(t('common.error.session_invalid'));
 
                 return;
             }
@@ -150,7 +152,7 @@ export function NewsletterCaptureModal({
                 setErrorMessage(
                     data.message
                     ?? formatValidationMessage(data.errors)
-                    ?? 'Ocurrió un error. Por favor intenta de nuevo.',
+                    ?? t('common.error.generic'),
                 );
 
                 return;
@@ -158,12 +160,12 @@ export function NewsletterCaptureModal({
 
             setSubmitted(true);
             setSuccessMessage(
-                data.message ?? '¡Gracias! Te mantendremos informado de nuestros próximos eventos.',
+                data.message ?? t('funnel.newsletter.success_default'),
             );
             markNewsletterPopupSeen();
             trackNewsletterEvent('newsletter_form_submitted', { variant, source });
         } catch {
-            setErrorMessage('Ocurrió un error. Por favor intenta de nuevo.');
+            setErrorMessage(t('common.error.generic'));
         } finally {
             setLoading(false);
         }
@@ -173,13 +175,14 @@ export function NewsletterCaptureModal({
         <PremiumSplitDialog
             open={open}
             onOpenChange={handleOpenChange}
+            layout="promo"
             imageUrl={image.url}
             imageAlt={image.alt}
             badge={visual.badge}
             title={visual.title}
             description={visual.description}
             caption={visual.caption}
-            contentClassName="px-4 py-4 sm:px-5 sm:py-5 md:px-7 md:py-7"
+            contentClassName="px-4 py-4 sm:px-5 sm:py-5"
         >
             {submitted ? (
                 <div className="flex flex-col items-center py-8 text-center">
@@ -187,41 +190,32 @@ export function NewsletterCaptureModal({
                         <Check className="h-8 w-8" />
                     </span>
                     <h2 className="mt-6 font-display text-2xl font-bold">{successMessage}</h2>
-                    <p className="mt-2 text-sm text-muted-foreground">¡Nos vemos en la pista!</p>
+                    <p className="mt-2 text-sm text-muted-foreground">{t('funnel.newsletter.success_subtitle')}</p>
                     <Button
                         type="button"
                         variant="cinematic"
                         className="mt-8 w-full max-w-xs"
                         onClick={() => handleOpenChange(false)}
                     >
-                        Cerrar
+                        {t('common.actions.close')}
                     </Button>
                 </div>
             ) : (
                 <form onSubmit={submit} className="space-y-4">
-                    <div className="lg:hidden">
-                        <h2 className="font-display text-xl font-bold leading-tight sm:text-2xl">
-                            Únete a Lapsique
-                        </h2>
-                        <p className="mt-1.5 text-sm text-muted-foreground">
-                            Eventos, producción y la escena en tu inbox.
-                        </p>
-                    </div>
-
                     <div className="space-y-2">
-                        <Label htmlFor="newsletter-name">Nombre *</Label>
+                        <Label htmlFor="newsletter-name">{t('common.form.name')}</Label>
                         <Input
                             id="newsletter-name"
                             value={name}
                             onChange={(e) => setName(e.target.value)}
                             required
                             className="bg-input/50"
-                            placeholder="Tu nombre"
+                            placeholder={t('common.form.placeholder_name')}
                         />
                     </div>
 
                     <div className="space-y-2">
-                        <Label htmlFor="newsletter-email">Email *</Label>
+                        <Label htmlFor="newsletter-email">{t('common.form.email')} *</Label>
                         <Input
                             id="newsletter-email"
                             type="email"
@@ -229,38 +223,38 @@ export function NewsletterCaptureModal({
                             onChange={(e) => setEmail(e.target.value)}
                             required
                             className="bg-input/50"
-                            placeholder="tu@email.com"
+                            placeholder={t('common.form.placeholder_email')}
                         />
                     </div>
 
                     <div className="grid gap-4 sm:grid-cols-2">
                         <div className="space-y-2">
-                            <Label htmlFor="newsletter-phone">WhatsApp (opcional)</Label>
+                            <Label htmlFor="newsletter-phone">{t('funnel.newsletter.phone_optional')}</Label>
                             <Input
                                 id="newsletter-phone"
                                 type="tel"
                                 value={phone}
                                 onChange={(e) => setPhone(e.target.value)}
                                 className="bg-input/50"
-                                placeholder="+52 ..."
+                                placeholder={t('common.form.placeholder_phone')}
                             />
                         </div>
                         <div className="space-y-2">
-                            <Label htmlFor="newsletter-ig">Instagram (opcional)</Label>
+                            <Label htmlFor="newsletter-ig">{t('funnel.newsletter.instagram_optional')}</Label>
                             <Input
                                 id="newsletter-ig"
                                 value={instagramHandle}
                                 onChange={(e) => setInstagramHandle(e.target.value)}
                                 className="bg-input/50"
-                                placeholder="@tuusuario"
+                                placeholder={t('common.form.placeholder_instagram')}
                             />
                         </div>
                     </div>
 
                     <fieldset className="space-y-2">
-                        <legend className="text-sm font-medium">Intereses</legend>
+                        <legend className="text-sm font-medium">{t('funnel.newsletter.interests_label')}</legend>
                         <div className="grid grid-cols-2 gap-2">
-                            {INTEREST_OPTIONS.map((option) => (
+                            {INTEREST_OPTION_KEYS.map((option) => (
                                 <label
                                     key={option.id}
                                     className="flex cursor-pointer items-center gap-2 rounded-xl border border-border/70 bg-secondary/60 px-3 py-2.5 text-sm transition hover:border-primary/30"
@@ -269,7 +263,7 @@ export function NewsletterCaptureModal({
                                         checked={interests.includes(option.id)}
                                         onCheckedChange={() => toggleInterest(option.id)}
                                     />
-                                    {option.label}
+                                    {t(option.labelKey)}
                                 </label>
                             ))}
                         </div>
@@ -285,18 +279,18 @@ export function NewsletterCaptureModal({
                         {loading ? (
                             <>
                                 <Loader2 className="h-4 w-4 animate-spin" />
-                                Enviando...
+                                {t('common.loading.sending')}
                             </>
                         ) : (
                             <>
                                 <Mail className="h-4 w-4" />
-                                Suscribirme
+                                {t('funnel.newsletter.submit')}
                             </>
                         )}
                     </Button>
 
                     <p className="text-center text-xs text-muted-foreground">
-                        Al enviar aceptas recibir comunicaciones de marketing. Puedes darte de baja cuando quieras.
+                        {t('funnel.newsletter.consent')}
                     </p>
                 </form>
             )}

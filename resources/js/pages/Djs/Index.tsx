@@ -2,6 +2,7 @@ import { Head } from '@inertiajs/react';
 import SiteLayout from '@/layouts/SiteLayout';
 import { GlassSection } from '@/components/lapsique/GlassSection';
 import { DjCard } from '@/components/lapsique/DjCard';
+import { useTranslations } from '@/hooks/useTranslations';
 import type { DjItem } from '@/types';
 
 interface DjsIndexProps {
@@ -10,20 +11,21 @@ interface DjsIndexProps {
 }
 
 export default function DjsIndex({ djs, highlightedDj }: DjsIndexProps) {
+    const { t } = useTranslations();
     const rest = highlightedDj
         ? djs.filter((d) => d.id !== highlightedDj.id)
         : djs;
 
     return (
         <SiteLayout>
-            <Head title="DJs" />
+            <Head title={t('pages.djs.title')} />
             <GlassSection
-                eyebrow="Lineup"
-                title="DJs"
+                eyebrow={t('pages.djs.lineup_eyebrow')}
+                title={t('pages.djs.title')}
                 description={
                     highlightedDj
-                        ? `Destacado: ${highlightedDj.name}`
-                        : 'Artistas que han pasado por lapsique.media'
+                        ? t('pages.djs.highlighted', { name: highlightedDj.name })
+                        : t('pages.djs.lineup_description')
                 }
             >
                 {highlightedDj && (

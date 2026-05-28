@@ -195,14 +195,14 @@ class StripeService
         foreach (explode(',', $signature) as $segment) {
             [$key, $value] = array_map('trim', explode('=', $segment, 2) + [null, null]);
             if ($key && $value) {
-                $parts[$key] = $value;
+                $parts[$key][] = $value;
             }
         }
 
-        $timestamp = $parts['t'] ?? null;
-        $signatureHash = $parts['v1'] ?? null;
+        $timestamp = $parts['t'][0] ?? null;
+        $signatureHashes = $parts['v1'] ?? [];
 
-        if (! $timestamp || ! $signatureHash) {
+        if (! $timestamp || $signatureHashes === []) {
             return false;
         }
 
@@ -219,7 +219,13 @@ class StripeService
         $signedPayload = $timestamp.'.'.$payload;
         $expected = hash_hmac('sha256', $signedPayload, $secret);
 
-        return hash_equals($expected, $signatureHash);
+        foreach ($signatureHashes as $signatureHash) {
+            if (hash_equals($expected, $signatureHash)) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     protected function requireSecretKey(): string

@@ -7,11 +7,13 @@ import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
 import { glassCardVariants } from '@/lib/variants';
 import { cn } from '@/lib/utils';
+import { useTranslations } from '@/hooks/useTranslations';
 import { route } from '@/lib/route';
 import type { PageProps } from '@/types';
 
 export default function CustomerLogin() {
     const { ziggy, flash } = usePage<PageProps>().props;
+    const { t } = useTranslations();
     const { data, setData, post, processing, errors } = useForm({
         email: '',
         password: '',
@@ -27,12 +29,12 @@ export default function CustomerLogin() {
 
     return (
         <SiteLayout>
-            <Head title="Acceso al portal" />
+            <Head title={t('customer.login.head_title')} />
             <div className="mx-auto max-w-md py-16">
-                <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">Mi portal</p>
-                <h1 className="mt-2 font-display text-3xl font-bold">Accede a tu cuenta</h1>
+                <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">{t('customer.portal.title')}</p>
+                <h1 className="mt-2 font-display text-3xl font-bold">{t('customer.login.title')}</h1>
                 <p className="mt-3 text-sm text-muted-foreground">
-                    Usa el email y la contraseña que recibiste al confirmar tu pago.
+                    {t('customer.login.subtitle')}
                 </p>
 
                 <div className={cn(glassCardVariants({ elevated: true }), 'mt-8 p-8')}>
@@ -49,7 +51,7 @@ export default function CustomerLogin() {
 
                     <form onSubmit={submit} className="space-y-4">
                         <div className="space-y-2">
-                            <Label htmlFor="email">Email</Label>
+                            <Label htmlFor="email">{t('common.form.email')}</Label>
                             <Input
                                 id="email"
                                 type="email"
@@ -60,7 +62,7 @@ export default function CustomerLogin() {
                             />
                         </div>
                         <div className="space-y-2">
-                            <Label htmlFor="password">Contraseña</Label>
+                            <Label htmlFor="password">{t('customer.login.password')}</Label>
                             <Input
                                 id="password"
                                 type="password"
@@ -76,17 +78,17 @@ export default function CustomerLogin() {
                                     checked={data.remember}
                                     onCheckedChange={(checked) => setData('remember', checked === true)}
                                 />
-                                Recordarme
+                                {t('customer.login.remember')}
                             </label>
                             <Link
                                 href={route('customers.password.request', undefined, false, ziggy)}
                                 className="text-sm text-primary hover:underline"
                             >
-                                ¿Olvidaste tu contraseña?
+                                {t('customer.login.forgot')}
                             </Link>
                         </div>
                         <Button type="submit" variant="cinematic" className="w-full" disabled={processing}>
-                            {processing ? 'Ingresando…' : 'Ingresar'}
+                            {processing ? t('customer.login.submitting') : t('customer.login.submit')}
                         </Button>
                     </form>
                 </div>

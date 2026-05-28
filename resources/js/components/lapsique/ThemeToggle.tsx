@@ -2,6 +2,7 @@ import { Moon, Sun } from 'lucide-react';
 import { useTheme } from 'next-themes';
 import { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
+import { useTranslations } from '@/hooks/useTranslations';
 
 function updateThemeColorMeta(theme: string) {
     const meta = document.getElementById('theme-color-meta');
@@ -11,6 +12,7 @@ function updateThemeColorMeta(theme: string) {
 }
 
 export function ThemeToggle() {
+    const { t } = useTranslations();
     const { theme, setTheme, resolvedTheme } = useTheme();
     const [mounted, setMounted] = useState(false);
 
@@ -20,7 +22,7 @@ export function ThemeToggle() {
 
     if (!mounted) {
         return (
-            <Button variant="ghost" size="icon" className="rounded-xl" aria-label="Cambiar tema" disabled>
+            <Button variant="ghost" size="icon" className="rounded-xl" aria-label={t('common.theme.change')} disabled>
                 <Sun className="h-5 w-5" />
             </Button>
         );
@@ -40,7 +42,7 @@ export function ThemeToggle() {
             size="icon"
             className="rounded-xl"
             onClick={toggle}
-            aria-label={isDark ? 'Activar modo día' : 'Activar modo noche'}
+            aria-label={isDark ? t('common.theme.light_mode') : t('common.theme.dark_mode')}
         >
             {isDark ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
         </Button>

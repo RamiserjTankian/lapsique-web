@@ -8,6 +8,7 @@ import {
 } from '@/components/ui/accordion';
 import { Button } from '@/components/ui/button';
 import { SpecBadge } from '@/components/lapsique/SpecBadge';
+import { useTranslations } from '@/hooks/useTranslations';
 import type { DjItem } from '@/types';
 
 const BIO_CLAMP_LENGTH = 280;
@@ -17,6 +18,7 @@ interface DjProfileSectionsProps {
 }
 
 export function DjProfileSections({ dj }: DjProfileSectionsProps) {
+    const { t } = useTranslations();
     const [bioExpanded, setBioExpanded] = useState(false);
     const bio = dj.bio?.trim() ?? '';
     const showBioToggle = bio.length > BIO_CLAMP_LENGTH;
@@ -30,7 +32,7 @@ export function DjProfileSections({ dj }: DjProfileSectionsProps) {
         },
         dj.youtube_url && { href: dj.youtube_url, label: 'YouTube', icon: Video },
         dj.soundcloud_url && { href: dj.soundcloud_url, label: 'SoundCloud', icon: Music2 },
-        dj.website_url && { href: dj.website_url, label: 'Sitio web', icon: Globe },
+        dj.website_url && { href: dj.website_url, label: t('common.links.website'), icon: Globe },
     ].filter(Boolean) as Array<{ href: string; label: string; icon: typeof AtSign }>;
 
     const rider = dj.technical_rider ?? [];
@@ -49,7 +51,7 @@ export function DjProfileSections({ dj }: DjProfileSectionsProps) {
 
             {bio && (
                 <section className="max-w-2xl">
-                    <h2 className="font-display text-lg font-semibold">Biografía</h2>
+                    <h2 className="font-display text-lg font-semibold">{t('pages.djs.bio_heading')}</h2>
                     <p className="mt-3 text-sm leading-relaxed text-muted-foreground md:text-base whitespace-pre-line">
                         {displayBio}
                     </p>
@@ -60,7 +62,7 @@ export function DjProfileSections({ dj }: DjProfileSectionsProps) {
                             className="mt-2 h-auto p-0 text-primary"
                             onClick={() => setBioExpanded((v) => !v)}
                         >
-                            {bioExpanded ? 'Ver menos' : 'Leer más'}
+                            {bioExpanded ? t('pages.djs.read_less') : t('pages.djs.read_more')}
                         </Button>
                     )}
                 </section>
@@ -68,7 +70,7 @@ export function DjProfileSections({ dj }: DjProfileSectionsProps) {
 
             {links.length > 0 && (
                 <section>
-                    <h2 className="font-display mb-4 text-lg font-semibold">Enlaces</h2>
+                    <h2 className="font-display mb-4 text-lg font-semibold">{t('pages.djs.links_heading')}</h2>
                     <div className="flex flex-wrap gap-3">
                         {links.map(({ href, label, icon: Icon }) => (
                             <Button key={href} variant="glass" size="sm" asChild>
@@ -87,7 +89,7 @@ export function DjProfileSections({ dj }: DjProfileSectionsProps) {
                     <Accordion type="single" collapsible className="rounded-xl border border-border/70 bg-secondary/30">
                         <AccordionItem value="rider" className="border-none px-4">
                             <AccordionTrigger className="font-display text-lg hover:no-underline">
-                                Rider técnico
+                                {t('pages.djs.rider_heading')}
                             </AccordionTrigger>
                             <AccordionContent>
                                 <ul className="space-y-3 pb-2">

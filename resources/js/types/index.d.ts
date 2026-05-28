@@ -139,6 +139,7 @@ export interface ContentBookingData {
     deliverables_ready_at?: string | null;
     deliverables_drive_url?: string | null;
     deliverable_links?: ContentBookingDeliverableLink[];
+    was_rescheduled?: boolean;
     is_test_booking?: boolean;
     slot: {
         date: string;
@@ -219,6 +220,8 @@ export interface SharedPageProps {
     };
     customer: { id: number; name: string; email: string } | null;
     locale: string;
+    availableLocales: string[];
+    translations: Record<string, Record<string, unknown>>;
     seo: SeoMeta;
     ziggy: import('ziggy-js').Config & { location: string };
 }

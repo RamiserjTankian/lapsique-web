@@ -7,7 +7,8 @@ interface SeoHeadProps {
 }
 
 export function SeoHead({ seo: override }: SeoHeadProps) {
-    const shared = usePage<PageProps>().props.seo;
+    const { seo: shared, locale } = usePage<PageProps>().props;
+    const ogLocale = locale === 'en' ? 'en_US' : 'es_MX';
     if (!shared && !override) {
         return null;
     }
@@ -26,7 +27,7 @@ export function SeoHead({ seo: override }: SeoHeadProps) {
             {ogImage ? <meta property="og:image" content={ogImage} /> : null}
             {ogImage ? <meta property="og:image:secure_url" content={ogImage} /> : null}
             <meta property="og:site_name" content="lapsique.media" />
-            <meta property="og:locale" content="es_MX" />
+            <meta property="og:locale" content={ogLocale} />
             <meta name="twitter:card" content="summary_large_image" />
             <meta name="twitter:title" content={seo.metaTitle} />
             <meta name="twitter:description" content={seo.description} />

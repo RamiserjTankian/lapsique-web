@@ -8,6 +8,8 @@ import {
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { PortfolioMediaViewer } from '@/components/lapsique/PortfolioMediaViewer';
+import { useTranslations } from '@/hooks/useTranslations';
+import { modalShellGallery } from '@/lib/modalLayout';
 import { cn } from '@/lib/utils';
 import type { PortfolioItemData } from '@/types';
 
@@ -24,6 +26,7 @@ export function PortfolioLightbox({
     onClose,
     onNavigate,
 }: PortfolioLightboxProps) {
+    const { t } = useTranslations();
     const active = activeIndex !== null ? items[activeIndex] : null;
     const isOpen = activeIndex !== null && active !== null;
     const isMediaFrame = active?.media_type === 'youtube' || active?.media_type === 'video';
@@ -60,14 +63,10 @@ export function PortfolioLightbox({
         >
             <DialogContent
                 showCloseButton={false}
-                className={cn(
-                    'theme-scrollbar glass-panel-elevated max-h-[92vh] w-[min(96vw,1100px)] max-w-none',
-                    'border-border/80 p-0 overflow-y-auto gap-0',
-                    isMediaFrame && 'w-[min(96vw,960px)]',
-                )}
+                className={cn(modalShellGallery, isMediaFrame && 'w-[min(calc(100vw-1.5rem),60rem)]')}
             >
                 <DialogTitle className="sr-only">
-                    {active?.title ?? 'Galería de portafolio'}
+                    {active?.title ?? t('pages.portfolio.lightbox_title')}
                 </DialogTitle>
 
                 <div
@@ -82,7 +81,7 @@ export function PortfolioLightbox({
                         size="icon"
                         className="absolute top-3 right-3 z-20 rounded-full bg-background/60 backdrop-blur-sm hover:bg-background/80"
                         onClick={onClose}
-                        aria-label="Cerrar"
+                        aria-label={t('common.actions.close')}
                     >
                         <X className="h-5 w-5" />
                     </Button>
@@ -95,7 +94,7 @@ export function PortfolioLightbox({
                                 size="icon"
                                 className="absolute left-3 z-20 hidden h-11 w-11 rounded-full bg-background/50 backdrop-blur-sm hover:bg-background/70 sm:flex"
                                 onClick={goPrev}
-                                aria-label="Anterior"
+                                aria-label={t('common.actions.previous')}
                             >
                                 <ChevronLeft className="h-6 w-6" />
                             </Button>
@@ -105,7 +104,7 @@ export function PortfolioLightbox({
                                 size="icon"
                                 className="absolute right-3 z-20 hidden h-11 w-11 rounded-full bg-background/50 backdrop-blur-sm hover:bg-background/70 sm:flex"
                                 onClick={goNext}
-                                aria-label="Siguiente"
+                                aria-label={t('common.actions.next')}
                             >
                                 <ChevronRight className="h-6 w-6" />
                             </Button>

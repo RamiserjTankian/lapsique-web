@@ -1,8 +1,10 @@
+import { useMemo } from 'react';
 import { CalendarCheck, CloudUpload, Film, PackageCheck, Video } from 'lucide-react';
 import { GlassSection } from '@/components/lapsique/GlassSection';
 import { LandingReelPreviewGrid } from '@/components/lapsique/LandingReelPreviewGrid';
-import { WORKFLOW_STEPS } from '@/data/workflowSteps';
+import { getWorkflowSteps } from '@/data/workflowSteps';
 import { useSectionEvent } from '@/hooks/useSectionEvent';
+import { useTranslations } from '@/hooks/useTranslations';
 import { cn } from '@/lib/utils';
 import { glassCardVariants } from '@/lib/variants';
 import type { LandingVideoEntry } from '@/types';
@@ -16,7 +18,6 @@ const STEP_ICONS: Record<string, LucideIcon> = {
     delivery: PackageCheck,
 };
 
-/** Progressive palette: planning → producción → nube → edición → entrega */
 const STEP_STYLES: Record<
     string,
     { card: string; stepBadge: string; iconBadge: string }
@@ -55,14 +56,15 @@ export function WorkflowSection({
     videos?: Array<LandingVideoEntry | null | undefined>;
     bookingSource?: string;
 }) {
+    const { t } = useTranslations();
+    const steps = useMemo(() => getWorkflowSteps(t), [t]);
     const ref = useSectionEvent('workflow_section_viewed', { section: 'production_workflow' });
 
     return (
         <GlassSection
-            eyebrow="Proceso"
-            title="Nuestro workflow"
-            description="De la primera plática a la entrega final: un proceso claro para que sepas qué pasa en cada etapa."
-            className="py-12 md:py-16"
+            eyebrow={t('funnel.workflow.section_eyebrow')}
+            title={t('funnel.workflow.section_title')}
+            description={t('funnel.workflow.section_description')}
         >
             <section
                 ref={ref}
@@ -70,7 +72,7 @@ export function WorkflowSection({
                 className="scroll-mt-24"
             >
                 <ol className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
-                    {WORKFLOW_STEPS.map((item) => {
+                    {steps.map((item) => {
                         const Icon = STEP_ICONS[item.id] ?? Film;
                         const styles = STEP_STYLES[item.id] ?? STEP_STYLES.meeting;
 

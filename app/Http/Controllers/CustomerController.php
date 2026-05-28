@@ -75,71 +75,17 @@ class CustomerController extends Controller
         $customer?->load([
             'contentBookings.slot',
             'contentBookings.deliverableLinks',
-            'ticketOrders.event',
         ]);
-
-        $payments = collect();
-
-        if ($customer) {
-            $bookingPayments = $customer->contentBookings->map(function ($booking) {
-                return [
-                    'type' => 'booking',
-                    'label' => 'Sesión de contenido',
-                    'status' => $booking->payment_status_label,
-                    'status_key' => $booking->status,
-                    'amount' => $booking->formatted_amount,
-                    'date' => ($booking->updated_at ?? $booking->created_at)?->toIso8601String(),
-                    'detail' => $booking->slot_summary,
-                ];
-            });
-
-            $ticketPayments = $customer->ticketOrders->map(function ($order) {
-                return [
-                    'type' => 'ticket_order',
-                    'label' => $order->event?->title ?? 'Compra de tickets',
-                    'status' => match ($order->status) {
-                        'paid' => 'Pagado',
-                        'pending' => 'Pendiente',
-                        'failed' => 'Fallido',
-                        'cancelled' => 'Cancelado',
-                        'refunded' => 'Reembolsado',
-                        default => ucfirst($order->status),
-                    },
-                    'status_key' => $order->status,
-                    'amount' => '$'.number_format((float) $order->total, 0).' '.$order->currency,
-                    'date' => ($order->paid_at ?? $order->created_at)?->toIso8601String(),
-                    'detail' => $order->buyer_email,
-                ];
-            });
-
-            $payments = $bookingPayments
-                ->merge($ticketPayments)
-                ->sortByDesc(fn ($payment) => $payment['date'])
-                ->values()
-                ->all();
-        }
-
-        $ticketOrders = $customer
-            ? $customer->ticketOrders
-                ->where('status', 'paid')
-                ->map(fn ($order) => [
-                    'id' => $order->id,
-                    'label' => $order->event?->title ?? 'Compra de tickets',
-                    'amount' => '$'.number_format((float) $order->total, 0).' '.$order->currency,
-                    'paid_at' => ($order->paid_at ?? $order->created_at)?->toIso8601String(),
-                    'success_url' => route('tickets.success', $order),
-                ])
-                ->values()
-                ->all()
-            : [];
 
         return Inertia::render('Customer/Portal', [
             'customer' => $customer?->only(['id', 'name', 'email']),
             'bookings' => $customer
-                ? ContentBookingResource::collection($customer->contentBookings)->resolve()
+                ? ContentBookingResource::collection(
+                    $customer->contentBookings->sortByDesc(
+                        fn ($booking) => $booking->slot?->date ?? $booking->created_at,
+                    )->values(),
+                )->resolve()
                 : [],
-            'ticketOrders' => $ticketOrders,
-            'payments' => $payments,
         ]);
     }
 }

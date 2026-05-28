@@ -2,6 +2,7 @@ import { Head } from '@inertiajs/react';
 import SiteLayout from '@/layouts/SiteLayout';
 import { GlassSection } from '@/components/lapsique/GlassSection';
 import { EventTeaser } from '@/components/lapsique/EventTeaser';
+import { useTranslations } from '@/hooks/useTranslations';
 import type { EventItem } from '@/types';
 
 interface EventsIndexProps {
@@ -9,13 +10,15 @@ interface EventsIndexProps {
 }
 
 export default function EventsIndex({ events }: EventsIndexProps) {
+    const { t } = useTranslations();
+
     return (
         <SiteLayout>
-            <Head title="Eventos" />
+            <Head title={t('pages.events.title')} />
             <GlassSection
-                eyebrow="Eventos"
-                title="Próximos y pasados"
-                description="Experiencias electrónicas en la Riviera Maya."
+                eyebrow={t('pages.events.index_eyebrow')}
+                title={t('pages.events.index_title')}
+                description={t('pages.events.index_description')}
             >
                 <motionEventsList events={events} />
             </GlassSection>

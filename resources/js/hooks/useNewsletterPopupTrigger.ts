@@ -7,10 +7,12 @@ import {
     NEWSLETTER_OPEN_EVENT,
     setActiveFunnelModal,
 } from '@/lib/funnelModalEvents';
+import {
+    attachScrollDepthTrigger,
+    supportsExitIntent,
+} from '@/lib/funnelScrollTrigger';
 
 const NEWSLETTER_DELAY_MS = 45_000;
-const NEWSLETTER_SCROLL_THRESHOLD = 50;
-const NEWSLETTER_SCROLL_DELAY_MS = 1_000;
 const BOOKING_CONFLICT_DELAY_MS = 30_000;
 
 export function useNewsletterPopupTrigger({
@@ -27,7 +29,6 @@ export function useNewsletterPopupTrigger({
 } {
     const [open, setOpenState] = useState(false);
     const triggeredRef = useRef(false);
-    const scrollTriggeredRef = useRef(false);
     const exitTriggeredRef = useRef(false);
     const bookingOpenedEarlyRef = useRef(false);
     const mountTimeRef = useRef(Date.now());
@@ -157,21 +158,10 @@ export function useNewsletterPopupTrigger({
             return;
         }
 
-        const onScroll = () => {
-            const doc = document.documentElement;
-            const scrollable = doc.scrollHeight - window.innerHeight;
-
-            if (scrollable <= 0) {
-                return;
-            }
-
-            const percent = (window.scrollY / scrollable) * 100;
-
-            if (percent >= NEWSLETTER_SCROLL_THRESHOLD && !scrollTriggeredRef.current) {
-                scrollTriggeredRef.current = true;
-                window.setTimeout(() => tryOpen('scroll_50'), NEWSLETTER_SCROLL_DELAY_MS);
-            }
-        };
+        const detachScroll = attachScrollDepthTrigger(
+            () => tryOpen('scroll_depth'),
+            { mountTime: mountTimeRef.current },
+        );
 
         const onExitIntent = (event: MouseEvent) => {
             if (event.clientY < 0 && !exitTriggeredRef.current) {
@@ -180,16 +170,22 @@ export function useNewsletterPopupTrigger({
             }
         };
 
-        const timer = window.setTimeout(() => tryOpen('timer_30s'), NEWSLETTER_DELAY_MS);
+        const timer = window.setTimeout(() => tryOpen('timer_45s'), NEWSLETTER_DELAY_MS);
 
-        window.addEventListener('scroll', onScroll, { passive: true });
-        document.addEventListener('mouseleave', onExitIntent);
+        const exitIntentEnabled = supportsExitIntent();
+
+        if (exitIntentEnabled) {
+            document.addEventListener('mouseleave', onExitIntent);
+        }
 
         return () => {
             window.clearTimeout(timer);
             clearPendingOpen();
-            window.removeEventListener('scroll', onScroll);
-            document.removeEventListener('mouseleave', onExitIntent);
+            detachScroll();
+
+            if (exitIntentEnabled) {
+                document.removeEventListener('mouseleave', onExitIntent);
+            }
         };
     }, [clearPendingOpen, enabled, skipIfLoggedIn, tryOpen]);
 

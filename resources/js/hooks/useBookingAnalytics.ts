@@ -1,8 +1,14 @@
+import {
+    isFunnelContentEngagementEvent,
+    recordFunnelContentEngagement,
+} from '@/lib/funnelEngagement';
+
 declare global {
     interface Window {
         LapsiqueTracker?: {
             track: (name: string, options?: Record<string, unknown>) => void;
             getContext?: () => Record<string, unknown>;
+            pageview?: (overrides?: Record<string, unknown>) => void;
         };
         trackMetaPixel?: (
             event: string,
@@ -39,20 +45,23 @@ const STANDARD_EVENTS: Record<string, string> = {
     booking_date_selected: 'Schedule',
     booking_slot_selected: 'AddToCart',
     booking_form_started: 'Lead',
+    booking_checkout_started: 'InitiateCheckout',
     booking_confirmed: 'Purchase',
 };
 
-/** Sin Purchase estándar: no contaminar optimización en modo prueba. */
+/** Sin evento estándar: no contaminar optimización (modo prueba o eventos puramente internos). */
 const CUSTOM_ONLY_EVENTS = new Set([
     'booking_test_confirmed',
     'booking_form_submitted',
-    'booking_checkout_started',
     'booking_abandoned',
     'booking_slot_cleared',
     'booking_popup_shown',
     'booking_payment_pending',
     'booking_payment_failed',
     'faq_opened',
+    'whatsapp_popup_shown',
+    'whatsapp_popup_dismissed',
+    'whatsapp_popup_clicked',
 ]);
 
 /** IDs alineados con Meta CAPI (MetaConversionsApiService). */
@@ -82,6 +91,11 @@ export function trackBookingEvent(
 }
 
 function trackBookingInternalEvent(event: string, data: Record<string, unknown>): void {
+    if (isFunnelContentEngagementEvent(event)) {
+        const section = typeof data.section === 'string' ? data.section : event;
+        recordFunnelContentEngagement(section);
+    }
+
     if (window.LapsiqueTracker) {
         window.LapsiqueTracker.track(event, {
             category: 'booking_funnel',
@@ -115,6 +129,12 @@ function trackBookingMetaEvent(event: string, payload: Record<string, unknown>):
 }
 
 function shouldFireStandardMetaEvent(event: string, payload: Record<string, unknown>): boolean {
+    // En modo prueba (sin pago real) no disparamos InitiateCheckout estándar
+    // para no contaminar la optimización de campañas; el CAPI tampoco lo envía.
+    if (event === 'booking_checkout_started') {
+        return !payload.skip_payment;
+    }
+
     if (event !== 'booking_confirmed' && event !== 'booking_test_confirmed') {
         return true;
     }

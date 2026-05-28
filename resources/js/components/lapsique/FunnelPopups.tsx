@@ -1,7 +1,9 @@
 import { usePage } from '@inertiajs/react';
 import { NewsletterCaptureModal } from '@/components/lapsique/NewsletterCaptureModal';
+import { WhatsAppCaptureModal } from '@/components/lapsique/WhatsAppCaptureModal';
 import { useBookingAutoOpenListener, useBookingPopupTrigger } from '@/hooks/useBookingPopupTrigger';
 import { useNewsletterPopupTrigger } from '@/hooks/useNewsletterPopupTrigger';
+import { useWhatsAppPopupTrigger } from '@/hooks/useWhatsAppPopupTrigger';
 import { openBookingModal } from '@/lib/openBookingModal';
 import type { HeroProofVideoData, PageProps, PortfolioItemData, VideoItem } from '@/types';
 import type { PopupVariant } from '@/lib/popupMedia';
@@ -21,12 +23,21 @@ export function FunnelPopups({
     heroProofVideo = null,
     originals = [],
 }: FunnelPopupsProps) {
-    const { customer } = usePage<PageProps>().props;
+    const { customer, site } = usePage<PageProps>().props;
     const skipNewsletter = Boolean(customer?.email);
 
     const { open, setOpen } = useNewsletterPopupTrigger({
         enabled: true,
         skipIfLoggedIn: skipNewsletter,
+    });
+
+    const {
+        open: whatsappOpen,
+        setOpen: setWhatsappOpen,
+        source: whatsappSource,
+    } = useWhatsAppPopupTrigger({
+        enabled: Boolean(site.whatsapp),
+        whatsapp: site.whatsapp,
     });
 
     useBookingPopupTrigger(slotsCount > 0);
@@ -40,13 +51,24 @@ export function FunnelPopups({
     });
 
     return (
-        <NewsletterCaptureModal
-            open={open}
-            onOpenChange={setOpen}
-            variant={variant}
-            portfolioItems={portfolioItems}
-            heroProofVideo={heroProofVideo}
-            originals={originals}
-        />
+        <>
+            <NewsletterCaptureModal
+                open={open}
+                onOpenChange={setOpen}
+                variant={variant}
+                portfolioItems={portfolioItems}
+                heroProofVideo={heroProofVideo}
+                originals={originals}
+            />
+            <WhatsAppCaptureModal
+                open={whatsappOpen}
+                onOpenChange={setWhatsappOpen}
+                variant={variant}
+                portfolioItems={portfolioItems}
+                heroProofVideo={heroProofVideo}
+                originals={originals}
+                source={whatsappSource}
+            />
+        </>
     );
 }

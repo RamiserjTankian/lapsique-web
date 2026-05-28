@@ -4,6 +4,7 @@ import SiteLayout from '@/layouts/SiteLayout';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { useTranslations } from '@/hooks/useTranslations';
 import { glassCardVariants } from '@/lib/variants';
 import { cn } from '@/lib/utils';
 import { route } from '@/lib/route';
@@ -11,6 +12,7 @@ import type { PageProps } from '@/types';
 
 export default function CustomerForgotPassword() {
     const { ziggy, flash } = usePage<PageProps>().props;
+    const { t } = useTranslations();
     const { data, setData, post, processing, errors } = useForm({
         email: '',
     });
@@ -22,11 +24,11 @@ export default function CustomerForgotPassword() {
 
     return (
         <SiteLayout>
-            <Head title="Recuperar contraseña" />
+            <Head title={t('customer.forgot.title')} />
             <div className="mx-auto max-w-md py-16">
-                <h1 className="font-display text-3xl font-bold">Recuperar contraseña</h1>
+                <h1 className="font-display text-3xl font-bold">{t('customer.forgot.title')}</h1>
                 <p className="mt-3 text-sm text-muted-foreground">
-                    Te enviaremos un enlace para restablecer tu contraseña del portal.
+                    {t('customer.forgot.subtitle')}
                 </p>
 
                 <div className={cn(glassCardVariants({ elevated: true }), 'mt-8 p-8')}>
@@ -38,7 +40,7 @@ export default function CustomerForgotPassword() {
 
                     <form onSubmit={submit} className="space-y-4">
                         <div className="space-y-2">
-                            <Label htmlFor="email">Email</Label>
+                            <Label htmlFor="email">{t('common.form.email')}</Label>
                             <Input
                                 id="email"
                                 type="email"
@@ -51,7 +53,7 @@ export default function CustomerForgotPassword() {
                             )}
                         </div>
                         <Button type="submit" variant="cinematic" className="w-full" disabled={processing}>
-                            Enviar enlace
+                            {t('customer.forgot.submit')}
                         </Button>
                     </form>
 
@@ -60,7 +62,7 @@ export default function CustomerForgotPassword() {
                             href={route('customers.login', undefined, false, ziggy)}
                             className="text-primary hover:underline"
                         >
-                            Volver al login
+                            {t('customer.forgot.back')}
                         </Link>
                     </p>
                 </div>

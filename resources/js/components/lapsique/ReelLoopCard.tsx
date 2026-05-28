@@ -4,8 +4,10 @@ import { AutoplayVideo } from '@/components/lapsique/AutoplayVideo';
 import { LANDING_VIDEO_LOOP_SECONDS } from '@/data/contentOffer';
 import { useOptionalReelPlayerModal } from '@/hooks/useReelPlayerModal';
 import { trackBookingEvent } from '@/hooks/useBookingAnalytics';
+import { useTranslations } from '@/hooks/useTranslations';
 import { buildReelAnalyticsPayload } from '@/lib/reelAnalytics';
 import { openBookingModal } from '@/lib/openBookingModal';
+import { videoSurfaceFrameClass } from '@/lib/videoSurface';
 import { cn } from '@/lib/utils';
 
 const DEFAULT_OVERLAY_MS = 3500;
@@ -52,6 +54,7 @@ export function ReelLoopCard({
     fillContainer = false,
     openPlayerOnClick = true,
 }: ReelLoopCardProps) {
+    const { t } = useTranslations();
     const reelId = useId();
     const reelPlayer = useOptionalReelPlayerModal();
     const [localOverlay, setLocalOverlay] = useState(false);
@@ -137,7 +140,8 @@ export function ReelLoopCard({
     return (
         <article
             className={cn(
-                'group relative overflow-hidden rounded-lg border border-white/10 bg-background',
+                videoSurfaceFrameClass,
+                'group relative',
                 !fillContainer && 'aspect-[9/16]',
                 isClickable && 'cursor-pointer',
                 articleClassName,
@@ -184,7 +188,7 @@ export function ReelLoopCard({
                         onClick={handleBook}
                         className="w-full max-w-[220px] shadow-[0_12px_36px_rgb(16_185_129/0.35)]"
                     >
-                        Agendar fecha
+                        {t('common.cta.book_date')}
                     </BookingCtaButton>
                 </div>
             ) : (

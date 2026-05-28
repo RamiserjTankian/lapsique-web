@@ -1,5 +1,7 @@
 import { AutoplayVideo } from '@/components/lapsique/AutoplayVideo';
 import { useSectionEvent } from '@/hooks/useSectionEvent';
+import { useTranslations } from '@/hooks/useTranslations';
+import { videoSurfaceFrameClass } from '@/lib/videoSurface';
 import type { LandingVideoEntry, PortfolioItemData } from '@/types';
 
 export function OfferEquipmentShowcase({
@@ -9,6 +11,7 @@ export function OfferEquipmentShowcase({
     images: PortfolioItemData[];
     equipmentVideos?: LandingVideoEntry[];
 }) {
+    const { t } = useTranslations();
     const ref = useSectionEvent('equipment_viewed', { section: 'equipment' });
 
     if (equipmentVideos.length >= 2) {
@@ -17,7 +20,7 @@ export function OfferEquipmentShowcase({
                 {equipmentVideos.slice(0, 2).map((video) => (
                     <figure
                         key={video.src}
-                        className="group relative aspect-[9/16] overflow-hidden rounded-xl border border-border/70 bg-black"
+                        className={`group relative aspect-[9/16] ${videoSurfaceFrameClass}`}
                     >
                         <AutoplayVideo
                             src={video.src}
@@ -50,7 +53,7 @@ export function OfferEquipmentShowcase({
                 >
                     <img
                         src={image.asset_url ?? image.poster_url ?? ''}
-                        alt={image.title ?? 'Portafolio Lapsique'}
+                        alt={image.title ?? t('pages.portfolio.title')}
                         className="h-full w-full object-cover transition duration-700 group-hover:scale-[1.03]"
                         loading="lazy"
                     />
