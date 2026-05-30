@@ -33,6 +33,7 @@ export default function PortfolioIndex({ items }: PortfolioIndexProps) {
             <GlassSection
                 title={t('pages.portfolio.title')}
                 description={t('pages.portfolio.description')}
+                className="mt-6 md:mt-8"
             >
                 <motion.div
                     variants={staggerContainer}

@@ -36,7 +36,12 @@ class PortfolioController extends Controller
         return Inertia::render('Portfolio/Index', [
             'items' => [
                 'data' => $resolved,
-                'links' => $items->linkCollection()->toArray(),
+                'links' => collect($items->linkCollection()->toArray())
+                    ->map(fn (array $link): array => [
+                        ...$link,
+                        'label' => $this->localizedPaginationLabel($link['label'] ?? ''),
+                    ])
+                    ->all(),
                 'meta' => [
                     'current_page' => $items->currentPage(),
                     'last_page' => $items->lastPage(),
@@ -48,5 +53,20 @@ class PortfolioController extends Controller
             ],
             'availableTags' => $availableTags,
         ]);
+    }
+
+    private function localizedPaginationLabel(string $label): string
+    {
+        $normalized = strtolower(trim(strip_tags(str_replace(
+            ['&laquo;', '&raquo;', '«', '»'],
+            '',
+            html_entity_decode($label, ENT_QUOTES, 'UTF-8'),
+        ))));
+
+        return match ($normalized) {
+            'previous' => __('common.actions.previous'),
+            'next' => __('common.actions.next'),
+            default => strip_tags(html_entity_decode($label, ENT_QUOTES, 'UTF-8')),
+        };
     }
 }
