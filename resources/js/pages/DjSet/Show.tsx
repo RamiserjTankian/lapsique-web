@@ -836,19 +836,28 @@ function OriginalsShowcase({
                 </div>
             </div>
 
-            <div className="flex flex-col gap-3 sm:flex-row sm:justify-center">
-                <Button variant="cinematic" className="w-full whitespace-normal sm:w-auto" asChild>
+            <div className="mx-auto grid w-full max-w-2xl gap-3 sm:grid-cols-2">
+                <Button
+                    variant="default"
+                    className="h-12 w-full rounded-xl border border-[#25D366]/70 bg-[#25D366] px-4 text-sm font-bold text-white shadow-[0_14px_34px_oklch(0.66_0.18_145/0.28)] hover:bg-[#1EBE5D] hover:text-white focus-visible:ring-[#25D366]/45"
+                    asChild
+                >
                     <a
                         href={whatsappHref}
                         target="_blank"
                         rel="noopener noreferrer"
                         onClick={onWhatsApp}
                     >
-                        <MessageCircle className="h-5 w-5" />
+                        <WhatsAppIcon className="size-4 fill-current" />
                         {t('pages.djset.cta_whatsapp_short')}
                     </a>
                 </Button>
-                <BookingCtaButton type="button" variant="outline" className="w-full sm:w-auto" onClick={onBook}>
+                <BookingCtaButton
+                    type="button"
+                    variant="default"
+                    className="h-12 w-full rounded-xl border border-white/70 bg-white px-4 text-sm font-bold text-foreground shadow-[0_14px_34px_rgb(0_0_0/0.14)] hover:bg-white/90 hover:text-foreground"
+                    onClick={onBook}
+                >
                     {t('pages.djset.cta_reserve_my_set')}
                     <ArrowRight className="h-5 w-5" />
                 </BookingCtaButton>
