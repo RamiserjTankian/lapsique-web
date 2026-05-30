@@ -12,7 +12,6 @@ import {
     SheetTrigger,
 } from '@/components/ui/sheet';
 import { LanguageToggle } from '@/components/lapsique/LanguageToggle';
-import { ThemeToggle } from '@/components/lapsique/ThemeToggle';
 import { useTranslations } from '@/hooks/useTranslations';
 import { markBookingModalPending, openBookingModal } from '@/lib/openBookingModal';
 import { route } from '@/lib/route';
@@ -79,7 +78,6 @@ function MotionHeaderActions({
                 </Button>
             )}
             <LanguageToggle className="hidden sm:inline-flex" />
-            <ThemeToggle />
             <BookingCtaButton compact className="hidden md:inline-flex" asChild>
                 <Link href={homeAgenda} onClick={openBookingPopup}>
                     {t('common.nav.book_session')}
@@ -101,12 +99,8 @@ function MotionHeaderActions({
                             <LapsiqueMediaLogo className="text-left" />
                         </SheetTitle>
                     </SheetHeader>
-                    <div className="mx-5 mt-5 flex items-center justify-between rounded-xl border border-border/70 bg-secondary/80 px-4 py-3">
-                        <span className="text-xs uppercase tracking-wider text-muted-foreground">{t('common.nav.theme')}</span>
-                        <div className="flex items-center gap-2">
-                            <LanguageToggle />
-                            <ThemeToggle />
-                        </div>
+                    <div className="mx-5 mt-5 flex justify-end">
+                        <LanguageToggle />
                     </div>
                     <nav className="mx-5 mt-6 grid gap-2" aria-label="Mobile navigation">
                         <Button variant="ghost" asChild className={`h-auto min-h-12 w-full justify-start gap-3 whitespace-normal rounded-xl px-4 py-3 text-left ${navHoverClass}`}>
