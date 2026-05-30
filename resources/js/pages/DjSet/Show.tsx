@@ -588,19 +588,28 @@ function MediaSalesBoard({
                         <p className="mt-3 text-sm leading-relaxed text-white/70 md:text-base">
                             {featuredVideo?.title ?? t('pages.djset.sales_fallback_title')}
                         </p>
-                        <div className="mt-5 flex flex-col gap-3 sm:flex-row">
-                            <Button variant="cinematic" className="w-full whitespace-normal sm:w-auto" asChild>
+                        <div className="mt-5 grid gap-3 sm:grid-cols-2">
+                            <Button
+                                variant="default"
+                                className="h-12 w-full rounded-xl border border-[#25D366]/70 bg-[#25D366] px-4 text-sm font-bold text-white shadow-[0_14px_34px_oklch(0.66_0.18_145/0.32)] hover:bg-[#1EBE5D] hover:text-white focus-visible:ring-[#25D366]/45"
+                                asChild
+                            >
                                 <a
                                     href={whatsappHref}
                                     target="_blank"
                                     rel="noopener noreferrer"
                                     onClick={onWhatsApp}
                                 >
-                                    <MessageCircle className="h-4 w-4" />
+                                    <WhatsAppIcon className="size-4 fill-current" />
                                     {t('pages.djset.cta_whatsapp_short')}
                                 </a>
                             </Button>
-                            <BookingCtaButton type="button" variant="glass" className="w-full sm:w-auto" onClick={onBook}>
+                            <BookingCtaButton
+                                type="button"
+                                variant="glass"
+                                className="h-12 w-full rounded-xl border-white/25 bg-white/92 px-4 text-sm font-bold text-foreground shadow-[0_14px_34px_rgb(0_0_0/0.22)] hover:bg-white hover:text-foreground"
+                                onClick={onBook}
+                            >
                                 <CalendarDays className="h-4 w-4" />
                                 {t('booking.djset.cta_reserve_recording')}
                             </BookingCtaButton>
