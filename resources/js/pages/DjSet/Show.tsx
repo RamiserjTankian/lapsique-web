@@ -606,8 +606,8 @@ function MediaSalesBoard({
                             </Button>
                             <BookingCtaButton
                                 type="button"
-                                variant="glass"
-                                className="h-12 w-full rounded-xl border-white/25 bg-white/92 px-4 text-sm font-bold text-foreground shadow-[0_14px_34px_rgb(0_0_0/0.22)] hover:bg-white hover:text-foreground"
+                                variant="default"
+                                className="h-12 w-full rounded-xl border border-white/70 bg-white px-4 text-sm font-bold text-foreground shadow-[0_14px_34px_rgb(0_0_0/0.22)] hover:bg-white/90 hover:text-foreground"
                                 onClick={onBook}
                             >
                                 <CalendarDays className="h-4 w-4" />
