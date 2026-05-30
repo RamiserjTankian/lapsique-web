@@ -250,22 +250,10 @@ export default function Home({
             <PortfolioTrustSection portfolioItems={portfolioItems} />
 
             {/* 8. Cómo funciona */}
-            <WorkflowSection
-                videos={[
-                    landingVideos?.aftermovies?.[0] ?? null,
-                    landingVideos?.aftermovies?.[1] ?? null,
-                ]}
-                bookingSource="workflow_reel"
-            />
+            <WorkflowSection bookingSource="workflow_reel" />
 
             {/* 9. Equipo (credibilidad) */}
-            <RecordingGearSection
-                videos={[
-                    landingVideos?.aftermovies?.[2] ?? null,
-                    landingVideos?.aftermovies?.[3] ?? null,
-                ]}
-                bookingSource="gear_reel"
-            />
+            <RecordingGearSection bookingSource="gear_reel" />
 
             {/* 10. Prueba final en video — biblioteca de reels */}
             <GlassSection
@@ -301,30 +289,6 @@ export default function Home({
             {/* 14. Quién está detrás + sobre el estudio */}
             <AboutLapsique portfolioItems={portfolioItems} />
             <FunnelTeam />
-
-            {/* 15. CTA final */}
-            <GlassSection
-                showHeader={false}
-                title={t('booking_cta.section_title')}
-                className="text-center"
-            >
-                <div className="flex flex-col items-center gap-4 text-center">
-                    <h2 className="font-display text-2xl font-bold tracking-tight text-foreground md:text-3xl">
-                        {t('booking_cta.section_title')}
-                    </h2>
-                    <BookingCtaSection className="py-0">
-                        <BookingCtaButton
-                            type="button"
-                            primary
-                            onClick={openBooking}
-                        >
-                            <CalendarDays className="h-5 w-5" />
-                            {t('common.cta.book_now')}
-                            <ArrowRight className="h-5 w-5" />
-                        </BookingCtaButton>
-                    </BookingCtaSection>
-                </div>
-            </GlassSection>
 
             <FunnelPopups
                 variant="home"
