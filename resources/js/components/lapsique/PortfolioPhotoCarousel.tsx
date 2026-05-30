@@ -130,7 +130,8 @@ export function PortfolioPhotoCarousel({ items }: { items: PortfolioItemData[] }
                                 src={item.url}
                                 alt={item.title ?? t('pages.portfolio.view_gallery')}
                                 className="absolute inset-0 h-full w-full object-cover transition duration-700 group-hover:scale-[1.04]"
-                                loading="lazy"
+                                loading="eager"
+                                decoding="async"
                             />
                             <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-black/5 to-transparent opacity-70 transition group-hover:opacity-90" />
                         </Link>
