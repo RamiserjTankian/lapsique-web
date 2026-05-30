@@ -3,6 +3,7 @@
 return [
     'nav' => [
         'portfolio' => 'Portafolio',
+        'dj_sets' => 'DJ Sets',
         'my_portal' => 'Mi portal',
         'book_session' => 'Agendar sesión',
         'theme' => 'Tema',

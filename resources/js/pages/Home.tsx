@@ -1,5 +1,5 @@
-import { usePage } from '@inertiajs/react';
-import { ArrowRight, CalendarDays } from 'lucide-react';
+import { Link, usePage } from '@inertiajs/react';
+import { ArrowRight, CalendarDays, Music2 } from 'lucide-react';
 import { useEffect, useRef, type RefObject } from 'react';
 import { SeoHead } from '@/components/lapsique/SeoHead';
 import SiteLayout from '@/layouts/SiteLayout';
@@ -33,6 +33,7 @@ import { useTranslations } from '@/hooks/useTranslations';
 import { trackBookingEvent } from '@/hooks/useBookingAnalytics';
 import { useSectionEvent } from '@/hooks/useSectionEvent';
 import { landingPageStackClass } from '@/lib/landingSection';
+import { route } from '@/lib/route';
 import { cn, formatMxn } from '@/lib/utils';
 import {
     CONTENT_DRONE_SHOTS,
@@ -133,7 +134,7 @@ export default function Home({
     reelLibraryPreview,
     errors,
 }: HomeProps) {
-    const { site } = usePage<PageProps>().props;
+    const { site, ziggy } = usePage<PageProps>().props;
     const { t } = useTranslations();
     const adProofRef = useSectionEvent<HTMLDivElement>('proof_section_viewed', {
         section: 'business_reel_formats',
@@ -179,6 +180,8 @@ export default function Home({
                 heroProofVideo={heroProofVideo}
                 onBook={openBooking}
             />
+
+            <DjSetHomeCta href={route('djset.show', undefined, false, ziggy)} />
 
             <GlassSection
                 eyebrow={t('pages.home.offer_eyebrow')}
@@ -297,6 +300,55 @@ export default function Home({
             <ReelPlayerModal />
             </ReelPlayerProvider>
         </SiteLayout>
+    );
+}
+
+function DjSetHomeCta({ href }: { href: string }) {
+    const { t } = useTranslations();
+
+    return (
+        <GlassSection
+            surface="solid"
+            eyebrow={t('pages.home.djset_cta_eyebrow')}
+            title={t('pages.home.djset_cta_title')}
+            description={t('pages.home.djset_cta_description')}
+            action={(
+                <BookingCtaButton asChild className="w-full sm:w-auto">
+                    <Link href={href}>
+                        <Music2 className="h-5 w-5" />
+                        {t('pages.home.djset_cta_button')}
+                        <ArrowRight className="h-5 w-5" />
+                    </Link>
+                </BookingCtaButton>
+            )}
+        >
+            <div className="grid gap-3 sm:grid-cols-3">
+                <div className="rounded-xl border border-border/70 bg-secondary p-4">
+                    <p className="text-xs font-semibold uppercase tracking-[0.18em] text-primary">
+                        {t('pages.home.djset_cta_point_1_label')}
+                    </p>
+                    <p className="mt-2 text-sm font-medium text-foreground">
+                        {t('pages.home.djset_cta_point_1')}
+                    </p>
+                </div>
+                <div className="rounded-xl border border-border/70 bg-secondary p-4">
+                    <p className="text-xs font-semibold uppercase tracking-[0.18em] text-primary">
+                        {t('pages.home.djset_cta_point_2_label')}
+                    </p>
+                    <p className="mt-2 text-sm font-medium text-foreground">
+                        {t('pages.home.djset_cta_point_2')}
+                    </p>
+                </div>
+                <div className="rounded-xl border border-border/70 bg-secondary p-4">
+                    <p className="text-xs font-semibold uppercase tracking-[0.18em] text-primary">
+                        {t('pages.home.djset_cta_point_3_label')}
+                    </p>
+                    <p className="mt-2 text-sm font-medium text-foreground">
+                        {t('pages.home.djset_cta_point_3')}
+                    </p>
+                </div>
+            </div>
+        </GlassSection>
     );
 }
 
