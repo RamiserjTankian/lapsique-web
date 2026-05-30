@@ -56,6 +56,7 @@ export function AutoplayVideo({
     const resolvedPreload = resolveVideoPreload(eager, preload);
     const mediaClassName = cn('h-full w-full object-cover object-center', videoClassName);
     const shouldPlay = playbackEnabled && (isInView || !pauseWhenOffscreen);
+    const shouldAttachSource = eager || isInView || !pauseWhenOffscreen;
     const showPosterOverlay =
         Boolean(poster)
         && ((pauseWhenOffscreen && !isInView) || (shouldPlay && !isPlaying));
@@ -218,7 +219,7 @@ export function AutoplayVideo({
         <div ref={containerRef} className={cn('relative overflow-hidden bg-black', className)}>
             <video
                 ref={videoRef}
-                src={src}
+                src={shouldAttachSource ? src : undefined}
                 className={cn('pointer-events-none lapsique-autoplay-video', mediaClassName)}
                 data-lapsique-autoplay=""
                 autoPlay
@@ -228,7 +229,7 @@ export function AutoplayVideo({
                 controls={false}
                 disablePictureInPicture
                 disableRemotePlayback
-                preload={resolvedPreload}
+                preload={shouldAttachSource ? resolvedPreload : 'none'}
                 aria-hidden={title ? undefined : true}
                 title={title}
             />
