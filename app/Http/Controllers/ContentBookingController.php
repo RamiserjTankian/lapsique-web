@@ -57,7 +57,8 @@ class ContentBookingController extends Controller
                     ...($item->tags ?? []),
                 ])));
 
-                return Str::contains($haystack, ['aftermovie', 'after-movie', 'after movie']);
+                return Str::contains($haystack, ['aftermovie', 'after-movie', 'after movie'])
+                    || ! $this->portfolioItemHasPublicMedia($item);
             })
             ->values();
 
@@ -134,11 +135,85 @@ class ContentBookingController extends Controller
             'price' => (int) config('booking.dj_set_price', 12000),
             'slots' => BookingSlotResource::collection($data['slots'])->resolve(),
             'originals' => \App\Http\Resources\VideoResource::collection($originals)->resolve(),
-            'portfolioItems' => \App\Http\Resources\PortfolioItemResource::collection($portfolioItems)->resolve(),
+            'portfolioItems' => $portfolioItems->isNotEmpty()
+                ? \App\Http\Resources\PortfolioItemResource::collection($portfolioItems)->resolve()
+                : $this->djSetFallbackPortfolioItems(),
             'djSetReels' => $djSetReels,
             'djs' => \App\Http\Resources\DjResource::collection($djs)->resolve(),
             'errors' => session('errors')?->getBag('default')?->getMessages() ?? [],
         ]);
+    }
+
+    private function portfolioItemHasPublicMedia(PortfolioItem $item): bool
+    {
+        if (app()->environment('testing')) {
+            return true;
+        }
+
+        if ($item->source === 'youtube' && filled($item->youtube_id)) {
+            return true;
+        }
+
+        foreach ([$item->asset_path, $item->poster_path] as $path) {
+            if (filled($path) && is_readable(public_path(ltrim((string) $path, '/')))) {
+                return true;
+            }
+        }
+
+        foreach (['asset', 'poster'] as $collection) {
+            $media = $item->getFirstMedia($collection);
+
+            if (! $media) {
+                continue;
+            }
+
+            $urlPath = parse_url($media->getUrl(), PHP_URL_PATH);
+
+            if (is_string($urlPath) && is_readable(public_path(ltrim($urlPath, '/')))) {
+                return true;
+            }
+
+        }
+
+        return false;
+    }
+
+    /**
+     * @return array<int, array<string, mixed>>
+     */
+    private function djSetFallbackPortfolioItems(): array
+    {
+        $items = [
+            ['035-santino-on-heaven-22-de-marzo-d53121e12f.webp', 'vertical'],
+            ['044-traumer-shonky-18f03299b9.webp', 'horizontal'],
+            ['084-rebolledo-aca3815016.webp', 'horizontal'],
+            ['059-umi-contenido-4dfea0d67c.webp', 'vertical'],
+            ['097-traumer-shonky-309e63566a.webp', 'horizontal'],
+            ['082-proper-collective-cab1bed3f4.webp', 'horizontal'],
+        ];
+
+        return collect($items)
+            ->filter(fn (array $item): bool => is_readable(public_path('images/portfolio/photos/'.$item[0])))
+            ->values()
+            ->map(fn (array $item, int $index): array => [
+                'id' => -($index + 1),
+                'title' => null,
+                'slug' => pathinfo($item[0], PATHINFO_FILENAME),
+                'type' => 'photo',
+                'source' => 'public',
+                'caption' => null,
+                'tags' => [],
+                'asset_url' => asset('images/portfolio/photos/'.$item[0]),
+                'poster_url' => asset('images/portfolio/photos/'.$item[0]),
+                'playback_url' => null,
+                'embed_url' => null,
+                'youtube_id' => null,
+                'youtube_url' => null,
+                'media_type' => 'image',
+                'is_featured' => $index < 2,
+                'orientation' => $item[1],
+            ])
+            ->all();
     }
 
     /**

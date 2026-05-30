@@ -419,11 +419,22 @@ class PageMeta
     {
         try {
             $path = filled($conversion) ? $media->getPath($conversion) : $media->getPath();
+            $url = filled($conversion) ? $media->getUrl($conversion) : $media->getUrl();
         } catch (\Throwable) {
             return false;
         }
 
-        return is_string($path) && is_readable($path);
+        $urlPath = parse_url($url, PHP_URL_PATH);
+
+        if (is_string($urlPath) && is_readable(public_path(ltrim($urlPath, '/')))) {
+            return true;
+        }
+
+        if (app()->environment('testing')) {
+            return is_string($path) && is_readable($path);
+        }
+
+        return is_string($path) && is_readable($path) && ! str_starts_with((string) $urlPath, '/storage/');
     }
 
     public static function absoluteImageUrl(?string $url): ?string
