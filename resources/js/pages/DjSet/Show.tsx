@@ -663,9 +663,9 @@ function OriginalReferenceCard({ video }: { video: VideoItem }) {
 
 function PortfolioPreview({ images }: { images: PortfolioItemData[] }) {
     const { t } = useTranslations();
-    const displayImages = images.slice(0, 3);
+    const image = images[0];
 
-    if (displayImages.length === 0) {
+    if (!image) {
         return (
             <div className="grid min-h-[360px] place-items-center rounded-xl border border-border/70 bg-secondary p-8 text-center text-sm text-muted-foreground">
                 {t('pages.djset.portfolio_preview_empty')}
@@ -674,16 +674,7 @@ function PortfolioPreview({ images }: { images: PortfolioItemData[] }) {
     }
 
     return (
-        <div className="grid min-h-[360px] grid-cols-[minmax(0,1fr)_minmax(120px,0.62fr)] gap-3">
-            <PortfolioFrame image={displayImages[0]} className="row-span-2 min-h-[360px]" priority />
-            {displayImages.slice(1).map((image) => (
-                <PortfolioFrame
-                    key={image.id}
-                    image={image}
-                    className={displayImages.length === 2 ? 'row-span-2 min-h-[360px]' : 'min-h-[174px]'}
-                />
-            ))}
-        </div>
+        <PortfolioFrame image={image} className="min-h-[520px]" priority />
     );
 }
 
