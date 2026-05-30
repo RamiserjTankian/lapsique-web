@@ -92,8 +92,12 @@ class ContentBookingController extends Controller
             ->get();
 
         $djSetReels = collect(ReelLibrary::all())
+            ->reject(fn (array $reel): bool => (bool) preg_match(
+                '/aftermovie|after-movie|bluepointrs/i',
+                ($reel['title'] ?? '').' '.($reel['src'] ?? ''),
+            ))
             ->filter(fn (array $reel): bool => (bool) preg_match(
-                '/daymon|set|dj|rebolledo|satoshi|basement|pergola|aftermovie|bluepointrs|vatos|umi/i',
+                '/lapsique|psique|set|dj|rebolledo|satoshi|umi|kapi/i',
                 ($reel['title'] ?? '').' '.($reel['src'] ?? ''),
             ))
             ->take(8)
@@ -101,7 +105,14 @@ class ContentBookingController extends Controller
             ->all();
 
         if ($djSetReels === []) {
-            $djSetReels = collect(ReelLibrary::all())->take(8)->values()->all();
+            $djSetReels = collect(ReelLibrary::all())
+                ->reject(fn (array $reel): bool => (bool) preg_match(
+                    '/aftermovie|after-movie|bluepointrs/i',
+                    ($reel['title'] ?? '').' '.($reel['src'] ?? ''),
+                ))
+                ->take(8)
+                ->values()
+                ->all();
         }
 
         return Inertia::render('DjSet/Show', [

@@ -26,7 +26,6 @@ import { DjCard } from '@/components/lapsique/DjCard';
 import { FunnelPopups } from '@/components/lapsique/FunnelPopups';
 import { GlassSection } from '@/components/lapsique/GlassSection';
 import { PaymentTrustOrTestMode } from '@/components/lapsique/PaymentTrustPanel';
-import { ReelLoopCard } from '@/components/lapsique/ReelLoopCard';
 import { SpecBadge } from '@/components/lapsique/SpecBadge';
 import { Button } from '@/components/ui/button';
 import { useTranslations } from '@/hooks/useTranslations';
@@ -91,7 +90,6 @@ export default function DjSetShow({
     slots,
     originals,
     portfolioItems,
-    djSetReels,
     djs,
     errors,
 }: DjSetShowProps) {
@@ -137,7 +135,7 @@ export default function DjSetShow({
     const proofImages = portfolioImages.filter((item) => item.id !== heroImage?.id);
     const galleryImages = proofImages.length > 0 ? proofImages : portfolioImages;
     const portfolioVideos = portfolioItems.filter((item) => (
-        item.media_type === 'youtube' || item.media_type === 'video'
+        (item.media_type === 'youtube' || item.media_type === 'video') && !isAftermoviePortfolioItem(item)
     ));
 
     return (
@@ -257,7 +255,6 @@ export default function DjSetShow({
                 <MediaSalesBoard
                     images={portfolioImages}
                     videos={originals}
-                    reels={djSetReels}
                     price={price}
                     whatsappHref={whatsappHref}
                     onWhatsApp={() => trackWhatsApp('showcase')}
@@ -297,16 +294,6 @@ export default function DjSetShow({
                     ))}
                 </div>
             </GlassSection>
-
-            {djSetReels.length > 0 && (
-                <GlassSection
-                    eyebrow={t('pages.djset.reels_eyebrow')}
-                    title={t('pages.djset.reels_title')}
-                    description={t('pages.djset.reels_description')}
-                >
-                    <LocalReelShowcase reels={djSetReels} />
-                </GlassSection>
-            )}
 
             {originals.length > 0 && (
                 <GlassSection
@@ -515,7 +502,6 @@ function Faq({ question, answer }: { question: string; answer: string }) {
 function MediaSalesBoard({
     images,
     videos,
-    reels,
     price,
     whatsappHref,
     onWhatsApp,
@@ -523,31 +509,21 @@ function MediaSalesBoard({
 }: {
     images: PortfolioItemData[];
     videos: VideoItem[];
-    reels: ReelLibraryEntry[];
     price: number;
     whatsappHref: string;
     onWhatsApp: () => void;
     onBook: () => void;
 }) {
     const { t } = useTranslations();
-    const featuredVideo = videos.find((video) => video.thumbnail_url) ?? videos[0];
-    const featuredReel = reels[0];
-    const supportingReels = reels.slice(1, 3);
+    const featuredVideo = videos.find((video) => getYoutubeId(video)) ?? videos.find((video) => video.thumbnail_url) ?? videos[0];
+    const supportingVideos = videos
+        .filter((video) => video.id !== featuredVideo?.id && Boolean(getYoutubeId(video)))
+        .slice(0, 2);
 
     return (
         <div className="grid gap-3 lg:grid-cols-[minmax(0,1.2fr)_minmax(320px,0.8fr)]">
             <article className="group relative min-h-[440px] overflow-hidden rounded-xl border border-border/70 bg-black text-white">
-                {featuredReel ? (
-                    <video
-                        src={featuredReel.src}
-                        poster={featuredReel.poster ?? undefined}
-                        muted
-                        loop
-                        autoPlay
-                        playsInline
-                        className="absolute inset-0 h-full w-full object-cover opacity-80 transition duration-700 group-hover:scale-[1.03]"
-                    />
-                ) : featuredVideo?.thumbnail_url ? (
+                {featuredVideo?.thumbnail_url ? (
                     <img
                         src={featuredVideo.thumbnail_url}
                         alt=""
@@ -572,7 +548,7 @@ function MediaSalesBoard({
                             {t('pages.djset.sales_headline')}
                         </h3>
                         <p className="mt-3 text-sm leading-relaxed text-white/70 md:text-base">
-                            {featuredVideo?.title ?? featuredReel?.title ?? t('pages.djset.sales_fallback_title')}
+                            {featuredVideo?.title ?? t('pages.djset.sales_fallback_title')}
                         </p>
                         <div className="mt-5 flex flex-col gap-3 sm:flex-row">
                             <Button variant="cinematic" asChild>
@@ -602,22 +578,39 @@ function MediaSalesBoard({
                     ))}
                 </div>
 
-                {supportingReels.length > 0 && (
+                {supportingVideos.length > 0 && (
                     <div className="grid gap-3 sm:col-span-2 sm:grid-cols-2 lg:col-span-1">
-                        {supportingReels.map((reel) => (
-                            <ReelLoopCard
-                                key={reel.id}
-                                src={reel.src}
-                                poster={reel.poster}
-                                title={reel.title}
-                                bookingSource="djset_supporting_reel"
-                                articleClassName="min-h-[220px]"
-                            />
+                        {supportingVideos.map((video) => (
+                            <OriginalReferenceCard key={video.id} video={video} />
                         ))}
                     </div>
                 )}
             </div>
         </div>
+    );
+}
+
+function OriginalReferenceCard({ video }: { video: VideoItem }) {
+    return (
+        <a
+            href="#sets"
+            className="group overflow-hidden rounded-xl border border-border/70 bg-secondary transition hover:border-primary/35 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+        >
+            <span className="relative block aspect-video overflow-hidden bg-black">
+                {video.thumbnail_url && (
+                    <img
+                        src={video.thumbnail_url}
+                        alt=""
+                        className="absolute inset-0 h-full w-full object-cover opacity-90 transition duration-500 group-hover:scale-[1.04]"
+                        loading="lazy"
+                    />
+                )}
+                <span className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/10 to-transparent" />
+                <span className="absolute bottom-3 left-3 right-3 line-clamp-2 text-sm font-semibold leading-tight text-white">
+                    {video.title}
+                </span>
+            </span>
+        </a>
     );
 }
 
@@ -641,24 +634,6 @@ function PortfolioPreview({ images }: { images: PortfolioItemData[] }) {
                     key={image.id}
                     image={image}
                     className={displayImages.length === 2 ? 'row-span-2 min-h-[360px]' : 'min-h-[174px]'}
-                />
-            ))}
-        </div>
-    );
-}
-
-function LocalReelShowcase({ reels }: { reels: ReelLibraryEntry[] }) {
-    return (
-        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-            {reels.slice(0, 4).map((reel, index) => (
-                <ReelLoopCard
-                    key={reel.id}
-                    src={reel.src}
-                    poster={reel.poster}
-                    title={reel.title}
-                    bookingSource="djset_local_reel"
-                    eager={index === 0}
-                    articleClassName={index === 0 ? 'lg:col-span-1' : ''}
                 />
             ))}
         </div>
@@ -900,6 +875,17 @@ function pickHeroImage(images: PortfolioItemData[]): PortfolioItemData | undefin
 
         return HERO_IMAGE_KEYWORDS.some((keyword) => haystack.includes(keyword));
     }) ?? images.find((item) => item.is_featured) ?? images[0];
+}
+
+function isAftermoviePortfolioItem(item: PortfolioItemData): boolean {
+    const haystack = [
+        item.slug,
+        item.title,
+        item.asset_url,
+        item.poster_url,
+    ].filter(Boolean).join(' ').toLowerCase();
+
+    return haystack.includes('aftermovie') || haystack.includes('after-movie') || haystack.includes('after movie');
 }
 
 function buildWhatsAppHref(number: string | undefined, message: string): string {

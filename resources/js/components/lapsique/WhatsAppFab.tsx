@@ -126,7 +126,7 @@ export function WhatsAppFab() {
         }
     };
 
-    if (!number || bookingModalOpen || reelPlayerOpen || (isMobile && (isHomePage || isDjSetPage))) {
+    if (!number || bookingModalOpen || reelPlayerOpen || (isMobile && isHomePage)) {
         return null;
     }
 
