@@ -73,6 +73,7 @@ interface BookingWidgetProps {
     popupPortfolioItems?: PortfolioItemData[];
     popupHeroProofVideo?: HeroProofVideoData | null;
     popupOriginals?: VideoItem[];
+    highlight?: boolean;
 }
 
 export interface BookingWidgetProduct {
@@ -112,6 +113,7 @@ export function BookingWidget({
     popupPortfolioItems = [],
     popupHeroProofVideo = null,
     popupOriginals = [],
+    highlight = false,
 }: BookingWidgetProps) {
     const { t, locale } = useTranslations();
     const product = useMemo(
@@ -122,6 +124,16 @@ export function BookingWidget({
     const isTestMode = booking.skipPayment;
     const sectionRef = useSectionEvent<HTMLElement>('booking_widget_viewed', { section: 'agenda' });
     const calendarRef = useSectionEvent<HTMLDivElement>('booking_calendar_opened', { section: 'calendar' });
+    const sectionSurfaceClassName = cn(
+        highlight
+            && 'relative overflow-hidden border-2 border-primary/55 bg-[radial-gradient(circle_at_top,oklch(0.88_0.13_80/0.28),transparent_34%),linear-gradient(135deg,oklch(1_0_0/0.88),oklch(0.95_0.06_80/0.28))] shadow-[0_28px_110px_oklch(0.78_0.14_75/0.28)]',
+    );
+    const sectionInnerClassName = cn('space-y-6', highlight && 'relative z-10');
+    const calendarPanelClassName = cn(
+        glassCardVariants({ elevated: true }),
+        'glass-border-glow overflow-hidden border',
+        highlight && 'border-primary/45 bg-background/88 shadow-[0_22px_80px_oklch(0.12_0.04_260/0.16)]',
+    );
     const submittedRef = useRef(false);
     const formStartedRef = useRef(false);
     const skipSlotAutoSelectRef = useRef(false);
@@ -571,7 +583,8 @@ export function BookingWidget({
                 id="agenda"
                 ref={sectionRef}
                 data-analytics-section="booking_widget"
-                innerClassName="space-y-6"
+                surfaceClassName={sectionSurfaceClassName}
+                innerClassName={sectionInnerClassName}
             >
                 <BookingHeader isTestMode={isTestMode} product={product} />
                 <div className={cn(glassCardVariants({ elevated: true }), 'space-y-5 p-8 text-center md:p-10')}>
@@ -607,11 +620,12 @@ export function BookingWidget({
             id="agenda"
             ref={sectionRef}
             data-analytics-section="booking_widget"
-            innerClassName="space-y-6"
+            surfaceClassName={sectionSurfaceClassName}
+            innerClassName={sectionInnerClassName}
         >
             <BookingHeader isTestMode={isTestMode} product={product} />
 
-            <div className={cn(glassCardVariants({ elevated: true }), 'glass-border-glow overflow-hidden border')}>
+            <div className={calendarPanelClassName}>
                 <div
                     ref={calendarRef}
                     className="space-y-5 p-5 md:p-6"

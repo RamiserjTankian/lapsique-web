@@ -338,6 +338,7 @@ export default function DjSetShow({
                 popupVariant="djset"
                 popupPortfolioItems={portfolioItems}
                 popupOriginals={originals}
+                highlight
             />
 
             <GlassSection
