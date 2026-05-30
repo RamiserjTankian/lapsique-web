@@ -131,13 +131,20 @@ class ContentBookingController extends Controller
                 ->all();
         }
 
+        $portfolioPayload = \App\Http\Resources\PortfolioItemResource::collection($portfolioItems)->resolve();
+
+        if (! collect($portfolioPayload)->contains(fn (array $item): bool => ($item['media_type'] ?? null) === 'image')) {
+            $portfolioPayload = [
+                ...$this->djSetFallbackPortfolioItems(),
+                ...$portfolioPayload,
+            ];
+        }
+
         return Inertia::render('DjSet/Show', [
             'price' => (int) config('booking.dj_set_price', 12000),
             'slots' => BookingSlotResource::collection($data['slots'])->resolve(),
             'originals' => \App\Http\Resources\VideoResource::collection($originals)->resolve(),
-            'portfolioItems' => $portfolioItems->isNotEmpty()
-                ? \App\Http\Resources\PortfolioItemResource::collection($portfolioItems)->resolve()
-                : $this->djSetFallbackPortfolioItems(),
+            'portfolioItems' => $portfolioPayload,
             'djSetReels' => $djSetReels,
             'djs' => \App\Http\Resources\DjResource::collection($djs)->resolve(),
             'errors' => session('errors')?->getBag('default')?->getMessages() ?? [],
