@@ -389,17 +389,11 @@ class PageMeta
             return null;
         }
 
-        $conversion = $media->hasGeneratedConversion('large') && self::mediaFileIsReadable($media, 'large')
-            ? 'large'
-            : null;
-
-        if ($conversion === null && ! self::mediaFileIsReadable($media)) {
+        if (! self::mediaFileIsReadable($media)) {
             return null;
         }
 
-        return self::absoluteImageUrl(
-            $conversion ? $media->getUrl($conversion) : $media->getUrl(),
-        );
+        return self::absoluteImageUrl($media->getUrl());
     }
 
     public static function defaultOgImageUrl(): string
