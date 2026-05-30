@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState, type ReactNode } from 'react';
 import { usePage } from '@inertiajs/react';
 import {
     ArrowRight,
+    Aperture,
     CalendarDays,
     Camera,
     CheckCircle2,
@@ -13,7 +14,9 @@ import {
     Headphones,
     MessageCircle,
     Mic2,
+    Moon,
     SlidersHorizontal,
+    Sparkles,
     Video,
     Waves,
 } from 'lucide-react';
@@ -247,6 +250,7 @@ export default function DjSetShow({
                 </div>
             </section>
 
+            <div className="flex flex-col gap-6 pt-6 md:gap-8 md:pt-8">
             <GlassSection
                 eyebrow={t('pages.djset.showcase_eyebrow')}
                 title={t('pages.djset.showcase_title')}
@@ -294,6 +298,8 @@ export default function DjSetShow({
                     ))}
                 </div>
             </GlassSection>
+
+            <NightRecordingSection />
 
             {originals.length > 0 && (
                 <GlassSection
@@ -401,8 +407,8 @@ export default function DjSetShow({
                     <p className="text-sm leading-relaxed text-muted-foreground md:text-base">
                         {t('pages.djset.final_cta_description')}
                     </p>
-                    <div className="flex w-full flex-col gap-3 sm:w-auto sm:flex-row">
-                        <Button variant="cinematic" size="xl" asChild>
+                    <div className="flex w-full flex-col gap-3 sm:w-auto sm:flex-row sm:justify-center">
+                        <Button variant="cinematic" size="xl" className="h-auto min-h-12 w-full whitespace-normal px-5 py-3 sm:w-auto" asChild>
                             <a
                                 href={whatsappHref}
                                 target="_blank"
@@ -413,13 +419,14 @@ export default function DjSetShow({
                                 {t('pages.djset.cta_whatsapp')}
                             </a>
                         </Button>
-                        <BookingCtaButton type="button" variant="outline" onClick={() => openBooking('final')}>
+                        <BookingCtaButton type="button" variant="outline" className="w-full sm:w-auto" onClick={() => openBooking('final')}>
                             <CalendarDays className="h-5 w-5" />
                             {t('booking.djset.cta_open_calendar')}
                         </BookingCtaButton>
                     </div>
                 </div>
             </GlassSection>
+            </div>
 
             <FunnelPopups
                 variant="djset"
@@ -457,6 +464,37 @@ function OfferPoint({
             <h3 className="mt-4 font-display text-lg font-bold text-foreground">{title}</h3>
             <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{copy}</p>
         </div>
+    );
+}
+
+function NightRecordingSection() {
+    const { t } = useTranslations();
+
+    return (
+        <GlassSection
+            surface="solid"
+            eyebrow={t('pages.djset.night_gear_eyebrow')}
+            title={t('pages.djset.night_gear_title')}
+            description={t('pages.djset.night_gear_description')}
+        >
+            <div className="grid gap-3 md:grid-cols-3">
+                <OfferPoint
+                    icon={<Moon className="h-5 w-5" />}
+                    title={t('pages.djset.night_gear_lowlight_title')}
+                    copy={t('pages.djset.night_gear_lowlight_copy')}
+                />
+                <OfferPoint
+                    icon={<Aperture className="h-5 w-5" />}
+                    title={t('pages.djset.night_gear_dynamic_title')}
+                    copy={t('pages.djset.night_gear_dynamic_copy')}
+                />
+                <OfferPoint
+                    icon={<Sparkles className="h-5 w-5" />}
+                    title={t('pages.djset.night_gear_color_title')}
+                    copy={t('pages.djset.night_gear_color_copy')}
+                />
+            </div>
+        </GlassSection>
     );
 }
 
@@ -551,7 +589,7 @@ function MediaSalesBoard({
                             {featuredVideo?.title ?? t('pages.djset.sales_fallback_title')}
                         </p>
                         <div className="mt-5 flex flex-col gap-3 sm:flex-row">
-                            <Button variant="cinematic" asChild>
+                            <Button variant="cinematic" className="w-full whitespace-normal sm:w-auto" asChild>
                                 <a
                                     href={whatsappHref}
                                     target="_blank"
@@ -562,7 +600,7 @@ function MediaSalesBoard({
                                     {t('pages.djset.cta_whatsapp_short')}
                                 </a>
                             </Button>
-                            <BookingCtaButton type="button" variant="glass" onClick={onBook}>
+                            <BookingCtaButton type="button" variant="glass" className="w-full sm:w-auto" onClick={onBook}>
                                 <CalendarDays className="h-4 w-4" />
                                 {t('booking.djset.cta_reserve_recording')}
                             </BookingCtaButton>
@@ -799,7 +837,7 @@ function OriginalsShowcase({
             </div>
 
             <div className="flex flex-col gap-3 sm:flex-row sm:justify-center">
-                <Button variant="cinematic" asChild>
+                <Button variant="cinematic" className="w-full whitespace-normal sm:w-auto" asChild>
                     <a
                         href={whatsappHref}
                         target="_blank"
@@ -810,7 +848,7 @@ function OriginalsShowcase({
                         {t('pages.djset.cta_whatsapp_short')}
                     </a>
                 </Button>
-                <BookingCtaButton type="button" variant="outline" onClick={onBook}>
+                <BookingCtaButton type="button" variant="outline" className="w-full sm:w-auto" onClick={onBook}>
                     {t('pages.djset.cta_reserve_my_set')}
                     <ArrowRight className="h-5 w-5" />
                 </BookingCtaButton>

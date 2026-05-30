@@ -1,5 +1,6 @@
 import { motion } from 'framer-motion';
 import { AtSign } from 'lucide-react';
+import { useState } from 'react';
 import { route } from '@/lib/route';
 import { Link, usePage } from '@inertiajs/react';
 import { cn } from '@/lib/utils';
@@ -66,18 +67,7 @@ export function DjCard({ dj, index = 0, variant = 'compact' }: DjCardProps) {
                 <div className="relative">
                     <MotionAvatarRing highlighted={dj.is_highlighted} />
                     <div className="relative h-[4.5rem] w-[4.5rem] overflow-hidden rounded-full border-2 border-border/80 bg-muted/30 shadow-lg transition duration-300 group-hover:border-primary/50 group-hover:shadow-[0_0_24px_oklch(0.78_0.14_75/0.25)]">
-                        {imageUrl ? (
-                            <img
-                                src={imageUrl}
-                                alt={dj.name}
-                                className="h-full w-full object-cover transition duration-500 group-hover:scale-110"
-                                loading="lazy"
-                            />
-                        ) : (
-                            <span className="flex h-full w-full items-center justify-center font-mono text-sm text-muted-foreground">
-                                {initials}
-                            </span>
-                        )}
+                        <AvatarImage imageUrl={imageUrl} name={dj.name} initials={initials} />
                     </div>
                 </div>
                 <div className="min-w-0 space-y-0.5">
@@ -93,6 +83,36 @@ export function DjCard({ dj, index = 0, variant = 'compact' }: DjCardProps) {
                 </div>
             </Link>
         </motion.div>
+    );
+}
+
+function AvatarImage({
+    imageUrl,
+    name,
+    initials,
+}: {
+    imageUrl?: string | null;
+    name: string;
+    initials: string;
+}) {
+    const [failed, setFailed] = useState(false);
+
+    if (!imageUrl || failed) {
+        return (
+            <span className="flex h-full w-full items-center justify-center font-mono text-sm text-muted-foreground">
+                {initials}
+            </span>
+        );
+    }
+
+    return (
+        <img
+            src={imageUrl}
+            alt={name}
+            className="h-full w-full object-cover transition duration-500 group-hover:scale-110"
+            loading="lazy"
+            onError={() => setFailed(true)}
+        />
     );
 }
 

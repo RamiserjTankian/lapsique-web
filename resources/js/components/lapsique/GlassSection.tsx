@@ -2,6 +2,7 @@ import { motion } from 'framer-motion';
 import {
     landingSectionInnerPaddingClass,
     landingSectionShellClass,
+    landingSectionSolidSurfaceClass,
     landingSectionSurfaceClass,
 } from '@/lib/landingSection';
 import { cn } from '@/lib/utils';
@@ -16,6 +17,11 @@ interface GlassSectionProps {
     action?: React.ReactNode;
     /** When false, only the surface wrapper is rendered (no title block). */
     showHeader?: boolean;
+    /**
+     * Surface treatment. `glass` keeps the blurred conversion look; `solid`
+     * uses a plain card so content-dense sections read less generic.
+     */
+    surface?: 'glass' | 'solid';
     id?: string;
 }
 
@@ -27,8 +33,14 @@ export function GlassSection({
     className,
     action,
     showHeader = true,
+    surface = 'glass',
     id,
 }: GlassSectionProps) {
+    const surfaceClass =
+        surface === 'solid'
+            ? landingSectionSolidSurfaceClass
+            : landingSectionSurfaceClass;
+
     return (
         <motion.section
             id={id}
@@ -38,7 +50,7 @@ export function GlassSection({
             variants={fadeUp}
             className={cn(landingSectionShellClass, className)}
         >
-            <div className={cn(landingSectionSurfaceClass, landingSectionInnerPaddingClass)}>
+            <div className={cn(surfaceClass, landingSectionInnerPaddingClass)}>
                 {showHeader ? (
                     <div className="relative z-10 mb-6 flex flex-wrap items-end justify-between gap-4 md:mb-8">
                         <div>

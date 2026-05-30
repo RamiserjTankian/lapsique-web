@@ -12,8 +12,8 @@ class VideoDjSummaryResource extends JsonResource
 {
     public function toArray(Request $request): array
     {
-        $profileThumb = $this->getFirstMediaUrl('profile', 'thumb');
-        $galleryThumb = $this->getFirstMediaUrl('gallery', 'thumb');
+        $profileThumb = $this->readableFirstMediaUrl('profile', 'thumb');
+        $galleryThumb = $this->readableFirstMediaUrl('gallery', 'thumb');
 
         return [
             'id' => $this->id,
@@ -22,5 +22,28 @@ class VideoDjSummaryResource extends JsonResource
             'avatar_url' => $profileThumb ?: $galleryThumb ?: null,
             'bio' => $this->bio ? Str::limit(strip_tags($this->bio), 160) : null,
         ];
+    }
+
+    private function readableFirstMediaUrl(string $collection, ?string $conversion = null): ?string
+    {
+        $media = $this->getFirstMedia($collection);
+
+        if (! $media) {
+            return null;
+        }
+
+        if ($conversion !== null) {
+            if (! $media->hasGeneratedConversion($conversion)) {
+                return null;
+            }
+
+            $path = $media->getPath($conversion);
+
+            return is_readable($path) ? $media->getUrl($conversion) : null;
+        }
+
+        $path = $media->getPath();
+
+        return is_readable($path) ? $media->getUrl() : null;
     }
 }

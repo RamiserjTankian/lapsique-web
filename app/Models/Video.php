@@ -76,20 +76,44 @@ class Video extends Model implements HasMedia
     public function getThumbnailUrlAttribute($value): string
     {
         // Prioridad: 1. Imagen subida, 2. URL de YouTube, 3. Default
-        $uploadedThumbnail = $this->getFirstMediaUrl('thumbnail', 'large');
-        
-        if ($uploadedThumbnail) {
+        $uploadedThumbnail = $this->readableMediaUrl('thumbnail', 'large')
+            ?? $this->readableMediaUrl('thumbnail');
+
+        if ($uploadedThumbnail !== null) {
             return $uploadedThumbnail;
         }
-        
+
         if ($value) {
             return $value;
         }
-        
+
         if ($this->youtube_id) {
             return "https://img.youtube.com/vi/{$this->youtube_id}/maxresdefault.jpg";
         }
-        
+
         return asset('images/video-placeholder.jpg');
+    }
+
+    private function readableMediaUrl(string $collection, ?string $conversion = null): ?string
+    {
+        $media = $this->getFirstMedia($collection);
+
+        if (! $media) {
+            return null;
+        }
+
+        if ($conversion !== null) {
+            if (! $media->hasGeneratedConversion($conversion)) {
+                return null;
+            }
+
+            $path = $media->getPath($conversion);
+
+            return is_readable($path) ? $media->getUrl($conversion) : null;
+        }
+
+        $path = $media->getPath();
+
+        return is_readable($path) ? $media->getUrl() : null;
     }
 }

@@ -50,6 +50,7 @@ function MotionHeaderActions({
     const { t } = useTranslations();
     const homeAgenda = `${route('home', undefined, false, ziggy)}#agenda`;
     const djSetHref = route('djset.show', undefined, false, ziggy);
+    const navHoverClass = 'hover:bg-primary/10 hover:text-foreground dark:hover:bg-primary/15';
     const openBookingPopup = (event: MouseEvent<HTMLAnchorElement>) => {
         if (document.getElementById('agenda')) {
             event.preventDefault();
@@ -66,14 +67,14 @@ function MotionHeaderActions({
 
     return (
         <div className="flex items-center gap-2">
-            <Button variant="ghost" size="sm" className="hidden md:inline-flex" asChild>
+            <Button variant="ghost" size="sm" className={`hidden md:inline-flex ${navHoverClass}`} asChild>
                 <Link href={route('portfolio.index', undefined, false, ziggy)}>{t('common.nav.portfolio')}</Link>
             </Button>
-            <Button variant="ghost" size="sm" className="hidden md:inline-flex" asChild>
+            <Button variant="ghost" size="sm" className={`hidden md:inline-flex ${navHoverClass}`} asChild>
                 <Link href={djSetHref}>{t('common.nav.dj_sets')}</Link>
             </Button>
             {customer && (
-                <Button variant="ghost" size="sm" className="hidden md:inline-flex" asChild>
+                <Button variant="ghost" size="sm" className={`hidden md:inline-flex ${navHoverClass}`} asChild>
                     <Link href={route('customers.portal', undefined, false, ziggy)}>{t('common.nav.my_portal')}</Link>
                 </Button>
             )}
@@ -106,7 +107,7 @@ function MotionHeaderActions({
                         </div>
                     </div>
                     <nav className="mx-5 mt-6 grid gap-2" aria-label="Mobile navigation">
-                        <Button variant="ghost" asChild className="h-auto min-h-12 w-full justify-start gap-3 whitespace-normal rounded-xl px-4 py-3 text-left">
+                        <Button variant="ghost" asChild className={`h-auto min-h-12 w-full justify-start gap-3 whitespace-normal rounded-xl px-4 py-3 text-left ${navHoverClass}`}>
                             <Link
                                 href={route('portfolio.index', undefined, false, ziggy)}
                                 onClick={() => setOpen(false)}
@@ -117,7 +118,7 @@ function MotionHeaderActions({
                                 {t('common.nav.portfolio')}
                             </Link>
                         </Button>
-                        <Button variant="ghost" asChild className="h-auto min-h-12 w-full justify-start gap-3 whitespace-normal rounded-xl px-4 py-3 text-left">
+                        <Button variant="ghost" asChild className={`h-auto min-h-12 w-full justify-start gap-3 whitespace-normal rounded-xl px-4 py-3 text-left ${navHoverClass}`}>
                             <Link href={djSetHref} onClick={() => setOpen(false)}>
                                 <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-primary/25 bg-primary/10">
                                     <Music2 className="h-4 w-4 text-primary" />
@@ -126,7 +127,7 @@ function MotionHeaderActions({
                             </Link>
                         </Button>
                         {customer && (
-                            <Button variant="ghost" asChild className="h-auto min-h-12 w-full justify-start gap-3 whitespace-normal rounded-xl px-4 py-3 text-left">
+                            <Button variant="ghost" asChild className={`h-auto min-h-12 w-full justify-start gap-3 whitespace-normal rounded-xl px-4 py-3 text-left ${navHoverClass}`}>
                                 <Link
                                     href={route('customers.portal', undefined, false, ziggy)}
                                     onClick={() => setOpen(false)}

@@ -15,4 +15,14 @@ export const landingSectionSurfaceClass = cn(
     'shadow-[0_20px_50px_var(--glass-panel-shadow)]',
 );
 
+/**
+ * Solid (non-glass) surface for content-dense sections. Keeps the brand radius
+ * but drops the glass blur/glow so the page reads less generic and the
+ * conversion-focused glass blocks stand out.
+ */
+export const landingSectionSolidSurfaceClass = cn(
+    'rounded-2xl border border-border/60 bg-card',
+    'shadow-[0_8px_24px_oklch(0.2_0.02_260/0.06)]',
+);
+
 export const landingSectionInnerPaddingClass = 'p-5 sm:p-6 md:p-8';
