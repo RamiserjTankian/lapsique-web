@@ -6,7 +6,7 @@ import { getRecordingGearGroups, type RecordingGearGroup } from '@/data/recordin
 import { useSectionEvent } from '@/hooks/useSectionEvent';
 import { useTranslations } from '@/hooks/useTranslations';
 import { cn } from '@/lib/utils';
-import { glassCardVariants } from '@/lib/variants';
+import { solidCardVariants } from '@/lib/variants';
 import type { LandingVideoEntry } from '@/types';
 import type { LucideIcon } from 'lucide-react';
 
@@ -19,27 +19,23 @@ const GROUP_ICONS: Record<string, LucideIcon> = {
 
 const GROUP_STYLES: Record<
     string,
-    { card: string; iconBadge: string; label: string }
+    { iconBadge: string; label: string }
 > = {
     aerial: {
-        card: 'border-cyan-500/30 bg-cyan-500/8',
-        iconBadge: 'border-cyan-500/35 bg-cyan-500/15 text-cyan-600 dark:text-cyan-400',
-        label: 'text-cyan-700 dark:text-cyan-300',
+        iconBadge: 'border-border/60 bg-muted text-muted-foreground',
+        label: 'text-foreground',
     },
     cameras: {
-        card: 'border-amber-500/30 bg-amber-500/8',
-        iconBadge: 'border-amber-500/35 bg-amber-500/15 text-amber-600 dark:text-amber-400',
-        label: 'text-amber-800 dark:text-amber-300',
+        iconBadge: 'border-primary/35 bg-primary/10 text-primary',
+        label: 'text-foreground',
     },
     lenses: {
-        card: 'border-violet-500/30 bg-violet-500/8',
-        iconBadge: 'border-violet-500/35 bg-violet-500/15 text-violet-600 dark:text-violet-400',
-        label: 'text-violet-800 dark:text-violet-300',
+        iconBadge: 'border-border/60 bg-muted text-muted-foreground',
+        label: 'text-foreground',
     },
     light: {
-        card: 'border-emerald-500/30 bg-emerald-500/8',
-        iconBadge: 'border-emerald-500/35 bg-emerald-500/15 text-emerald-600 dark:text-emerald-400',
-        label: 'text-emerald-800 dark:text-emerald-300',
+        iconBadge: 'border-border/60 bg-muted text-muted-foreground',
+        label: 'text-foreground',
     },
 };
 
@@ -56,6 +52,7 @@ export function RecordingGearSection({
 
     return (
         <GlassSection
+            surface="solid"
             eyebrow={t('funnel.gear.section_eyebrow')}
             title={t('funnel.gear.section_title')}
             description={t('funnel.gear.section_description')}
@@ -97,9 +94,8 @@ function GearGroupCard({ group }: { group: RecordingGearGroup }) {
     return (
         <article
             className={cn(
-                glassCardVariants(),
-                'glass-border-glow flex h-full flex-col gap-4 border p-4 md:p-5',
-                styles.card,
+                solidCardVariants(),
+                'flex h-full flex-col gap-4 p-4 md:p-5',
             )}
         >
             <div className="flex items-center gap-3">

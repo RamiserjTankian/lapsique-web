@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-labelledby="title desc">
+    <title id="title">lapsique media</title>
+    <desc id="desc">Logo stacked with lapsique above media for light browser theme.</desc>
+    <rect width="512" height="512" rx="112" fill="#f7f5f0"/>
+    <circle cx="92" cy="92" r="10" fill="#d7a541"/>
+    <circle cx="420" cy="96" r="8" fill="#5fb8c8"/>
+    <circle cx="416" cy="416" r="10" fill="#d7a541"/>
+    <path d="M96 352C138 389 193 408 256 408C319 408 374 389 416 352" fill="none" stroke="#1f2230" stroke-width="12" stroke-linecap="round" opacity=".16"/>
+    <text x="256" y="235" text-anchor="middle" font-family="Syne, Inter, Arial, sans-serif" font-size="82" font-weight="800" letter-spacing="-2" fill="#1f2230">lapsique</text>
+    <text x="256" y="305" text-anchor="middle" font-family="'IBM Plex Mono', 'SFMono-Regular', Consolas, monospace" font-size="52" font-weight="600" letter-spacing="13" fill="#9b6b14">media</text>
+</svg>

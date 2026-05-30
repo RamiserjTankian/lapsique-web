@@ -9,17 +9,46 @@
     @include('partials.meta-tags', ['meta' => $pageMeta])
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <meta name="theme-color" content="#f7f5f0" id="theme-color-meta">
+    <link rel="icon" type="image/png" sizes="64x64" href="/favicon-64.png">
+    <link rel="icon" type="image/svg+xml" href="/favicon-light.svg" id="favicon-svg">
+    <link rel="apple-touch-icon" href="/favicon-light.svg" id="apple-touch-icon">
     <script>
         (function () {
             var key = 'lapsique-theme';
             var stored = localStorage.getItem(key);
             var theme = stored === 'dark' || stored === 'light' ? stored : 'light';
             var root = document.documentElement;
+
+            function syncBrowserTheme(nextTheme) {
+                var meta = document.getElementById('theme-color-meta');
+                var favicon = document.getElementById('favicon-svg');
+                var appleTouchIcon = document.getElementById('apple-touch-icon');
+                var iconHref = nextTheme === 'dark' ? '/favicon-dark.svg' : '/favicon-light.svg';
+
+                if (meta) {
+                    meta.setAttribute('content', nextTheme === 'dark' ? '#06060a' : '#f7f5f0');
+                }
+
+                if (favicon) {
+                    favicon.setAttribute('href', iconHref);
+                }
+
+                if (appleTouchIcon) {
+                    appleTouchIcon.setAttribute('href', iconHref);
+                }
+            }
+
             root.classList.remove('light', 'dark');
             root.classList.add(theme);
-            var meta = document.getElementById('theme-color-meta');
-            if (meta) {
-                meta.setAttribute('content', theme === 'dark' ? '#06060a' : '#f7f5f0');
+            syncBrowserTheme(theme);
+
+            if (window.MutationObserver) {
+                new MutationObserver(function () {
+                    syncBrowserTheme(root.classList.contains('dark') ? 'dark' : 'light');
+                }).observe(root, {
+                    attributes: true,
+                    attributeFilter: ['class'],
+                });
             }
         })();
     </script>

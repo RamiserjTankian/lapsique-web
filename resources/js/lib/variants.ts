@@ -19,3 +19,22 @@ export const glassCardVariants = cva('rounded-xl glass-panel', {
         elevated: false,
     },
 });
+
+/**
+ * Solid card surface for content-dense funnel sections. Avoids the glass blur
+ * stack so the conversion blocks (hero, offer, booking) keep the spotlight.
+ */
+export const solidCardVariants = cva(
+    'rounded-xl border bg-card transition-colors',
+    {
+        variants: {
+            interactive: {
+                true: 'hover:border-border',
+                false: '',
+            },
+        },
+        defaultVariants: {
+            interactive: false,
+        },
+    },
+);

@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 260" role="img" aria-labelledby="title desc">
+    <title id="title">lapsique media</title>
+    <desc id="desc">Responsive lapsique media wordmark with lapsique above media.</desc>
+    <style>
+        :root {
+            --logo-bg: #f7f5f0;
+            --logo-fg: #1f2230;
+            --logo-accent: #9b6b14;
+            --logo-ring: rgba(31, 34, 48, .16);
+        }
+
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --logo-bg: #06060a;
+                --logo-fg: #f7f5f0;
+                --logo-accent: #f2c15f;
+                --logo-ring: rgba(247, 245, 240, .18);
+            }
+        }
+    </style>
+    <rect x="12" y="12" width="616" height="236" rx="56" fill="var(--logo-bg)"/>
+    <path d="M92 188C151 221 227 238 320 238C413 238 489 221 548 188" fill="none" stroke="var(--logo-ring)" stroke-width="12" stroke-linecap="round"/>
+    <circle cx="80" cy="66" r="9" fill="#f2c15f"/>
+    <circle cx="560" cy="66" r="7" fill="#77d5df"/>
+    <text x="320" y="117" text-anchor="middle" font-family="Syne, Inter, Arial, sans-serif" font-size="78" font-weight="800" letter-spacing="-2" fill="var(--logo-fg)">lapsique</text>
+    <text x="320" y="178" text-anchor="middle" font-family="'IBM Plex Mono', 'SFMono-Regular', Consolas, monospace" font-size="43" font-weight="600" letter-spacing="18" fill="var(--logo-accent)">media</text>
+</svg>

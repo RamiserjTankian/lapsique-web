@@ -82,6 +82,7 @@ export function FunnelFAQ({ variant = 'default' }: { variant?: 'home' | 'default
 
     return (
         <GlassSection
+            surface="solid"
             eyebrow={t('funnel.faq.section_eyebrow')}
             title={t('funnel.faq.section_title')}
             description={t('funnel.faq.section_description')}

@@ -2,6 +2,7 @@ import { useState, type MouseEvent } from 'react';
 import { Link, usePage } from '@inertiajs/react';
 import { CalendarDays, Menu, Music2 } from 'lucide-react';
 import { BookingCtaButton } from '@/components/lapsique/BookingCtaButton';
+import { LapsiqueMediaLogo } from '@/components/lapsique/LapsiqueMediaLogo';
 import { Button } from '@/components/ui/button';
 import {
     Sheet,
@@ -18,7 +19,7 @@ import { route } from '@/lib/route';
 import type { PageProps } from '@/types';
 
 export function SiteHeader() {
-    const { ziggy, site } = usePage<PageProps>().props;
+    const { ziggy } = usePage<PageProps>().props;
     const [open, setOpen] = useState(false);
 
     return (
@@ -26,12 +27,13 @@ export function SiteHeader() {
             <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-4 sm:px-6">
                 <Link
                     href={route('home', undefined, false, ziggy)}
-                    className="font-display text-lg font-bold tracking-tight"
+                    className="rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+                    aria-label="lapsique media"
                 >
-                    {site.name}
+                    <LapsiqueMediaLogo />
                 </Link>
 
-                <MotionHeaderActions open={open} setOpen={setOpen} siteName={site.name} />
+                <MotionHeaderActions open={open} setOpen={setOpen} />
             </div>
         </header>
     );
@@ -40,11 +42,9 @@ export function SiteHeader() {
 function MotionHeaderActions({
     open,
     setOpen,
-    siteName,
 }: {
     open: boolean;
     setOpen: (v: boolean) => void;
-    siteName: string;
 }) {
     const { ziggy, customer } = usePage<PageProps>().props;
     const { t } = useTranslations();
@@ -97,7 +97,9 @@ function MotionHeaderActions({
                     className="glass-panel-elevated !w-[min(92vw,24rem)] !max-w-none overflow-y-auto border-l border-border/80 p-0"
                 >
                     <SheetHeader className="border-b border-border/70 px-5 py-5 pr-14 text-left">
-                        <SheetTitle className="font-display text-xl">{siteName}</SheetTitle>
+                        <SheetTitle asChild>
+                            <LapsiqueMediaLogo className="text-left" />
+                        </SheetTitle>
                     </SheetHeader>
                     <div className="mx-5 mt-5 flex items-center justify-between rounded-xl border border-border/70 bg-secondary/80 px-4 py-3">
                         <span className="text-xs uppercase tracking-wider text-muted-foreground">{t('common.nav.theme')}</span>

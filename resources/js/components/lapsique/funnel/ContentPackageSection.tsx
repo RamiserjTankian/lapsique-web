@@ -5,7 +5,7 @@ import { getContentPackageItems } from '@/data/contentPackage';
 import { useSectionEvent } from '@/hooks/useSectionEvent';
 import { useTranslations } from '@/hooks/useTranslations';
 import { cn } from '@/lib/utils';
-import { glassCardVariants } from '@/lib/variants';
+import { solidCardVariants } from '@/lib/variants';
 import type { LucideIcon } from 'lucide-react';
 
 const ITEM_ICONS: Record<string, LucideIcon> = {
@@ -31,6 +31,7 @@ export function ContentPackageSection() {
 
     return (
         <GlassSection
+            surface="solid"
             eyebrow={t('funnel.package.section_eyebrow')}
             title={t('funnel.package.section_title')}
             description={t('funnel.package.section_description')}
@@ -46,7 +47,7 @@ export function ContentPackageSection() {
                     return (
                         <article
                             key={item.id}
-                            className={cn(glassCardVariants(), 'glass-border-glow flex gap-3 border p-4 md:p-5')}
+                            className={cn(solidCardVariants(), 'flex gap-3 p-4 md:p-5')}
                         >
                             <span
                                 className={cn(

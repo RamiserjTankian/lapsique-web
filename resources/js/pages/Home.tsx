@@ -1,10 +1,11 @@
 import { Link, usePage } from '@inertiajs/react';
-import { ArrowRight, CalendarDays, Music2 } from 'lucide-react';
+import { ArrowRight, CalendarDays, Clapperboard, Disc3, Music2 } from 'lucide-react';
 import { useEffect, useRef, type RefObject } from 'react';
 import { SeoHead } from '@/components/lapsique/SeoHead';
 import SiteLayout from '@/layouts/SiteLayout';
 import { BookingWidget } from '@/components/lapsique/BookingWidget';
 import { GlassSection } from '@/components/lapsique/GlassSection';
+import { PortfolioPhotoCarousel } from '@/components/lapsique/PortfolioPhotoCarousel';
 import { LandingPageSection } from '@/components/lapsique/LandingPageSection';
 import { ReelPlayerModal } from '@/components/lapsique/ReelPlayerModal';
 import { ReelLoopCard } from '@/components/lapsique/ReelLoopCard';
@@ -18,6 +19,8 @@ import {
     PortfolioPhotoBackground,
 } from '@/components/lapsique/LoopingVideoBackground';
 import { ContentPackageSection } from '@/components/lapsique/funnel/ContentPackageSection';
+import { ProblemSection } from '@/components/lapsique/funnel/ProblemSection';
+import { GuaranteeUrgencySection } from '@/components/lapsique/funnel/GuaranteeUrgencySection';
 import { PortfolioTrustSection } from '@/components/lapsique/funnel/PortfolioTrustSection';
 import { RecordingGearSection } from '@/components/lapsique/funnel/RecordingGearSection';
 import { WorkflowSection } from '@/components/lapsique/funnel/WorkflowSection';
@@ -35,6 +38,7 @@ import { useSectionEvent } from '@/hooks/useSectionEvent';
 import { landingPageStackClass } from '@/lib/landingSection';
 import { route } from '@/lib/route';
 import { cn, formatMxn } from '@/lib/utils';
+import { glassCardVariants } from '@/lib/variants';
 import {
     CONTENT_DRONE_SHOTS,
     CONTENT_REEL_DURATION_SECONDS,
@@ -183,6 +187,10 @@ export default function Home({
 
             <DjSetHomeCta href={route('djset.show', undefined, false, ziggy)} />
 
+            {/* 2. Problema/dolor — agita por qué el contenido genérico no vende */}
+            <ProblemSection />
+
+            {/* 3. Oferta/solución — bloque glass de conversión */}
             <GlassSection
                 eyebrow={t('pages.home.offer_eyebrow')}
                 title={t('pages.home.offer_title')}
@@ -205,6 +213,7 @@ export default function Home({
                 </div>
             </GlassSection>
 
+            {/* 4. Prueba en video consolidada (antes 3 FeaturedReel separados) */}
             <FeaturedReel
                 videos={[
                     landingVideos?.pauta ?? null,
@@ -212,26 +221,10 @@ export default function Home({
                     landingVideos?.floats?.[0] ?? null,
                 ]}
                 fallbackPool={featuredReelFallbackPool}
-                bookingSource="featured_reel_pauta"
+                bookingSource="featured_reel_proof"
             />
 
-            <BookingWidget
-                slots={slots}
-                price={price}
-                whatsapp={site.whatsapp}
-                errors={errors}
-                paymentProvider="stripe"
-                popupVariant="home"
-                popupPortfolioItems={portfolioItems}
-                popupHeroProofVideo={heroProofVideo}
-            />
-
-            <FeaturedReel
-                video={landingVideos?.package ?? landingVideos?.gear ?? null}
-                fallbackPool={featuredReelFallbackPool}
-                bookingSource="featured_reel_package"
-            />
-
+            {/* 5. Deseo — contenido que da seriedad a la marca */}
             <GlassSection
                 eyebrow={t('pages.home.ads_cta')}
                 title={t('pages.home.ads_title')}
@@ -250,16 +243,13 @@ export default function Home({
                 />
             </GlassSection>
 
+            {/* 6. Qué incluye el paquete */}
             <ContentPackageSection />
 
+            {/* 7. Prueba social + portafolio */}
             <PortfolioTrustSection portfolioItems={portfolioItems} />
 
-            <FeaturedReel
-                video={landingVideos?.floats?.[0] ?? null}
-                fallbackPool={featuredReelFallbackPool}
-                bookingSource="featured_reel_pre_workflow"
-            />
-
+            {/* 8. Cómo funciona */}
             <WorkflowSection
                 videos={[
                     landingVideos?.aftermovies?.[0] ?? null,
@@ -268,6 +258,7 @@ export default function Home({
                 bookingSource="workflow_reel"
             />
 
+            {/* 9. Equipo (credibilidad) */}
             <RecordingGearSection
                 videos={[
                     landingVideos?.aftermovies?.[2] ?? null,
@@ -276,7 +267,9 @@ export default function Home({
                 bookingSource="gear_reel"
             />
 
+            {/* 10. Prueba final en video — biblioteca de reels */}
             <GlassSection
+                surface="solid"
                 eyebrow={t('pages.home.success_title')}
                 title={t('pages.home.success_title')}
                 description={t('pages.home.success_description')}
@@ -287,8 +280,52 @@ export default function Home({
                 />
             </GlassSection>
 
-            <FunnelTeam />
+            {/* 11. Garantía + urgencia (reversión de riesgo antes de reservar) */}
+            <GuaranteeUrgencySection onBook={openBooking} />
+
+            {/* 12. Reserva — conversión principal */}
+            <BookingWidget
+                slots={slots}
+                price={price}
+                whatsapp={site.whatsapp}
+                errors={errors}
+                paymentProvider="stripe"
+                popupVariant="home"
+                popupPortfolioItems={portfolioItems}
+                popupHeroProofVideo={heroProofVideo}
+            />
+
+            {/* 13. FAQ — manejo de objeciones */}
             <FunnelFAQ variant="home" />
+
+            {/* 14. Quién está detrás + sobre el estudio */}
+            <AboutLapsique portfolioItems={portfolioItems} />
+            <FunnelTeam />
+
+            {/* 15. CTA final */}
+            <GlassSection
+                showHeader={false}
+                title={t('booking_cta.section_title')}
+                className="text-center"
+            >
+                <div className="flex flex-col items-center gap-4 text-center">
+                    <h2 className="font-display text-2xl font-bold tracking-tight text-foreground md:text-3xl">
+                        {t('booking_cta.section_title')}
+                    </h2>
+                    <BookingCtaSection className="py-0">
+                        <BookingCtaButton
+                            type="button"
+                            primary
+                            onClick={openBooking}
+                        >
+                            <CalendarDays className="h-5 w-5" />
+                            {t('common.cta.book_now')}
+                            <ArrowRight className="h-5 w-5" />
+                        </BookingCtaButton>
+                    </BookingCtaSection>
+                </div>
+            </GlassSection>
+
             <FunnelPopups
                 variant="home"
                 slotsCount={slots.length}
@@ -323,7 +360,7 @@ function DjSetHomeCta({ href }: { href: string }) {
             )}
         >
             <div className="grid gap-3 sm:grid-cols-3">
-                <div className="rounded-xl border border-border/70 bg-secondary p-4">
+                <div className={cn(glassCardVariants(), 'border border-border/70 p-4')}>
                     <p className="text-xs font-semibold uppercase tracking-[0.18em] text-primary">
                         {t('pages.home.djset_cta_point_1_label')}
                     </p>
@@ -331,7 +368,7 @@ function DjSetHomeCta({ href }: { href: string }) {
                         {t('pages.home.djset_cta_point_1')}
                     </p>
                 </div>
-                <div className="rounded-xl border border-border/70 bg-secondary p-4">
+                <div className={cn(glassCardVariants(), 'border border-border/70 p-4')}>
                     <p className="text-xs font-semibold uppercase tracking-[0.18em] text-primary">
                         {t('pages.home.djset_cta_point_2_label')}
                     </p>
@@ -339,13 +376,60 @@ function DjSetHomeCta({ href }: { href: string }) {
                         {t('pages.home.djset_cta_point_2')}
                     </p>
                 </div>
-                <div className="rounded-xl border border-border/70 bg-secondary p-4">
+                <div className={cn(glassCardVariants(), 'border border-border/70 p-4')}>
                     <p className="text-xs font-semibold uppercase tracking-[0.18em] text-primary">
                         {t('pages.home.djset_cta_point_3_label')}
                     </p>
                     <p className="mt-2 text-sm font-medium text-foreground">
                         {t('pages.home.djset_cta_point_3')}
                     </p>
+                </div>
+            </div>
+        </GlassSection>
+    );
+}
+
+function AboutLapsique({ portfolioItems }: { portfolioItems: PortfolioItemData[] }) {
+    const { t } = useTranslations();
+    const pillars = [
+        {
+            icon: Clapperboard,
+            title: t('pages.home.about_film_title'),
+            copy: t('pages.home.about_film_copy'),
+        },
+        {
+            icon: Disc3,
+            title: t('pages.home.about_events_title'),
+            copy: t('pages.home.about_events_copy'),
+        },
+    ] as const;
+
+    return (
+        <GlassSection
+            id="about"
+            eyebrow={t('pages.home.about_eyebrow')}
+            title={t('pages.home.about_title')}
+            description={t('pages.home.about_description')}
+        >
+            <div className="space-y-6">
+                <PortfolioPhotoCarousel items={portfolioItems} />
+                <div className="grid gap-4 sm:grid-cols-2">
+                    {pillars.map(({ icon: Icon, title, copy }) => (
+                        <div
+                            key={title}
+                            className={cn(glassCardVariants(), 'glass-border-glow border p-5')}
+                        >
+                            <span className="inline-flex h-11 w-11 items-center justify-center rounded-full border border-accent/30 bg-accent/10 text-accent">
+                                <Icon className="h-5 w-5" />
+                            </span>
+                            <h3 className="font-display mt-4 text-lg font-semibold tracking-tight text-foreground">
+                                {title}
+                            </h3>
+                            <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
+                                {copy}
+                            </p>
+                        </div>
+                    ))}
                 </div>
             </div>
         </GlassSection>

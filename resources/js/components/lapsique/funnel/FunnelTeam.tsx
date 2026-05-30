@@ -10,6 +10,7 @@ export function FunnelTeam() {
 
     return (
         <GlassSection
+            surface="solid"
             title={t('funnel.team.title')}
             description={`${CREATOR_PROFILE.name} · videomaker · photographer`}
             className="text-center [&_.relative.z-10]:justify-center [&_.relative.z-10>div]:text-center"

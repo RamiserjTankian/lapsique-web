@@ -8,7 +8,7 @@ import { useSectionEvent } from '@/hooks/useSectionEvent';
 import { useTranslations } from '@/hooks/useTranslations';
 import { route } from '@/lib/route';
 import { cn } from '@/lib/utils';
-import { glassCardVariants } from '@/lib/variants';
+import { glassCardVariants, solidCardVariants } from '@/lib/variants';
 import type { LucideIcon } from 'lucide-react';
 import type { PageProps, PortfolioItemData } from '@/types';
 
@@ -44,6 +44,7 @@ export function PortfolioTrustSection({
 
     return (
         <GlassSection
+            surface="solid"
             eyebrow={t('funnel.trust.section_eyebrow')}
             title={t('funnel.trust.section_title')}
             description={t('funnel.trust.section_description')}
@@ -65,8 +66,8 @@ export function PortfolioTrustSection({
                             <article
                                 key={stat.id}
                                 className={cn(
-                                    glassCardVariants(),
-                                    'glass-border-glow flex flex-col gap-3 border p-4 md:p-5',
+                                    solidCardVariants(),
+                                    'flex flex-col gap-3 p-4 md:p-5',
                                 )}
                             >
                                 <div className="flex items-start gap-3">

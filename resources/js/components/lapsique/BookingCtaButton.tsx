@@ -6,6 +6,8 @@ import { cn } from '@/lib/utils';
 export type BookingCtaButtonProps = ButtonProps & {
     /** Hero primary CTA — full width, largest glow on lg */
     hero?: boolean;
+    /** Primary conversion CTA (booking section) — keeps the pulsing glow */
+    primary?: boolean;
     /** Sticky bar / compact toolbar */
     compact?: boolean;
     /** Dispatch booking:open instead of relying on scroll-only handlers */
@@ -17,6 +19,7 @@ export type BookingCtaButtonProps = ButtonProps & {
 
 export function BookingCtaButton({
     hero = false,
+    primary = false,
     compact = false,
     opensBookingModal = false,
     bookingSource,
@@ -45,6 +48,7 @@ export function BookingCtaButton({
             className={cn(
                 'booking-cta',
                 hero && 'booking-cta--hero',
+                primary && 'booking-cta--primary',
                 compact && 'booking-cta--compact',
                 className,
             )}

@@ -6,7 +6,7 @@ import { getWorkflowSteps } from '@/data/workflowSteps';
 import { useSectionEvent } from '@/hooks/useSectionEvent';
 import { useTranslations } from '@/hooks/useTranslations';
 import { cn } from '@/lib/utils';
-import { glassCardVariants } from '@/lib/variants';
+import { solidCardVariants } from '@/lib/variants';
 import type { LandingVideoEntry } from '@/types';
 import type { LucideIcon } from 'lucide-react';
 
@@ -20,32 +20,27 @@ const STEP_ICONS: Record<string, LucideIcon> = {
 
 const STEP_STYLES: Record<
     string,
-    { card: string; stepBadge: string; iconBadge: string }
+    { stepBadge: string; iconBadge: string }
 > = {
     meeting: {
-        card: 'border-sky-500/30 bg-sky-500/10',
-        stepBadge: 'border-sky-500/45 bg-sky-500/20 text-sky-700 dark:text-sky-300',
-        iconBadge: 'border-sky-500/35 bg-sky-500/15 text-sky-600 dark:text-sky-400',
+        stepBadge: 'border-primary/40 bg-primary/15 text-primary',
+        iconBadge: 'border-border/60 bg-muted text-muted-foreground',
     },
     shoot: {
-        card: 'border-amber-500/30 bg-amber-500/10',
-        stepBadge: 'border-amber-500/45 bg-amber-500/20 text-amber-800 dark:text-amber-300',
-        iconBadge: 'border-amber-500/35 bg-amber-500/15 text-amber-600 dark:text-amber-400',
+        stepBadge: 'border-primary/40 bg-primary/15 text-primary',
+        iconBadge: 'border-border/60 bg-muted text-muted-foreground',
     },
     drive: {
-        card: 'border-cyan-500/30 bg-cyan-500/10',
-        stepBadge: 'border-cyan-500/45 bg-cyan-500/20 text-cyan-800 dark:text-cyan-300',
-        iconBadge: 'border-cyan-500/35 bg-cyan-500/15 text-cyan-600 dark:text-cyan-400',
+        stepBadge: 'border-primary/40 bg-primary/15 text-primary',
+        iconBadge: 'border-border/60 bg-muted text-muted-foreground',
     },
     edit: {
-        card: 'border-violet-500/30 bg-violet-500/10',
-        stepBadge: 'border-violet-500/45 bg-violet-500/20 text-violet-800 dark:text-violet-300',
-        iconBadge: 'border-violet-500/35 bg-violet-500/15 text-violet-600 dark:text-violet-400',
+        stepBadge: 'border-primary/40 bg-primary/15 text-primary',
+        iconBadge: 'border-border/60 bg-muted text-muted-foreground',
     },
     delivery: {
-        card: 'border-emerald-500/30 bg-emerald-500/10',
-        stepBadge: 'border-emerald-500/45 bg-emerald-500/20 text-emerald-800 dark:text-emerald-300',
-        iconBadge: 'border-emerald-500/35 bg-emerald-500/15 text-emerald-600 dark:text-emerald-400',
+        stepBadge: 'border-accent/45 bg-accent/15 text-accent',
+        iconBadge: 'border-accent/35 bg-accent/10 text-accent',
     },
 };
 
@@ -62,6 +57,7 @@ export function WorkflowSection({
 
     return (
         <GlassSection
+            surface="solid"
             eyebrow={t('funnel.workflow.section_eyebrow')}
             title={t('funnel.workflow.section_title')}
             description={t('funnel.workflow.section_description')}
@@ -80,9 +76,8 @@ export function WorkflowSection({
                             <li key={item.id} className="relative">
                                 <article
                                     className={cn(
-                                        glassCardVariants(),
-                                        'glass-border-glow flex h-full flex-col gap-3 border p-4 md:p-5',
-                                        styles.card,
+                                        solidCardVariants(),
+                                        'flex h-full flex-col gap-3 p-4 md:p-5',
                                     )}
                                 >
                                     <div className="flex items-center justify-between gap-2">

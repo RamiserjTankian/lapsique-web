@@ -347,8 +347,14 @@
     font-size: 0.9375rem;
 }
 
+/*
+ * Pulsing glow is reserved for the primary conversion CTAs only (hero + the
+ * booking/reservation button). Intermediate CTAs keep the gold gradient but
+ * stay static so the page reads less generic.
+ */
 @media (prefers-reduced-motion: no-preference) {
-    .booking-cta:not(.booking-cta--compact) {
+    .booking-cta--hero,
+    .booking-cta--primary {
         animation: var(--animate-booking-cta-glow);
     }
 
