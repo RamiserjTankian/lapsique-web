@@ -47,6 +47,19 @@ class ContentBookingController extends Controller
     public function showDjSet(): Response
     {
         $data = $this->bookingPageData();
+        $filterDjSetPortfolio = fn ($items) => $items
+            ->reject(function (PortfolioItem $item): bool {
+                $haystack = Str::lower(implode(' ', array_filter([
+                    $item->type,
+                    $item->slug,
+                    $item->asset_path,
+                    $item->poster_path,
+                    ...($item->tags ?? []),
+                ])));
+
+                return Str::contains($haystack, ['aftermovie', 'after-movie', 'after movie']);
+            })
+            ->values();
 
         $originals = \App\Models\Video::query()
             ->whereJsonContains('tags', 'psique-originals')
@@ -70,6 +83,7 @@ class ContentBookingController extends Controller
             ->orderByDesc('created_at')
             ->take(10)
             ->get();
+        $portfolioItems = $filterDjSetPortfolio($portfolioItems);
 
         if ($portfolioItems->isEmpty()) {
             $portfolioItems = PortfolioItem::query()
@@ -80,6 +94,7 @@ class ContentBookingController extends Controller
                 ->orderByDesc('created_at')
                 ->take(10)
                 ->get();
+            $portfolioItems = $filterDjSetPortfolio($portfolioItems);
         }
 
         $djs = \App\Models\Dj::query()
