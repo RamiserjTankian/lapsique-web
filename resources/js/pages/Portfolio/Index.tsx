@@ -39,7 +39,7 @@ export default function PortfolioIndex({ items }: PortfolioIndexProps) {
                     initial="hidden"
                     whileInView="visible"
                     viewport={{ once: true, margin: '-60px' }}
-                    className="grid grid-flow-row-dense auto-rows-[9rem] grid-cols-2 gap-3 md:auto-rows-[12rem] md:grid-cols-4 md:gap-4 xl:auto-rows-[13rem] xl:grid-cols-6"
+                    className="grid grid-flow-row-dense auto-rows-[8.5rem] grid-cols-2 gap-3 md:auto-rows-[10.5rem] md:grid-cols-4 md:gap-4 xl:grid-cols-6"
                 >
                     {gridItems.map((item, index) => (
                         <PortfolioGridItem
@@ -95,26 +95,14 @@ function arrangePortfolioMosaic(items: PortfolioItemData[]): PortfolioItemData[]
 
 function getMosaicClassName(item: PortfolioItemData, index: number): string {
     if (item.media_type === 'video' || item.media_type === 'youtube') {
-        return index % 8 === 2
-            ? 'col-span-2 row-span-2 md:col-span-2 md:row-span-2 xl:col-span-3'
-            : 'col-span-2 row-span-2 md:col-span-2 md:row-span-2';
-    }
-
-    if (index % 17 === 0) {
-        return 'col-span-2 row-span-2 md:col-span-2 md:row-span-2 xl:col-span-3';
-    }
-
-    if (item.orientation === 'vertical' && index % 6 === 1) {
         return 'col-span-1 row-span-2 md:col-span-1 md:row-span-2';
     }
 
-    if (item.orientation === 'horizontal' && index % 9 === 3) {
-        return 'col-span-2 row-span-1 md:col-span-2 md:row-span-1';
+    if (item.orientation === 'horizontal') {
+        return 'col-span-2 row-span-1';
     }
 
-    if (index % 14 === 6) {
-        return 'col-span-2 row-span-2 md:col-span-2 md:row-span-2';
-    }
-
-    return 'col-span-1 row-span-1';
+    return index % 5 === 0
+        ? 'col-span-1 row-span-2'
+        : 'col-span-1 row-span-1';
 }

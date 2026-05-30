@@ -28,9 +28,7 @@ function normalizePaginationLinks(links: PaginationLink[] | Record<string, strin
 export function PaginationLinks({ links = [], className }: PaginationLinksProps) {
     const { t } = useTranslations();
     const safeLinks = normalizePaginationLinks(links as PaginationLink[] | Record<string, string | null>);
-    const pageLinks = safeLinks.filter(
-        (link) => link.label !== '&laquo; Previous' && link.label !== 'Next &raquo;',
-    );
+    const pageLinks = safeLinks.filter((link) => !isPaginationControl(link.label));
 
     if (pageLinks.length <= 1) {
         return null;
@@ -44,8 +42,9 @@ export function PaginationLinks({ links = [], className }: PaginationLinksProps)
                         <span
                             key={`${link.label}-${index}`}
                             className="rounded-lg border border-border/40 px-3 py-2 text-sm text-muted-foreground/50"
-                            dangerouslySetInnerHTML={{ __html: link.label }}
-                        />
+                        >
+                            {paginationLabel(link.label, t)}
+                        </span>
                     );
                 }
 
@@ -60,10 +59,39 @@ export function PaginationLinks({ links = [], className }: PaginationLinksProps)
                                 ? 'border-primary/40 bg-primary/10 text-primary'
                                 : 'border-border/60 bg-secondary/50 text-muted-foreground hover:border-primary/30 hover:text-foreground',
                         )}
-                        dangerouslySetInnerHTML={{ __html: link.label }}
-                    />
+                    >
+                        {paginationLabel(link.label, t)}
+                    </Link>
                 );
             })}
         </nav>
     );
+}
+
+function isPaginationControl(label: string): boolean {
+    const normalized = normalizePaginationLabel(label);
+
+    return normalized === 'previous' || normalized === 'next';
+}
+
+function paginationLabel(label: string, t: ReturnType<typeof useTranslations>['t']): string {
+    const normalized = normalizePaginationLabel(label);
+
+    if (normalized === 'previous') {
+        return t('common.actions.previous');
+    }
+
+    if (normalized === 'next') {
+        return t('common.actions.next');
+    }
+
+    return label.replace(/<[^>]*>/g, '').trim();
+}
+
+function normalizePaginationLabel(label: string): string {
+    return label
+        .replace(/&laquo;|&raquo;|«|»/gi, '')
+        .replace(/<[^>]*>/g, '')
+        .trim()
+        .toLowerCase();
 }

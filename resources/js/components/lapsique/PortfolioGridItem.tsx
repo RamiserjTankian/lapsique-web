@@ -38,7 +38,7 @@ export function PortfolioGridItem({
             })}
             className={cn(
                 glassCardVariants(),
-                'group relative block h-full min-h-[9rem] w-full overflow-hidden text-left',
+                'group relative block h-full min-h-[8.5rem] w-full overflow-hidden text-left',
                 'ring-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50',
                 className,
             )}
@@ -77,8 +77,8 @@ export function PortfolioGridItem({
                     <span className="text-xs text-muted-foreground">{t('common.empty.no_preview')}</span>
                 </div>
             )}
-            <motionOverlay />
-            <motionHoverRing />
+            <MotionOverlay />
+            <MotionHoverRing />
         </motion.button>
     );
 }
@@ -95,21 +95,21 @@ function PortfolioTileSkeleton() {
     );
 }
 
-function motionOverlay() {
+function MotionOverlay() {
     return (
         <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-background/20 via-transparent to-transparent opacity-0 transition-opacity group-hover:opacity-100" />
     );
 }
 
-function motionHoverRing() {
+function MotionHoverRing() {
     return (
         <div className="pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-300 group-hover:opacity-100">
-            <motionHoverRingInner />
+            <MotionHoverRingInner />
         </div>
     );
 }
 
-function motionHoverRingInner() {
+function MotionHoverRingInner() {
     return <motion.div className="absolute inset-0 ring-1 ring-inset ring-border/50" />;
 }
 
