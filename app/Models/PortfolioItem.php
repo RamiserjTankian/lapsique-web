@@ -137,11 +137,13 @@ class PortfolioItem extends Model implements HasMedia
             return asset('images/og-default.jpg');
         }
 
-        if ($media->hasGeneratedConversion('large')) {
-            return $media->getUrl('large');
+        $largeUrl = $this->readableMediaUrl($media, 'large');
+
+        if ($largeUrl !== null) {
+            return $largeUrl;
         }
 
-        return $media->getUrl();
+        return $this->readableMediaUrl($media) ?? asset('images/og-default.jpg');
     }
 
     public function getPosterUrlAttribute(): string
@@ -153,9 +155,9 @@ class PortfolioItem extends Model implements HasMedia
         $poster = $this->getFirstMedia('poster');
 
         if ($poster) {
-            return $poster->hasGeneratedConversion('large')
-                ? $poster->getUrl('large')
-                : $poster->getUrl();
+            return $this->readableMediaUrl($poster, 'large')
+                ?? $this->readableMediaUrl($poster)
+                ?? $this->asset_url;
         }
 
         if ($this->source === 'youtube' && $this->youtube_id) {
@@ -163,6 +165,23 @@ class PortfolioItem extends Model implements HasMedia
         }
 
         return $this->asset_url;
+    }
+
+    private function readableMediaUrl($media, ?string $conversion = null): ?string
+    {
+        if ($conversion !== null) {
+            if (! $media->hasGeneratedConversion($conversion)) {
+                return null;
+            }
+
+            $path = $media->getPath($conversion);
+
+            return is_readable($path) ? $media->getUrl($conversion) : null;
+        }
+
+        $path = $media->getPath();
+
+        return is_readable($path) ? $media->getUrl() : null;
     }
 
     public function getEmbedUrlAttribute(): ?string
