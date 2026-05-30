@@ -57,6 +57,7 @@ export function AutoplayVideo({
     const mediaClassName = cn('h-full w-full object-cover object-center', videoClassName);
     const shouldPlay = playbackEnabled && (isInView || !pauseWhenOffscreen);
     const shouldAttachSource = eager || isInView || !pauseWhenOffscreen;
+    const posterLoading = eager || isInView ? 'eager' : 'lazy';
     const showPosterOverlay =
         Boolean(poster)
         && ((pauseWhenOffscreen && !isInView) || (shouldPlay && !isPlaying));
@@ -209,7 +210,7 @@ export function AutoplayVideo({
                     src={poster}
                     alt={title ?? ''}
                     className={mediaClassName}
-                    loading={eager ? 'eager' : 'lazy'}
+                    loading={posterLoading}
                 />
             </div>
         );
@@ -225,6 +226,7 @@ export function AutoplayVideo({
                 autoPlay
                 loop
                 muted
+                poster={poster ?? undefined}
                 playsInline
                 controls={false}
                 disablePictureInPicture
@@ -238,7 +240,7 @@ export function AutoplayVideo({
                     src={poster ?? undefined}
                     alt={title ?? ''}
                     className={cn('pointer-events-none absolute inset-0 z-[1]', mediaClassName)}
-                    loading={eager ? 'eager' : 'lazy'}
+                    loading={posterLoading}
                     aria-hidden
                 />
             ) : null}
