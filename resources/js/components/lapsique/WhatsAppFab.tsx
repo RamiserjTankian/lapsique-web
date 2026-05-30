@@ -34,25 +34,31 @@ export function WhatsAppFab() {
     const isMobile = useIsMobileViewport();
     const [bookingModalOpen, setBookingModalOpen] = useState(getActiveFunnelModal() !== null);
     const [reelPlayerOpen, setReelPlayerOpen] = useState(false);
-    const isHomePage = useMemo(() => {
+    const currentPath = useMemo(() => {
         if (typeof url !== 'string' || url === '') {
-            return false;
+            return '';
         }
 
         try {
-            return new URL(url, window.location.origin).pathname === '/';
+            return new URL(url, window.location.origin).pathname;
         } catch {
-            return false;
+            return '';
         }
     }, [url]);
+    const isHomePage = currentPath === '/';
+    const isDjSetPage = currentPath === '/dj-set' || currentPath === '/djset';
 
     const href = useMemo(() => {
         if (!number) {
             return '';
         }
 
-        return `https://wa.me/${number}?text=${encodeURIComponent(t('common.whatsapp.default_prefill'))}`;
-    }, [number, t]);
+        const message = isDjSetPage
+            ? t('funnel.whatsapp.prefill_djset')
+            : t('common.whatsapp.default_prefill');
+
+        return `https://wa.me/${number}?text=${encodeURIComponent(message)}`;
+    }, [isDjSetPage, number, t]);
 
     const { displayed, showCursor } = useTypingCycle({
         texts: promptMessages,
@@ -120,7 +126,7 @@ export function WhatsAppFab() {
         }
     };
 
-    if (!number || bookingModalOpen || reelPlayerOpen || (isMobile && isHomePage)) {
+    if (!number || bookingModalOpen || reelPlayerOpen || (isMobile && (isHomePage || isDjSetPage))) {
         return null;
     }
 

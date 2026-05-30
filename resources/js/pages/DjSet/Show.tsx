@@ -1,54 +1,107 @@
 import { useEffect, useMemo, useState, type ReactNode } from 'react';
-import SiteLayout from '@/layouts/SiteLayout';
-import { SeoHead } from '@/components/lapsique/SeoHead';
-import { BookingWidget, type BookingWidgetProduct } from '@/components/lapsique/BookingWidget';
-import { getDjSetProduct } from '@/lib/bookingProducts';
-import { useTranslations } from '@/hooks/useTranslations';
-import { GlassSection } from '@/components/lapsique/GlassSection';
-import { DjCard } from '@/components/lapsique/DjCard';
-import { SpecBadge } from '@/components/lapsique/SpecBadge';
-import { FunnelPopups } from '@/components/lapsique/FunnelPopups';
-import { PaymentTrustOrTestMode } from '@/components/lapsique/PaymentTrustPanel';
-import { BookingCtaButton } from '@/components/lapsique/BookingCtaButton';
-import { BookingCtaSection } from '@/components/lapsique/BookingCtaSection';
-import { Button } from '@/components/ui/button';
-import { formatMxn } from '@/lib/utils';
-import { trackBookingEvent } from '@/hooks/useBookingAnalytics';
-import { openBookingModal } from '@/lib/openBookingModal';
+import { usePage } from '@inertiajs/react';
 import {
     ArrowRight,
     CalendarDays,
     Camera,
+    CheckCircle2,
     CircleCheckBig,
+    Clock3,
     CreditCard,
     Drone,
     Film,
-    Radio,
+    Headphones,
+    MessageCircle,
+    Mic2,
+    SlidersHorizontal,
+    Video,
+    Waves,
 } from 'lucide-react';
+import SiteLayout from '@/layouts/SiteLayout';
+import { SeoHead } from '@/components/lapsique/SeoHead';
+import { BookingWidget } from '@/components/lapsique/BookingWidget';
+import { BookingCtaButton } from '@/components/lapsique/BookingCtaButton';
+import { BookingCtaSection } from '@/components/lapsique/BookingCtaSection';
+import { DjCard } from '@/components/lapsique/DjCard';
+import { FunnelPopups } from '@/components/lapsique/FunnelPopups';
+import { GlassSection } from '@/components/lapsique/GlassSection';
+import { PaymentTrustOrTestMode } from '@/components/lapsique/PaymentTrustPanel';
+import { ReelLoopCard } from '@/components/lapsique/ReelLoopCard';
+import { SpecBadge } from '@/components/lapsique/SpecBadge';
+import { Button } from '@/components/ui/button';
+import { useTranslations } from '@/hooks/useTranslations';
+import { trackBookingEvent } from '@/hooks/useBookingAnalytics';
+import { openBookingModal } from '@/lib/openBookingModal';
+import { formatMxn } from '@/lib/utils';
 import { videoSurfaceFrameClass } from '@/lib/videoSurface';
-import type { BookingSlot, DjItem, PageProps, PortfolioItemData, VideoItem } from '@/types';
-import { usePage } from '@inertiajs/react';
+import { getDjSetProduct } from '@/lib/bookingProducts';
+import type {
+    BookingSlot,
+    DjItem,
+    PageProps,
+    PortfolioItemData,
+    ReelLibraryEntry,
+    VideoItem,
+} from '@/types';
 
 interface DjSetShowProps {
     price: number;
     slots: BookingSlot[];
     originals: VideoItem[];
     portfolioItems: PortfolioItemData[];
+    djSetReels: ReelLibraryEntry[];
     djs: DjItem[];
     errors?: Record<string, string>;
 }
+
+const HERO_IMAGE_KEYWORDS = [
+    'santino-on-heaven-22-de-marzo',
+    'santino-22-de-marzo',
+    'rebolledo',
+    'traumer-shonky',
+    'proper',
+    'umi',
+];
+
+const GEAR_ITEMS = [
+    {
+        icon: Camera,
+        titleKey: 'pages.djset.gear_sony_title',
+        copyKey: 'pages.djset.gear_sony_copy',
+    },
+    {
+        icon: Drone,
+        titleKey: 'pages.djset.gear_drone_title',
+        copyKey: 'pages.djset.gear_drone_copy',
+    },
+    {
+        icon: Video,
+        titleKey: 'pages.djset.gear_ronin_title',
+        copyKey: 'pages.djset.gear_ronin_copy',
+    },
+    {
+        icon: Mic2,
+        titleKey: 'pages.djset.gear_audio_title',
+        copyKey: 'pages.djset.gear_audio_copy',
+    },
+] as const;
 
 export default function DjSetShow({
     price,
     slots,
     originals,
     portfolioItems,
+    djSetReels,
     djs,
     errors,
 }: DjSetShowProps) {
     const { site } = usePage<PageProps>().props;
     const { t } = useTranslations();
     const djSetProduct = useMemo(() => getDjSetProduct(t), [t]);
+    const whatsappHref = useMemo(
+        () => buildWhatsAppHref(site.whatsapp, t('funnel.whatsapp.prefill_djset')),
+        [site.whatsapp, t],
+    );
 
     useEffect(() => {
         trackBookingEvent('booking_page_viewed', {
@@ -58,10 +111,10 @@ export default function DjSetShow({
         });
     }, [t]);
 
-    const openBooking = () => {
+    const openBooking = (source = 'djset') => {
         openBookingModal({
-            source: 'djset',
-            analyticsEvent: 'hero_cta_clicked',
+            source,
+            analyticsEvent: 'djset_booking_cta_clicked',
             analyticsPayload: {
                 content_name: t('pages.djset.hero_title'),
                 content_category: 'dj_set_booking',
@@ -69,8 +122,18 @@ export default function DjSetShow({
         });
     };
 
-    const portfolioImages = portfolioItems.filter((item) => item.media_type === 'image' && item.asset_url);
-    const heroImage = portfolioImages.find((item) => item.is_featured) ?? portfolioImages[0];
+    const trackWhatsApp = (source: string) => {
+        trackBookingEvent('djset_whatsapp_cta_clicked', {
+            source,
+            target: 'whatsapp',
+            content_category: 'dj_set_booking',
+        });
+    };
+
+    const portfolioImages = portfolioItems.filter((item) => (
+        item.media_type === 'image' && Boolean(item.asset_url || item.poster_url)
+    ));
+    const heroImage = pickHeroImage(portfolioImages);
     const proofImages = portfolioImages.filter((item) => item.id !== heroImage?.id);
     const galleryImages = proofImages.length > 0 ? proofImages : portfolioImages;
     const portfolioVideos = portfolioItems.filter((item) => (
@@ -83,62 +146,83 @@ export default function DjSetShow({
 
             <section className="relative left-1/2 w-screen -translate-x-1/2 overflow-hidden">
                 <div className="absolute inset-0 bg-background">
-                    {heroImage?.asset_url && (
+                    {heroImage && (
                         <img
-                            src={heroImage.asset_url}
+                            src={imageUrl(heroImage)}
                             alt=""
                             className="h-full w-full object-cover object-center"
                         />
                     )}
-                    <div className="absolute inset-0 bg-[linear-gradient(90deg,oklch(0.12_0.02_280/0.96)_0%,oklch(0.12_0.02_280/0.78)_48%,oklch(0.12_0.02_280/0.42)_100%)]" />
-                    <div className="absolute inset-0 bg-[linear-gradient(180deg,oklch(0.08_0.01_280/0.22)_0%,oklch(0.08_0.01_280/0.42)_56%,var(--background)_100%)]" />
+                    <div className="absolute inset-0 bg-[linear-gradient(90deg,oklch(0.10_0.02_280/0.98)_0%,oklch(0.10_0.02_280/0.82)_52%,oklch(0.10_0.02_280/0.40)_100%)]" />
+                    <div className="absolute inset-0 bg-[linear-gradient(180deg,oklch(0.08_0.01_280/0.16)_0%,oklch(0.08_0.01_280/0.42)_58%,var(--background)_100%)]" />
                 </div>
 
-                <div className="relative mx-auto grid min-h-[min(850px,92vh)] max-w-6xl content-end gap-8 px-4 pb-36 pt-24 sm:px-6 md:grid-cols-[minmax(0,1fr)_320px] md:items-end">
-                    <div className="max-w-3xl">
+                <div className="relative mx-auto grid min-h-[min(820px,92svh)] max-w-6xl content-end gap-8 px-4 pb-28 pt-24 sm:px-6 lg:grid-cols-[minmax(0,1fr)_360px] lg:items-end">
+                    <div className="max-w-4xl">
                         <p className="text-xs font-semibold uppercase tracking-[0.24em] text-primary">
                             {t('pages.djset.hero_eyebrow')}
                         </p>
-                        <h1 className="mt-5 max-w-4xl font-display text-5xl font-bold tracking-tight text-white drop-shadow-[0_3px_22px_rgb(0_0_0/0.5)] md:text-7xl">
+                        <h1 className="mt-4 max-w-4xl font-display text-4xl font-bold leading-[0.98] tracking-tight text-white drop-shadow-[0_3px_28px_rgb(0_0_0/0.55)] sm:text-5xl md:text-7xl">
                             {t('pages.djset.hero_title')}
                         </h1>
-                        <p className="mt-5 max-w-2xl text-base leading-relaxed text-white/80 md:text-xl">
+                        <p className="mt-5 max-w-2xl text-base leading-relaxed text-white/82 md:text-xl">
                             {t('pages.djset.hero_subtitle')}
                         </p>
 
                         <div className="mt-7 flex flex-wrap gap-2">
                             <SpecBadge highlight>{t('pages.djset.spec_cameras')}</SpecBadge>
-                            <SpecBadge>{t('pages.djset.spec_drone')}</SpecBadge>
+                            <SpecBadge>{t('pages.djset.spec_audio')}</SpecBadge>
                             <SpecBadge>{t('pages.djset.spec_final_video')}</SpecBadge>
                         </div>
 
-                        <div className="mt-8 space-y-6">
-                            <div className="w-full lg:mx-auto lg:max-w-md">
-                                <p className="font-mono-tabular text-4xl font-semibold text-white md:text-5xl">
+                        <div className="mt-8 grid gap-4 sm:grid-cols-[minmax(0,0.88fr)_minmax(260px,0.7fr)] sm:items-end">
+                            <div className="rounded-2xl border border-primary/35 bg-black/70 px-5 py-4 shadow-[0_16px_48px_rgb(0_0_0/0.45)] backdrop-blur-md">
+                                <p className="text-xs font-semibold uppercase tracking-[0.2em] text-primary">
+                                    {t('pages.djset.hero_price_label')}
+                                </p>
+                                <p className="mt-2 font-mono-tabular text-4xl font-bold text-primary md:text-5xl">
                                     {formatMxn(price)}
                                 </p>
-                                <p className="mt-1 text-sm text-white/65">{t('booking.djset.price_note')}</p>
+                                <p className="mt-2 text-sm text-white/70">{t('booking.djset.price_note')}</p>
                                 <PaymentTrustOrTestMode
                                     variant="stripe"
                                     layout="compact"
                                     onDark
-                                    className="mt-4"
+                                    className="mt-3"
                                 />
                             </div>
-                            <BookingCtaSection hero className="py-0">
-                                <BookingCtaButton type="button" hero onClick={openBooking}>
+
+                            <div className="space-y-3">
+                                <Button
+                                    variant="cinematic"
+                                    size="xl"
+                                    className="h-auto min-h-14 w-full gap-2 whitespace-normal rounded-xl px-5 text-base"
+                                    asChild
+                                >
+                                    <a
+                                        href={whatsappHref}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        onClick={() => trackWhatsApp('hero')}
+                                    >
+                                        <MessageCircle className="h-5 w-5" />
+                                        {t('pages.djset.cta_whatsapp')}
+                                    </a>
+                                </Button>
+                                <BookingCtaButton
+                                    type="button"
+                                    variant="glass"
+                                    className="w-full"
+                                    onClick={() => openBooking('hero_agenda')}
+                                >
+                                    <CalendarDays className="h-5 w-5" />
                                     {t('booking.djset.cta_book_production')}
                                 </BookingCtaButton>
-                            </BookingCtaSection>
-                            <div className="w-full lg:mx-auto lg:max-w-md">
-                                <Button variant="glass" size="xl" className="w-full" asChild>
-                                    <a href="#sets">{t('booking.djset.cta_view_sets')}</a>
-                                </Button>
                             </div>
                         </div>
                     </div>
 
-                    <div className="hidden rounded-xl border border-white/15 bg-black/35 p-4 text-white shadow-2xl backdrop-blur-md md:mb-1 md:block">
+                    <aside className="rounded-xl border border-white/15 bg-black/42 p-4 text-white shadow-2xl backdrop-blur-md">
                         <p className="text-[10px] font-semibold uppercase tracking-[0.24em] text-primary">
                             {t('pages.djset.sidebar_badge')}
                         </p>
@@ -146,21 +230,22 @@ export default function DjSetShow({
                         <p className="mt-2 text-sm leading-relaxed text-white/70">
                             {t('pages.djset.sidebar_description')}
                         </p>
-                        <PaymentTrustOrTestMode
-                            variant="stripe"
-                            layout="compact"
-                            onDark
-                            className="mt-4"
-                        />
-                        <button
-                            type="button"
-                            onClick={openBooking}
-                            className="mt-5 flex w-full items-center justify-between rounded-lg border border-white/15 bg-white/10 px-4 py-3 text-left text-sm font-semibold text-white transition hover:bg-white/15 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                        <div className="mt-4 grid gap-2">
+                            <MiniSpec icon={<Clock3 className="h-4 w-4" />} text={t('pages.djset.sidebar_spec_recording')} />
+                            <MiniSpec icon={<Film className="h-4 w-4" />} text={t('pages.djset.sidebar_spec_edit')} />
+                            <MiniSpec icon={<Headphones className="h-4 w-4" />} text={t('pages.djset.sidebar_spec_audio')} />
+                        </div>
+                        <Button
+                            variant="glass"
+                            className="mt-5 w-full justify-between"
+                            asChild
                         >
-                            {t('booking.djset.cta_open_calendar')}
-                            <CalendarDays className="h-4 w-4 text-primary" />
-                        </button>
-                    </div>
+                            <a href="#sets">
+                                {t('booking.djset.cta_view_sets')}
+                                <ArrowRight className="h-4 w-4 text-primary" />
+                            </a>
+                        </Button>
+                    </aside>
                 </div>
             </section>
 
@@ -169,18 +254,14 @@ export default function DjSetShow({
                 title={t('pages.djset.showcase_title')}
                 description={t('pages.djset.showcase_description')}
             >
-                <BookingCtaSection className="pt-0 pb-4">
-                    <BookingCtaButton type="button" onClick={openBooking}>
-                        {t('booking.djset.cta_hold_date')}
-                        <ArrowRight className="h-5 w-5" />
-                    </BookingCtaButton>
-                </BookingCtaSection>
                 <MediaSalesBoard
                     images={portfolioImages}
                     videos={originals}
-                    djs={djs}
+                    reels={djSetReels}
                     price={price}
-                    onBook={openBooking}
+                    whatsappHref={whatsappHref}
+                    onWhatsApp={() => trackWhatsApp('showcase')}
+                    onBook={() => openBooking('showcase')}
                 />
             </GlassSection>
 
@@ -195,7 +276,61 @@ export default function DjSetShow({
                         <OfferPoint icon={<Camera className="h-5 w-5" />} title={t('pages.djset.offer_camera_title')} copy={t('pages.djset.offer_camera_copy')} />
                         <OfferPoint icon={<Drone className="h-5 w-5" />} title={t('pages.djset.offer_drone_title')} copy={t('pages.djset.offer_drone_copy')} />
                         <OfferPoint icon={<Film className="h-5 w-5" />} title={t('pages.djset.offer_delivery_title')} copy={t('pages.djset.offer_delivery_copy')} />
+                        <OfferPoint icon={<Waves className="h-5 w-5" />} title={t('pages.djset.offer_audio_title')} copy={t('pages.djset.offer_audio_copy')} />
                     </div>
+                </div>
+            </GlassSection>
+
+            <GlassSection
+                eyebrow={t('pages.djset.gear_eyebrow')}
+                title={t('pages.djset.gear_title')}
+                description={t('pages.djset.gear_description')}
+            >
+                <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+                    {GEAR_ITEMS.map(({ icon: Icon, titleKey, copyKey }) => (
+                        <OfferPoint
+                            key={titleKey}
+                            icon={<Icon className="h-5 w-5" />}
+                            title={t(titleKey)}
+                            copy={t(copyKey)}
+                        />
+                    ))}
+                </div>
+            </GlassSection>
+
+            {djSetReels.length > 0 && (
+                <GlassSection
+                    eyebrow={t('pages.djset.reels_eyebrow')}
+                    title={t('pages.djset.reels_title')}
+                    description={t('pages.djset.reels_description')}
+                >
+                    <LocalReelShowcase reels={djSetReels} />
+                </GlassSection>
+            )}
+
+            {originals.length > 0 && (
+                <GlassSection
+                    eyebrow={t('pages.djset.originals_eyebrow')}
+                    title={t('pages.djset.originals_title')}
+                    description={t('pages.djset.originals_description')}
+                >
+                    <OriginalsShowcase
+                        videos={originals}
+                        whatsappHref={whatsappHref}
+                        onWhatsApp={() => trackWhatsApp('originals')}
+                        onBook={() => openBooking('originals')}
+                    />
+                </GlassSection>
+            )}
+
+            <GlassSection
+                eyebrow={t('pages.djset.scope_eyebrow')}
+                title={t('pages.djset.scope_title')}
+                description={t('pages.djset.scope_description')}
+            >
+                <div className="grid gap-3 md:grid-cols-2">
+                    <ScopePoint icon={<CheckCircle2 className="h-5 w-5" />} title={t('pages.djset.scope_included_title')} copy={t('pages.djset.scope_included_copy')} />
+                    <ScopePoint muted icon={<SlidersHorizontal className="h-5 w-5" />} title={t('pages.djset.scope_not_included_title')} copy={t('pages.djset.scope_not_included_copy')} />
                 </div>
             </GlassSection>
 
@@ -212,16 +347,6 @@ export default function DjSetShow({
                 popupOriginals={originals}
             />
 
-            {originals.length > 0 && (
-                <GlassSection
-                    eyebrow={t('pages.djset.originals_eyebrow')}
-                    title={t('pages.djset.originals_title')}
-                    description={t('pages.djset.originals_description')}
-                >
-                    <OriginalsShowcase videos={originals} onBook={openBooking} />
-                </GlassSection>
-            )}
-
             <GlassSection
                 eyebrow={t('pages.djset.booking_eyebrow')}
                 title={t('pages.djset.booking_title')}
@@ -229,7 +354,7 @@ export default function DjSetShow({
             >
                 <PaymentTrustOrTestMode variant="stripe" layout="card" className="mb-5" />
                 <div className="grid gap-3 md:grid-cols-3">
-                    <ProcessPoint icon={<Radio className="h-5 w-5" />} title={t('pages.djset.process_step_1_title')} copy={t('pages.djset.process_step_1_copy')} />
+                    <ProcessPoint icon={<MessageCircle className="h-5 w-5" />} title={t('pages.djset.process_step_1_title')} copy={t('pages.djset.process_step_1_copy')} />
                     <ProcessPoint icon={<CreditCard className="h-5 w-5" />} title={t('pages.djset.process_step_2_title')} copy={t('pages.djset.process_step_2_copy')} />
                     <ProcessPoint icon={<CircleCheckBig className="h-5 w-5" />} title={t('pages.djset.process_step_3_title')} copy={t('pages.djset.process_step_3_copy')} />
                 </div>
@@ -242,7 +367,7 @@ export default function DjSetShow({
                     description={t('pages.djset.nightlife_description')}
                 >
                     {portfolioVideos.length > 0 && (
-                        <PortfolioVideoProof video={portfolioVideos[0]} images={galleryImages} onBook={openBooking} />
+                        <PortfolioVideoProof video={portfolioVideos[0]} images={galleryImages} />
                     )}
                     <PortfolioEditorialGrid images={galleryImages} />
                 </GlassSection>
@@ -273,6 +398,39 @@ export default function DjSetShow({
                     <Faq answer={t('pages.djset.faq_no_session_a')} question={t('pages.djset.faq_no_session_q')} />
                     <Faq answer={t('pages.djset.faq_drone_a')} question={t('pages.djset.faq_drone_q')} />
                     <Faq answer={t('pages.djset.faq_calendar_a')} question={t('pages.djset.faq_calendar_q')} />
+                    <Faq answer={t('pages.djset.faq_location_a')} question={t('pages.djset.faq_location_q')} />
+                </div>
+            </GlassSection>
+
+            <GlassSection
+                showHeader={false}
+                title={t('pages.djset.final_cta_title')}
+                className="text-center"
+            >
+                <div className="mx-auto flex max-w-2xl flex-col items-center gap-4 text-center">
+                    <h2 className="font-display text-2xl font-bold tracking-tight text-foreground md:text-3xl">
+                        {t('pages.djset.final_cta_title')}
+                    </h2>
+                    <p className="text-sm leading-relaxed text-muted-foreground md:text-base">
+                        {t('pages.djset.final_cta_description')}
+                    </p>
+                    <div className="flex w-full flex-col gap-3 sm:w-auto sm:flex-row">
+                        <Button variant="cinematic" size="xl" asChild>
+                            <a
+                                href={whatsappHref}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                onClick={() => trackWhatsApp('final')}
+                            >
+                                <MessageCircle className="h-5 w-5" />
+                                {t('pages.djset.cta_whatsapp')}
+                            </a>
+                        </Button>
+                        <BookingCtaButton type="button" variant="outline" onClick={() => openBooking('final')}>
+                            <CalendarDays className="h-5 w-5" />
+                            {t('booking.djset.cta_open_calendar')}
+                        </BookingCtaButton>
+                    </div>
                 </div>
             </GlassSection>
 
@@ -286,6 +444,15 @@ export default function DjSetShow({
     );
 }
 
+function MiniSpec({ icon, text }: { icon: ReactNode; text: string }) {
+    return (
+        <div className="flex items-start gap-2 rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm text-white/75">
+            <span className="mt-0.5 text-primary">{icon}</span>
+            <span>{text}</span>
+        </div>
+    );
+}
+
 function OfferPoint({
     icon,
     title,
@@ -296,11 +463,11 @@ function OfferPoint({
     copy: string;
 }) {
     return (
-        <div className="rounded-2xl border border-border/70 bg-secondary p-5">
+        <div className="rounded-xl border border-border/70 bg-secondary p-5">
             <span className="flex h-11 w-11 items-center justify-center rounded-xl border border-primary/25 bg-primary/10 text-primary">
                 {icon}
             </span>
-            <h3 className="mt-4 font-display text-xl font-bold text-foreground">{title}</h3>
+            <h3 className="mt-4 font-display text-lg font-bold text-foreground">{title}</h3>
             <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{copy}</p>
         </div>
     );
@@ -310,9 +477,35 @@ function ProcessPoint(props: { icon: ReactNode; title: string; copy: string }) {
     return <OfferPoint {...props} />;
 }
 
+function ScopePoint({
+    icon,
+    title,
+    copy,
+    muted = false,
+}: {
+    icon: ReactNode;
+    title: string;
+    copy: string;
+    muted?: boolean;
+}) {
+    return (
+        <article className="rounded-xl border border-border/70 bg-secondary p-5">
+            <span className={`flex h-11 w-11 items-center justify-center rounded-xl border ${
+                muted
+                    ? 'border-border/70 bg-muted text-muted-foreground'
+                    : 'border-primary/25 bg-primary/10 text-primary'
+            }`}>
+                {icon}
+            </span>
+            <h3 className="mt-4 font-display text-xl font-bold text-foreground">{title}</h3>
+            <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{copy}</p>
+        </article>
+    );
+}
+
 function Faq({ question, answer }: { question: string; answer: string }) {
     return (
-        <details className="rounded-2xl border border-border/70 bg-secondary p-5 open:border-primary/30">
+        <details className="rounded-xl border border-border/70 bg-secondary p-5 open:border-primary/30">
             <summary className="cursor-pointer list-none font-semibold text-foreground">{question}</summary>
             <p className="mt-3 text-sm leading-relaxed text-muted-foreground">{answer}</p>
         </details>
@@ -322,34 +515,48 @@ function Faq({ question, answer }: { question: string; answer: string }) {
 function MediaSalesBoard({
     images,
     videos,
-    djs,
+    reels,
     price,
+    whatsappHref,
+    onWhatsApp,
     onBook,
 }: {
     images: PortfolioItemData[];
     videos: VideoItem[];
-    djs: DjItem[];
+    reels: ReelLibraryEntry[];
     price: number;
+    whatsappHref: string;
+    onWhatsApp: () => void;
     onBook: () => void;
 }) {
     const { t } = useTranslations();
     const featuredVideo = videos.find((video) => video.thumbnail_url) ?? videos[0];
-    const supportingVideos = videos.filter((video) => video.id !== featuredVideo?.id).slice(0, 2);
-    const artistImage = djs.find((dj) => dj.cover_url || dj.avatar_url);
+    const featuredReel = reels[0];
+    const supportingReels = reels.slice(1, 3);
 
     return (
-        <div className="grid gap-3 lg:grid-cols-[minmax(0,1.25fr)_minmax(320px,0.75fr)]">
-            <article className="group relative min-h-[420px] overflow-hidden rounded-xl border border-border/70 bg-black text-white">
-                {featuredVideo?.thumbnail_url && (
+        <div className="grid gap-3 lg:grid-cols-[minmax(0,1.2fr)_minmax(320px,0.8fr)]">
+            <article className="group relative min-h-[440px] overflow-hidden rounded-xl border border-border/70 bg-black text-white">
+                {featuredReel ? (
+                    <video
+                        src={featuredReel.src}
+                        poster={featuredReel.poster ?? undefined}
+                        muted
+                        loop
+                        autoPlay
+                        playsInline
+                        className="absolute inset-0 h-full w-full object-cover opacity-80 transition duration-700 group-hover:scale-[1.03]"
+                    />
+                ) : featuredVideo?.thumbnail_url ? (
                     <img
                         src={featuredVideo.thumbnail_url}
                         alt=""
                         className="absolute inset-0 h-full w-full object-cover opacity-85 transition duration-700 group-hover:scale-[1.03]"
                         loading="lazy"
                     />
-                )}
+                ) : null}
                 <div className="absolute inset-0 bg-gradient-to-t from-black via-black/45 to-black/10" />
-                <div className="relative flex min-h-[420px] flex-col justify-between p-5 md:p-7">
+                <div className="relative flex min-h-[440px] flex-col justify-between p-5 md:p-7">
                     <div className="flex flex-wrap items-center justify-between gap-3">
                         <span className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-black/35 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.24em] backdrop-blur">
                             <Film className="h-3.5 w-3.5 text-primary" />
@@ -364,18 +571,25 @@ function MediaSalesBoard({
                         <h3 className="font-display text-3xl font-bold leading-tight md:text-4xl">
                             {t('pages.djset.sales_headline')}
                         </h3>
-                        <p className="mt-3 line-clamp-2 text-sm leading-relaxed text-white/70 md:text-base">
-                            {featuredVideo?.title ?? t('pages.djset.sales_fallback_title')}
+                        <p className="mt-3 text-sm leading-relaxed text-white/70 md:text-base">
+                            {featuredVideo?.title ?? featuredReel?.title ?? t('pages.djset.sales_fallback_title')}
                         </p>
-                        <div className="mt-5 space-y-4">
-                            <Button variant="glass" className="w-full sm:w-auto" asChild>
-                                <a href="#sets">{t('pages.djset.sales_cta_view_sessions')}</a>
+                        <div className="mt-5 flex flex-col gap-3 sm:flex-row">
+                            <Button variant="cinematic" asChild>
+                                <a
+                                    href={whatsappHref}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    onClick={onWhatsApp}
+                                >
+                                    <MessageCircle className="h-4 w-4" />
+                                    {t('pages.djset.cta_whatsapp_short')}
+                                </a>
                             </Button>
-                            <BookingCtaSection className="py-0">
-                                <BookingCtaButton type="button" onClick={onBook}>
-                                    {t('booking.djset.cta_reserve_recording')}
-                                </BookingCtaButton>
-                            </BookingCtaSection>
+                            <BookingCtaButton type="button" variant="glass" onClick={onBook}>
+                                <CalendarDays className="h-4 w-4" />
+                                {t('booking.djset.cta_reserve_recording')}
+                            </BookingCtaButton>
                         </div>
                     </div>
                 </div>
@@ -388,45 +602,22 @@ function MediaSalesBoard({
                     ))}
                 </div>
 
-                {artistImage && (
-                    <figure className="relative min-h-[210px] overflow-hidden rounded-xl border border-border/70 bg-secondary">
-                        <img
-                            src={artistImage.cover_url ?? artistImage.avatar_url ?? ''}
-                            alt={artistImage.name}
-                            className="absolute inset-0 h-full w-full object-cover"
-                            loading="lazy"
-                        />
-                    </figure>
-                )}
-
-                {supportingVideos.length > 0 && (
+                {supportingReels.length > 0 && (
                     <div className="grid gap-3 sm:col-span-2 sm:grid-cols-2 lg:col-span-1">
-                        {supportingVideos.map((video) => (
-                            <SalesVideoThumb key={video.id} video={video} />
+                        {supportingReels.map((reel) => (
+                            <ReelLoopCard
+                                key={reel.id}
+                                src={reel.src}
+                                poster={reel.poster}
+                                title={reel.title}
+                                bookingSource="djset_supporting_reel"
+                                articleClassName="min-h-[220px]"
+                            />
                         ))}
                     </div>
                 )}
             </div>
         </div>
-    );
-}
-
-function SalesVideoThumb({ video }: { video: VideoItem }) {
-    return (
-        <a
-            href="#sets"
-            className={`group relative min-h-[148px] text-white ${videoSurfaceFrameClass}`}
-        >
-            {video.thumbnail_url && (
-                <img
-                    src={video.thumbnail_url}
-                    alt=""
-                    className="absolute inset-0 h-full w-full object-cover opacity-90 transition duration-500 group-hover:scale-[1.04]"
-                    loading="lazy"
-                />
-            )}
-            <span className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent" />
-        </a>
     );
 }
 
@@ -450,6 +641,24 @@ function PortfolioPreview({ images }: { images: PortfolioItemData[] }) {
                     key={image.id}
                     image={image}
                     className={displayImages.length === 2 ? 'row-span-2 min-h-[360px]' : 'min-h-[174px]'}
+                />
+            ))}
+        </div>
+    );
+}
+
+function LocalReelShowcase({ reels }: { reels: ReelLibraryEntry[] }) {
+    return (
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+            {reels.slice(0, 4).map((reel, index) => (
+                <ReelLoopCard
+                    key={reel.id}
+                    src={reel.src}
+                    poster={reel.poster}
+                    title={reel.title}
+                    bookingSource="djset_local_reel"
+                    eager={index === 0}
+                    articleClassName={index === 0 ? 'lg:col-span-1' : ''}
                 />
             ))}
         </div>
@@ -483,11 +692,9 @@ function PortfolioEditorialGrid({ images }: { images: PortfolioItemData[] }) {
 function PortfolioVideoProof({
     video,
     images,
-    onBook,
 }: {
     video: PortfolioItemData;
     images: PortfolioItemData[];
-    onBook: () => void;
 }) {
     const { t } = useTranslations();
     const image = images[0];
@@ -540,11 +747,6 @@ function PortfolioVideoProof({
                     </div>
                 </div>
             </div>
-            <BookingCtaSection>
-                <BookingCtaButton type="button" onClick={onBook}>
-                    {t('pages.djset.cta_choose_date')}
-                </BookingCtaButton>
-            </BookingCtaSection>
         </div>
     );
 }
@@ -564,7 +766,7 @@ function PortfolioFrame({
         <figure className={`group relative overflow-hidden rounded-xl border border-border/70 bg-secondary ${className}`}>
             {(image.asset_url || image.poster_url) && (
                 <img
-                    src={image.asset_url ?? image.poster_url ?? ''}
+                    src={imageUrl(image)}
                     alt={image.title ?? t('pages.djset.portfolio_nightlife_alt')}
                     className="h-full w-full object-cover transition duration-700 group-hover:scale-[1.03]"
                     loading={priority ? 'eager' : 'lazy'}
@@ -574,7 +776,17 @@ function PortfolioFrame({
     );
 }
 
-function OriginalsShowcase({ videos, onBook }: { videos: VideoItem[]; onBook: () => void }) {
+function OriginalsShowcase({
+    videos,
+    whatsappHref,
+    onWhatsApp,
+    onBook,
+}: {
+    videos: VideoItem[];
+    whatsappHref: string;
+    onWhatsApp: () => void;
+    onBook: () => void;
+}) {
     const { t } = useTranslations();
     const playableVideos = videos.filter((video) => getYoutubeId(video));
     const [activeVideoId, setActiveVideoId] = useState(playableVideos[0]?.id);
@@ -611,12 +823,23 @@ function OriginalsShowcase({ videos, onBook }: { videos: VideoItem[]; onBook: ()
                 </div>
             </div>
 
-            <BookingCtaSection>
-                <BookingCtaButton type="button" onClick={onBook}>
+            <div className="flex flex-col gap-3 sm:flex-row sm:justify-center">
+                <Button variant="cinematic" asChild>
+                    <a
+                        href={whatsappHref}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        onClick={onWhatsApp}
+                    >
+                        <MessageCircle className="h-5 w-5" />
+                        {t('pages.djset.cta_whatsapp_short')}
+                    </a>
+                </Button>
+                <BookingCtaButton type="button" variant="outline" onClick={onBook}>
                     {t('pages.djset.cta_reserve_my_set')}
                     <ArrowRight className="h-5 w-5" />
                 </BookingCtaButton>
-            </BookingCtaSection>
+            </div>
 
             <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
                 {playableVideos.slice(0, 4).map((video) => (
@@ -665,6 +888,26 @@ function OriginalVideoCard({
             </span>
         </button>
     );
+}
+
+function imageUrl(item: PortfolioItemData): string {
+    return item.asset_url ?? item.poster_url ?? '';
+}
+
+function pickHeroImage(images: PortfolioItemData[]): PortfolioItemData | undefined {
+    return images.find((item) => {
+        const haystack = `${item.slug ?? ''} ${item.asset_url ?? ''} ${item.poster_url ?? ''}`.toLowerCase();
+
+        return HERO_IMAGE_KEYWORDS.some((keyword) => haystack.includes(keyword));
+    }) ?? images.find((item) => item.is_featured) ?? images[0];
+}
+
+function buildWhatsAppHref(number: string | undefined, message: string): string {
+    if (!number) {
+        return '#';
+    }
+
+    return `https://wa.me/${number}?text=${encodeURIComponent(message)}`;
 }
 
 function getYoutubeId(video: VideoItem) {

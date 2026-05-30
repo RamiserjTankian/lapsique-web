@@ -23,6 +23,13 @@ class ContentBookingCheckoutTest extends TestCase
 {
     use RefreshDatabase;
 
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        app()->setLocale('es');
+    }
+
     protected function createAvailableSlot(): BookingSlot
     {
         return BookingSlot::create([
@@ -56,7 +63,8 @@ class ContentBookingCheckoutTest extends TestCase
 
         $this->createAvailableSlot();
 
-        $this->get(route('home'))
+        $this->withSession(['locale' => 'es'])
+            ->get(route('home'))
             ->assertOk()
             ->assertInertia(fn ($page) => $page
                 ->component('Home')
@@ -225,6 +233,7 @@ class ContentBookingCheckoutTest extends TestCase
                 ->has('slots', 1)
                 ->has('originals', 1)
                 ->has('portfolioItems', 1)
+                ->has('djSetReels')
                 ->has('djs', 1)
             );
     }
@@ -263,7 +272,7 @@ class ContentBookingCheckoutTest extends TestCase
             $payload = $request->data();
 
             return $request->url() === 'https://api.stripe.com/v1/checkout/sessions'
-                && data_get($payload, 'line_items.0.price_data.product_data.name') === 'Grabación de DJ Set — 3 cámaras fijas + dron'
+                && data_get($payload, 'line_items.0.price_data.product_data.name') === 'Grabación de DJ Set — multicámara, Ronin, dron y audio 32-bit'
                 && data_get($payload, 'line_items.0.price_data.unit_amount') === 1200000
                 && data_get($payload, 'metadata.content_booking_public_id') === $booking->public_id;
         });

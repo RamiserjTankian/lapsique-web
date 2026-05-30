@@ -1,6 +1,33 @@
 <?php
 
 return [
+    'problem' => [
+        'section_eyebrow' => 'El problema',
+        'section_title' => 'El contenido amateur te hace perder clientes',
+        'section_description' => 'En el feed compites contra todo. Si tu marca se ve improvisada, el cliente asume que tu servicio también lo es y se va con quien se ve mejor.',
+        'point_scroll_title' => 'No detiene el scroll',
+        'point_scroll_copy' => 'Sin un gancho visual en los primeros segundos, tu anuncio pasa desapercibido y quemas presupuesto de pauta sin resultados.',
+        'point_cheap_title' => 'Tu marca parece barata',
+        'point_cheap_copy' => 'Fotos y videos genéricos transmiten poca seriedad. El cliente percibe menos valor y por eso regatea o no compra.',
+        'point_improvised_title' => 'Producción improvisada',
+        'point_improvised_copy' => 'Grabar sin guion ni dirección da material disperso que no vende. Acabas con horas de tomas que nunca usas.',
+    ],
+    'guarantee' => [
+        'section_eyebrow' => 'Sin riesgo',
+        'section_title' => 'Reservas con cero riesgo',
+        'section_description' => 'Pagas con la tranquilidad de que tu inversión está protegida en cada paso.',
+        'refund_title' => 'Reembolso del 100%',
+        'refund_copy' => 'Si pagas con tarjeta y no realizamos tu sesión según lo acordado, te devolvemos el 100%.',
+        'secure_title' => 'Pago seguro',
+        'secure_copy' => 'Checkout protegido con Stripe o Mercado Pago. Tus datos y tu pago siempre seguros.',
+        'reschedule_title' => 'Reagenda flexible',
+        'reschedule_copy' => 'Cambia tu fecha con 24 horas de anticipación, sin complicaciones ni cargos extra.',
+    ],
+    'urgency' => [
+        'badge' => 'Cupos limitados al mes',
+        'copy' => 'Solo tomamos un número limitado de producciones al mes para cuidar la calidad de cada entrega. Las fechas se asignan por orden de reserva: aparta la tuya antes de que se llene la agenda.',
+        'cta' => 'Apartar mi fecha ahora',
+    ],
     'offer' => [
         'default_subtitle' => 'Reel de :seconds s con :drone_shots tomas aéreas DJI y :photos_count fotos editadas. Producción dirigida con Sony full frame para pauta y redes.',
         'description' => 'Reel de :seconds s · cámara Sony + :drone_shots tomas aéreas con dron DJI + :photos_count fotografías editadas',
@@ -113,7 +140,7 @@ return [
         'stat_productions_title' => 'Producciones entregadas',
         'stat_productions_value' => '100+',
         'stat_clients_title' => 'Clientes únicos',
-        'stat_clients_value' => '50+',
+        'stat_clients_value' => '60+',
         'stat_local_title' => 'Experiencia en la región',
         'stat_local_value' => 'Riviera Maya',
     ],
@@ -138,7 +165,7 @@ return [
         'booking_home_caption' => 'Checkout seguro · entrega en días hábiles',
         'booking_djset_badge' => 'Reserva DJ set',
         'booking_djset_title' => 'Tu set, capturado como contenido principal',
-        'booking_djset_description' => '3 cámaras fijas, dron y video final de una hora listo para mostrar tu sonido.',
+        'booking_djset_description' => '2 cámaras fijas, Ronin, dron, audio 32-bit y 2 horas editadas al beat para mostrar tu sonido.',
         'booking_djset_caption' => 'Compra protegida · tarjeta · fecha real del equipo',
         'newsletter_djset_badge' => 'Comunidad Lapsique',
         'newsletter_djset_title' => 'Sets, fechas y la escena en tu inbox',
@@ -158,7 +185,7 @@ return [
     ],
     'whatsapp' => [
         'prefill_home' => 'Hola, vi lapsique.media y me gustaría platicar sobre una sesión de contenido para mi negocio.',
-        'prefill_djset' => 'Hola, vi la página de DJ sets y me interesa grabar mi set con Lapsique.',
+        'prefill_djset' => 'Hola, vi la página de DJ sets y me interesa grabar mi set con Lapsique. Quiero platicar locación, horario y cómo se vería mi sesión.',
         'bullet_1' => 'Resolvemos dudas de paquete, locación y tiempos de entrega.',
         'bullet_2' => 'Te orientamos si aún no tienes claro qué mostrar en tu reel.',
         'bullet_3' => 'Sin formularios: hablas directo con el equipo.',

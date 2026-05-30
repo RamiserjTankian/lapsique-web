@@ -190,14 +190,14 @@ class ContentBooking extends Model implements HasMedia
     public function getServiceDescriptionAttribute(): string
     {
         return $this->isDjSet()
-            ? 'Video final de 1 hora con 3 cámaras fijas + dron'
+            ? '2 horas de grabación editadas al beat con 2 cámaras fijas, 1 cámara móvil Ronin, dron y audio 32-bit'
             : ContentSessionOffer::description();
     }
 
     public function getServiceStripeNameAttribute(): string
     {
         return $this->isDjSet()
-            ? 'Grabación de DJ Set — 3 cámaras fijas + dron'
+            ? 'Grabación de DJ Set — multicámara, Ronin, dron y audio 32-bit'
             : ContentSessionOffer::stripeProductName();
     }
 

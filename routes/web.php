@@ -36,8 +36,10 @@ Route::get('/sesion-de-contenido/{publicId}/confirm', [ContentBookingController:
 Route::get('/sesion-de-contenido/{publicId}/pending', [ContentBookingController::class, 'pending'])->name('booking.pending');
 Route::get('/sesion-de-contenido/{publicId}/failure', [ContentBookingController::class, 'failure'])->name('booking.failure');
 Route::post('/sesion-de-contenido/{publicId}/retry', [ContentBookingController::class, 'retryPayment'])->name('booking.retry');
-Route::get('/djset', [ContentBookingController::class, 'showDjSet'])->name('djset.show');
-Route::post('/djset/checkout', [ContentBookingController::class, 'checkoutDjSet'])->name('djset.checkout');
+Route::get('/dj-set', [ContentBookingController::class, 'showDjSet'])->name('djset.show');
+Route::get('/djset', fn () => redirect()->route('djset.show', status: 301))->name('djset.legacy');
+Route::post('/dj-set/checkout', [ContentBookingController::class, 'checkoutDjSet'])->name('djset.checkout');
+Route::post('/djset/checkout', [ContentBookingController::class, 'checkoutDjSet'])->name('djset.checkout.legacy');
 
 Route::get('/djs', [DjController::class, 'index'])->name('djs.index');
 Route::get('/djs/{dj:slug}', [DjController::class, 'show'])->name('djs.show');

@@ -16,6 +16,7 @@ use App\Services\StripeService;
 use App\Support\BookingMode;
 use App\Support\ContentSessionOffer;
 use App\Support\LocalizedBookingCopy;
+use App\Support\ReelLibrary;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Arr;
@@ -90,11 +91,25 @@ class ContentBookingController extends Controller
             ->take(8)
             ->get();
 
+        $djSetReels = collect(ReelLibrary::all())
+            ->filter(fn (array $reel): bool => (bool) preg_match(
+                '/daymon|set|dj|rebolledo|satoshi|basement|pergola|aftermovie|bluepointrs|vatos|umi/i',
+                ($reel['title'] ?? '').' '.($reel['src'] ?? ''),
+            ))
+            ->take(8)
+            ->values()
+            ->all();
+
+        if ($djSetReels === []) {
+            $djSetReels = collect(ReelLibrary::all())->take(8)->values()->all();
+        }
+
         return Inertia::render('DjSet/Show', [
             'price' => (int) config('booking.dj_set_price', 12000),
             'slots' => BookingSlotResource::collection($data['slots'])->resolve(),
             'originals' => \App\Http\Resources\VideoResource::collection($originals)->resolve(),
             'portfolioItems' => \App\Http\Resources\PortfolioItemResource::collection($portfolioItems)->resolve(),
+            'djSetReels' => $djSetReels,
             'djs' => \App\Http\Resources\DjResource::collection($djs)->resolve(),
             'errors' => session('errors')?->getBag('default')?->getMessages() ?? [],
         ]);

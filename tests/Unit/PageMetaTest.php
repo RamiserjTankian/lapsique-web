@@ -15,6 +15,13 @@ class PageMetaTest extends TestCase
 {
     use RefreshDatabase;
 
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        app()->setLocale('es');
+    }
+
     public function test_booking_funnel_meta_includes_price_and_deliverables(): void
     {
         $settings = new SiteSetting([
@@ -102,10 +109,11 @@ class PageMetaTest extends TestCase
             'djset_og_image' => 'images/og/djset.jpg',
         ]);
 
-        $meta = PageMeta::forDjSet($settings, 'https://lapsique.media/djset');
+        $meta = PageMeta::forDjSet($settings, 'https://lapsique.media/dj-set');
 
         $this->assertSame('Grabación de DJ Set', $meta->title);
         $this->assertStringContainsString('12,000', $meta->description);
+        $this->assertStringContainsString('Ronin', $meta->description);
         $this->assertStringContainsString('images/og/djset.jpg', (string) $meta->ogImage);
         $this->assertStringNotContainsString('og-default.jpg', (string) $meta->ogImage);
     }
@@ -125,7 +133,7 @@ class PageMetaTest extends TestCase
         $item->addMedia(UploadedFile::fake()->image('dj.jpg', 1200, 630))
             ->toMediaCollection('asset');
 
-        $meta = PageMeta::forDjSet(null, 'https://lapsique.media/djset');
+        $meta = PageMeta::forDjSet(null, 'https://lapsique.media/dj-set');
 
         $this->assertStringContainsString('/storage/', (string) $meta->ogImage);
         $this->assertStringNotContainsString('og-default.jpg', (string) $meta->ogImage);
@@ -146,7 +154,7 @@ class PageMetaTest extends TestCase
         $video->addMedia(UploadedFile::fake()->image('thumb.jpg', 1280, 720))
             ->toMediaCollection('thumbnail');
 
-        $meta = PageMeta::forDjSet(null, 'https://lapsique.media/djset');
+        $meta = PageMeta::forDjSet(null, 'https://lapsique.media/dj-set');
 
         $this->assertStringContainsString('thumb', (string) $meta->ogImage);
         $this->assertStringNotContainsString('og-default.jpg', (string) $meta->ogImage);

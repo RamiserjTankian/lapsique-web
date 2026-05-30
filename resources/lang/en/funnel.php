@@ -1,6 +1,33 @@
 <?php
 
 return [
+    'problem' => [
+        'section_eyebrow' => 'The problem',
+        'section_title' => 'Amateur content is costing you clients',
+        'section_description' => 'In the feed you compete against everything. If your brand looks improvised, customers assume your service is too and move on to whoever looks better.',
+        'point_scroll_title' => "It doesn't stop the scroll",
+        'point_scroll_copy' => 'Without a visual hook in the first seconds, your ad goes unnoticed and you burn ad budget with no results.',
+        'point_cheap_title' => 'Your brand looks cheap',
+        'point_cheap_copy' => 'Generic photos and videos signal low seriousness. Customers perceive less value, so they haggle or never buy.',
+        'point_improvised_title' => 'Improvised production',
+        'point_improvised_copy' => 'Shooting without a script or direction yields scattered footage that does not sell. You end up with hours of takes you never use.',
+    ],
+    'guarantee' => [
+        'section_eyebrow' => 'No risk',
+        'section_title' => 'Book with zero risk',
+        'section_description' => 'You pay knowing your investment is protected every step of the way.',
+        'refund_title' => '100% refund',
+        'refund_copy' => 'If you pay by card and we do not run your session as agreed, we refund you 100%.',
+        'secure_title' => 'Secure payment',
+        'secure_copy' => 'Protected checkout with Stripe or Mercado Pago. Your data and payment are always safe.',
+        'reschedule_title' => 'Flexible rescheduling',
+        'reschedule_copy' => 'Change your date with 24 hours notice, no hassle and no extra charges.',
+    ],
+    'urgency' => [
+        'badge' => 'Limited slots per month',
+        'copy' => 'We only take a limited number of productions each month to protect the quality of every delivery. Dates are assigned on a first-booked basis: reserve yours before the calendar fills up.',
+        'cta' => 'Reserve my date now',
+    ],
     'offer' => [
         'default_subtitle' => ':seconds s reel with :drone_shots DJI aerial shots and :photos_count edited photos. Directed Sony full-frame production for ads and social.',
         'description' => ':seconds s reel · Sony camera + :drone_shots DJI aerial shots + :photos_count edited photos',
@@ -113,7 +140,7 @@ return [
         'stat_productions_title' => 'Delivered productions',
         'stat_productions_value' => '100+',
         'stat_clients_title' => 'Unique clients',
-        'stat_clients_value' => '50+',
+        'stat_clients_value' => '60+',
         'stat_local_title' => 'Regional experience',
         'stat_local_value' => 'Riviera Maya',
     ],
@@ -138,7 +165,7 @@ return [
         'booking_home_caption' => 'Secure checkout · delivery in business days',
         'booking_djset_badge' => 'Book DJ set',
         'booking_djset_title' => 'Your set, captured as main content',
-        'booking_djset_description' => '3 fixed cameras, drone, and a 1-hour final video ready to showcase your sound.',
+        'booking_djset_description' => '2 fixed cameras, Ronin, drone, 32-bit audio, and 2 hours edited to the beat to showcase your sound.',
         'booking_djset_caption' => 'Protected purchase · card · real crew calendar date',
         'newsletter_djset_badge' => 'Lapsique community',
         'newsletter_djset_title' => 'Sets, dates, and the scene in your inbox',
@@ -158,7 +185,7 @@ return [
     ],
     'whatsapp' => [
         'prefill_home' => 'Hi, I saw lapsique.media and would like to talk about a content session for my business.',
-        'prefill_djset' => "Hi, I saw the DJ sets page and I'm interested in recording my set with Lapsique.",
+        'prefill_djset' => "Hi, I saw the DJ sets page and I'm interested in recording my set with Lapsique. I want to discuss location, schedule, and how my session would look.",
         'bullet_1' => 'We answer questions about package, location, and delivery times.',
         'bullet_2' => "We guide you if you're not sure what to show in your reel.",
         'bullet_3' => 'No forms: you talk directly with the team.',

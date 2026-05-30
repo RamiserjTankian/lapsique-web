@@ -8,8 +8,8 @@ return [
     ],
     'djset' => [
         'title' => 'DJ set recording',
-        'description' => 'Record your DJ set with 3 fixed cameras and drone. One-hour final video for $:price MXN with online booking and payment.',
-        'keywords' => 'DJ set recording, DJ video, DJ set Tulum, 3 fixed cameras and drone, lapsique.media',
+        'description' => 'Record your DJ set for $:price MXN with 2 fixed cameras, Ronin, drone, 32-bit audio, Zoom mixer capture, and beat-led DaVinci editing.',
+        'keywords' => 'DJ set recording, DJ video, DJ set Tulum, Ronin, drone, 32-bit audio, S-Log3, lapsique.media',
         'og_alt' => 'DJ set recording — lapsique.media',
     ],
     'djs_index' => [

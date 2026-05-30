@@ -165,8 +165,8 @@ class SiteSettings extends Page implements HasSchemas
                             ->maxLength(30),
                     ]),
 
-                Section::make('Landing DJ Set (/djset)')
-                    ->description('Open Graph al compartir https://lapsique.media/djset en WhatsApp, Facebook, etc.')
+                Section::make('Landing DJ Set (/dj-set)')
+                    ->description('Open Graph al compartir https://lapsique.media/dj-set en WhatsApp, Facebook, etc.')
                     ->schema([
                         FileUpload::make('djset_og_image')
                             ->label('Imagen para compartir (Open Graph)')

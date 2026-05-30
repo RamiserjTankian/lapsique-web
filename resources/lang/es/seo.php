@@ -8,8 +8,8 @@ return [
     ],
     'djset' => [
         'title' => 'Grabación de DJ Set',
-        'description' => 'Graba tu DJ set con 3 cámaras fijas y dron. Video final de una hora por $:price MXN con agenda y pago en línea.',
-        'keywords' => 'grabación de DJ set, video DJ, DJ set Tulum, 3 cámaras fijas y dron, lapsique.media',
+        'description' => 'Graba tu DJ set por $:price MXN con 2 cámaras fijas, Ronin, dron, audio 32-bit, captura de mixer Zoom y edición al beat en DaVinci.',
+        'keywords' => 'grabación de DJ set, video DJ, DJ set Tulum, Ronin, dron, audio 32-bit, S-Log3, lapsique.media',
         'og_alt' => 'Grabación de DJ set — lapsique.media',
     ],
     'djs_index' => [
