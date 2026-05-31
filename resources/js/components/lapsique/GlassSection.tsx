@@ -14,6 +14,7 @@ interface GlassSectionProps {
     description?: string;
     children?: React.ReactNode;
     className?: string;
+    surfaceClassName?: string;
     action?: React.ReactNode;
     /** When false, only the surface wrapper is rendered (no title block). */
     showHeader?: boolean;
@@ -31,6 +32,7 @@ export function GlassSection({
     description,
     children,
     className,
+    surfaceClassName,
     action,
     showHeader = true,
     surface = 'glass',
@@ -50,7 +52,7 @@ export function GlassSection({
             variants={fadeUp}
             className={cn(landingSectionShellClass, className)}
         >
-            <div className={cn(surfaceClass, landingSectionInnerPaddingClass)}>
+            <div className={cn(surfaceClass, surfaceClassName, landingSectionInnerPaddingClass)}>
                 {showHeader ? (
                     <div className="relative z-10 mb-6 flex flex-wrap items-end justify-between gap-4 md:mb-8">
                         <div>

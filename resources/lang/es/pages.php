@@ -177,6 +177,7 @@ return [
         'artists_eyebrow' => 'Artistas',
         'artists_title' => 'DJs en la órbita de Lapsique',
         'artists_description' => 'Talento y proyectos con los que hemos documentado sesiones y presencia en escena.',
+        'artists_count' => ':count perfiles documentados',
         'faq_eyebrow' => 'FAQ',
         'faq_title' => 'Antes de reservar tu set',
         'faq_description' => 'Lo esencial para cerrar la grabación sin perder tiempo en una cotización manual.',

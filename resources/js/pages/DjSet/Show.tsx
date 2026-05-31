@@ -372,10 +372,17 @@ export default function DjSetShow({
                     eyebrow={t('pages.djset.artists_eyebrow')}
                     title={t('pages.djset.artists_title')}
                     description={t('pages.djset.artists_description')}
+                    action={
+                        <span className="inline-flex items-center gap-2 rounded-full border border-primary/25 bg-primary/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] text-primary">
+                            <Mic2 className="h-3.5 w-3.5" />
+                            {t('pages.djset.artists_count', { count: djs.length })}
+                        </span>
+                    }
+                    surfaceClassName="relative overflow-hidden border-primary/35 bg-[radial-gradient(circle_at_12%_18%,oklch(0.84_0.15_78/0.24),transparent_34%),radial-gradient(circle_at_88%_12%,oklch(0.76_0.12_205/0.18),transparent_34%),linear-gradient(135deg,oklch(0.99_0.01_93/0.96),oklch(0.91_0.05_245/0.78))] shadow-[0_26px_70px_oklch(0.24_0.04_250/0.16)]"
                 >
-                    <div className="grid grid-cols-3 gap-1 sm:grid-cols-4 md:grid-cols-6">
+                    <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
                         {djs.slice(0, 6).map((dj, index) => (
-                            <DjCard key={dj.id} dj={dj} index={index} />
+                            <DjCard key={dj.id} dj={dj} index={index} variant="spotlight" />
                         ))}
                     </div>
                 </GlassSection>

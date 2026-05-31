@@ -178,6 +178,7 @@ return [
         'artists_eyebrow' => 'Artists',
         'artists_title' => 'DJs in the Lapsique orbit',
         'artists_description' => 'Talent and projects we have documented on sessions and stage presence.',
+        'artists_count' => ':count documented profiles',
         'faq_eyebrow' => 'FAQ',
         'faq_title' => 'Before booking your set',
         'faq_description' => 'The essentials to close the recording without wasting time on a manual quote.',
