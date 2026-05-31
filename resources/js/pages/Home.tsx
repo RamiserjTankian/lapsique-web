@@ -1,5 +1,5 @@
 import { Link, usePage } from '@inertiajs/react';
-import { ArrowRight, CalendarDays, Clapperboard, Disc3, Music2 } from 'lucide-react';
+import { ArrowRight, CalendarDays, CheckCircle2, Clapperboard, Disc3, Music2 } from 'lucide-react';
 import { useEffect, useRef, type RefObject } from 'react';
 import { SeoHead } from '@/components/lapsique/SeoHead';
 import SiteLayout from '@/layouts/SiteLayout';
@@ -185,8 +185,6 @@ export default function Home({
                 onBook={openBooking}
             />
 
-            <DjSetHomeCta href={route('djset.show', undefined, false, ziggy)} />
-
             {/* 2. Problema/dolor — agita por qué el contenido genérico no vende */}
             <ProblemSection />
 
@@ -198,6 +196,16 @@ export default function Home({
                     seconds: CONTENT_REEL_DURATION_SECONDS,
                     drone_shots: CONTENT_DRONE_SHOTS,
                 })}
+                action={(
+                    <span className="inline-flex items-center gap-2 rounded-full border border-emerald-500/25 bg-emerald-500/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] text-emerald-700">
+                        <CheckCircle2 className="h-3.5 w-3.5" />
+                        {t('funnel.offer.market_fit_label')}
+                    </span>
+                )}
+                surfaceClassName="relative overflow-hidden border-emerald-500/25 shadow-[0_28px_80px_oklch(0.58_0.12_145/0.14)]"
+                surfaceStyle={{
+                    background: 'radial-gradient(circle at 12% 14%, oklch(0.82 0.13 145 / 0.22), transparent 33%), radial-gradient(circle at 88% 18%, oklch(0.84 0.15 78 / 0.2), transparent 30%), linear-gradient(135deg, oklch(0.995 0.01 96), oklch(0.94 0.04 140 / 0.9))',
+                }}
             >
                 <div className="relative z-[1]">
                     <PaymentTrustOrTestMode variant="stripe" layout="card" />
@@ -212,6 +220,8 @@ export default function Home({
                     </div>
                 </div>
             </GlassSection>
+
+            <DjSetHomeCta href={route('djset.show', undefined, false, ziggy)} />
 
             {/* 4. Prueba en video consolidada (antes 3 FeaturedReel separados) */}
             <FeaturedReel

@@ -6,7 +6,6 @@ import { getRecordingGearGroups, type RecordingGearGroup } from '@/data/recordin
 import { useSectionEvent } from '@/hooks/useSectionEvent';
 import { useTranslations } from '@/hooks/useTranslations';
 import { cn } from '@/lib/utils';
-import { solidCardVariants } from '@/lib/variants';
 import type { LandingVideoEntry } from '@/types';
 import type { LucideIcon } from 'lucide-react';
 
@@ -15,28 +14,6 @@ const GROUP_ICONS: Record<string, LucideIcon> = {
     cameras: Camera,
     lenses: Aperture,
     light: Zap,
-};
-
-const GROUP_STYLES: Record<
-    string,
-    { iconBadge: string; label: string }
-> = {
-    aerial: {
-        iconBadge: 'border-border/60 bg-muted text-muted-foreground',
-        label: 'text-foreground',
-    },
-    cameras: {
-        iconBadge: 'border-primary/35 bg-primary/10 text-primary',
-        label: 'text-foreground',
-    },
-    lenses: {
-        iconBadge: 'border-border/60 bg-muted text-muted-foreground',
-        label: 'text-foreground',
-    },
-    light: {
-        iconBadge: 'border-border/60 bg-muted text-muted-foreground',
-        label: 'text-foreground',
-    },
 };
 
 export function RecordingGearSection({
@@ -56,20 +33,21 @@ export function RecordingGearSection({
             eyebrow={t('funnel.gear.section_eyebrow')}
             title={t('funnel.gear.section_title')}
             description={t('funnel.gear.section_description')}
+            surfaceClassName="border-zinc-900 bg-zinc-950 text-white shadow-[0_28px_90px_rgb(0_0_0/0.28)] [&_.text-foreground]:text-white [&_.text-muted-foreground]:text-zinc-400 [&_.text-primary]:text-white"
         >
             <section ref={ref} id="equipo-grabacion" className="scroll-mt-24 space-y-6">
-                <div className="flex flex-wrap items-center justify-center gap-3 rounded-xl border border-border/70 bg-muted/30 px-4 py-3 sm:justify-start">
-                    <span className="inline-flex shrink-0 items-center rounded-lg border border-border/60 bg-white px-3 py-2 dark:bg-zinc-950">
+                <div className="flex flex-wrap items-center justify-center gap-3 rounded-2xl border border-white/15 bg-white/[0.04] px-4 py-4 shadow-[inset_0_1px_0_rgb(255_255_255/0.08)] sm:justify-start">
+                    <span className="inline-flex shrink-0 items-center rounded-xl border border-white/20 bg-white px-4 py-2">
                         <img
                             src="/images/equipment/sony-logo.svg"
                             alt="Sony"
-                            className="h-5 w-auto object-contain dark:invert"
+                            className="h-6 w-auto object-contain"
                             width={90}
                             height={16}
                         />
                     </span>
-                    <span className="hidden h-4 w-px bg-border sm:block" aria-hidden />
-                    <p className="text-center text-sm text-muted-foreground sm:text-left">
+                    <span className="hidden h-8 w-px bg-white/15 sm:block" aria-hidden />
+                    <p className="text-center text-sm text-zinc-300 sm:text-left">
                         {t('funnel.gear.summary')}
                     </p>
                 </div>
@@ -88,26 +66,24 @@ export function RecordingGearSection({
 
 function GearGroupCard({ group }: { group: RecordingGearGroup }) {
     const Icon = GROUP_ICONS[group.id] ?? Camera;
-    const styles = GROUP_STYLES[group.id] ?? GROUP_STYLES.cameras;
     const isLensGrid = group.id === 'lenses';
 
     return (
         <article
             className={cn(
-                solidCardVariants(),
-                'flex h-full flex-col gap-4 p-4 md:p-5',
+                'flex h-full flex-col gap-4 rounded-2xl border border-white/12 bg-white/[0.045] p-4 shadow-[inset_0_1px_0_rgb(255_255_255/0.08)] md:p-5',
             )}
         >
             <div className="flex items-center gap-3">
                 <span
                     className={cn(
                         'flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border',
-                        styles.iconBadge,
+                        'border-white/15 bg-white/[0.08] text-white',
                     )}
                 >
                     <Icon className="h-4 w-4" aria-hidden />
                 </span>
-                <h3 className={cn('text-sm font-semibold uppercase tracking-[0.18em]', styles.label)}>
+                <h3 className="text-sm font-semibold uppercase tracking-[0.18em] text-zinc-100">
                     {group.label}
                 </h3>
             </div>
@@ -136,29 +112,30 @@ function GearItem({
         <div
             className={cn(
                 'flex items-start gap-3 rounded-lg border border-border/60 bg-background/80 p-3',
+                'border-white/10 bg-black/35',
                 compact && 'flex-col gap-1.5 p-2.5',
             )}
         >
             {showImage && item.imageSrc ? (
-                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg border border-border/70 bg-secondary/80">
+                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg border border-white/15 bg-white/[0.08]">
                     <img
                         src={item.imageSrc}
                         alt=""
-                        className="h-8 w-8 object-contain"
+                        className="h-8 w-8 object-contain grayscale"
                         loading="lazy"
                     />
                 </div>
             ) : (
-                <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-muted font-mono-tabular text-xs font-bold text-foreground">
+                <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-white/10 font-mono-tabular text-xs font-bold text-white">
                     ×{item.quantity}
                 </span>
             )}
 
             <div className="min-w-0 flex-1">
-                <p className={cn('font-semibold leading-snug text-foreground', compact ? 'text-xs' : 'text-sm')}>
+                <p className={cn('font-semibold leading-snug text-white', compact ? 'text-xs' : 'text-sm')}>
                     {item.name}
                 </p>
-                <p className={cn('mt-0.5 text-muted-foreground', compact ? 'text-[11px] leading-snug' : 'text-xs')}>
+                <p className={cn('mt-0.5 text-zinc-400', compact ? 'text-[11px] leading-snug' : 'text-xs')}>
                     {item.spec}
                 </p>
             </div>

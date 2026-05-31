@@ -18,12 +18,6 @@ const STAT_ICONS: Record<string, LucideIcon> = {
     local: MapPin,
 };
 
-const STAT_ICON_STYLES: Record<string, string> = {
-    productions: 'border-amber-500/35 bg-amber-500/12 text-amber-600 dark:text-amber-400',
-    clients: 'border-sky-500/35 bg-sky-500/12 text-sky-600 dark:text-sky-400',
-    local: 'border-emerald-500/35 bg-emerald-500/12 text-emerald-600 dark:text-emerald-400',
-};
-
 function getPortfolioPreviewUrl(item: PortfolioItemData): string | null {
     return item.poster_url ?? item.asset_url ?? null;
 }
@@ -48,8 +42,12 @@ export function PortfolioTrustSection({
             eyebrow={t('funnel.trust.section_eyebrow')}
             title={t('funnel.trust.section_title')}
             description={t('funnel.trust.section_description')}
+            surfaceClassName="relative overflow-hidden border-amber-400/40 shadow-[0_28px_80px_oklch(0.62_0.13_75/0.2)]"
+            surfaceStyle={{
+                background: 'radial-gradient(circle at 15% 12%, oklch(0.86 0.16 82 / 0.35), transparent 34%), radial-gradient(circle at 84% 8%, oklch(0.78 0.13 72 / 0.2), transparent 30%), linear-gradient(135deg, oklch(0.995 0.01 90), oklch(0.9 0.07 82 / 0.92))',
+            }}
             action={
-                <Button variant="outline" size="sm" className="hidden sm:inline-flex" asChild>
+                <Button variant="outline" size="sm" className="hidden border-amber-500/40 bg-white/60 text-foreground hover:bg-amber-500/10 sm:inline-flex" asChild>
                     <Link href={route('portfolio.index', undefined, false, ziggy)}>
                         {t('funnel.trust.cta')}
                         <ArrowRight className="h-4 w-4" />
@@ -67,15 +65,13 @@ export function PortfolioTrustSection({
                                 key={stat.id}
                                 className={cn(
                                     solidCardVariants(),
-                                    'flex flex-col gap-3 p-4 md:p-5',
+                                    'flex flex-col gap-3 border-amber-400/35 bg-white/60 p-4 shadow-[0_16px_38px_oklch(0.55_0.12_75/0.1)] md:p-5',
                                 )}
                             >
                                 <div className="flex items-start gap-3">
                                     <span
                                         className={cn(
-                                            'flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border',
-                                            STAT_ICON_STYLES[stat.id]
-                                                ?? 'border-primary/20 bg-primary/10 text-primary',
+                                            'flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-amber-500/35 bg-amber-500/14 text-amber-700',
                                         )}
                                     >
                                         <Icon className="h-4 w-4" aria-hidden />
@@ -107,7 +103,7 @@ export function PortfolioTrustSection({
                                     href={route('portfolio.index', undefined, false, ziggy)}
                                     className={cn(
                                         glassCardVariants(),
-                                        'group relative aspect-[4/5] overflow-hidden',
+                                        'group relative aspect-[4/5] overflow-hidden border border-amber-300/35 shadow-[0_14px_32px_oklch(0.44_0.1_70/0.16)]',
                                     )}
                                 >
                                     <img
@@ -116,7 +112,7 @@ export function PortfolioTrustSection({
                                         className="absolute inset-0 h-full w-full object-cover transition duration-700 group-hover:scale-[1.05]"
                                         loading="lazy"
                                     />
-                                    <div className="absolute inset-0 bg-gradient-to-t from-black/45 via-transparent to-transparent opacity-80 transition group-hover:opacity-100" />
+                                    <div className="absolute inset-0 bg-gradient-to-t from-black/45 via-transparent to-amber-300/10 opacity-80 transition group-hover:opacity-100" />
                                 </Link>
                             );
                         })}

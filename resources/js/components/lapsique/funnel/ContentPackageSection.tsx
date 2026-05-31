@@ -1,6 +1,12 @@
 import { useMemo } from 'react';
 import { Clock3, Cloud, Film, Images, Plane } from 'lucide-react';
 import { GlassSection } from '@/components/lapsique/GlassSection';
+import {
+    Accordion,
+    AccordionContent,
+    AccordionItem,
+    AccordionTrigger,
+} from '@/components/ui/accordion';
 import { getContentPackageItems } from '@/data/contentPackage';
 import { useSectionEvent } from '@/hooks/useSectionEvent';
 import { useTranslations } from '@/hooks/useTranslations';
@@ -35,37 +41,51 @@ export function ContentPackageSection() {
             eyebrow={t('funnel.package.section_eyebrow')}
             title={t('funnel.package.section_title')}
             description={t('funnel.package.section_description')}
+            surfaceClassName="border-primary/20 bg-[linear-gradient(135deg,oklch(0.995_0.005_90),oklch(0.96_0.02_95))] shadow-[0_20px_56px_oklch(0.22_0.03_250/0.08)]"
         >
             <section
                 ref={ref}
                 id="que-incluye"
-                className="scroll-mt-24 grid gap-3 sm:grid-cols-2"
+                className="scroll-mt-24"
             >
-                {items.map((item) => {
-                    const Icon = ITEM_ICONS[item.id] ?? Film;
+                <Accordion type="single" collapsible className="grid gap-3 md:grid-cols-2">
+                    {items.map((item, index) => {
+                        const Icon = ITEM_ICONS[item.id] ?? Film;
 
-                    return (
-                        <article
-                            key={item.id}
-                            className={cn(solidCardVariants(), 'flex gap-3 p-4 md:p-5')}
-                        >
-                            <span
+                        return (
+                            <AccordionItem
+                                key={item.id}
+                                value={item.id}
                                 className={cn(
-                                    'flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border',
-                                    ITEM_ICON_STYLES[item.id] ?? 'border-primary/20 bg-primary/10 text-primary',
+                                    solidCardVariants(),
+                                    'overflow-hidden border-border/70 bg-white/75 px-4 shadow-sm data-[state=open]:border-primary/35 data-[state=open]:shadow-[0_18px_42px_oklch(0.66_0.14_75/0.12)]',
                                 )}
                             >
-                                <Icon className="h-4 w-4" aria-hidden />
-                            </span>
-                            <div className="min-w-0">
-                                <h3 className="text-base font-semibold text-foreground">{item.title}</h3>
-                                <p className="mt-1 text-sm leading-relaxed text-muted-foreground">
+                                <AccordionTrigger className="gap-4 py-4 text-left hover:no-underline">
+                                    <span
+                                        className={cn(
+                                            'flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border',
+                                            ITEM_ICON_STYLES[item.id] ?? 'border-primary/20 bg-primary/10 text-primary',
+                                        )}
+                                    >
+                                        <Icon className="h-4 w-4" aria-hidden />
+                                    </span>
+                                    <span className="min-w-0 flex-1">
+                                        <span className="block text-[10px] font-semibold uppercase tracking-[0.2em] text-primary">
+                                            {String(index + 1).padStart(2, '0')}
+                                        </span>
+                                        <span className="mt-1 block text-base font-semibold text-foreground">
+                                            {item.title}
+                                        </span>
+                                    </span>
+                                </AccordionTrigger>
+                                <AccordionContent className="pb-4 pl-14 text-sm leading-relaxed text-muted-foreground">
                                     {item.description}
-                                </p>
-                            </div>
-                        </article>
-                    );
-                })}
+                                </AccordionContent>
+                            </AccordionItem>
+                        );
+                    })}
+                </Accordion>
             </section>
         </GlassSection>
     );
