@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Event;
 use App\Models\TicketOrder;
 use App\Services\MercadoPagoService;
+use App\Services\Meta\MetaConversionsApiService;
 use App\Services\StripeService;
 use App\Services\TicketOrderService;
 use Illuminate\Http\RedirectResponse;
@@ -39,6 +40,8 @@ class TicketCheckoutController extends Controller
             'attendees.*.instagram_handle' => ['nullable', 'string', 'max:255'],
             'invite_token' => ['nullable', 'string', 'max:80'],
             'payment_provider' => ['nullable', 'string', 'in:mercadopago,stripe'],
+            'checkout_event_id' => ['nullable', 'string', 'max:80'],
+            'consent_terms' => ['accepted'],
         ]);
         $filled = static fn ($value): bool => $value !== null && $value !== '';
 
@@ -142,6 +145,7 @@ class TicketCheckoutController extends Controller
                 'referrer' => $request->input('referrer'),
                 'analytics_visitor_id' => $request->input('analytics_visitor_id'),
                 'analytics_session_id' => $request->input('analytics_session_id'),
+                'checkout_event_id' => $request->input('checkout_event_id'),
                 'fbp' => $request->input('fbp'),
                 'fbc' => $request->input('fbc'),
             ], $filled),
@@ -150,6 +154,7 @@ class TicketCheckoutController extends Controller
 
         try {
             $order = $orderService->createOrder($event, $items, $buyer, $context);
+            app(MetaConversionsApiService::class)->sendInitiateCheckoutForTicketOrder($order->fresh(['event', 'items']));
 
             if ($order->payment_provider === 'stripe') {
                 $session = $stripe->createCheckoutSession($order->load('items'));

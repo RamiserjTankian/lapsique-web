@@ -157,6 +157,7 @@ class ContentBookingPaymentService
                 ]);
                 $booking = $booking->fresh(['slot', 'customer']);
                 $this->afterConfirmed($booking);
+                app(CustomerJourneyInsightsService::class)->clearCache();
             }
 
             Log::info('ContentBooking confirmed', array_merge([
@@ -170,6 +171,9 @@ class ContentBookingPaymentService
             if ($booking->status === 'pending_payment') {
                 $booking->update(['status' => 'pending']);
             }
+
+            app(MetaConversionsApiService::class)->sendPaymentPendingForBooking($booking->fresh(['slot', 'customer']));
+            app(CustomerJourneyInsightsService::class)->clearCache();
 
             return $booking->fresh(['slot', 'customer']);
         }
@@ -192,6 +196,8 @@ class ContentBookingPaymentService
         }
 
         $booking->update(['status' => $status]);
+        app(MetaConversionsApiService::class)->sendPaymentFailedForBooking($booking->fresh(['slot', 'customer']));
+        app(CustomerJourneyInsightsService::class)->clearCache();
 
         return $booking->fresh(['slot', 'customer']);
     }

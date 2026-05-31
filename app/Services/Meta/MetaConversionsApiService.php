@@ -16,7 +16,10 @@ class MetaConversionsApiService
         return Meta::capiEnabled();
     }
 
-    public function sendLeadFromCustomer(Customer $customer, ?string $eventSourceUrl = null): void
+    /**
+     * @param  array<string, mixed>  $customData
+     */
+    public function sendLeadFromCustomer(Customer $customer, ?string $eventSourceUrl = null, array $customData = []): void
     {
         if (! $this->isEnabled()) {
             return;
@@ -29,10 +32,10 @@ class MetaConversionsApiService
             eventId: 'lead_customer_'.$customer->id,
             eventSourceUrl: $eventSourceUrl ?: (string) ($metadata['landing_url'] ?? $metadata['signup_page'] ?? config('app.url')),
             userData: $this->userDataFromCustomer($customer, $metadata),
-            customData: [
+            customData: array_filter(array_merge([
                 'content_category' => 'lead_capture',
                 'content_name' => $customer->source ?: 'popup',
-            ],
+            ], $customData)),
         );
     }
 
@@ -89,14 +92,48 @@ class MetaConversionsApiService
             eventId: 'ticket_order_'.$order->public_id,
             eventSourceUrl: (string) data_get($order->metadata, 'landing_url', config('app.url')),
             userData: $this->userDataFromTicketOrder($order),
-            customData: [
-                'currency' => $order->currency ?: 'MXN',
-                'value' => (float) $order->total,
-                'content_type' => 'product',
-                'content_ids' => [(string) $order->public_id],
-                'content_name' => $order->event?->name,
-            ],
+            customData: $this->ticketOrderCustomData($order),
         );
+    }
+
+    public function sendInitiateCheckoutForTicketOrder(TicketOrder $order): void
+    {
+        if (! $this->isEnabled()) {
+            return;
+        }
+
+        $this->sendEvent(
+            eventName: 'InitiateCheckout',
+            eventId: (string) data_get($order->metadata, 'checkout_event_id', 'ticket_checkout_'.$order->public_id),
+            eventSourceUrl: (string) data_get($order->metadata, 'landing_url', config('app.url')),
+            userData: $this->userDataFromTicketOrder($order),
+            customData: $this->ticketOrderCustomData($order),
+        );
+    }
+
+    public function sendPaymentPendingForTicketOrder(TicketOrder $order): void
+    {
+        $this->sendTicketLifecycleEvent($order, 'PaymentPending', 'ticket_payment_pending_'.$order->public_id);
+    }
+
+    public function sendPaymentFailedForTicketOrder(TicketOrder $order): void
+    {
+        $this->sendTicketLifecycleEvent($order, 'PaymentFailed', 'ticket_payment_failed_'.$order->public_id);
+    }
+
+    public function sendPaymentPendingForBooking(ContentBooking $booking): void
+    {
+        $this->sendBookingLifecycleEvent($booking, 'PaymentPending', 'booking_payment_pending_'.$booking->public_id);
+    }
+
+    public function sendPaymentFailedForBooking(ContentBooking $booking): void
+    {
+        $this->sendBookingLifecycleEvent($booking, 'PaymentFailed', 'booking_payment_failed_'.$booking->public_id);
+    }
+
+    public function sendBookingAbandonedForBooking(ContentBooking $booking): void
+    {
+        $this->sendBookingLifecycleEvent($booking, 'BookingAbandoned', 'booking_abandoned_'.$booking->public_id);
     }
 
     /**
@@ -227,6 +264,92 @@ class MetaConversionsApiService
             'content_name' => $booking->service_name,
             'content_category' => $booking->isDjSet() ? 'dj_set_booking' : 'content_booking',
         ];
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    protected function ticketOrderCustomData(TicketOrder $order): array
+    {
+        $order->loadMissing(['event', 'items']);
+
+        $productIds = $order->items
+            ->pluck('ticket_product_id')
+            ->filter()
+            ->map(fn ($id): string => (string) $id)
+            ->values()
+            ->all();
+
+        $contents = $order->items
+            ->map(fn ($item): array => [
+                'id' => (string) $item->ticket_product_id,
+                'quantity' => (int) $item->quantity,
+                'item_price' => (float) $item->unit_price,
+            ])
+            ->values()
+            ->all();
+
+        return [
+            'currency' => $order->currency ?: 'MXN',
+            'value' => (float) $order->total,
+            'content_type' => 'product',
+            'content_ids' => $productIds !== [] ? $productIds : [(string) $order->public_id],
+            'contents' => $contents,
+            'content_name' => $order->event?->title,
+            'content_category' => 'ticket_order',
+        ];
+    }
+
+    protected function sendTicketLifecycleEvent(TicketOrder $order, string $eventName, string $eventId): void
+    {
+        if (! $this->isEnabled()) {
+            return;
+        }
+
+        $metadata = is_array($order->metadata) ? $order->metadata : [];
+        $sentKey = 'capi_'.strtolower($eventName).'_sent';
+
+        if (! empty($metadata[$sentKey])) {
+            return;
+        }
+
+        $this->sendEvent(
+            eventName: $eventName,
+            eventId: $eventId,
+            eventSourceUrl: (string) data_get($metadata, 'landing_url', config('app.url')),
+            userData: $this->userDataFromTicketOrder($order),
+            customData: $this->ticketOrderCustomData($order),
+        );
+
+        $order->forceFill([
+            'metadata' => array_merge($metadata, [$sentKey => true]),
+        ])->save();
+    }
+
+    protected function sendBookingLifecycleEvent(ContentBooking $booking, string $eventName, string $eventId): void
+    {
+        if (! $this->isEnabled() || $this->isTestBooking($booking)) {
+            return;
+        }
+
+        $metadata = is_array($booking->metadata) ? $booking->metadata : [];
+        $sentKey = 'capi_'.strtolower($eventName).'_sent';
+
+        if (! empty($metadata[$sentKey])) {
+            return;
+        }
+
+        $this->sendEvent(
+            eventName: $eventName,
+            eventId: $eventId,
+            eventSourceUrl: $booking->landing_url ?: config('app.url'),
+            userData: $this->userDataFromBooking($booking),
+            customData: $this->purchaseCustomData($booking),
+        );
+
+        $booking->forceFill([
+            'metadata' => array_merge($metadata, [$sentKey => true]),
+        ])->save();
     }
 
     /**

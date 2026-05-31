@@ -18,7 +18,17 @@ export function trackNewsletterEvent(
     name: string,
     payload: Record<string, unknown> = {},
 ): void {
-    window.LapsiqueTracker?.track(name, payload);
+    const {
+        client_email: _clientEmail,
+        client_phone: _clientPhone,
+        client_name: _clientName,
+        customer_email: _customerEmail,
+        customer_phone: _customerPhone,
+        customer_name: _customerName,
+        ...internalPayload
+    } = payload;
+
+    window.LapsiqueTracker?.track(name, internalPayload);
 
     if (name === 'newsletter_form_submitted') {
         const eventID = typeof payload.event_id === 'string'

@@ -16,6 +16,7 @@ class VideosIndexTest extends TestCase
             'title' => 'Featured Set',
             'slug' => 'featured-set',
             'youtube_id' => 'abc123',
+            'youtube_url' => 'https://www.youtube.com/watch?v=abc123',
             'is_featured' => true,
             'priority' => 1,
             'tags' => ['live'],
@@ -25,6 +26,7 @@ class VideosIndexTest extends TestCase
             'title' => 'Second Video',
             'slug' => 'second-video',
             'youtube_id' => 'def456',
+            'youtube_url' => 'https://www.youtube.com/watch?v=def456',
             'priority' => 2,
             'tags' => [],
         ]);

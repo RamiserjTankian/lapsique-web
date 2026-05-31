@@ -5,7 +5,8 @@
         || $errors->has('buyer_email')
         || $errors->has('buyer_whatsapp')
         || $errors->has('buyer_instagram')
-        || $errors->has('payment_provider');
+        || $errors->has('payment_provider')
+        || $errors->has('consent_terms');
 
     $preselectedItems = request()->query('items');
     if (!is_array($preselectedItems)) {
@@ -37,6 +38,7 @@
 >
     @csrf
     <input type="hidden" name="invite_token" value="{{ $inviteToken }}">
+    <input type="hidden" name="checkout_event_id" value="{{ old('checkout_event_id') }}" data-ticket-checkout-event-id>
 
     {{-- Info de política --}}
     <div class="rounded-xl border border-amber-400/30 bg-amber-500/10 px-4 py-3 text-sm text-amber-200 space-y-1">
@@ -212,6 +214,17 @@
                     <p class="text-xs text-[#6B7F8E] leading-relaxed">
                         Al confirmar aceptas que el monto pagado se aplicará como crédito de consumo dentro del evento. Las reservaciones no son reembolsables.
                     </p>
+                    <label class="flex items-start gap-3 rounded-2xl border border-[#DED2BB] bg-white p-4 text-sm text-[#3D5066] shadow-sm">
+                        <input type="checkbox" name="consent_terms" value="1" class="mt-1" {{ old('consent_terms') ? 'checked' : '' }} required>
+                        <span>
+                            Acepto los
+                            <a href="{{ route('legal.terms') }}" target="_blank" class="font-semibold text-[#A97821] underline underline-offset-4">términos y condiciones</a>
+                            de compra, acceso y reservación.
+                            @error('consent_terms')
+                                <span class="mt-1 block text-xs text-red-600">{{ $message }}</span>
+                            @enderror
+                        </span>
+                    </label>
                 </div>
             </div>
 
@@ -244,6 +257,7 @@
                     const modal      = form.querySelector('[data-ticket-modal]');
                     const openBtn    = form.querySelector('[data-ticket-open]');
                     const submitBtn  = form.querySelector('[data-ticket-submit]');
+                    const checkoutEventInput = form.querySelector('[data-ticket-checkout-event-id]');
                     const openOnLoad = form.dataset.ticketOpenOnLoad === '1';
                     let addToCartSent = false;
                     let initiateCheckoutSent = false;
@@ -275,6 +289,26 @@
                         if (window.LapsiqueTracker && typeof window.LapsiqueTracker.track === 'function') {
                             window.LapsiqueTracker.track(name, options || {});
                         }
+                    }
+
+                    function generateEventId() {
+                        if (window.crypto && typeof window.crypto.randomUUID === 'function') {
+                            return 'ticket_checkout_' + window.crypto.randomUUID();
+                        }
+
+                        return 'ticket_checkout_' + Date.now() + '_' + Math.random().toString(36).slice(2);
+                    }
+
+                    function ensureCheckoutEventId() {
+                        if (!checkoutEventInput) {
+                            return null;
+                        }
+
+                        if (!checkoutEventInput.value) {
+                            checkoutEventInput.value = generateEventId();
+                        }
+
+                        return checkoutEventInput.value;
                     }
 
                     function updateSummary() {
@@ -319,13 +353,15 @@
 
                         const payload = buildCommercePayload();
                         if (!initiateCheckoutSent && payload.content_ids.length > 0) {
-                            window.trackMetaPixel('InitiateCheckout', payload);
+                            const checkoutEventId = ensureCheckoutEventId();
+                            window.trackMetaPixel('InitiateCheckout', payload, checkoutEventId ? { eventID: checkoutEventId } : undefined);
                             trackSiteEvent('checkout_started', {
                                 category: 'commerce',
                                 label: payload.content_name || 'ticket_checkout',
                                 value: payload.value,
                                 metadata: {
                                     content_ids: payload.content_ids,
+                                    checkout_event_id: checkoutEventId,
                                 },
                             });
                             initiateCheckoutSent = true;

@@ -47,7 +47,16 @@ class CustomerJourneyInsightsService
             ->get();
 
         $customers = Customer::query()
-            ->withCount(['analyticsSessions', 'analyticsPageviews', 'analyticsEvents', 'guestListEntries', 'ticketOrders', 'contentBookings'])
+            ->withCount([
+                'analyticsSessions',
+                'analyticsPageviews',
+                'analyticsEvents',
+                'guestListEntries',
+                'ticketOrders',
+                'contentBookings',
+                'ticketOrders as paid_ticket_orders_count' => fn ($query) => $query->where('status', 'paid'),
+                'contentBookings as confirmed_content_bookings_count' => fn ($query) => $query->where('status', 'confirmed'),
+            ])
             ->withSum(['ticketOrders as paid_ticket_revenue' => fn ($query) => $query->where('status', 'paid')], 'total')
             ->withSum(['contentBookings as confirmed_booking_revenue' => fn ($query) => $query->where('status', 'confirmed')], 'amount')
             ->where(function ($query) use ($since): void {
@@ -129,22 +138,45 @@ class CustomerJourneyInsightsService
     protected function funnel(Collection $sessions, Collection $engagedSessionIds, Collection $customers, int $checkoutCustomers, Collection $paidCustomerIds): array
     {
         $visitors = $sessions->pluck('visitor_id')->filter()->unique()->count();
-
-        return [
+        $rows = [
             ['stage' => 'Visitantes', 'count' => $visitors],
             ['stage' => 'Engaged', 'count' => $engagedSessionIds->count()],
             ['stage' => 'Leads identificados', 'count' => $customers->count()],
             ['stage' => 'Checkout / registro', 'count' => $checkoutCustomers],
             ['stage' => 'Clientes que pagan', 'count' => $paidCustomerIds->count()],
         ];
+        $previous = null;
+
+        return collect($rows)
+            ->map(function (array $row) use (&$previous, $visitors): array {
+                $count = (int) $row['count'];
+                $row['conversion_rate'] = $previous > 0 ? round(($count / $previous) * 100, 1) : null;
+                $row['visitor_rate'] = $visitors > 0 ? round(($count / $visitors) * 100, 1) : 0.0;
+                $previous = $count;
+
+                return $row;
+            })
+            ->all();
     }
 
     protected function sourceRows(Collection $sessions, Carbon $since): array
     {
+        $primarySourceByCustomer = $sessions
+            ->whereNotNull('customer_id')
+            ->sortBy('created_at')
+            ->groupBy('customer_id')
+            ->map(fn (Collection $items): string => $items->first()?->source_label
+                ?: $items->first()?->utm_source
+                ?: $items->first()?->referrer_domain
+                ?: 'direct');
+
         return $sessions
             ->groupBy(fn (AnalyticsSession $session): string => $session->source_label ?: $session->utm_source ?: $session->referrer_domain ?: 'direct')
-            ->map(function (Collection $items, string $source) use ($since): array {
-                $customerIds = $items->pluck('customer_id')->filter()->unique();
+            ->map(function (Collection $items, string $source) use ($since, $primarySourceByCustomer): array {
+                $allCustomerIds = $items->pluck('customer_id')->filter()->unique();
+                $customerIds = $allCustomerIds
+                    ->filter(fn ($customerId): bool => ($primarySourceByCustomer->get($customerId) ?? 'direct') === $source)
+                    ->values();
                 $ticketRevenue = TicketOrder::query()
                     ->whereIn('customer_id', $customerIds)
                     ->where('status', 'paid')
@@ -167,9 +199,10 @@ class CustomerJourneyInsightsService
                     'channel' => $items->first()?->source_type ?: 'direct',
                     'sessions' => $items->count(),
                     'visitors' => $items->pluck('visitor_id')->filter()->unique()->count(),
-                    'identified_leads' => $customerIds->count(),
+                    'identified_leads' => $allCustomerIds->count(),
+                    'customer_ids' => $allCustomerIds->values()->all(),
                     'revenue' => (float) $ticketRevenue + (float) $bookingRevenue,
-                    'lead_rate' => $items->count() > 0 ? round(($customerIds->count() / $items->count()) * 100, 1) : 0,
+                    'lead_rate' => $items->count() > 0 ? round(($allCustomerIds->count() / $items->count()) * 100, 1) : 0,
                 ];
             })
             ->sortByDesc('revenue')
@@ -205,10 +238,10 @@ class CustomerJourneyInsightsService
     {
         return $customers
             ->filter(function (Customer $customer): bool {
-                $paidOrders = (int) $customer->ticket_orders_count;
-                $bookings = (int) $customer->content_bookings_count;
+                $paidOrders = (int) $customer->paid_ticket_orders_count;
+                $bookings = (int) $customer->confirmed_content_bookings_count;
 
-                return ($paidOrders + $bookings) > 1 || (int) $customer->analytics_sessions_count > 1;
+                return ($paidOrders + $bookings) > 1;
             })
             ->count();
     }

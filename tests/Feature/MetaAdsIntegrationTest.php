@@ -14,6 +14,7 @@ use App\Services\Meta\MetaAttributionReportService;
 use App\Services\Meta\MetaConversionsApiService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Bus;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Schema;
@@ -284,6 +285,14 @@ class MetaAdsIntegrationTest extends TestCase
             'slug' => 'test-event-meta',
             'starts_at' => now()->addWeek(),
         ]);
+        $product = TicketProduct::create([
+            'event_id' => $event->id,
+            'name' => 'General',
+            'price' => 1500,
+            'currency' => 'MXN',
+            'stock' => 20,
+            'is_active' => true,
+        ]);
 
         $order = TicketOrder::create([
             'event_id' => $event->id,
@@ -301,10 +310,20 @@ class MetaAdsIntegrationTest extends TestCase
                 'fbc' => 'fb.1.123.click',
             ],
         ]);
+        TicketOrderItem::create([
+            'ticket_order_id' => $order->id,
+            'ticket_product_id' => $product->id,
+            'name' => 'General',
+            'quantity' => 1,
+            'unit_price' => 1500,
+            'total_price' => 1500,
+            'access_units' => 1,
+            'check_in_limit' => 1,
+        ]);
 
         $order->markAsPaid();
 
-        Http::assertSent(function ($request) use ($order) {
+        Http::assertSent(function ($request) use ($order, $event, $product) {
             $body = $request->data();
 
             return str_contains($request->url(), '/pixel123/events')
@@ -312,7 +331,102 @@ class MetaAdsIntegrationTest extends TestCase
                 && data_get($body, 'data.0.event_id') === 'ticket_order_'.$order->public_id
                 && data_get($body, 'data.0.user_data.external_id') === hash('sha256', 'ticket_order_'.$order->public_id)
                 && data_get($body, 'data.0.user_data.fbp') === 'fb.1.123.456'
+                && data_get($body, 'data.0.custom_data.content_name') === $event->title
+                && data_get($body, 'data.0.custom_data.content_ids') === [(string) $product->id]
                 && (float) data_get($body, 'data.0.custom_data.value') === 1500.0;
+        });
+    }
+
+    public function test_conversions_api_sends_initiate_checkout_for_ticket_order_with_browser_event_id(): void
+    {
+        $this->configureMetaCapi();
+
+        Http::fake([
+            'graph.facebook.com/*' => Http::response(['events_received' => 1]),
+        ]);
+
+        $event = Event::create([
+            'title' => 'Checkout Event',
+            'slug' => 'checkout-event-meta',
+            'starts_at' => now()->addWeek(),
+        ]);
+        $product = TicketProduct::create([
+            'event_id' => $event->id,
+            'name' => 'General',
+            'price' => 1200,
+            'currency' => 'MXN',
+            'stock' => 20,
+            'is_active' => true,
+        ]);
+        $order = TicketOrder::create([
+            'event_id' => $event->id,
+            'status' => 'pending',
+            'currency' => 'MXN',
+            'subtotal' => 1000,
+            'fee' => 200,
+            'total' => 1200,
+            'items_quantity' => 1,
+            'attendees_expected' => 1,
+            'buyer_name' => 'Buyer',
+            'buyer_email' => 'buyer@example.com',
+            'metadata' => ['checkout_event_id' => 'ticket_checkout_browser_123'],
+        ]);
+        TicketOrderItem::create([
+            'ticket_order_id' => $order->id,
+            'ticket_product_id' => $product->id,
+            'name' => 'General',
+            'quantity' => 1,
+            'unit_price' => 1200,
+            'total_price' => 1200,
+            'access_units' => 1,
+            'check_in_limit' => 1,
+        ]);
+
+        app(MetaConversionsApiService::class)->sendInitiateCheckoutForTicketOrder($order->fresh(['event', 'items']));
+
+        Http::assertSent(function ($request) use ($event, $product) {
+            $body = $request->data();
+
+            return data_get($body, 'data.0.event_name') === 'InitiateCheckout'
+                && data_get($body, 'data.0.event_id') === 'ticket_checkout_browser_123'
+                && data_get($body, 'data.0.custom_data.content_name') === $event->title
+                && data_get($body, 'data.0.custom_data.content_ids') === [(string) $product->id];
+        });
+    }
+
+    public function test_guestlist_registration_sends_capi_lead_with_guestlist_context(): void
+    {
+        Bus::fake();
+        $this->configureMetaCapi();
+
+        Http::fake([
+            'graph.facebook.com/*' => Http::response(['events_received' => 1]),
+        ]);
+
+        $event = Event::create([
+            'title' => 'Guestlist Event',
+            'slug' => 'guestlist-event-meta',
+            'starts_at' => now()->addWeek(),
+        ]);
+
+        $this->post(route('guestlist.store'), [
+            'event_id' => $event->id,
+            'full_name' => 'Guest Lead',
+            'email' => 'guest-lead@example.com',
+            'whatsapp' => '9991112233',
+            'accepts_emails' => 'on',
+            'landing_url' => 'https://lapsique.test/eventos/guestlist-event-meta',
+        ])->assertSessionHas('success');
+
+        $customer = Customer::where('email', 'guest-lead@example.com')->firstOrFail();
+
+        Http::assertSent(function ($request) use ($event, $customer) {
+            $body = $request->data();
+
+            return data_get($body, 'data.0.event_name') === 'Lead'
+                && data_get($body, 'data.0.event_id') === 'lead_customer_'.$customer->id
+                && data_get($body, 'data.0.custom_data.content_category') === 'guestlist'
+                && data_get($body, 'data.0.custom_data.content_name') === $event->title;
         });
     }
 

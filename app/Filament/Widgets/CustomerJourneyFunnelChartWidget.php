@@ -31,7 +31,11 @@ class CustomerJourneyFunnelChartWidget extends ChartWidget
                     ],
                 ],
             ],
-            'labels' => array_column($rows, 'stage'),
+            'labels' => collect($rows)
+                ->map(fn (array $row): string => $row['stage']
+                    .' · '.number_format((float) ($row['visitor_rate'] ?? 0), 1).'% visitantes'
+                    .(($row['conversion_rate'] ?? null) !== null ? ' · '.number_format((float) $row['conversion_rate'], 1).'% etapa' : ''))
+                ->all(),
         ];
     }
 

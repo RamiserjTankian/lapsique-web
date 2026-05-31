@@ -26,6 +26,7 @@ use App\Http\Controllers\VideoController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', [HomeController::class, 'index'])->name('home');
+Route::view('/terminos-y-condiciones', 'legal.terms')->name('legal.terms');
 
 // Content Booking Landing Page
 Route::get('/sesion-de-contenido', function () {

@@ -12,3 +12,8 @@ Schedule::command('meta:sync-campaign-insights')
     ->dailyAt('06:00')
     ->withoutOverlapping()
     ->onOneServer();
+
+Schedule::command('analytics:send-booking-abandoned-events --minutes=90 --limit=100')
+    ->hourly()
+    ->withoutOverlapping()
+    ->onOneServer();

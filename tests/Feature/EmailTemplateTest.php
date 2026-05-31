@@ -31,7 +31,7 @@ class EmailTemplateTest extends TestCase
         $this->assertStringContainsString(EmailBrand::WORDMARK, $html);
         $this->assertStringContainsString(EmailBrand::TAGLINE, $html);
         $this->assertStringContainsString('Ya estás dentro', $html);
-        $this->assertStringContainsString('DJ sets y escena', $html);
+        $this->assertStringContainsString('DJ sets', $html);
         $this->assertStringNotContainsString('Techno & Electronic Music', $html);
         $this->assertStringNotContainsString('Estamos emocionados', $html);
     }

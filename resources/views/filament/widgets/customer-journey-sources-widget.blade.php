@@ -17,7 +17,12 @@
                     @forelse($sources as $source)
                         <tr>
                             <td class="px-4 py-3">
-                                <div class="font-medium text-gray-900 dark:text-white">{{ $source['source'] }}</div>
+                                <a
+                                    href="{{ \App\Filament\Resources\Customers\CustomerResource::getUrl('index', ['tableSearch' => $source['source']]) }}"
+                                    class="font-medium text-primary-600 hover:text-primary-500 dark:text-primary-400 dark:hover:text-primary-300"
+                                >
+                                    {{ $source['source'] }}
+                                </a>
                                 <div class="text-xs text-gray-500 dark:text-gray-400">{{ $source['channel'] }}</div>
                             </td>
                             <td class="px-4 py-3 text-right text-gray-900 dark:text-white">{{ number_format((int) $source['sessions']) }}</td>

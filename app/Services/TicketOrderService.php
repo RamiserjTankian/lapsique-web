@@ -13,6 +13,7 @@ use App\Models\TicketAttendee;
 use App\Models\TicketOrder;
 use App\Models\TicketOrderItem;
 use App\Models\TicketProduct;
+use App\Services\Meta\MetaConversionsApiService;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -145,6 +146,8 @@ class TicketOrderService
                 );
             }
 
+            app(CustomerJourneyInsightsService::class)->clearCache();
+
             return $order->fresh(['items']);
         });
     }
@@ -175,8 +178,10 @@ class TicketOrderService
                     $this->creditCustomerBalance($order);
                     $this->sendCustomerPortalAccess($order);
                     $this->sendBuyerConfirmation($order);
+                    app(CustomerJourneyInsightsService::class)->clearCache();
                 } else {
                     $order->fill($payload)->save();
+                    app(CustomerJourneyInsightsService::class)->clearCache();
                 }
 
                 return $order->fresh();
@@ -184,6 +189,8 @@ class TicketOrderService
 
             if (in_array($status, ['pending', 'in_process'], true)) {
                 $order->markAsPending($payload);
+                app(MetaConversionsApiService::class)->sendPaymentPendingForTicketOrder($order->fresh(['event', 'items']));
+                app(CustomerJourneyInsightsService::class)->clearCache();
 
                 return $order->fresh();
             }
@@ -191,6 +198,8 @@ class TicketOrderService
             if ($status === 'cancelled') {
                 $this->releaseReservation($order);
                 $order->markAsCancelled($payload);
+                app(MetaConversionsApiService::class)->sendPaymentFailedForTicketOrder($order->fresh(['event', 'items']));
+                app(CustomerJourneyInsightsService::class)->clearCache();
 
                 return $order->fresh();
             }
@@ -198,6 +207,8 @@ class TicketOrderService
             if ($status === 'rejected') {
                 $this->releaseReservation($order);
                 $order->markAsFailed((string) data_get($payment, 'status_detail'), $payload);
+                app(MetaConversionsApiService::class)->sendPaymentFailedForTicketOrder($order->fresh(['event', 'items']));
+                app(CustomerJourneyInsightsService::class)->clearCache();
 
                 return $order->fresh();
             }
@@ -205,6 +216,7 @@ class TicketOrderService
             if (in_array($status, ['refunded', 'charged_back'], true)) {
                 $this->revertCustomerBalance($order);
                 $order->markAsRefunded($payload);
+                app(CustomerJourneyInsightsService::class)->clearCache();
 
                 return $order->fresh();
             }
@@ -243,8 +255,10 @@ class TicketOrderService
                     $this->creditCustomerBalance($order);
                     $this->sendCustomerPortalAccess($order);
                     $this->sendBuyerConfirmation($order);
+                    app(CustomerJourneyInsightsService::class)->clearCache();
                 } else {
                     $order->fill($payload)->save();
+                    app(CustomerJourneyInsightsService::class)->clearCache();
                 }
 
                 return $order->fresh();
@@ -252,6 +266,8 @@ class TicketOrderService
 
             if (in_array($intentStatus, ['processing', 'requires_action'], true) || $paymentStatus === 'unpaid') {
                 $order->markAsPending($payload);
+                app(MetaConversionsApiService::class)->sendPaymentPendingForTicketOrder($order->fresh(['event', 'items']));
+                app(CustomerJourneyInsightsService::class)->clearCache();
 
                 return $order->fresh();
             }
@@ -259,6 +275,8 @@ class TicketOrderService
             if (in_array($intentStatus, ['canceled', 'requires_payment_method'], true)) {
                 $this->releaseReservation($order);
                 $order->markAsFailed($intentStatus ?: $paymentStatus, $payload);
+                app(MetaConversionsApiService::class)->sendPaymentFailedForTicketOrder($order->fresh(['event', 'items']));
+                app(CustomerJourneyInsightsService::class)->clearCache();
 
                 return $order->fresh();
             }
@@ -293,8 +311,10 @@ class TicketOrderService
                     $this->creditCustomerBalance($order);
                     $this->sendCustomerPortalAccess($order);
                     $this->sendBuyerConfirmation($order);
+                    app(CustomerJourneyInsightsService::class)->clearCache();
                 } else {
                     $order->fill($payload)->save();
+                    app(CustomerJourneyInsightsService::class)->clearCache();
                 }
 
                 return $order->fresh();
@@ -302,6 +322,8 @@ class TicketOrderService
 
             if (in_array($status, ['processing', 'requires_action', 'requires_capture'], true)) {
                 $order->markAsPending($payload);
+                app(MetaConversionsApiService::class)->sendPaymentPendingForTicketOrder($order->fresh(['event', 'items']));
+                app(CustomerJourneyInsightsService::class)->clearCache();
 
                 return $order->fresh();
             }
@@ -309,6 +331,8 @@ class TicketOrderService
             if (in_array($status, ['canceled', 'requires_payment_method'], true)) {
                 $this->releaseReservation($order);
                 $order->markAsFailed($status, $payload);
+                app(MetaConversionsApiService::class)->sendPaymentFailedForTicketOrder($order->fresh(['event', 'items']));
+                app(CustomerJourneyInsightsService::class)->clearCache();
 
                 return $order->fresh();
             }
@@ -339,6 +363,7 @@ class TicketOrderService
             }
 
             $order->markAsRefunded($payload);
+            app(CustomerJourneyInsightsService::class)->clearCache();
 
             return $order->fresh(['items', 'attendees']);
         });

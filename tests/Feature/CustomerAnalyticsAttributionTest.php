@@ -191,4 +191,51 @@ class CustomerAnalyticsAttributionTest extends TestCase
         $booking = ContentBooking::where('client_email', 'booking@example.com')->firstOrFail();
         $this->assertSame($booking->customer_id, AnalyticsSession::where('session_id', $bookingSession)->firstOrFail()->customer_id);
     }
+
+    public function test_backfill_customer_analytics_identities_links_historical_rows(): void
+    {
+        $visitorId = (string) Str::uuid();
+        $sessionId = (string) Str::uuid();
+        $customer = Customer::create([
+            'name' => 'Historical Lead',
+            'email' => 'historical@example.com',
+            'status' => 'lead',
+            'metadata' => [
+                'guestlist_registration' => [
+                    'analytics_visitor_id' => $visitorId,
+                    'analytics_session_id' => $sessionId,
+                ],
+            ],
+        ]);
+
+        $session = AnalyticsSession::create([
+            'session_id' => $sessionId,
+            'visitor_id' => $visitorId,
+            'landing_path' => '/dj-set',
+            'last_seen_at' => now(),
+        ]);
+        $pageview = AnalyticsPageview::create([
+            'analytics_session_id' => $session->id,
+            'visitor_id' => $visitorId,
+            'url' => 'https://lapsique.test/dj-set',
+            'path' => '/dj-set',
+        ]);
+        $event = AnalyticsEvent::create([
+            'analytics_session_id' => $session->id,
+            'visitor_id' => $visitorId,
+            'name' => 'section_view',
+            'path' => '/dj-set',
+        ]);
+
+        $this->artisan('analytics:backfill-customer-identities')
+            ->assertExitCode(0);
+
+        $this->assertDatabaseHas('analytics_visitor_identities', [
+            'visitor_id' => $visitorId,
+            'customer_id' => $customer->id,
+        ]);
+        $this->assertSame($customer->id, $session->fresh()->customer_id);
+        $this->assertSame($customer->id, $pageview->fresh()->customer_id);
+        $this->assertSame($customer->id, $event->fresh()->customer_id);
+    }
 }

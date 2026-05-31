@@ -21,8 +21,21 @@
         Si estabas apartando una mesa o comprando tickets, puedes retomarlo desde el enlace de abajo sin volver a llenar todo.
     </p>
 
+    @if($manageUrl)
+        @include('emails.partials._button', ['url' => $manageUrl, 'label' => 'Retomar pago ahora'])
+    @endif
+
     <div class="card" style="{{ EmailBrand::cardStyle() }}">
         <h3 style="{{ EmailBrand::cardTitleStyle() }}">Tu compra pendiente</h3>
+        @if($event)
+            <p style="{{ EmailBrand::cardRowStyle() }}"><strong>Evento:</strong> {{ $event->title }}</p>
+            @if($event->starts_at)
+                <p style="{{ EmailBrand::cardRowStyle() }}"><strong>Fecha:</strong> {{ $event->starts_at->translatedFormat('d M Y · H:i') }}</p>
+            @endif
+            @if($event->venue)
+                <p style="{{ EmailBrand::cardRowStyle() }}"><strong>Lugar:</strong> {{ $event->venue }}</p>
+            @endif
+        @endif
         @foreach ($items as $item)
             <p style="{{ EmailBrand::cardRowStyle() }} display:flex;justify-content:space-between;">
                 <span><strong>{{ $item->quantity }} × {{ $item->name }}</strong></span>
@@ -43,7 +56,7 @@
     </div>
 
     @if($manageUrl)
-        @include('emails.partials._button', ['url' => $manageUrl, 'label' => 'Completar compra'])
+        @include('emails.partials._button', ['url' => $manageUrl, 'label' => 'Completar compra segura'])
     @endif
 
     <p style="{{ EmailBrand::paragraphStyle() }} margin-top:28px;">

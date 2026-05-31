@@ -5,8 +5,11 @@ namespace App\Http\Controllers;
 use App\Jobs\SendEventConfirmationJob;
 use App\Jobs\SendWelcomeEmailJob;
 use App\Models\Customer;
+use App\Models\Event;
 use App\Models\GuestListEntry;
 use App\Services\CustomerAnalyticsAttributionService;
+use App\Services\CustomerJourneyInsightsService;
+use App\Services\Meta\MetaConversionsApiService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
@@ -113,6 +116,18 @@ class GuestListController extends Controller
                 $request->input('analytics_session_id'),
                 'guestlist_registration',
             );
+
+            $event = Event::query()->find($validated['event_id']);
+            app(MetaConversionsApiService::class)->sendLeadFromCustomer(
+                $customer->fresh(),
+                $request->input('landing_url') ?: url()->previous(),
+                [
+                    'content_category' => 'guestlist',
+                    'content_name' => $event?->title,
+                    'content_ids' => [(string) $validated['event_id']],
+                ],
+            );
+            app(CustomerJourneyInsightsService::class)->clearCache();
 
             // Verificar si ya está registrado en este evento
             $existingEntry = GuestListEntry::where('customer_id', $customer->id)

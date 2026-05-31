@@ -61,6 +61,8 @@ class CustomerAnalyticsAttributionService
             ->whereIn('analytics_session_id', $sessionIds)
             ->orWhere('visitor_id', $visitorId)
             ->update(['customer_id' => $customer->id]);
+
+        app(CustomerJourneyInsightsService::class)->clearCache();
     }
 
     public function resolveCustomerId(?string $visitorId = null, ?string $sessionId = null): ?int

@@ -42,6 +42,10 @@ class WelcomeEmail extends Mailable
             view: 'emails.welcome',
             with: [
                 'customer' => $this->customer,
+                'variant' => $this->welcomeVariant(),
+                'ctaUrl' => $this->welcomeCtaUrl(),
+                'ctaLabel' => $this->welcomeCtaLabel(),
+                'language' => $this->preferredLanguage(),
                 'trackingToken' => $this->trackingToken,
                 'trackingPixelUrl' => route('email.track.open', ['token' => $this->trackingToken]),
                 'unsubscribeUrl' => route('customer.unsubscribe', ['email' => $this->customer->email]),
@@ -57,5 +61,49 @@ class WelcomeEmail extends Mailable
     public function attachments(): array
     {
         return [];
+    }
+
+    protected function welcomeVariant(): string
+    {
+        $source = strtolower((string) $this->customer->source);
+        $tags = collect($this->customer->tags ?? [])->map(fn ($tag): string => strtolower((string) $tag));
+
+        if (str_contains($source, 'dj') || $tags->contains('djs') || $tags->contains('dj_set')) {
+            return 'dj_set';
+        }
+
+        if (str_contains($source, 'guestlist') || str_contains($source, 'ticket') || $tags->contains('events')) {
+            return 'events';
+        }
+
+        return 'production';
+    }
+
+    protected function welcomeCtaUrl(): string
+    {
+        return match ($this->welcomeVariant()) {
+            'dj_set' => route('djset.show'),
+            'events' => route('events.index'),
+            default => route('booking.show'),
+        };
+    }
+
+    protected function welcomeCtaLabel(): string
+    {
+        $language = $this->preferredLanguage();
+
+        return match ($this->welcomeVariant()) {
+            'dj_set' => $language === 'en' ? 'See DJ set sessions' : 'Ver sesiones DJ set',
+            'events' => $language === 'en' ? 'See events and tickets' : 'Ver eventos y tickets',
+            default => $language === 'en' ? 'Book a content session' : 'Agendar sesión de contenido',
+        };
+    }
+
+    protected function preferredLanguage(): string
+    {
+        $metadata = is_array($this->customer->metadata) ? $this->customer->metadata : [];
+        $language = strtolower((string) ($metadata['language'] ?? $metadata['locale'] ?? 'es'));
+
+        return str_starts_with($language, 'en') ? 'en' : 'es';
     }
 }

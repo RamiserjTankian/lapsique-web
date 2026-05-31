@@ -70,7 +70,7 @@ class LocaleTest extends TestCase
 
         $title = LocalizedBookingCopy::title('Reels cinematográficos para negocios');
 
-        $this->assertSame('Cinematic reels for businesses', $title);
+        $this->assertSame('Cinematic reels that make your business sell', $title);
     }
 
     public function test_booking_hero_title_keeps_admin_copy_in_spanish(): void
