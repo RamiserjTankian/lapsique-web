@@ -378,7 +378,10 @@ export default function DjSetShow({
                             {t('pages.djset.artists_count', { count: djs.length })}
                         </span>
                     }
-                    surfaceClassName="relative overflow-hidden border-primary/35 bg-[radial-gradient(circle_at_12%_18%,oklch(0.84_0.15_78/0.24),transparent_34%),radial-gradient(circle_at_88%_12%,oklch(0.76_0.12_205/0.18),transparent_34%),linear-gradient(135deg,oklch(0.99_0.01_93/0.96),oklch(0.91_0.05_245/0.78))] shadow-[0_26px_70px_oklch(0.24_0.04_250/0.16)]"
+                    surfaceClassName="relative overflow-hidden border-primary/35 shadow-[0_26px_70px_oklch(0.24_0.04_250/0.16)]"
+                    surfaceStyle={{
+                        background: 'radial-gradient(circle at 12% 18%, oklch(0.84 0.15 78 / 0.24), transparent 34%), radial-gradient(circle at 88% 12%, oklch(0.76 0.12 205 / 0.18), transparent 34%), linear-gradient(135deg, oklch(0.99 0.01 93 / 0.96), oklch(0.91 0.05 245 / 0.78))',
+                    }}
                 >
                     <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
                         {djs.slice(0, 6).map((dj, index) => (
