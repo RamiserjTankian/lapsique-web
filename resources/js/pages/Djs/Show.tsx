@@ -1,12 +1,11 @@
 import { Head } from '@inertiajs/react';
 import { motion } from 'framer-motion';
 import SiteLayout from '@/layouts/SiteLayout';
-import { VideoCard } from '@/components/lapsique/VideoCard';
 import { DjGallery } from '@/components/lapsique/DjGallery';
 import { DjProfileSections } from '@/components/lapsique/DjProfileSections';
+import { DjVideoShowcase } from '@/components/lapsique/DjVideoShowcase';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useTranslations } from '@/hooks/useTranslations';
-import { fadeUp } from '@/lib/motion';
 import type { DjItem, VideoItem } from '@/types';
 
 interface DjsShowProps {
@@ -63,25 +62,11 @@ export function DjsShow({ dj, videos }: DjsShowProps) {
                 </div>
             </motion.div>
 
-            <DjProfileSections dj={dj} />
+            <DjProfileSections
+                dj={dj}
+                afterBio={videos.length > 0 ? <DjVideoShowcase videos={videos} /> : null}
+            />
             <DjGallery images={dj.gallery ?? []} djName={dj.name} />
-
-            {videos.length > 0 && (
-                <motion.section
-                    variants={fadeUp}
-                    initial="hidden"
-                    whileInView="visible"
-                    viewport={{ once: true }}
-                    className="pb-16"
-                >
-                    <h2 className="font-display mb-6 text-xl font-semibold">{t('pages.djs.sets_videos')}</h2>
-                    <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                        {videos.map((video) => (
-                            <VideoCard key={video.id} video={video} />
-                        ))}
-                    </div>
-                </motion.section>
-            )}
         </SiteLayout>
     );
 }

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, type ReactNode } from 'react';
 import { AtSign, Globe, Music2, Video } from 'lucide-react';
 import {
     Accordion,
@@ -15,9 +15,10 @@ const BIO_CLAMP_LENGTH = 280;
 
 interface DjProfileSectionsProps {
     dj: DjItem;
+    afterBio?: ReactNode;
 }
 
-export function DjProfileSections({ dj }: DjProfileSectionsProps) {
+export function DjProfileSections({ dj, afterBio }: DjProfileSectionsProps) {
     const { t } = useTranslations();
     const [bioExpanded, setBioExpanded] = useState(false);
     const bio = dj.bio?.trim() ?? '';
@@ -67,6 +68,8 @@ export function DjProfileSections({ dj }: DjProfileSectionsProps) {
                     )}
                 </section>
             )}
+
+            {afterBio}
 
             {links.length > 0 && (
                 <section>
