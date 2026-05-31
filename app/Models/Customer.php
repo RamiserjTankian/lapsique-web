@@ -119,6 +119,26 @@ class Customer extends Authenticatable implements CanResetPasswordContract
         return $this->hasMany(ContentBooking::class);
     }
 
+    public function analyticsIdentities(): HasMany
+    {
+        return $this->hasMany(AnalyticsVisitorIdentity::class);
+    }
+
+    public function analyticsSessions(): HasMany
+    {
+        return $this->hasMany(AnalyticsSession::class);
+    }
+
+    public function analyticsPageviews(): HasMany
+    {
+        return $this->hasMany(AnalyticsPageview::class);
+    }
+
+    public function analyticsEvents(): HasMany
+    {
+        return $this->hasMany(AnalyticsEvent::class);
+    }
+
     // Métodos de utilidad
     public function updateLastInteraction(): void
     {

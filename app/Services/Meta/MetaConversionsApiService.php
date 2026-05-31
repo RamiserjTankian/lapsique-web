@@ -166,6 +166,7 @@ class MetaConversionsApiService
         return array_filter([
             'em' => $this->hash($customer->email),
             'ph' => $this->hashPhone($customer->phone ?: $customer->whatsapp),
+            'external_id' => $this->hash('customer_'.$customer->id),
             'client_ip_address' => $customer->ip_address,
             'client_user_agent' => $customer->user_agent,
             'fbc' => $metadata['fbc'] ?? null,
@@ -205,6 +206,7 @@ class MetaConversionsApiService
         return array_filter([
             'em' => $this->hash($order->buyer_email),
             'ph' => $this->hashPhone($order->buyer_phone ?: $order->buyer_whatsapp),
+            'external_id' => $this->hash('ticket_order_'.$order->public_id),
             'client_ip_address' => $order->ip_address,
             'client_user_agent' => $order->user_agent,
             'fbc' => data_get($order->metadata, 'fbc'),

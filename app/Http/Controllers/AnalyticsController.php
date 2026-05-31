@@ -6,15 +6,19 @@ use App\Models\AnalyticsEvent;
 use App\Models\AnalyticsPageview;
 use App\Models\AnalyticsSession;
 use App\Services\AnalyticsSessionEnrichmentService;
+use App\Services\CustomerAnalyticsAttributionService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Str;
 
 class AnalyticsController extends Controller
 {
-    public function collect(Request $request, AnalyticsSessionEnrichmentService $enrichmentService)
-    {
-        if (!config('analytics.enabled', true)) {
+    public function collect(
+        Request $request,
+        AnalyticsSessionEnrichmentService $enrichmentService,
+        CustomerAnalyticsAttributionService $attributionService,
+    ) {
+        if (! config('analytics.enabled', true)) {
             return response()->noContent();
         }
 
@@ -30,7 +34,7 @@ class AnalyticsController extends Controller
 
         $type = $payload['type'] ?? null;
 
-        if (!in_array($type, ['pageview', 'event', 'heartbeat'], true)) {
+        if (! in_array($type, ['pageview', 'event', 'heartbeat'], true)) {
             return response()->noContent();
         }
 
@@ -40,6 +44,8 @@ class AnalyticsController extends Controller
         if (! $this->isValidUuid($sessionId) || ! $this->isValidUuid($visitorId)) {
             return response()->noContent();
         }
+
+        $customerId = $attributionService->resolveCustomerId($visitorId, $sessionId);
 
         $url = $this->sanitizeString($payload['url'] ?? null, 2048);
         $path = $this->sanitizePath($payload['path'] ?? null, $url);
@@ -62,6 +68,7 @@ class AnalyticsController extends Controller
             [
                 'visitor_id' => $visitorId,
                 'user_id' => auth()->id(),
+                'customer_id' => $customerId,
                 'ip_address' => $ipAddress,
                 'ip_hash' => $ipHash,
                 'user_agent' => $userAgent,
@@ -86,6 +93,7 @@ class AnalyticsController extends Controller
         $session->fill([
             'last_seen_at' => now(),
             'user_id' => $session->user_id ?? auth()->id(),
+            'customer_id' => $session->customer_id ?? $customerId,
             'language' => $session->language ?? $language,
             'device_type' => $session->device_type ?? $deviceType,
             'browser' => $session->browser ?? $browser,
@@ -114,6 +122,7 @@ class AnalyticsController extends Controller
                 'analytics_session_id' => $session->id,
                 'visitor_id' => $visitorId,
                 'user_id' => auth()->id(),
+                'customer_id' => $session->customer_id,
                 'url' => $url ?? '',
                 'path' => $path,
                 'title' => $this->sanitizeString($payload['title'] ?? null, 255),
@@ -147,6 +156,7 @@ class AnalyticsController extends Controller
             'analytics_pageview_id' => $pageviewId,
             'visitor_id' => $visitorId,
             'user_id' => auth()->id(),
+            'customer_id' => $session->customer_id,
             'name' => $this->sanitizeString($event['name'] ?? 'event', 50) ?? 'event',
             'category' => $this->sanitizeString($event['category'] ?? null, 50),
             'label' => $this->sanitizeString($event['label'] ?? null, 255),
@@ -169,7 +179,7 @@ class AnalyticsController extends Controller
     {
         $payload = $request->json()->all();
 
-        if (!empty($payload)) {
+        if (! empty($payload)) {
             return $payload;
         }
 
@@ -204,17 +214,17 @@ class AnalyticsController extends Controller
         $visitorId = (string) ($payload['visitor_id'] ?? '');
 
         if ($sampleRate < 1 && $visitorId !== '') {
-            $hash = abs(crc32($visitorId)) / 0xffffffff;
+            $hash = abs(crc32($visitorId)) / 0xFFFFFFFF;
             if ($hash > $sampleRate) {
                 return true;
             }
         }
 
-        if (($payload['type'] ?? null) === 'event' && !config('analytics.track_events', true)) {
+        if (($payload['type'] ?? null) === 'event' && ! config('analytics.track_events', true)) {
             return true;
         }
 
-        if (($payload['type'] ?? null) === 'pageview' && !config('analytics.track_pageviews', true)) {
+        if (($payload['type'] ?? null) === 'pageview' && ! config('analytics.track_pageviews', true)) {
             return true;
         }
 
@@ -223,7 +233,7 @@ class AnalyticsController extends Controller
 
     protected function isValidUuid(?string $value): bool
     {
-        if (!is_string($value)) {
+        if (! is_string($value)) {
             return false;
         }
 
@@ -255,7 +265,7 @@ class AnalyticsController extends Controller
 
     protected function sanitizeMetadata($metadata): ?array
     {
-        if (!is_array($metadata)) {
+        if (! is_array($metadata)) {
             return null;
         }
 
@@ -297,7 +307,7 @@ class AnalyticsController extends Controller
 
     protected function extractDomain(?string $url): ?string
     {
-        if (!$url) {
+        if (! $url) {
             return null;
         }
 
@@ -306,7 +316,7 @@ class AnalyticsController extends Controller
 
     protected function detectDeviceType(?string $userAgent): ?string
     {
-        if (!$userAgent) {
+        if (! $userAgent) {
             return null;
         }
 
@@ -329,7 +339,7 @@ class AnalyticsController extends Controller
 
     protected function detectBrowser(?string $userAgent): ?string
     {
-        if (!$userAgent) {
+        if (! $userAgent) {
             return null;
         }
 
@@ -347,7 +357,7 @@ class AnalyticsController extends Controller
 
     protected function detectOs(?string $userAgent): ?string
     {
-        if (!$userAgent) {
+        if (! $userAgent) {
             return null;
         }
 
@@ -370,22 +380,24 @@ class AnalyticsController extends Controller
 
     protected function resolveIp(?string $ip): ?string
     {
-        if (!$ip) {
+        if (! $ip) {
             return null;
         }
 
-        if (!config('analytics.anonymize_ip', true)) {
+        if (! config('analytics.anonymize_ip', true)) {
             return $ip;
         }
 
         if (filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_IPV6)) {
             $parts = explode(':', $ip);
-            return implode(':', array_slice($parts, 0, 4)) . '::';
+
+            return implode(':', array_slice($parts, 0, 4)).'::';
         }
 
         if (filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4)) {
             $parts = explode('.', $ip);
             $parts[3] = '0';
+
             return implode('.', $parts);
         }
 
@@ -394,10 +406,10 @@ class AnalyticsController extends Controller
 
     protected function hashIp(?string $ip): ?string
     {
-        if (!$ip) {
+        if (! $ip) {
             return null;
         }
 
-        return hash('sha256', $ip . config('app.key'));
+        return hash('sha256', $ip.config('app.key'));
     }
 }

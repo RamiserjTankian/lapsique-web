@@ -97,8 +97,50 @@ class ContentBookingInfolist
             Section::make('Atribución y Analytics')
                 ->columns(2)
                 ->collapsible()
-                ->collapsed()
                 ->schema([
+                    TextEntry::make('analytics_summary')
+                        ->label('Resumen de sesión')
+                        ->state(function ($record): string {
+                            $session = $record->analytics_session_id
+                                ? \App\Models\AnalyticsSession::query()
+                                    ->where('session_id', $record->analytics_session_id)
+                                    ->withCount(['pageviews', 'events'])
+                                    ->first()
+                                : null;
+
+                            if (! $session) {
+                                return 'Sin sesión web asociada.';
+                            }
+
+                            $source = $session->source_label ?: $session->utm_source ?: $session->referrer_domain ?: 'Directo';
+
+                            return $source.' · '.$session->pageviews_count.' pageviews · '.$session->events_count.' eventos';
+                        })
+                        ->columnSpanFull(),
+                    TextEntry::make('analytics_journey')
+                        ->label('Journey antes de reservar')
+                        ->state(function ($record): string {
+                            if (! $record->analytics_session_id) {
+                                return '—';
+                            }
+
+                            $session = \App\Models\AnalyticsSession::query()
+                                ->where('session_id', $record->analytics_session_id)
+                                ->with(['pageviews' => fn ($query) => $query->orderBy('created_at')])
+                                ->first();
+
+                            if (! $session) {
+                                return '—';
+                            }
+
+                            return $session->pageviews
+                                ->pluck('path')
+                                ->filter()
+                                ->unique()
+                                ->take(8)
+                                ->implode(' -> ') ?: '—';
+                        })
+                        ->columnSpanFull(),
                     TextEntry::make('utm_source')->label('UTM Source')->placeholder('—'),
                     TextEntry::make('utm_medium')->label('UTM Medium')->placeholder('—'),
                     TextEntry::make('utm_campaign')->label('UTM Campaign')->placeholder('—'),

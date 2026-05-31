@@ -13,6 +13,7 @@ class TicketOrdersTable
     {
         return $table
             ->defaultSort('created_at', 'desc')
+            ->modifyQueryUsing(fn ($query) => $query->with(['customer.analyticsSessions', 'event']))
             ->columns([
                 TextColumn::make('event.title')
                     ->label('Evento')
@@ -32,6 +33,12 @@ class TicketOrdersTable
                     ->label('Email')
                     ->searchable()
                     ->copyable(),
+                TextColumn::make('customer.analytics_sessions_count')
+                    ->label('Visitas web')
+                    ->state(fn ($record) => $record->customer?->analyticsSessions?->count() ?? 0)
+                    ->badge()
+                    ->color(fn ($state) => (int) $state > 1 ? 'success' : 'gray')
+                    ->toggleable(),
                 TextColumn::make('status')
                     ->label('Estado')
                     ->badge()
@@ -51,6 +58,20 @@ class TicketOrdersTable
                 TextColumn::make('attendees_expected')
                     ->label('Esperados')
                     ->sortable(),
+                TextColumn::make('attribution_source')
+                    ->label('Origen')
+                    ->state(fn ($record) => $record->utm_source ?: data_get($record->metadata, 'referrer') ?: data_get($record->metadata, 'invite_name') ?: 'Directo')
+                    ->limit(24)
+                    ->badge()
+                    ->color('info')
+                    ->toggleable(),
+                TextColumn::make('analytics_session')
+                    ->label('Sesión')
+                    ->state(fn ($record) => data_get($record->metadata, 'analytics_session_id'))
+                    ->placeholder('—')
+                    ->limit(10)
+                    ->copyable()
+                    ->toggleable(isToggledHiddenByDefault: true),
                 TextColumn::make('created_at')
                     ->label('Creado')
                     ->dateTime('d M Y H:i')

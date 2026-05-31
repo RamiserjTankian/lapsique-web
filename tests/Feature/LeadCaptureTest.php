@@ -30,7 +30,8 @@ class LeadCaptureTest extends TestCase
             ->assertJson([
                 'success' => true,
                 'new_customer' => true,
-            ]);
+            ])
+            ->assertJsonPath('meta_event_id', 'lead_customer_1');
 
         $this->assertDatabaseHas('customers', [
             'email' => 'ana@example.com',
@@ -64,7 +65,8 @@ class LeadCaptureTest extends TestCase
             ->assertJson([
                 'success' => true,
                 'new_customer' => false,
-            ]);
+            ])
+            ->assertJsonPath('meta_event_id', 'lead_customer_1');
 
         $this->assertDatabaseHas('customers', [
             'email' => 'ana@example.com',

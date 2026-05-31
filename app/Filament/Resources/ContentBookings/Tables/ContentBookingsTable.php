@@ -15,6 +15,7 @@ class ContentBookingsTable
     public static function configure(Table $table): Table
     {
         return $table
+            ->modifyQueryUsing(fn (Builder $query) => $query->with(['customer']))
             ->columns([
                 TextColumn::make('created_at')
                     ->label('Fecha')
@@ -59,6 +60,21 @@ class ContentBookingsTable
                         'internal' => 'Prueba / manual',
                         default => $state ? ucfirst($state) : '—',
                     }),
+
+                TextColumn::make('attribution_source')
+                    ->label('Origen')
+                    ->state(fn ($record) => $record->utm_source ?: parse_url((string) $record->referrer, PHP_URL_HOST) ?: 'Directo')
+                    ->description(fn ($record) => $record->landing_url ? parse_url((string) $record->landing_url, PHP_URL_PATH) ?: '/' : 'Sin landing')
+                    ->badge()
+                    ->color('info')
+                    ->toggleable(),
+
+                TextColumn::make('analytics_session_id')
+                    ->label('Sesión web')
+                    ->placeholder('—')
+                    ->limit(10)
+                    ->copyable()
+                    ->toggleable(isToggledHiddenByDefault: true),
 
                 TextColumn::make('stripe_status')
                     ->label('Stripe')

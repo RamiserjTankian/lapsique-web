@@ -10,6 +10,9 @@ use App\Filament\Widgets\AnalyticsSourceBreakdownWidget;
 use App\Filament\Widgets\AnalyticsStatsWidget;
 use App\Filament\Widgets\AnalyticsTopPagesChartWidget;
 use App\Filament\Widgets\AnalyticsTrafficChartWidget;
+use App\Filament\Widgets\CustomerJourneyFunnelChartWidget;
+use App\Filament\Widgets\CustomerJourneySourcesWidget;
+use App\Filament\Widgets\CustomerJourneyStatsWidget;
 use BackedEnum;
 use Filament\Pages\Dashboard;
 use UnitEnum;
@@ -31,6 +34,9 @@ class AnalyticsDashboard extends Dashboard
     public function getWidgets(): array
     {
         return [
+            CustomerJourneyStatsWidget::class,
+            CustomerJourneyFunnelChartWidget::class,
+            CustomerJourneySourcesWidget::class,
             AnalyticsStatsWidget::class,
             AnalyticsRealtimeWidget::class,
             AnalyticsTrafficChartWidget::class,

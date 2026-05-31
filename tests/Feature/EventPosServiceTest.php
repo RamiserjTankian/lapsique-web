@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use App\Models\Customer;
 use App\Models\CustomerEventBalance;
 use App\Models\Event;
+use App\Models\AybProduct;
 use App\Models\TicketAttendee;
 use App\Models\TicketOrder;
 use App\Models\TicketOrderItem;
@@ -96,7 +97,16 @@ class EventPosServiceTest extends TestCase
             'total_consumed' => 0,
         ]);
 
-        $charge = app(EventPosService::class)->chargeFromAttendee($attendee, 'paloma_marina', 2);
+        $aybProduct = AybProduct::create([
+            'name' => 'Paloma Marina',
+            'slug' => 'paloma_marina',
+            'type' => 'drink',
+            'currency' => 'MXN',
+            'price' => 250,
+            'is_active' => true,
+        ]);
+
+        $charge = app(EventPosService::class)->chargeFromAttendee($attendee, $aybProduct->id, 2);
 
         $balance->refresh();
 

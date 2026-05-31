@@ -49,6 +49,7 @@ if (sampledVisitor) {
 
 function getContext() {
     sessionData = dntEnabled ? null : getOrCreateSession(SESSION_TTL_MS);
+    const pageMetadata = getPageMetadata();
 
     return {
         visitor_id: visitorId,
@@ -58,8 +59,10 @@ function getContext() {
         utm_campaign: utmParams.campaign || null,
         utm_term: utmParams.term || null,
         utm_content: utmParams.content || null,
-        page_type: pageConfig.type || document.body?.dataset?.pageType || null,
-        page_name: pageConfig.name || document.body?.dataset?.routeName || null,
+        page_type: pageMetadata.page_type,
+        page_name: pageMetadata.page_name,
+        event_id: pageMetadata.event_id,
+        service_type: pageMetadata.service_type,
         landing_page: window.location.pathname,
         landing_url: window.location.href,
         referrer: document.referrer || null,
@@ -73,6 +76,8 @@ function track(name, options = {}) {
         return;
     }
 
+    const pageMetadata = getPageMetadata();
+
     send({
         type: 'event',
         url: window.location.href,
@@ -85,8 +90,7 @@ function track(name, options = {}) {
             value: typeof options.value === 'number' ? options.value : null,
             element: options.element || null,
             metadata: {
-                page_type: pageConfig.type || null,
-                page_name: pageConfig.name || null,
+                ...pageMetadata,
                 ...(options.metadata || {}),
             },
         },
@@ -147,6 +151,7 @@ function initClickTracking() {
         const elementData = getElementData(target);
         const eventLabel = target.getAttribute('data-analytics-label') || elementData.text || elementData.href;
         const eventCategory = target.getAttribute('data-analytics-category') || elementData.category;
+        const section = target.closest('[data-analytics-section]')?.getAttribute('data-analytics-section') || null;
 
         track('click', {
             category: eventCategory,
@@ -154,6 +159,10 @@ function initClickTracking() {
             element: elementData,
             metadata: {
                 outbound: elementData.outbound,
+                analytics_action: target.getAttribute('data-analytics-action') || null,
+                cta: target.getAttribute('data-analytics-cta') || target.getAttribute('data-cta') || null,
+                section,
+                checkout_stage: target.getAttribute('data-checkout-stage') || null,
             },
         });
     });
@@ -180,6 +189,14 @@ function initFormTracking() {
                 tag: 'form',
                 id: form.getAttribute('id'),
                 classes: form.getAttribute('class'),
+            },
+            metadata: {
+                form_id: form.getAttribute('id') || null,
+                form_name: form.getAttribute('name') || null,
+                form_action: action,
+                checkout_stage: form.getAttribute('data-checkout-stage') || null,
+                service_type: form.getAttribute('data-service-type') || null,
+                event_id: form.getAttribute('data-event-id') || null,
             },
         });
     });
@@ -285,6 +302,10 @@ function initSectionTracking() {
                 track('section_view', {
                     category: 'section',
                     label: sectionName,
+                    metadata: {
+                        section: sectionName,
+                        section_id: entry.target.getAttribute('id') || null,
+                    },
                 });
                 observer.unobserve(entry.target);
             });
@@ -355,6 +376,8 @@ function syncTrackingForms(root = document) {
         upsertHiddenInput(form, 'landing_url', context.landing_url);
         upsertHiddenInput(form, 'page_type', context.page_type);
         upsertHiddenInput(form, 'page_name', context.page_name);
+        upsertHiddenInput(form, 'event_id', context.event_id);
+        upsertHiddenInput(form, 'service_type', context.service_type);
         upsertHiddenInput(form, 'referrer', context.referrer);
         upsertHiddenInput(form, 'fbp', context.fbp);
         upsertHiddenInput(form, 'fbc', context.fbc);
@@ -389,6 +412,18 @@ function observeTrackingForms() {
         childList: true,
         subtree: true,
     });
+}
+
+function getPageMetadata() {
+    const bodyDataset = document.body?.dataset || {};
+
+    return {
+        page_type: pageConfig.type || bodyDataset.pageType || null,
+        page_name: pageConfig.name || bodyDataset.routeName || null,
+        event_id: pageConfig.eventId || pageConfig.event_id || bodyDataset.eventId || null,
+        service_type: pageConfig.serviceType || pageConfig.service_type || bodyDataset.serviceType || null,
+        route_name: bodyDataset.routeName || null,
+    };
 }
 
 function flushQueuedTrackerCalls() {

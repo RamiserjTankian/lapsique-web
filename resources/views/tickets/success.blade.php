@@ -152,25 +152,32 @@
 @endsection
 
 @push('scripts')
+@php
+    $ticketPurchaseContents = $order->items->map(fn ($item) => [
+        'id' => (string) $item->ticket_product_id,
+        'quantity' => (int) $item->quantity,
+        'item_price' => (float) $item->unit_price,
+    ])->values();
+    $ticketContentIds = $order->items->pluck('ticket_product_id')->map(fn ($id) => (string) $id)->values();
+@endphp
 <script>
     const orderTotal = @json((float) $order->total);
     const orderCurrency = @json($order->currency);
+    const purchaseEventId = @json('ticket_order_'.$order->public_id);
     const purchaseStorageKey = 'lapsique_purchase_tracked_{{ $order->public_id }}';
     const purchaseAlreadyTracked = window.localStorage.getItem(purchaseStorageKey) === '1';
 
     if (window.trackMetaPixel && !purchaseAlreadyTracked) {
-        const purchaseContents = @json($order->items->map(fn ($item) => [
-            'id' => (string) $item->ticket_product_id,
-            'quantity' => (int) $item->quantity,
-            'item_price' => (float) $item->unit_price,
-        ])->values());
+        const purchaseContents = @json($ticketPurchaseContents);
         window.trackMetaPixel('Purchase', {
             value: orderTotal,
             currency: orderCurrency,
             content_type: 'product',
-            content_ids: @json($order->items->pluck('ticket_product_id')),
+            content_ids: @json($ticketContentIds),
             content_name: @json($event->title),
             contents: purchaseContents,
+        }, {
+            eventID: purchaseEventId,
         });
         window.localStorage.setItem(purchaseStorageKey, '1');
     }
@@ -183,7 +190,7 @@
             metadata: {
                 order_id: '{{ $order->public_id }}',
                 event_id: '{{ $event->id }}',
-                content_ids: @json($order->items->pluck('ticket_product_id')),
+                content_ids: @json($ticketContentIds),
                 currency: orderCurrency,
             },
         });
@@ -193,7 +200,7 @@
         if (window.trackMetaPixel) {
             window.trackMetaPixel('CompleteRegistration', {
                 status: 'attendees_submitted',
-                content_ids: @json($order->items->pluck('ticket_product_id')),
+                content_ids: @json($ticketContentIds),
                 value: orderTotal,
                 currency: orderCurrency,
             });

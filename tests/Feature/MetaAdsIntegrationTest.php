@@ -7,6 +7,8 @@ use App\Models\ContentBooking;
 use App\Models\Customer;
 use App\Models\Event;
 use App\Models\MetaCampaignDailyInsight;
+use App\Models\TicketOrderItem;
+use App\Models\TicketProduct;
 use App\Models\TicketOrder;
 use App\Services\Meta\MetaAttributionReportService;
 use App\Services\Meta\MetaConversionsApiService;
@@ -294,10 +296,70 @@ class MetaAdsIntegrationTest extends TestCase
             'attendees_expected' => 1,
             'buyer_name' => 'Buyer',
             'buyer_email' => 'buyer@example.com',
+            'metadata' => [
+                'fbp' => 'fb.1.123.456',
+                'fbc' => 'fb.1.123.click',
+            ],
         ]);
 
         $order->markAsPaid();
 
-        Http::assertSent(fn ($request) => str_contains($request->url(), '/pixel123/events'));
+        Http::assertSent(function ($request) use ($order) {
+            $body = $request->data();
+
+            return str_contains($request->url(), '/pixel123/events')
+                && data_get($body, 'data.0.event_name') === 'Purchase'
+                && data_get($body, 'data.0.event_id') === 'ticket_order_'.$order->public_id
+                && data_get($body, 'data.0.user_data.external_id') === hash('sha256', 'ticket_order_'.$order->public_id)
+                && data_get($body, 'data.0.user_data.fbp') === 'fb.1.123.456'
+                && (float) data_get($body, 'data.0.custom_data.value') === 1500.0;
+        });
+    }
+
+    public function test_ticket_success_page_uses_capi_purchase_event_id_for_pixel_deduplication(): void
+    {
+        $event = Event::create([
+            'title' => 'Test Event',
+            'slug' => 'test-event-success',
+            'starts_at' => now()->addWeek(),
+        ]);
+
+        $product = TicketProduct::create([
+            'event_id' => $event->id,
+            'name' => 'General',
+            'price' => 1500,
+            'currency' => 'MXN',
+            'stock' => 10,
+            'is_active' => true,
+        ]);
+
+        $order = TicketOrder::create([
+            'event_id' => $event->id,
+            'status' => 'paid',
+            'currency' => 'MXN',
+            'subtotal' => 1000,
+            'fee' => 500,
+            'total' => 1500,
+            'items_quantity' => 1,
+            'attendees_expected' => 1,
+            'buyer_name' => 'Buyer',
+            'buyer_email' => 'buyer@example.com',
+        ]);
+
+        TicketOrderItem::create([
+            'ticket_order_id' => $order->id,
+            'ticket_product_id' => $product->id,
+            'name' => 'General',
+            'quantity' => 1,
+            'unit_price' => 1500,
+            'total_price' => 1500,
+            'access_units' => 1,
+            'check_in_limit' => 1,
+        ]);
+
+        $html = file_get_contents(resource_path('views/tickets/success.blade.php'));
+
+        $this->assertStringContainsString("@json('ticket_order_'.\$order->public_id)", $html);
+        $this->assertStringContainsString('eventID: purchaseEventId', $html);
     }
 }

@@ -4,25 +4,32 @@
 @section('title', 'Bienvenido a '.EmailBrand::WORDMARK)
 
 @section('content')
-    <h2 style="{{ EmailBrand::headingStyle() }}">¡Hola {{ $customer->name }}!</h2>
+    <p class="eyebrow" style="{{ EmailBrand::eyebrowStyle() }}">Bienvenido a la órbita</p>
+    <h2 style="{{ EmailBrand::headingStyle() }}">Ya estás dentro de {{ EmailBrand::WORDMARK }}</h2>
 
-    <p style="{{ EmailBrand::paragraphStyle() }}">Gracias por unirte a {{ EmailBrand::WORDMARK }}. Estamos emocionados de tenerte con nosotros.</p>
+    <p style="{{ EmailBrand::paragraphStyle() }}">Hola <strong style="{{ EmailBrand::strongStyle() }}">{{ $customer->name }}</strong>, gracias por sumarte a nuestra comunidad.</p>
 
-    <p style="{{ EmailBrand::paragraphStyle() }}">Aquí encontrarás información sobre eventos, producción de contenido y experiencias exclusivas:</p>
+    <p style="{{ EmailBrand::paragraphStyle() }}">
+        Desde aquí te compartiremos lanzamientos, sesiones grabadas, eventos y referencias reales de producción audiovisual.
+        La idea es que veas cómo se construye una pieza con intención antes de reservar, comprar o entrar a una experiencia.
+    </p>
 
-    <ul style="line-height:2;color:{{ EmailBrand::FOREGROUND }};padding-left:20px;">
-        <li>Próximos eventos y lanzamientos</li>
-        <li>Artistas y colaboraciones</li>
-        <li>Acceso anticipado a tickets</li>
-        <li>Contenido y noticias del estudio</li>
-    </ul>
+    <div class="card" style="{{ EmailBrand::cardStyle() }}">
+        <h3 style="{{ EmailBrand::cardTitleStyle() }}">Qué vas a recibir</h3>
+        <p style="{{ EmailBrand::cardRowStyle() }}"><strong>Producción audiovisual:</strong> ideas, referencias y paquetes para marcas que necesitan verse más premium.</p>
+        <p style="{{ EmailBrand::cardRowStyle() }}"><strong>DJ sets y escena:</strong> sesiones, artistas y contenido pensado para crecer carrera, booking y presencia visual.</p>
+        <p style="{{ EmailBrand::cardRowStyle() }}"><strong>Eventos:</strong> tickets, guest list y avisos de experiencias donde participa {{ EmailBrand::WORDMARK }}.</p>
+    </div>
 
-    @include('emails.partials._button', ['url' => route('events.index'), 'label' => 'Ver próximos eventos'])
+    @include('emails.partials._button', ['url' => route('djset.show'), 'label' => 'Ver sesiones DJ set'])
 
-    <p style="{{ EmailBrand::paragraphStyle() }}">¿Quieres estar en nuestra guest list? Regístrate en nuestros eventos y recibe confirmación directa.</p>
+    <div style="{{ EmailBrand::tipBoxStyle() }}">
+        <h3 style="{{ EmailBrand::cardTitleStyle() }} margin-bottom:10px;">Si tienes un proyecto en mente</h3>
+        <p style="{{ EmailBrand::cardRowStyle() }}">Responde este correo con tu marca, artista o evento. Te orientamos hacia sesión de contenido, DJ set grabado o acceso a próximos eventos.</p>
+    </div>
 
     <p style="margin-top:30px;{{ EmailBrand::paragraphStyle() }}">
-        <strong style="{{ EmailBrand::strongStyle() }}">¡Nos vemos pronto!</strong><br>
+        <strong style="{{ EmailBrand::strongStyle() }}">Nos vemos en la siguiente producción.</strong><br>
         <span style="{{ EmailBrand::mutedStyle() }}">El equipo de {{ EmailBrand::WORDMARK }}</span>
     </p>
 @endsection

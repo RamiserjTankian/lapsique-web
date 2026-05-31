@@ -2,18 +2,18 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Customer;
-use App\Models\GuestListEntry;
-use App\Models\Event;
 use App\Jobs\SendEventConfirmationJob;
 use App\Jobs\SendWelcomeEmailJob;
-use Illuminate\Http\Request;
+use App\Models\Customer;
+use App\Models\GuestListEntry;
+use App\Services\CustomerAnalyticsAttributionService;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 
 class GuestListController extends Controller
 {
-    public function store(Request $request): RedirectResponse
+    public function store(Request $request, CustomerAnalyticsAttributionService $attributionService): RedirectResponse
     {
         $validated = $request->validate([
             'event_id' => ['required', 'exists:events,id'],
@@ -32,9 +32,9 @@ class GuestListController extends Controller
             $customer = Customer::where('email', $validated['email'])->first();
             $isNewCustomer = false;
 
-            if (!$customer) {
+            if (! $customer) {
                 $isNewCustomer = true;
-                
+
                 $customer = Customer::create([
                     'name' => $validated['full_name'],
                     'email' => $validated['email'],
@@ -51,8 +51,8 @@ class GuestListController extends Controller
                     'utm_term' => $request->input('utm_term'),
                     'utm_content' => $request->input('utm_content'),
                     'subscribed_newsletter' => true,
-                    'subscribed_sms' => !empty($validated['whatsapp']),
-                    'subscribed_whatsapp' => !empty($validated['whatsapp']),
+                    'subscribed_sms' => ! empty($validated['whatsapp']),
+                    'subscribed_whatsapp' => ! empty($validated['whatsapp']),
                     'ip_address' => $request->ip(),
                     'user_agent' => $request->userAgent(),
                     'last_interaction_at' => now(),
@@ -106,6 +106,13 @@ class GuestListController extends Controller
                 'user_agent' => $customer->user_agent ?: $request->userAgent(),
                 'metadata' => $customerMetadata,
             ])->save();
+
+            $attributionService->identify(
+                $customer,
+                $request->input('analytics_visitor_id'),
+                $request->input('analytics_session_id'),
+                'guestlist_registration',
+            );
 
             // Verificar si ya está registrado en este evento
             $existingEntry = GuestListEntry::where('customer_id', $customer->id)

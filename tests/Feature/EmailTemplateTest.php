@@ -30,7 +30,10 @@ class EmailTemplateTest extends TestCase
         $this->assertBrandTokens($html);
         $this->assertStringContainsString(EmailBrand::WORDMARK, $html);
         $this->assertStringContainsString(EmailBrand::TAGLINE, $html);
+        $this->assertStringContainsString('Ya estás dentro', $html);
+        $this->assertStringContainsString('DJ sets y escena', $html);
         $this->assertStringNotContainsString('Techno & Electronic Music', $html);
+        $this->assertStringNotContainsString('Estamos emocionados', $html);
     }
 
     public function test_marketing_email_has_single_tracking_pixel_when_url_provided(): void
@@ -124,6 +127,9 @@ class EmailTemplateTest extends TestCase
         ])->render();
 
         $this->assertBrandTokens($html);
+        $this->assertStringContainsString('el pago todavía no quedó cerrado', $html);
+        $this->assertStringContainsString('Tus accesos no se emiten', $html);
+        $this->assertStringNotContainsString('Quedaste suscrito a nuestro newsletter', $html);
         $this->assertStringNotContainsString('#071E2A', $html);
         $this->assertStringNotContainsString('#1B82A4', $html);
     }

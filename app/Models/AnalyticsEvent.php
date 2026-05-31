@@ -15,6 +15,7 @@ class AnalyticsEvent extends Model
         'analytics_pageview_id',
         'visitor_id',
         'user_id',
+        'customer_id',
         'name',
         'category',
         'label',
@@ -42,5 +43,10 @@ class AnalyticsEvent extends Model
     public function pageview(): BelongsTo
     {
         return $this->belongsTo(AnalyticsPageview::class, 'analytics_pageview_id');
+    }
+
+    public function customer(): BelongsTo
+    {
+        return $this->belongsTo(Customer::class);
     }
 }

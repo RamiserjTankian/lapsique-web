@@ -136,6 +136,15 @@ class TicketOrderService
             $customer?->incrementLeadScore(15);
             $customer?->updateLastInteraction();
 
+            if ($customer) {
+                app(CustomerAnalyticsAttributionService::class)->identify(
+                    $customer,
+                    Arr::get($metadata, 'analytics_visitor_id'),
+                    Arr::get($metadata, 'analytics_session_id'),
+                    'ticket_order',
+                );
+            }
+
             return $order->fresh(['items']);
         });
     }

@@ -13,11 +13,15 @@ class PaymentTrustCopyTest extends TestCase
         $this->assertFileExists($path);
 
         $content = file_get_contents($path);
+        $spanishCopy = file_get_contents(dirname(__DIR__, 2).'/resources/lang/es/booking.php');
 
         $this->assertIsString($content);
+        $this->assertIsString($spanishCopy);
         $this->assertStringContainsString("'stripe'", $content);
         $this->assertStringContainsString("'dual'", $content);
-        $this->assertStringContainsString('Compra protegida', $content);
-        $this->assertStringContainsString('reembolso del 100%', $content);
+        $this->assertStringContainsString('booking.trust.badge_protected', $content);
+        $this->assertStringContainsString('booking.trust.stripe_chip', $content);
+        $this->assertStringContainsString('Compra protegida', $spanishCopy);
+        $this->assertStringContainsString('reembolso del 100%', $spanishCopy);
     }
 }

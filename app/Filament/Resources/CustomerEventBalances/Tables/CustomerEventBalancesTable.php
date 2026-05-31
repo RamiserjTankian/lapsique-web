@@ -2,8 +2,8 @@
 
 namespace App\Filament\Resources\CustomerEventBalances\Tables;
 
-use App\Filament\Support\CustomerEventBalanceCancelSaleAction;
 use App\Filament\Resources\Customers\CustomerResource;
+use App\Filament\Support\CustomerEventBalanceCancelSaleAction;
 use App\Models\Event;
 use Filament\Actions\ViewAction;
 use Filament\Forms\Components\DatePicker;
@@ -19,6 +19,7 @@ class CustomerEventBalancesTable
     {
         return $table
             ->defaultSort('balance', 'desc')
+            ->modifyQueryUsing(fn (Builder $query) => $query->withCount('posCharges'))
             ->columns([
                 TextColumn::make('customer.name')
                     ->label('Cliente')
@@ -51,6 +52,11 @@ class CustomerEventBalancesTable
                     ->money(fn ($record) => $record->currency ?? 'MXN')
                     ->sortable()
                     ->color('danger'),
+                TextColumn::make('pos_charges_count')
+                    ->label('Cargos POS')
+                    ->badge()
+                    ->color(fn ($state) => (int) $state > 0 ? 'primary' : 'gray')
+                    ->sortable(),
                 TextColumn::make('consumption_ratio')
                     ->label('% consumido')
                     ->state(function ($record): string {
@@ -61,12 +67,17 @@ class CustomerEventBalancesTable
                             return '0%';
                         }
 
-                        return number_format(($consumed / $credited) * 100, 1) . '%';
+                        return number_format(($consumed / $credited) * 100, 1).'%';
                     }),
                 TextColumn::make('lastTicketOrder.public_id')
                     ->label('Última orden')
                     ->placeholder('Sin orden')
                     ->toggleable(isToggledHiddenByDefault: true),
+                TextColumn::make('lastTicketOrder.utm_source')
+                    ->label('Fuente venta')
+                    ->placeholder('Directo')
+                    ->badge()
+                    ->toggleable(),
                 TextColumn::make('updated_at')
                     ->label('Último movimiento')
                     ->dateTime('d/m/Y H:i')

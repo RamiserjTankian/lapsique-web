@@ -13,7 +13,11 @@ use App\Filament\Widgets\CrmContentStatsWidget;
 use App\Filament\Widgets\CrmEventsStatsWidget;
 use App\Filament\Widgets\CrmMarketingStatsWidget;
 use App\Filament\Widgets\CrmPeopleStatsWidget;
+use App\Filament\Widgets\CustomerJourneyFunnelChartWidget;
+use App\Filament\Widgets\CustomerJourneySourcesWidget;
+use App\Filament\Widgets\CustomerJourneyStatsWidget;
 use App\Filament\Widgets\GuestListStatusChartWidget;
+use App\Filament\Widgets\HotLeadsTableWidget;
 use App\Filament\Widgets\RecentContactLogsWidget;
 use App\Filament\Widgets\RecentCustomersWidget;
 use App\Filament\Widgets\RecentGuestListEntriesWidget;
@@ -37,7 +41,7 @@ class AdminDashboard extends Dashboard
 
     protected static ?int $navigationSort = -2;
 
-    public function getColumns(): int | array
+    public function getColumns(): int|array
     {
         return 2;
     }
@@ -45,6 +49,10 @@ class AdminDashboard extends Dashboard
     public function getWidgets(): array
     {
         return [
+            CustomerJourneyStatsWidget::class,
+            CustomerJourneyFunnelChartWidget::class,
+            CustomerJourneySourcesWidget::class,
+            HotLeadsTableWidget::class,
             CrmPeopleStatsWidget::class,
             CrmEventsStatsWidget::class,
             CrmContentStatsWidget::class,

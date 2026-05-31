@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Jobs\SendWelcomeEmailJob;
 use App\Models\Customer;
+use App\Services\CustomerAnalyticsAttributionService;
 use App\Services\Meta\MetaConversionsApiService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -14,7 +15,7 @@ class LeadCaptureController extends Controller
     /**
      * Capturar lead desde popup
      */
-    public function capture(Request $request): JsonResponse
+    public function capture(Request $request, CustomerAnalyticsAttributionService $attributionService): JsonResponse
     {
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:255'],
@@ -72,22 +73,32 @@ class LeadCaptureController extends Controller
                     'email' => $customer->email,
                 ]);
 
-            try {
-                app(MetaConversionsApiService::class)->sendLeadFromCustomer(
-                    $customer->fresh(),
-                    $request->input('landing_url') ?: $request->input('current_page'),
+                $attributionService->identify(
+                    $customer,
+                    $request->input('analytics_visitor_id'),
+                    $request->input('analytics_session_id'),
+                    'popup_existing_customer',
                 );
-            } catch (\Throwable $e) {
-                Log::warning('Meta lead event failed after popup capture', [
-                    'customer_id' => $customer->id,
-                    'error' => $e->getMessage(),
-                ]);
-            }
+
+                $metaEventId = 'lead_customer_'.$customer->id;
+
+                try {
+                    app(MetaConversionsApiService::class)->sendLeadFromCustomer(
+                        $customer->fresh(),
+                        $request->input('landing_url') ?: $request->input('current_page'),
+                    );
+                } catch (\Throwable $e) {
+                    Log::warning('Meta lead event failed after popup capture', [
+                        'customer_id' => $customer->id,
+                        'error' => $e->getMessage(),
+                    ]);
+                }
 
                 return response()->json([
                     'success' => true,
                     'message' => '¡Gracias! Ya estás suscrito. Hemos actualizado tu información.',
                     'new_customer' => false,
+                    'meta_event_id' => $metaEventId,
                 ]);
             }
 
@@ -137,6 +148,15 @@ class LeadCaptureController extends Controller
                 'source' => 'popup',
             ]);
 
+            $attributionService->identify(
+                $customer,
+                $request->input('analytics_visitor_id'),
+                $request->input('analytics_session_id'),
+                'popup_lead',
+            );
+
+            $metaEventId = 'lead_customer_'.$customer->id;
+
             try {
                 app(MetaConversionsApiService::class)->sendLeadFromCustomer(
                     $customer,
@@ -156,6 +176,7 @@ class LeadCaptureController extends Controller
                 'success' => true,
                 'message' => '¡Bienvenido! Revisa tu email para confirmar tu suscripción.',
                 'new_customer' => true,
+                'meta_event_id' => $metaEventId,
             ]);
         } catch (\Exception $e) {
             Log::error('Failed to capture lead from popup', [

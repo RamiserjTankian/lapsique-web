@@ -48,13 +48,53 @@ class TicketOrderInfolist
                         TextEntry::make('stripe_session_id')->label('Sesion Stripe'),
                         TextEntry::make('stripe_status')->label('Estado Stripe'),
                     ]),
+                Section::make('Atribución y journey')
+                    ->columns(2)
+                    ->collapsible()
+                    ->schema([
+                        TextEntry::make('utm_source')->label('UTM Source')->placeholder('—'),
+                        TextEntry::make('utm_campaign')->label('UTM Campaign')->placeholder('—'),
+                        TextEntry::make('analytics_visitor_id')
+                            ->label('Visitor ID')
+                            ->state(fn ($record) => data_get($record->metadata, 'analytics_visitor_id'))
+                            ->placeholder('—')
+                            ->copyable(),
+                        TextEntry::make('analytics_session_id')
+                            ->label('Session ID')
+                            ->state(fn ($record) => data_get($record->metadata, 'analytics_session_id'))
+                            ->placeholder('—')
+                            ->copyable(),
+                        TextEntry::make('session_summary')
+                            ->label('Sesión previa')
+                            ->state(function ($record): string {
+                                $sessionId = data_get($record->metadata, 'analytics_session_id');
+
+                                if (! $sessionId) {
+                                    return 'Sin sesión web asociada.';
+                                }
+
+                                $session = \App\Models\AnalyticsSession::query()
+                                    ->where('session_id', $sessionId)
+                                    ->withCount(['pageviews', 'events'])
+                                    ->first();
+
+                                if (! $session) {
+                                    return 'Sin sesión web asociada.';
+                                }
+
+                                $source = $session->source_label ?: $session->utm_source ?: $session->referrer_domain ?: 'Directo';
+
+                                return $source.' · '.$session->pageviews_count.' pageviews · '.$session->events_count.' eventos';
+                            })
+                            ->columnSpanFull(),
+                    ]),
                 Section::make('Items')
                     ->schema([
                         TextEntry::make('items')
                             ->label('Detalle')
                             ->formatStateUsing(function ($record) {
                                 return $record->items->map(function ($item) use ($record) {
-                                    return "{$item->quantity} x {$item->name} — " . number_format($item->total_price, 2) . " {$record->currency}";
+                                    return "{$item->quantity} x {$item->name} — ".number_format($item->total_price, 2)." {$record->currency}";
                                 })->join("\n");
                             })
                             ->extraAttributes(['style' => 'white-space: pre-line;']),

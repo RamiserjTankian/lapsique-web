@@ -163,7 +163,14 @@ export function NewsletterCaptureModal({
                 data.message ?? t('funnel.newsletter.success_default'),
             );
             markNewsletterPopupSeen();
-            trackNewsletterEvent('newsletter_form_submitted', { variant, source });
+            trackNewsletterEvent('newsletter_form_submitted', {
+                variant,
+                source,
+                event_id: data.meta_event_id,
+                client_email: email,
+                client_name: name,
+                client_phone: phone || undefined,
+            });
         } catch {
             setErrorMessage(t('common.error.generic'));
         } finally {
@@ -302,6 +309,7 @@ async function parseLeadCaptureResponse(response: Response): Promise<{
     success?: boolean;
     message?: string;
     errors?: Record<string, string[]>;
+    meta_event_id?: string;
 }> {
     const contentType = response.headers.get('content-type') ?? '';
 
@@ -314,6 +322,7 @@ async function parseLeadCaptureResponse(response: Response): Promise<{
             success?: boolean;
             message?: string;
             errors?: Record<string, string[]>;
+            meta_event_id?: string;
         };
     } catch {
         return { success: false };

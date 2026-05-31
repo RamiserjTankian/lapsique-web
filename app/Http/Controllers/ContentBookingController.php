@@ -9,12 +9,12 @@ use App\Models\ContentBooking;
 use App\Models\PortfolioItem;
 use App\Models\SiteSetting;
 use App\Services\ContentBookingPaymentService;
+use App\Services\CustomerAnalyticsAttributionService;
 use App\Services\CustomerPortalAccessService;
 use App\Services\MercadoPagoService;
 use App\Services\Meta\MetaConversionsApiService;
 use App\Services\StripeService;
 use App\Support\BookingMode;
-use App\Support\ContentSessionOffer;
 use App\Support\LocalizedBookingCopy;
 use App\Support\ReelLibrary;
 use Carbon\Carbon;
@@ -285,6 +285,7 @@ class ContentBookingController extends Controller
         StripeService $stripe,
         ContentBookingPaymentService $bookingPayment,
         CustomerPortalAccessService $portalAccess,
+        CustomerAnalyticsAttributionService $attributionService,
     ): SymfonyResponse {
         return $this->checkoutForService(
             $request,
@@ -292,6 +293,7 @@ class ContentBookingController extends Controller
             $stripe,
             $bookingPayment,
             $portalAccess,
+            $attributionService,
             ContentBooking::SERVICE_CONTENT_SESSION,
         );
     }
@@ -302,6 +304,7 @@ class ContentBookingController extends Controller
         StripeService $stripe,
         ContentBookingPaymentService $bookingPayment,
         CustomerPortalAccessService $portalAccess,
+        CustomerAnalyticsAttributionService $attributionService,
     ): SymfonyResponse {
         return $this->checkoutForService(
             $request,
@@ -309,6 +312,7 @@ class ContentBookingController extends Controller
             $stripe,
             $bookingPayment,
             $portalAccess,
+            $attributionService,
             ContentBooking::SERVICE_DJ_SET,
         );
     }
@@ -319,6 +323,7 @@ class ContentBookingController extends Controller
         StripeService $stripe,
         ContentBookingPaymentService $bookingPayment,
         CustomerPortalAccessService $portalAccess,
+        CustomerAnalyticsAttributionService $attributionService,
         string $serviceType,
     ): SymfonyResponse {
         $validated = $request->validate([
@@ -344,7 +349,7 @@ class ContentBookingController extends Controller
         $customer = null;
 
         try {
-            DB::transaction(function () use ($validated, $price, $request, $paymentProvider, $serviceType, &$booking, &$customer, $portalAccess, $settings) {
+            DB::transaction(function () use ($validated, $price, $request, $paymentProvider, $serviceType, &$booking, &$customer, $portalAccess, $settings, $attributionService) {
                 $slot = BookingSlot::where('id', $validated['booking_slot_id'])
                     ->where('is_active', true)
                     ->whereColumn('booked_count', '<', 'max_bookings')
@@ -417,6 +422,13 @@ class ContentBookingController extends Controller
                         'checkout_event_id' => $request->input('checkout_event_id'),
                     ],
                 ]);
+
+                $attributionService->identify(
+                    $customer,
+                    $request->input('analytics_visitor_id'),
+                    $request->input('analytics_session_id'),
+                    'content_booking',
+                );
 
                 $slot->increment('booked_count');
             });

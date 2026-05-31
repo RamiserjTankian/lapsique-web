@@ -21,11 +21,16 @@ export function trackNewsletterEvent(
     window.LapsiqueTracker?.track(name, payload);
 
     if (name === 'newsletter_form_submitted') {
+        const eventID = typeof payload.event_id === 'string'
+            ? payload.event_id
+            : (typeof payload.eventID === 'string' ? payload.eventID : undefined);
+        const { event_id: _eventId, eventID: _eventID, ...metaPayload } = payload;
+
         window.trackMetaPixel?.('Lead', {
             content_name: 'Newsletter signup',
             content_category: 'newsletter_popup',
-            ...payload,
-        });
+            ...metaPayload,
+        }, eventID ? { eventID } : undefined);
     } else if (name === 'newsletter_popup_shown') {
         window.trackMetaPixelCustom?.('newsletter_popup_shown', payload);
     }

@@ -7,11 +7,19 @@ use App\Models\SiteSetting;
 use App\Models\Video;
 use App\Support\HomeHeroProofVideos;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Config;
 use Tests\TestCase;
 
 class HomeHeroProofVideosTest extends TestCase
 {
     use RefreshDatabase;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        Config::set('landing.output_dir', 'videos/home-hero-proof-test-'.uniqid());
+    }
 
     public function test_resolves_youtube_slot_from_settings(): void
     {

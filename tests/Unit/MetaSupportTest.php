@@ -5,11 +5,14 @@ namespace Tests\Unit;
 use App\Models\ContentBooking;
 use App\Services\Meta\MetaConversionsApiService;
 use App\Support\Meta;
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Http;
 use Tests\TestCase;
 
 class MetaSupportTest extends TestCase
 {
+    use RefreshDatabase;
+
     public function test_pixel_enabled_requires_config_and_id(): void
     {
         config([
@@ -61,7 +64,9 @@ class MetaSupportTest extends TestCase
 
         $booking = new ContentBooking([
             'public_id' => 'paid-uuid',
+            'client_name' => 'Buyer',
             'client_email' => 'buyer@example.com',
+            'client_phone' => '529841234567',
             'amount' => 5000,
             'currency' => 'MXN',
             'metadata' => [],

@@ -10,16 +10,15 @@
     <p style="{{ EmailBrand::paragraphStyle() }}">Hola <strong style="{{ EmailBrand::strongStyle() }}">{{ $order->buyer_name ?? 'amig@' }}</strong>,</p>
 
     <p style="{{ EmailBrand::paragraphStyle() }}">
-        Gracias por registrarte en <strong style="{{ EmailBrand::strongStyle() }}">{{ EmailBrand::WORDMARK }}</strong>.
-        Quedaste suscrito a nuestro newsletter para recibir noticias de eventos, lanzamientos y contenido nuevo.
-    </p>
-
-    <p style="{{ EmailBrand::paragraphStyle() }}">
-        También dejaste una compra pendiente
+        Vimos que iniciaste una compra
         @if($event?->title)
             para <strong style="{{ EmailBrand::strongStyle() }}">{{ $event->title }}</strong>
         @endif
-        . Si estabas apartando una mesa o comprando tickets, puedes retomarlo cuando quieras.
+        , pero el pago todavía no quedó cerrado. Tus accesos no se emiten hasta completar el checkout.
+    </p>
+
+    <p style="{{ EmailBrand::paragraphStyle() }}">
+        Si estabas apartando una mesa o comprando tickets, puedes retomarlo desde el enlace de abajo sin volver a llenar todo.
     </p>
 
     <div class="card" style="{{ EmailBrand::cardStyle() }}">
@@ -39,8 +38,8 @@
 
     <div style="{{ EmailBrand::tipBoxStyle() }}">
         <h3 style="{{ EmailBrand::cardTitleStyle() }} margin-bottom:10px;">Qué sigue</h3>
-        <p style="{{ EmailBrand::cardRowStyle() }}">Puedes completar tu compra en cualquier momento desde el enlace de abajo.</p>
-        <p style="{{ EmailBrand::cardRowStyle() }}">Cuando el pago se apruebe, te enviaremos la confirmación y los accesos correspondientes.</p>
+        <p style="{{ EmailBrand::cardRowStyle() }}">Abre el enlace, revisa el resumen y completa el pago seguro.</p>
+        <p style="{{ EmailBrand::cardRowStyle() }}">Cuando se apruebe, te enviaremos la confirmación y los accesos correspondientes.</p>
     </div>
 
     @if($manageUrl)

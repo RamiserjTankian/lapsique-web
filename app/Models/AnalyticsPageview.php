@@ -15,6 +15,7 @@ class AnalyticsPageview extends Model
         'analytics_session_id',
         'visitor_id',
         'user_id',
+        'customer_id',
         'url',
         'path',
         'title',
@@ -36,6 +37,11 @@ class AnalyticsPageview extends Model
     public function session(): BelongsTo
     {
         return $this->belongsTo(AnalyticsSession::class, 'analytics_session_id');
+    }
+
+    public function customer(): BelongsTo
+    {
+        return $this->belongsTo(Customer::class);
     }
 
     public function events(): HasMany
