@@ -363,7 +363,7 @@ export default function DjSetShow({
                     {portfolioVideos.length > 0 && (
                         <PortfolioVideoProof video={portfolioVideos[0]} images={galleryImages} />
                     )}
-                    <PortfolioEditorialGrid images={galleryImages} />
+                    <PortfolioEditorialGrid images={portfolioImages} />
                 </GlassSection>
             )}
 
@@ -685,7 +685,7 @@ function PortfolioEditorialGrid({ images }: { images: PortfolioItemData[] }) {
     }
 
     return (
-        <div className="mt-3 grid auto-rows-[160px] grid-cols-2 gap-3 md:auto-rows-[220px] md:grid-cols-4">
+        <div className="mt-3 grid auto-rows-[170px] grid-cols-2 gap-3 md:auto-rows-[220px] md:grid-cols-4">
             {images.slice(0, 7).map((image, index) => (
                 <PortfolioFrame
                     key={image.id}
@@ -693,8 +693,10 @@ function PortfolioEditorialGrid({ images }: { images: PortfolioItemData[] }) {
                     className={
                         index === 0
                             ? 'col-span-2 row-span-2'
-                            : index === 1 || index === 4
-                                ? 'row-span-2'
+                            : index === 1 || index === 2
+                                ? 'col-span-2 row-span-1'
+                                : index === 4
+                                    ? 'row-span-2'
                                 : ''
                     }
                 />
