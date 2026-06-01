@@ -15,6 +15,9 @@ export function SeoHead({ seo: override }: SeoHeadProps) {
 
     const seo: SeoMeta = { ...shared!, ...override };
     const ogImage = seo.ogImage ?? '';
+    const siteName = seo.metaTitle.includes('Trascendental') || seo.title === 'Trascendental'
+        ? 'Trascendental'
+        : 'lapsique.media';
 
     return (
         <Head title={seo.title}>
@@ -26,7 +29,7 @@ export function SeoHead({ seo: override }: SeoHeadProps) {
             <meta property="og:description" content={seo.description} />
             {ogImage ? <meta property="og:image" content={ogImage} /> : null}
             {ogImage ? <meta property="og:image:secure_url" content={ogImage} /> : null}
-            <meta property="og:site_name" content="lapsique.media" />
+            <meta property="og:site_name" content={siteName} />
             <meta property="og:locale" content={ogLocale} />
             <meta name="twitter:card" content="summary_large_image" />
             <meta name="twitter:title" content={seo.metaTitle} />

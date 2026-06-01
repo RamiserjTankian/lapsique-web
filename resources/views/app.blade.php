@@ -16,7 +16,8 @@
         (function () {
             var key = 'lapsique-theme';
             var stored = localStorage.getItem(key);
-            var theme = stored === 'dark' || stored === 'light' ? stored : 'light';
+            var isTrascendental = @json(config('trascendental.enabled_as_primary')) || window.location.pathname.indexOf('/trascendental') === 0;
+            var theme = isTrascendental ? 'light' : (stored === 'dark' || stored === 'light' ? stored : 'light');
             var root = document.documentElement;
 
             function syncBrowserTheme(nextTheme) {

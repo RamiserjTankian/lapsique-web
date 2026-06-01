@@ -22,8 +22,18 @@ class PageMeta
         $settings = SiteSetting::current();
         $canonicalUrl = url()->current();
 
+        if ($routeName === 'home' && config('trascendental.enabled_as_primary')) {
+            return self::forTrascendental($canonicalUrl);
+        }
+
         return match ($routeName) {
             'home', 'booking.show' => self::forBookingFunnel($settings, $canonicalUrl),
+            'trascendental.home' => self::forTrascendental($canonicalUrl),
+            'trascendental.services' => self::forTrascendentalSection(__('trascendental.services.title'), __('trascendental.services.intro'), $canonicalUrl),
+            'trascendental.cases' => self::forTrascendentalSection(__('trascendental.cases.title'), __('trascendental.cases.intro'), $canonicalUrl),
+            'trascendental.tours' => self::forTrascendentalSection(__('trascendental.tours.title'), __('trascendental.tours.intro'), $canonicalUrl),
+            'trascendental.about' => self::forTrascendentalSection(__('trascendental.about.title'), __('trascendental.about.intro'), $canonicalUrl),
+            'trascendental.contact' => self::forTrascendentalSection(__('trascendental.contact.title'), __('trascendental.contact.intro'), $canonicalUrl),
             'djset.show' => self::forDjSet($settings, $canonicalUrl),
             'djs.show' => self::forDj($request->route('dj'), $canonicalUrl),
             'videos.show' => self::forVideo($request->route('video'), $canonicalUrl),
@@ -103,6 +113,38 @@ class PageMeta
             ogImage: $ogImage,
             ogImageAlt: $ogImageAlt,
             keywords: __('seo.djset.keywords'),
+        );
+    }
+
+    public static function forTrascendental(string $canonicalUrl): PageMetaData
+    {
+        $ogImage = self::absoluteImageUrl('/images/trascendental/og-rebolledo.webp');
+
+        return new PageMetaData(
+            title: 'Trascendentalby',
+            metaTitle: 'Trascendentalby · Artists. Events. Culture.',
+            description: 'International booking, executive production and strategic artist development.',
+            canonicalUrl: $canonicalUrl,
+            ogType: 'website',
+            ogImage: $ogImage,
+            ogImageAlt: 'Trascendentalby event production and artist booking',
+            keywords: 'Trascendentalby, international booking, artists, events, electronic music, event production',
+        );
+    }
+
+    public static function forTrascendentalSection(string $title, string $description, string $canonicalUrl): PageMetaData
+    {
+        $ogImage = self::absoluteImageUrl('/images/trascendental/og-rebolledo.webp');
+
+        return new PageMetaData(
+            title: $title,
+            metaTitle: "{$title} · Trascendentalby",
+            description: self::truncate($description),
+            canonicalUrl: $canonicalUrl,
+            ogType: 'website',
+            ogImage: $ogImage,
+            ogImageAlt: 'Trascendentalby event production and artist booking',
+            keywords: 'Trascendentalby, booking, touring, event production',
         );
     }
 

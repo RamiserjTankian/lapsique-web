@@ -25,6 +25,10 @@ class HandleInertiaRequests extends Middleware
     public function share(Request $request): array
     {
         $settings = SiteSetting::current();
+        $isTrascendental = config('trascendental.enabled_as_primary') || $request->is('trascendental*');
+        $whatsapp = $isTrascendental
+            ? (config('trascendental.whatsapp') ?: ($settings?->booking_whatsapp ?: config('lapsique.whatsapp_number')))
+            : ($settings?->booking_whatsapp ?: config('lapsique.whatsapp_number'));
 
         return [
             ...parent::share($request),
@@ -33,14 +37,16 @@ class HandleInertiaRequests extends Middleware
                 'location' => $request->url(),
             ],
             'site' => fn () => [
-                'name' => 'lapsique.media',
+                'name' => $isTrascendental ? 'Trascendentalby' : 'lapsique.media',
                 'bookingPrice' => $settings?->booking_price ?? (int) config('booking.content_price', 3000),
                 'bookingTitle' => $settings?->booking_title,
                 'bookingSubtitle' => $settings?->booking_subtitle,
                 'bookingTeamName' => $settings?->booking_team_name,
                 'bookingTeamBio' => $settings?->booking_team_bio,
-                'whatsapp' => $settings?->booking_whatsapp ?: config('lapsique.whatsapp_number'),
-                'instagramUrl' => config('lapsique.instagram_url'),
+                'whatsapp' => $whatsapp,
+                'email' => $isTrascendental ? config('trascendental.email') : null,
+                'instagramUrl' => $isTrascendental ? config('trascendental.instagram_url') : config('lapsique.instagram_url'),
+                'residentAdvisorUrl' => $isTrascendental ? config('trascendental.resident_advisor_url') : null,
                 'youtubeHandle' => config('lapsique.youtube_handle'),
                 'studioLocation' => $settings?->booking_studio_location,
             ],

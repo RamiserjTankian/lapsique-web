@@ -7,8 +7,8 @@ export function LanguageToggle({ className }: { className?: string }) {
     const { locale, ziggy } = usePage<PageProps>().props;
 
     const locales = [
-        { code: 'es', label: 'ES' },
         { code: 'en', label: 'EN' },
+        { code: 'es', label: 'ES' },
     ] as const;
 
     return (

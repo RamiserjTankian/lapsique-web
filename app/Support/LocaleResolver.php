@@ -10,6 +10,14 @@ class LocaleResolver
 
     public static function resolve(Request $request): string
     {
+        if (config('trascendental.enabled_as_primary') || $request->is('trascendental*')) {
+            if ($session = $request->session()->get('trascendental_locale')) {
+                return self::normalize($session);
+            }
+
+            return 'en';
+        }
+
         if ($session = $request->session()->get('locale')) {
             return self::normalize($session);
         }

@@ -7,7 +7,10 @@ import { ThemeProvider } from '@/providers/ThemeProvider';
 import './analytics';
 import './pixel';
 
-const appName = 'lapsique.media';
+const appName = window.location.hostname.includes('trascendental')
+    || window.location.pathname.startsWith('/trascendental')
+    ? 'Trascendental'
+    : 'lapsique.media';
 
 // El PageView inicial lo dispara el HTML root (fbq) y analytics.js en la carga.
 // Aqui reportamos las navegaciones client-side de Inertia, omitiendo la primera.

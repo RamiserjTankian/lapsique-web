@@ -25,6 +25,7 @@ class DatabaseSeeder extends Seeder
         $this->call([
             DjSeeder::class,
             LocationSeeder::class,
+            TrascendentalCaseSeeder::class,
             VideoSeeder::class,
             PortfolioAssetsSeeder::class,
             CampaignSeeder::class,

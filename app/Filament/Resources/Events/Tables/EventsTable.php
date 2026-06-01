@@ -78,6 +78,10 @@ class EventsTable
                 IconColumn::make('is_featured')
                     ->label('Destacado')
                     ->boolean(),
+                IconColumn::make('is_case_study')
+                    ->label('Caso')
+                    ->boolean()
+                    ->toggleable(),
             ])
             ->filters([
                 TrashedFilter::make(),
@@ -85,6 +89,12 @@ class EventsTable
                     ->options([
                         1 => 'Destacado',
                         0 => 'Normal',
+                    ]),
+                SelectFilter::make('is_case_study')
+                    ->label('Caso de éxito')
+                    ->options([
+                        1 => 'Caso de éxito',
+                        0 => 'Evento normal',
                     ]),
             ])
             ->recordActions([

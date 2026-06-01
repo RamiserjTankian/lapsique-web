@@ -8,6 +8,38 @@
 
 @custom-variant dark (&:is(.dark *));
 
+@font-face {
+    font-family: 'Gotham';
+    src: url('/fonts/gotham/Gotham-Book.otf') format('opentype');
+    font-weight: 400;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'Gotham';
+    src: url('/fonts/gotham/Gotham-Medium.otf') format('opentype');
+    font-weight: 500;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'Gotham';
+    src: url('/fonts/gotham/Gotham-Bold.otf') format('opentype');
+    font-weight: 700;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'Gotham';
+    src: url('/fonts/gotham/Gotham-Black.otf') format('opentype');
+    font-weight: 900;
+    font-style: normal;
+    font-display: swap;
+}
+
 @theme inline {
     --font-sans: 'DM Sans', ui-sans-serif, system-ui, sans-serif;
     --font-display: 'Syne', ui-sans-serif, system-ui, sans-serif;
@@ -220,6 +252,106 @@
 .font-mono-tabular {
     font-family: var(--font-mono);
     font-variant-numeric: tabular-nums;
+}
+
+.trascendental-site {
+    font-family: 'Gotham', Arial, Helvetica, sans-serif;
+    color-scheme: light;
+    background-image: none;
+}
+
+.trascendental-site h1,
+.trascendental-site h2,
+.trascendental-site h3 {
+    font-family: 'Gotham', Arial, Helvetica, sans-serif;
+}
+
+.trascendental-site .contact-input {
+    width: 100%;
+    border: 0;
+    border-bottom: 1px solid rgb(0 0 0 / 0.35);
+    background: transparent;
+    padding: 0.75rem 0;
+    font-size: 1rem;
+    line-height: 1.5;
+    color: #000;
+    outline: none;
+    border-radius: 0;
+}
+
+.trascendental-site .contact-input:focus {
+    border-bottom-color: #000;
+}
+
+.trascendental-site .tdl-wrap {
+    width: 100%;
+    max-width: 1500px;
+    margin-inline: auto;
+}
+
+.trascendental-site .tdl-section {
+    padding: 3.5rem 1rem;
+}
+
+@media (min-width: 640px) {
+    .trascendental-site .tdl-section {
+        padding: 4rem 1.5rem;
+    }
+}
+
+@media (min-width: 1024px) {
+    .trascendental-site .tdl-section {
+        padding: 5rem 2rem;
+    }
+}
+
+.trascendental-site .tdl-eyebrow {
+    font-size: 0.72rem;
+    font-weight: 700;
+    line-height: 1.35;
+    text-transform: uppercase;
+    color: rgb(0 0 0 / 0.45);
+}
+
+.trascendental-site .tdl-heading {
+    margin-top: 0.8rem;
+    max-width: 58rem;
+    font-size: clamp(2.35rem, 7vw, 5.65rem);
+    font-weight: 900;
+    line-height: 0.86;
+    text-transform: uppercase;
+}
+
+.trascendental-site .tdl-button {
+    display: inline-flex;
+    min-height: 2.85rem;
+    align-items: center;
+    gap: 0.55rem;
+    border-width: 1px;
+    padding-inline: 1rem;
+    font-size: 0.75rem;
+    font-weight: 700;
+    line-height: 1.15;
+    text-transform: uppercase;
+    border-radius: 0.25rem;
+}
+
+@media (min-width: 640px) {
+    .trascendental-site .tdl-button {
+        min-height: 3rem;
+        padding-inline: 1.2rem;
+    }
+}
+
+.trascendental-site .tdl-button-dark {
+    border-color: #fff;
+    background: #fff;
+    color: #000;
+}
+
+.trascendental-site .tdl-button-light {
+    border-color: rgb(255 255 255 / 0.62);
+    color: #fff;
 }
 
 @keyframes sticky-price-glow {

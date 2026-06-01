@@ -15,8 +15,8 @@ return new class extends Migration
             $table->id();
             $table->foreignId('customer_id')->constrained()->cascadeOnDelete();
             $table->foreignId('event_id')->nullable()->constrained()->nullOnDelete();
-            $table->foreignId('campaign_id')->nullable()->constrained()->nullOnDelete();
-            $table->foreignId('automation_id')->nullable()->constrained()->nullOnDelete();
+            $table->foreignId('campaign_id')->nullable();
+            $table->foreignId('automation_id')->nullable();
             
             // Canal y tipo de comunicación
             $table->enum('channel', ['email', 'sms', 'whatsapp', 'call', 'popup', 'guestlist', 'manual'])

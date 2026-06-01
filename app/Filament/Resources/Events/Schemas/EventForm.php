@@ -13,6 +13,7 @@ use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
 use Filament\Forms\Components\TagsInput;
+use Filament\Schemas\Components\Section;
 use Filament\Schemas\Components\Utilities\Set;
 use Filament\Schemas\Schema;
 use Illuminate\Database\Eloquent\Builder;
@@ -223,6 +224,52 @@ class EventForm
                     ->default('horizontal'),
                 Toggle::make('is_featured')
                     ->label('Destacado en inicio'),
+                Section::make('Caso de éxito Trascendental')
+                    ->description('Datos editoriales que alimentan la web de trascendentalby.mx.')
+                    ->columns(2)
+                    ->schema([
+                        Toggle::make('is_case_study')
+                            ->label('Mostrar como caso de éxito'),
+                        TextInput::make('case_sort')
+                            ->label('Orden en casos')
+                            ->numeric()
+                            ->minValue(0)
+                            ->default(0),
+                        TextInput::make('case_summary')
+                            ->label('Resumen corto')
+                            ->maxLength(255)
+                            ->columnSpanFull(),
+                        Repeater::make('case_metrics')
+                            ->label('Métricas clave')
+                            ->columns(2)
+                            ->schema([
+                                TextInput::make('label')
+                                    ->label('Dato')
+                                    ->required()
+                                    ->maxLength(80),
+                                TextInput::make('value')
+                                    ->label('Valor')
+                                    ->required()
+                                    ->maxLength(120),
+                            ])
+                            ->defaultItems(0)
+                            ->addActionLabel('Agregar métrica')
+                            ->columnSpanFull(),
+                        TagsInput::make('case_services')
+                            ->label('Servicios entregados')
+                            ->placeholder('Agregar servicio')
+                            ->suggestions([
+                                'Booking',
+                                'Curaduría',
+                                'Producción integral',
+                                'Cashless',
+                                'Ads',
+                                'Contenido',
+                                'Marketing',
+                            ])
+                            ->columnSpanFull(),
+                    ])
+                    ->columnSpanFull(),
                 TextInput::make('priority')
                     ->label('Orden')
                     ->numeric()

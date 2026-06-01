@@ -24,9 +24,18 @@ export function WhatsAppFab() {
     const { url } = usePage<PageProps>();
     const { t } = useTranslations();
     const number = site.whatsapp;
+    const isTrascendental = site.name === 'Trascendental';
     const promptMessages = useMemo(
-        () => PROMPT_MESSAGE_KEYS.map((key) => t(key)),
-        [t],
+        () => (
+            isTrascendental
+                ? [
+                    t('trascendental.whatsapp.prompt_1'),
+                    t('trascendental.whatsapp.prompt_2'),
+                    t('trascendental.whatsapp.prompt_3'),
+                ]
+                : PROMPT_MESSAGE_KEYS.map((key) => t(key))
+        ),
+        [isTrascendental, t],
     );
     const prefersReducedMotion = useReducedMotion();
     const [isPromptVisible, setIsPromptVisible] = useState(false);
@@ -55,10 +64,12 @@ export function WhatsAppFab() {
 
         const message = isDjSetPage
             ? t('funnel.whatsapp.prefill_djset')
+            : isTrascendental
+              ? t('trascendental.whatsapp.default_prefill')
             : t('common.whatsapp.default_prefill');
 
         return `https://wa.me/${number}?text=${encodeURIComponent(message)}`;
-    }, [isDjSetPage, number, t]);
+    }, [isDjSetPage, isTrascendental, number, t]);
 
     const { displayed, showCursor } = useTypingCycle({
         texts: promptMessages,
@@ -126,7 +137,7 @@ export function WhatsAppFab() {
         }
     };
 
-    if (!number || bookingModalOpen || reelPlayerOpen || (isMobile && isHomePage)) {
+    if (!number || bookingModalOpen || reelPlayerOpen || (isMobile && isHomePage && !isTrascendental)) {
         return null;
     }
 

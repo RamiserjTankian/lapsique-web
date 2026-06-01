@@ -22,10 +22,32 @@ use App\Http\Controllers\StripeWebhookController;
 use App\Http\Controllers\TicketAttendeeController;
 use App\Http\Controllers\TicketCheckInController;
 use App\Http\Controllers\TicketCheckoutController;
+use App\Http\Controllers\TrascendentalController;
+use App\Http\Controllers\TrascendentalLeadController;
 use App\Http\Controllers\VideoController;
 use Illuminate\Support\Facades\Route;
 
-Route::get('/', [HomeController::class, 'index'])->name('home');
+if (config('trascendental.enabled_as_primary')) {
+    Route::get('/', [TrascendentalController::class, 'home'])->name('home');
+    Route::get('/servicios', [TrascendentalController::class, 'services'])->name('trascendental.services');
+    Route::get('/casos', [TrascendentalController::class, 'cases'])->name('trascendental.cases');
+    Route::get('/eventos', [TrascendentalController::class, 'events'])->name('trascendental.events');
+    Route::get('/tours-routing', [TrascendentalController::class, 'tours'])->name('trascendental.tours');
+    Route::get('/sobre-trascendental', [TrascendentalController::class, 'about'])->name('trascendental.about');
+    Route::get('/contacto', [TrascendentalController::class, 'contact'])->name('trascendental.contact');
+} else {
+    Route::get('/', [HomeController::class, 'index'])->name('home');
+    Route::prefix('trascendental')->name('trascendental.')->group(function (): void {
+        Route::get('/', [TrascendentalController::class, 'home'])->name('home');
+        Route::get('/servicios', [TrascendentalController::class, 'services'])->name('services');
+        Route::get('/casos', [TrascendentalController::class, 'cases'])->name('cases');
+        Route::get('/eventos', [TrascendentalController::class, 'events'])->name('events');
+        Route::get('/tours-routing', [TrascendentalController::class, 'tours'])->name('tours');
+        Route::get('/sobre-trascendental', [TrascendentalController::class, 'about'])->name('about');
+        Route::get('/contacto', [TrascendentalController::class, 'contact'])->name('contact');
+    });
+}
+
 Route::view('/terminos-y-condiciones', 'legal.terms')->name('legal.terms');
 
 // Content Booking Landing Page
@@ -45,10 +67,12 @@ Route::post('/djset/checkout', [ContentBookingController::class, 'checkoutDjSet'
 Route::get('/djs', [DjController::class, 'index'])->name('djs.index');
 Route::get('/djs/{dj:slug}', [DjController::class, 'show'])->name('djs.show');
 
-Route::get('/eventos', fn () => abort(404))->name('events.index');
-Route::get('/eventos/{event:slug}', [EventController::class, 'show'])->name('events.show');
-Route::get('/eventos/{event:slug}/tickets', [TicketCheckoutController::class, 'show'])->name('tickets.checkout.show');
-Route::post('/eventos/{event:slug}/tickets', [TicketCheckoutController::class, 'checkout'])->name('tickets.checkout.store');
+if (! config('trascendental.enabled_as_primary')) {
+    Route::get('/eventos', fn () => abort(404))->name('events.index');
+    Route::get('/eventos/{event:slug}', [EventController::class, 'show'])->name('events.show');
+    Route::get('/eventos/{event:slug}/tickets', [TicketCheckoutController::class, 'show'])->name('tickets.checkout.show');
+    Route::post('/eventos/{event:slug}/tickets', [TicketCheckoutController::class, 'checkout'])->name('tickets.checkout.store');
+}
 
 Route::get('/tickets/manage/{order}', [TicketCheckoutController::class, 'manage'])
     ->middleware('signed')
@@ -117,6 +141,7 @@ Route::post('/mi-portal/password/reset', [\App\Http\Controllers\CustomerPassword
 
 // Lead Capture (Popup)
 Route::post('/api/leads', [LeadCaptureController::class, 'capture'])->name('leads.capture');
+Route::post('/api/trascendental/leads', [TrascendentalLeadController::class, 'store'])->name('trascendental.leads.store');
 
 // Analytics
 Route::post('/analytics/collect', [AnalyticsController::class, 'collect'])->name('analytics.collect');
@@ -146,6 +171,12 @@ Route::get('/locale/{locale}', function (string $locale) {
     }
 
     session(['locale' => $locale]);
+
+    $previousPath = parse_url(url()->previous(), PHP_URL_PATH) ?: '/';
+
+    if (config('trascendental.enabled_as_primary') || str_starts_with($previousPath, '/trascendental')) {
+        session(['trascendental_locale' => $locale]);
+    }
 
     return redirect()
         ->back()

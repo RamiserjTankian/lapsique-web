@@ -52,6 +52,18 @@ return new class extends Migration
             // Índices
             $table->index(['trigger_type', 'status']);
         });
+
+        Schema::table('contact_logs', function (Blueprint $table) {
+            $table->foreign('campaign_id')
+                ->references('id')
+                ->on('campaigns')
+                ->nullOnDelete();
+
+            $table->foreign('automation_id')
+                ->references('id')
+                ->on('automations')
+                ->nullOnDelete();
+        });
     }
 
     /**
@@ -59,6 +71,11 @@ return new class extends Migration
      */
     public function down(): void
     {
+        Schema::table('contact_logs', function (Blueprint $table) {
+            $table->dropForeign(['campaign_id']);
+            $table->dropForeign(['automation_id']);
+        });
+
         Schema::dropIfExists('automations');
     }
 };

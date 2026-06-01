@@ -11,6 +11,7 @@ class FrontendTranslations
         'customer',
         'pages',
         'seo',
+        'trascendental',
     ];
 
     public static function all(?string $locale = null): array
