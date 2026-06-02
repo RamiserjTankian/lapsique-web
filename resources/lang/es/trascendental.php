@@ -148,8 +148,11 @@ return [
     ],
     'whatsapp' => [
         'default_prefill' => 'Hola, quiero evaluar una fecha con Trascendental.',
-        'prompt_1' => 'Cuéntanos ciudad, fecha y presupuesto.',
-        'prompt_2' => '¿Booking o producción completa?',
-        'prompt_3' => 'Revisamos si tu fecha tiene ruta viable.',
+        'community_badge' => 'Comunidad',
+        'community_cta' => 'Unirme a la comunidad',
+        'community_open' => 'Unirse a la comunidad de Trascendental',
+        'prompt_1' => 'Únete a la comunidad Trascendental.',
+        'prompt_2' => 'Accede a eventos, anuncios y experiencias.',
+        'prompt_3' => 'Entra al grupo oficial de Trascendental.',
     ],
 ];

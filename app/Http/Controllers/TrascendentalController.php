@@ -34,7 +34,7 @@ class TrascendentalController extends Controller
     public function events(): Response
     {
         $events = $this->producedEvents();
-        $perPage = 16;
+        $perPage = 12;
         $lastPage = max(1, (int) ceil(count($events) / $perPage));
         $page = min($lastPage, max(1, (int) request()->query('page', 1)));
 

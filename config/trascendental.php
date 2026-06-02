@@ -7,7 +7,7 @@ return [
 
     'whatsapp' => env('TRASCENDENTAL_WHATSAPP', '529993389943'),
 
-    'whatsapp_community_url' => env('TRASCENDENTAL_WHATSAPP_COMMUNITY_URL'),
+    'whatsapp_community_url' => env('TRASCENDENTAL_WHATSAPP_COMMUNITY_URL', 'https://chat.whatsapp.com/CNrxBxxfpUM7rKkYp3xIqA?s=sw&p=i&mlu=1'),
 
     'email' => env('TRASCENDENTAL_EMAIL', 'trascendentalbooking@gmail.com'),
 

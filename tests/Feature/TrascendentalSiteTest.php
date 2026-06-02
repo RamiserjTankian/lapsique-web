@@ -45,14 +45,27 @@ class TrascendentalSiteTest extends TestCase
             ->assertOk()
             ->assertInertia(fn ($page) => $page
                 ->component('Trascendental/Events')
-                ->has('events', 16)
+                ->has('events', 12)
                 ->where('events.1.title', 'TDL & Atypical invites Lizz')
+                ->where('events.1.source_url', 'https://ra.co/events/2384899')
                 ->where('events.2.image', asset('images/trascendental/events/umi-iluminal-ii-original.jpg'))
                 ->has('upcomingEvents', 15)
                 ->where('upcomingEvents.0.category', 'produced')
                 ->where('upcomingEvents.1.title', 'Crihan - Besarabia Aniversario 4')
                 ->where('pagination.currentPage', 1)
-                ->where('pagination.lastPage', 1));
+                ->where('pagination.lastPage', 2)
+                ->where('pagination.perPage', 12)
+                ->where('pagination.total', 16));
+
+        $this->get(route('trascendental.events', ['page' => 2]))
+            ->assertOk()
+            ->assertInertia(fn ($page) => $page
+                ->component('Trascendental/Events')
+                ->has('events', 4)
+                ->where('events.0.title', 'Trascendental x White Deer Records: Youandewan')
+                ->where('events.3.title', 'TDL presents: Game at Salon Gallos')
+                ->where('pagination.currentPage', 2)
+                ->where('pagination.lastPage', 2));
     }
 
     public function test_contact_endpoint_creates_customer_contact_log_and_notification(): void

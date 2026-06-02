@@ -289,9 +289,7 @@ function TourCard({ tour }: { tour: TrascendentalTour }) {
 export function FinalCta() {
     const { ziggy, site } = usePage<PageProps>().props;
     const { t } = useTranslations();
-    const whatsappHref = site.whatsapp
-        ? `https://wa.me/${site.whatsapp.replace(/\D/g, '')}?text=${encodeURIComponent(t('trascendental.whatsapp.default_prefill'))}`
-        : null;
+    const whatsappHref = site.whatsappCommunityUrl;
 
     return (
         <section className="border-t border-black/15 px-4 py-16 sm:px-6 lg:px-8">
@@ -307,7 +305,7 @@ export function FinalCta() {
                             rel="noopener noreferrer"
                             className="inline-flex min-h-11 items-center justify-center gap-2 rounded-full border border-black bg-black px-5 text-xs font-bold uppercase text-white sm:min-h-12 sm:px-6 sm:text-sm"
                         >
-                            WhatsApp
+                            {t('trascendental.whatsapp.community_cta')}
                             <MessageCircle className="h-4 w-4" />
                         </a>
                     ) : (

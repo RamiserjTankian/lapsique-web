@@ -182,9 +182,10 @@ export default function Home({ producedEvents }: HomeProps) {
     const [heroVideo] = useState(() => heroVideos[Math.floor(Math.random() * heroVideos.length)]);
     const [soundEnabled, setSoundEnabled] = useState(false);
     const [joinOpen, setJoinOpen] = useState(false);
+    const [heroCopyVisible, setHeroCopyVisible] = useState(true);
+    const [typedHeroTitle, setTypedHeroTitle] = useState('');
     const selectedProjects = producedEvents.slice(0, 6);
-    const whatsappCommunityHref = site.whatsappCommunityUrl
-        ?? (site.whatsapp ? `https://wa.me/${site.whatsapp.replace(/\D/g, '')}?text=${encodeURIComponent('Hola, quiero entrar a la comunidad de Trascendental.')}` : null);
+    const whatsappCommunityHref = site.whatsappCommunityUrl;
 
     useEffect(() => {
         if (typeof window === 'undefined' || window.sessionStorage.getItem('trascendental_join_popup_seen')) {
@@ -198,6 +199,28 @@ export default function Home({ producedEvents }: HomeProps) {
 
         return () => window.clearTimeout(timer);
     }, []);
+
+    useEffect(() => {
+        if (!heroCopyVisible) {
+            setTypedHeroTitle('');
+            return;
+        }
+
+        let index = 0;
+        const title = c.heroTitle;
+        setTypedHeroTitle('');
+
+        const timer = window.setInterval(() => {
+            index += 1;
+            setTypedHeroTitle(title.slice(0, index));
+
+            if (index >= title.length) {
+                window.clearInterval(timer);
+            }
+        }, 42);
+
+        return () => window.clearInterval(timer);
+    }, [c.heroTitle, heroCopyVisible]);
 
     const toggleSound = () => {
         const video = videoRef.current;
@@ -215,7 +238,11 @@ export default function Home({ producedEvents }: HomeProps) {
 
     return (
         <TrascendentalLayout>
-            <section className="relative overflow-hidden bg-black text-white">
+            <section
+                className="relative overflow-hidden bg-black text-white"
+                onMouseEnter={() => setHeroCopyVisible(true)}
+                onMouseLeave={() => setHeroCopyVisible(false)}
+            >
                 <video
                     ref={videoRef}
                     className="absolute inset-0 h-full w-full object-cover"
@@ -228,8 +255,7 @@ export default function Home({ producedEvents }: HomeProps) {
                     preload="metadata"
                     aria-hidden="true"
                 />
-                <div className="absolute inset-0 bg-black/62" />
-                <div className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-black via-black/40 to-transparent" />
+                <div className="pointer-events-none absolute inset-x-0 bottom-0 h-[46%] bg-gradient-to-t from-black/80 via-black/40 to-transparent" />
                 <div className="relative px-4 pb-8 pt-7 sm:px-6 lg:px-8">
                     <div className="mx-auto grid min-h-[min(680px,calc(100svh-5rem))] max-w-[1500px] content-between gap-12">
                         <div className="flex items-center justify-end gap-4 border-b border-white/20 pb-4 text-[0.7rem] font-bold uppercase text-white/68">
@@ -240,11 +266,17 @@ export default function Home({ producedEvents }: HomeProps) {
                         </div>
 
                         <div className="max-w-5xl">
-                            <h1 className="max-w-4xl text-[clamp(3rem,12vw,8.5rem)] font-black uppercase leading-[0.83]">
-                                {c.heroTitle}
+                            <h1
+                                className={`min-h-[clamp(10rem,25vw,22rem)] max-w-4xl text-[clamp(3rem,12vw,8.5rem)] font-black uppercase leading-[0.83] transition-opacity duration-300 ${heroCopyVisible ? 'opacity-100' : 'opacity-0'}`}
+                                aria-label={c.heroTitle}
+                            >
+                                <span aria-hidden="true">
+                                    {typedHeroTitle}
+                                    <span className={`ml-1 inline-block h-[0.78em] w-[0.07em] translate-y-[0.08em] bg-white align-baseline ${heroCopyVisible ? 'animate-pulse' : 'hidden'}`} />
+                                </span>
                             </h1>
                             {c.heroBody ? (
-                                <p className="mt-6 max-w-xl text-base leading-relaxed text-white/76 sm:text-lg">
+                                <p className={`mt-6 max-w-xl text-base leading-relaxed text-white/76 transition-opacity duration-300 sm:text-lg ${heroCopyVisible ? 'opacity-100' : 'opacity-0'}`}>
                                     {c.heroBody}
                                 </p>
                             ) : null}
@@ -289,7 +321,7 @@ export default function Home({ producedEvents }: HomeProps) {
                                         ) : null}
                                         {whatsappCommunityHref ? (
                                             <a href={whatsappCommunityHref} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 border border-black px-3 py-2">
-                                                WhatsApp
+                                                {activeLocale === 'es' ? 'Unirme a la comunidad' : 'Join the community'}
                                                 <MessageCircle className="h-3.5 w-3.5" />
                                             </a>
                                         ) : null}

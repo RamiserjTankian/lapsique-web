@@ -148,8 +148,11 @@ return [
     ],
     'whatsapp' => [
         'default_prefill' => 'Hi, I want to evaluate a date with Trascendental.',
-        'prompt_1' => 'Share city, date, and budget.',
-        'prompt_2' => 'Booking or full production?',
-        'prompt_3' => 'We will review if your date has viable routing.',
+        'community_badge' => 'Community',
+        'community_cta' => 'Join the community',
+        'community_open' => 'Join the Trascendental community',
+        'prompt_1' => 'Join the Trascendental community.',
+        'prompt_2' => 'Access events, announcements and experiences.',
+        'prompt_3' => 'Enter the official Trascendental group.',
     ],
 ];
