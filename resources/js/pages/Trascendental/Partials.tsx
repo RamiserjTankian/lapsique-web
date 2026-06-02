@@ -96,6 +96,8 @@ export function EditorialButton({
 }
 
 export function CaseRows({ cases }: { cases: TrascendentalCase[] }) {
+    const { t } = useTranslations();
+
     return (
         <div className="divide-y divide-black/15 border-y border-black/15">
             {cases.map((item) => (
@@ -110,7 +112,7 @@ export function CaseRows({ cases }: { cases: TrascendentalCase[] }) {
                                 <ul className="mt-5 flex flex-wrap gap-2">
                                     {item.services.map((service) => (
                                         <li key={`${item.id}-${service}`} className="border border-black/20 px-3 py-2 text-xs font-bold uppercase text-black/60">
-                                            {service}
+                                            {t(`trascendental.tours_card.services.${service}`)}
                                         </li>
                                     ))}
                                 </ul>
@@ -172,7 +174,7 @@ export function ProducedEventsSection({ events }: { events: ProducedEvent[] }) {
                             >
                                 <img
                                     src={event.image}
-                                    alt={`${event.title} flyer`}
+                                    alt={t('trascendental.produced.flyer_alt', { title: event.title })}
                                     className="aspect-[4/5] w-full bg-black/5 object-contain"
                                     loading="lazy"
                                 />
@@ -252,27 +254,28 @@ export function TourRows({ tours }: { tours: TrascendentalTour[] }) {
 }
 
 function TourCard({ tour }: { tour: TrascendentalTour }) {
+    const { t } = useTranslations();
     const [expanded, setExpanded] = useState(false);
     const preview = tour.bio.length > 176 ? `${tour.bio.slice(0, 176).trim()}...` : tour.bio;
 
     return (
         <article className="border-t border-black pt-4">
-            <img src={tour.image} alt={`${tour.artist} booking portrait`} className="aspect-[4/5] w-full bg-black object-contain" loading="lazy" />
+            <img src={tour.image} alt={t('trascendental.tours_card.booking_portrait', { artist: tour.artist })} className="aspect-[4/5] w-full bg-black object-contain" loading="lazy" />
             <div className="mt-4 flex items-start justify-between gap-4">
                 <div>
                     {tour.label ? <p className="text-xs font-bold uppercase text-black/45">{tour.label}</p> : null}
                     <h2 className="mt-2 text-4xl font-black uppercase leading-none">{tour.artist}</h2>
                 </div>
-                <p className="shrink-0 border border-black px-2 py-1 text-[0.65rem] font-black uppercase text-black">{tour.status}</p>
+                <p className="shrink-0 border border-black px-2 py-1 text-[0.65rem] font-black uppercase text-black">{t(`trascendental.tours_card.status.${tour.status}`)}</p>
             </div>
             <dl className="mt-5 grid gap-2 border-y border-black/15 py-4 text-xs font-bold uppercase">
                 <div className="flex justify-between gap-3">
-                    <dt className="text-black/45">Nationality</dt>
-                    <dd className="text-right">{tour.nationality}</dd>
+                    <dt className="text-black/45">{t('trascendental.tours_card.nationality')}</dt>
+                    <dd className="text-right">{t(`trascendental.tours_card.nationalities.${tour.nationality}`)}</dd>
                 </div>
                 {tour.label ? (
                     <div className="flex justify-between gap-3">
-                        <dt className="text-black/45">Record label</dt>
+                        <dt className="text-black/45">{t('trascendental.tours_card.record_label')}</dt>
                         <dd className="text-right">{tour.label}</dd>
                     </div>
                 ) : null}
@@ -280,7 +283,7 @@ function TourCard({ tour }: { tour: TrascendentalTour }) {
             <p className="mt-4 min-h-28 text-sm leading-relaxed text-black/65">{expanded ? tour.bio : preview}</p>
             {tour.bio.length > preview.length ? (
                 <button type="button" onClick={() => setExpanded((value) => !value)} className="mt-3 text-xs font-black uppercase text-black underline underline-offset-4">
-                    {expanded ? 'Read less' : 'Read more'}
+                    {expanded ? t('trascendental.tours_card.read_less') : t('trascendental.tours_card.read_more')}
                 </button>
             ) : null}
             <div className="mt-5 grid grid-cols-2 gap-2 text-xs font-bold uppercase">

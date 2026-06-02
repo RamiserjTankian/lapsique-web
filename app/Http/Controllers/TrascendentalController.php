@@ -98,7 +98,7 @@ class TrascendentalController extends Controller
                 'instagram' => '@discret_popescu',
                 'instagram_url' => 'https://www.instagram.com/discret_popescu/',
                 'soundcloud_url' => 'https://on.soundcloud.com/zPmi7kTiXJ802hmL8P',
-                'bio' => 'Based in Bucharest and active for over two decades, Alin Crihan is one of Romania\'s most respected underground artists. With more than 60 vinyl releases across multiple aliases, his sound has taken him from Sunwaves and Guesthouse to clubs and festivals throughout Europe, the Americas and beyond.',
+                'bio' => __('trascendental.tour_bios.crihan'),
                 'image' => asset('images/trascendental/artists/crihan-portrait.jpeg'),
             ],
             [
@@ -109,7 +109,7 @@ class TrascendentalController extends Controller
                 'instagram' => '@jaytripwire',
                 'instagram_url' => 'https://www.instagram.com/jaytripwire/',
                 'soundcloud_url' => 'https://on.soundcloud.com/aujhnGUYV96wiRavZk',
-                'bio' => 'A cornerstone of the global underground for more than 30 years, Jay Tripwire has performed in over 200 cities worldwide and released more than 400 vinyl records. Known for his deep hypnotic sound and uncompromising approach behind the decks, he remains one of Canada\'s most enduring electronic music artists.',
+                'bio' => __('trascendental.tour_bios.jay_tripwire'),
                 'image' => asset('images/trascendental/artists/jay-tripwire-live.jpeg'),
             ],
             [
@@ -120,7 +120,7 @@ class TrascendentalController extends Controller
                 'instagram' => '@mikedubssss',
                 'instagram_url' => 'https://www.instagram.com/mikedubssss/',
                 'soundcloud_url' => 'https://on.soundcloud.com/8rF8kxHjll1z6cpTEf',
-                'bio' => 'Born in Ciudad Juarez, Mike.D has established himself as one of Mexico\'s most promising minimal and underground producers. His music has been released on labels including Cadenza, Vatos Locos and Kanja Records, earning support from artists such as Arapu, Priku, Gescu and Reboot.',
+                'bio' => __('trascendental.tour_bios.mike_d'),
                 'image' => asset('images/trascendental/artists/mike-d-01.jpeg'),
             ],
             [
@@ -131,7 +131,7 @@ class TrascendentalController extends Controller
                 'instagram' => '@barrysound_music',
                 'instagram_url' => 'https://www.instagram.com/barrysound_music/',
                 'soundcloud_url' => 'https://on.soundcloud.com/pjxWil9vE9Wf8Hgih2',
-                'bio' => 'Hailing from Merida, Mexico, Barry Sound blends deep house, jazz influences and minimal grooves into elegant and atmospheric sets. With releases on international labels and a growing vinyl-focused profile, he has become a rising name within Mexico\'s underground electronic music scene.',
+                'bio' => __('trascendental.tour_bios.barry_sound'),
                 'image' => asset('images/trascendental/artists/barry-sound.jpeg'),
             ],
             [
@@ -142,7 +142,7 @@ class TrascendentalController extends Controller
                 'instagram' => '@galamx__',
                 'instagram_url' => 'https://www.instagram.com/galamx__/',
                 'soundcloud_url' => 'https://on.soundcloud.com/sJFAWimFvO7IRCZJJs',
-                'bio' => 'Originally from Merida, Mexico, Gala is an emerging force within the underground house scene. Her versatile selections move between house, deep house, minimal and breaks, taking her from clubs in Mexico to venues in France while sharing lineups with artists such as Priku and Olga Korol.',
+                'bio' => __('trascendental.tour_bios.gala'),
                 'image' => asset('images/trascendental/artists/gala.jpeg'),
             ],
             [
@@ -153,7 +153,7 @@ class TrascendentalController extends Controller
                 'instagram' => '@z0neplus',
                 'instagram_url' => 'https://www.instagram.com/z0neplus/',
                 'soundcloud_url' => 'https://on.soundcloud.com/X14HzDlO4rAL1aqG8r',
-                'bio' => 'Based in Bahrain, Zone+ is known for his deep and hypnotic approach to electronic music. His journey has led him to renowned events including Cercle Bali, Sunwaves, Burning Man and Sandbox Festival, while releases on labels such as All Day I Dream and Anjunadeep continue to expand his international presence.',
+                'bio' => __('trascendental.tour_bios.zone_plus'),
                 'image' => asset('images/trascendental/artists/zone-plus.jpeg'),
             ],
         ];

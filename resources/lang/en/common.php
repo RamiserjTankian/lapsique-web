@@ -7,6 +7,7 @@ return [
         'my_portal' => 'My portal',
         'book_session' => 'Book session',
         'theme' => 'Theme',
+        'language' => 'Language',
     ],
     'footer' => [
         'tagline' => 'Audiovisual production · Riviera Maya',

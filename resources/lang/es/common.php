@@ -7,6 +7,7 @@ return [
         'my_portal' => 'Mi portal',
         'book_session' => 'Agendar sesión',
         'theme' => 'Tema',
+        'language' => 'Idioma',
     ],
     'footer' => [
         'tagline' => 'Productora audiovisual · Riviera Maya',

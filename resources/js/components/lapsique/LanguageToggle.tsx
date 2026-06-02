@@ -1,10 +1,12 @@
 import { Link, usePage } from '@inertiajs/react';
+import { useTranslations } from '@/hooks/useTranslations';
 import { cn } from '@/lib/utils';
 import { route } from '@/lib/route';
 import type { PageProps } from '@/types';
 
 export function LanguageToggle({ className }: { className?: string }) {
     const { locale, ziggy } = usePage<PageProps>().props;
+    const { t } = useTranslations();
 
     const locales = [
         { code: 'en', label: 'EN' },
@@ -18,7 +20,7 @@ export function LanguageToggle({ className }: { className?: string }) {
                 className,
             )}
             role="group"
-            aria-label="Language"
+            aria-label={t('common.nav.language')}
         >
             {locales.map(({ code, label }) => {
                 const active = locale === code;

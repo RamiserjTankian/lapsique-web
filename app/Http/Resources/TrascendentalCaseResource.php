@@ -16,12 +16,12 @@ class TrascendentalCaseResource extends JsonResource
             'title' => $this->title,
             'slug' => $this->slug,
             'headline' => $this->headline,
-            'summary' => $this->case_summary,
+            'summary' => $this->caseSummary(),
             'description' => $this->description,
             'venue' => $this->venue,
             'city' => $this->caseCity(),
             'starts_at' => $this->starts_at?->toIso8601String(),
-            'metrics' => $this->case_metrics ?? [],
+            'metrics' => $this->caseMetrics(),
             'services' => $this->caseServices(),
             'image_url' => $this->imageUrl(),
             'media' => $this->mediaItems(),
@@ -48,6 +48,32 @@ class TrascendentalCaseResource extends JsonResource
                 'Operations',
             ],
             default => $this->case_services ?? [],
+        };
+    }
+
+    private function caseSummary(): ?string
+    {
+        return match ($this->slug) {
+            'rebolledo-zal-marina' => __('trascendental.case_data.rebolledo.summary'),
+            'umi-fest-tulum' => __('trascendental.case_data.umi.summary'),
+            default => $this->case_summary,
+        };
+    }
+
+    private function caseMetrics(): array
+    {
+        return match ($this->slug) {
+            'rebolledo-zal-marina' => [
+                ['label' => __('trascendental.case_data.rebolledo.metrics.attendees'), 'value' => '450'],
+                ['label' => __('trascendental.case_data.rebolledo.metrics.result'), 'value' => __('trascendental.case_data.rebolledo.values.sold_out')],
+                ['label' => __('trascendental.case_data.rebolledo.metrics.promotion'), 'value' => __('trascendental.case_data.rebolledo.values.promotion')],
+            ],
+            'umi-fest-tulum' => [
+                ['label' => __('trascendental.case_data.umi.metrics.dates'), 'value' => '4'],
+                ['label' => __('trascendental.case_data.umi.metrics.attendees'), 'value' => '~2000'],
+                ['label' => __('trascendental.case_data.umi.metrics.format'), 'value' => __('trascendental.case_data.umi.values.format')],
+            ],
+            default => $this->case_metrics ?? [],
         };
     }
 
@@ -81,29 +107,29 @@ class TrascendentalCaseResource extends JsonResource
                 [
                     'type' => 'image',
                     'src' => asset('images/trascendental/cases/rebolledo-lasers.webp'),
-                    'alt' => 'Rebolledo bajo luces en Zal Marina',
+                    'alt' => __('trascendental.case_data.media_alt.rebolledo_lights'),
                 ],
             ])),
             'umi-fest-tulum' => [
                 [
                     'type' => 'image',
                     'src' => asset('images/portfolio/photos/045-traumer-shonky-108b989ad6.webp'),
-                    'alt' => 'Traumer y Shonky frente al publico',
+                    'alt' => __('trascendental.case_data.media_alt.traumer_shonky_crowd'),
                 ],
                 [
                     'type' => 'image',
                     'src' => asset('images/portfolio/photos/097-traumer-shonky-309e63566a.webp'),
-                    'alt' => 'Traumer y Shonky en cabina',
+                    'alt' => __('trascendental.case_data.media_alt.traumer_shonky_booth'),
                 ],
                 [
                     'type' => 'image',
                     'src' => asset('images/trascendental/cases/priku-artist.webp'),
-                    'alt' => 'Priku en Umi',
+                    'alt' => __('trascendental.case_data.media_alt.priku_umi'),
                 ],
                 [
                     'type' => 'image',
                     'src' => asset('images/trascendental/cases/priku-crowd.webp'),
-                    'alt' => 'Publico en el drop de Priku',
+                    'alt' => __('trascendental.case_data.media_alt.priku_drop'),
                 ],
             ],
             default => $cover ? [[

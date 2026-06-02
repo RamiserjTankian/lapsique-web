@@ -62,9 +62,9 @@ export default function Events({ events, upcomingEvents, pagination }: EventsPro
                         </div>
                     </div>
                     <div className="grid gap-8 lg:grid-cols-3">
-                        <UpcomingGroup title="Produced by Trascendental" events={producedUpcoming} />
-                        <UpcomingGroup title="To be announce" events={announceUpcoming} />
-                        <UpcomingGroup title="Roster appearances" events={rosterAppearances} />
+                        <UpcomingGroup title={t('trascendental.events.groups.produced')} events={producedUpcoming} />
+                        <UpcomingGroup title={t('trascendental.events.groups.announce')} events={announceUpcoming} />
+                        <UpcomingGroup title={t('trascendental.events.groups.roster')} events={rosterAppearances} />
                     </div>
                 </section>
 
@@ -77,7 +77,7 @@ export default function Events({ events, upcomingEvents, pagination }: EventsPro
                     {events.map((event) => (
                         <article key={`${event.title}-${event.date}`} className="border-t border-black pt-3">
                             <a href={event.source_url ?? '#'} target={event.source_url ? '_blank' : undefined} rel={event.source_url ? 'noopener noreferrer' : undefined} className={event.source_url ? 'group block' : 'pointer-events-none block'}>
-                                <img src={event.image} alt={`${event.title} flyer`} className="aspect-[4/5] w-full bg-black/5 object-contain" loading="lazy" />
+                                <img src={event.image} alt={t('trascendental.produced.flyer_alt', { title: event.title })} className="aspect-[4/5] w-full bg-black/5 object-contain" loading="lazy" />
                                 <p className="mt-4 text-xs font-bold uppercase text-black/45">
                                     {event.date} / {event.city}
                                 </p>
@@ -91,7 +91,7 @@ export default function Events({ events, upcomingEvents, pagination }: EventsPro
                     ))}
                 </div>
 
-                <nav className="mt-12 flex flex-col gap-4 border-t border-black/15 pt-5 text-sm font-bold uppercase sm:flex-row sm:items-center sm:justify-between" aria-label="Pagination">
+                <nav className="mt-12 flex flex-col gap-4 border-t border-black/15 pt-5 text-sm font-bold uppercase sm:flex-row sm:items-center sm:justify-between" aria-label={t('common.pagination.label')}>
                     <Link
                         href={pageHref(Math.max(1, pagination.currentPage - 1))}
                         preserveScroll
@@ -116,6 +116,8 @@ export default function Events({ events, upcomingEvents, pagination }: EventsPro
 }
 
 function UpcomingGroup({ title, events }: { title: string; events: UpcomingEvent[] }) {
+    const { t } = useTranslations();
+
     return (
         <section>
             <h3 className="border-t border-black pt-3 text-2xl font-black uppercase leading-none">{title}</h3>
@@ -126,7 +128,7 @@ function UpcomingGroup({ title, events }: { title: string; events: UpcomingEvent
                         className={`grid gap-4 border-t border-black/15 pt-4 md:items-end ${event.image ? 'md:grid-cols-[minmax(0,0.42fr)_minmax(0,1fr)_auto]' : 'md:grid-cols-[1fr_auto]'}`}
                     >
                         {event.image ? (
-                            <img src={event.image} alt={`${event.title} flyer`} className="aspect-[4/5] w-full bg-black/5 object-contain md:max-w-40" loading="lazy" />
+                            <img src={event.image} alt={t('trascendental.produced.flyer_alt', { title: event.title })} className="aspect-[4/5] w-full bg-black/5 object-contain md:max-w-40" loading="lazy" />
                         ) : null}
                         <div>
                             <p className="text-xs font-bold uppercase text-black/45">{[event.date, event.city].filter(Boolean).join(' / ')}</p>
@@ -136,8 +138,8 @@ function UpcomingGroup({ title, events }: { title: string; events: UpcomingEvent
                         </div>
                         {event.details_url || event.tickets_url ? (
                             <div className="flex gap-2 text-xs font-bold uppercase md:flex-col">
-                                <EventAction href={event.details_url}>{eventActionLabel(event.details_url, 'Event details')}</EventAction>
-                                <EventAction href={event.tickets_url}>{eventActionLabel(event.tickets_url, 'Buy tickets')}</EventAction>
+                                <EventAction href={event.details_url}>{eventActionLabel(event.details_url, t)}</EventAction>
+                                <EventAction href={event.tickets_url}>{eventActionLabel(event.tickets_url, t)}</EventAction>
                             </div>
                         ) : null}
                     </article>
@@ -159,18 +161,18 @@ function EventAction({ href, children }: { href: string | null; children: string
     );
 }
 
-function eventActionLabel(href: string | null, fallback: string) {
+function eventActionLabel(href: string | null, t: (key: string) => string) {
     if (!href) {
-        return fallback;
+        return t('trascendental.events.actions.details');
     }
 
     if (href.includes('instagram.com')) {
-        return 'Instagram';
+        return t('trascendental.events.actions.instagram');
     }
 
-    if (href.includes('flashpass') || href.includes('ticketea')) {
-        return 'Buy tickets';
+    if (href.includes('flashpass') || href.includes('ticketea') || href.includes('passline')) {
+        return t('trascendental.events.actions.tickets');
     }
 
-    return fallback;
+    return t('trascendental.events.actions.details');
 }

@@ -3,7 +3,6 @@
 namespace App\Http\Controllers;
 
 use App\Mail\TrascendentalLeadNotification;
-use App\Mail\TrascendentalJoinListConfirmation;
 use App\Models\ContactLog;
 use App\Models\Customer;
 use Illuminate\Http\JsonResponse;
@@ -62,6 +61,7 @@ class TrascendentalLeadController extends Controller
             'submitted_at' => now()->toIso8601String(),
             'privacy_accepted_at' => now()->toIso8601String(),
             'url' => $request->input('current_url', $request->headers->get('referer')),
+            'mail_suppressed' => $leadType === 'join_list' ? true : null,
         ];
 
         $customer->fill([
@@ -95,14 +95,10 @@ class TrascendentalLeadController extends Controller
             'status' => 'pending',
         ]);
 
-        $notificationEmail = $this->notificationEmail();
+        $notificationEmail = $leadType === 'join_list' ? null : $this->notificationEmail();
 
-        if ($notificationEmail) {
+        if ($notificationEmail !== null) {
             $this->sendMailSafely(fn () => Mail::to($notificationEmail)->send(new TrascendentalLeadNotification($customer, $contactLog)));
-        }
-
-        if ($leadType === 'join_list') {
-            $this->sendMailSafely(fn () => Mail::to($customer->email)->send(new TrascendentalJoinListConfirmation($customer)));
         }
 
         return response()->json([

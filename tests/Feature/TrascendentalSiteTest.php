@@ -3,7 +3,6 @@
 namespace Tests\Feature;
 
 use App\Mail\TrascendentalLeadNotification;
-use App\Mail\TrascendentalJoinListConfirmation;
 use App\Models\Customer;
 use App\Models\Event;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -130,12 +129,14 @@ class TrascendentalSiteTest extends TestCase
 
         $response->assertOk()
             ->assertJson(['success' => true])
+            ->assertJsonPath('message', 'Thank you. You are on the list. Your registration was saved and we will contact you through Trascendental channels.')
             ->assertJsonMissing(['discount_code']);
 
         $customer = Customer::where('email', 'list@example.com')->firstOrFail();
 
         $this->assertContains('trascendental_join_list', $customer->tags);
         $this->assertArrayHasKey('trascendental_join_list', $customer->metadata);
+        $this->assertTrue($customer->metadata['trascendental_join_list']['mail_suppressed']);
         $this->assertArrayNotHasKey('discount_code', $customer->metadata['trascendental_join_list']);
         $this->assertArrayNotHasKey('discount_percent', $customer->metadata['trascendental_join_list']);
 
@@ -145,7 +146,6 @@ class TrascendentalSiteTest extends TestCase
             'status' => 'pending',
         ]);
 
-        Mail::assertSent(TrascendentalLeadNotification::class);
-        Mail::assertSent(TrascendentalJoinListConfirmation::class);
+        Mail::assertNothingSent();
     }
 }

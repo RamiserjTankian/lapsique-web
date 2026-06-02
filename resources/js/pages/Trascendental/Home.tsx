@@ -2,6 +2,7 @@ import { Link, usePage } from '@inertiajs/react';
 import { ArrowUpRight, Check, Mail, MessageCircle, Volume2, VolumeX, X } from 'lucide-react';
 import { useEffect, useRef, useState, type FormEvent, type ReactNode } from 'react';
 import { TrascendentalLayout } from '@/layouts/TrascendentalLayout';
+import { useTranslations } from '@/hooks/useTranslations';
 import { route } from '@/lib/route';
 import type { PageProps } from '@/types';
 import { type ProducedEvent, type TrascendentalCase, type TrascendentalTour } from './Partials';
@@ -36,8 +37,8 @@ const copy = {
         heroEyebrow: 'International booking / Executive production / Culture',
         heroTitle: 'EVENTS.\nARTISTS.\nCULTURE.',
         heroBody: '',
-        book: 'SOLICITAR BOOKING',
-        start: 'INICIAR PROYECTO',
+        book: 'REQUEST BOOKING',
+        start: 'START A PROJECT',
         join: 'JOIN THE LIST',
         soundOff: 'Enable sound',
         soundOn: 'Mute',
@@ -56,8 +57,9 @@ const copy = {
         email: 'Email Address',
         whatsapp: 'WhatsApp (optional)',
         joinSubmit: 'JOIN',
-        joinSuccess: 'You are on the list.',
+        joinSuccess: 'Thank you. You are on the list. Your registration was saved and we will contact you through Trascendental channels.',
         joinError: 'Could not join the list. Check the fields and try again.',
+        joinClose: 'Close join list popup',
         contactTitle: 'CONTACT',
         contactBody: 'For bookings, projects, partnerships and press, send the context and we will route it to the right conversation.',
         contactCta: 'CONTACT',
@@ -68,7 +70,7 @@ const copy = {
         heroBody: '',
         book: 'SOLICITAR BOOKING',
         start: 'INICIAR PROYECTO',
-        join: 'JOIN THE LIST',
+        join: 'UNIRME A LA LISTA',
         soundOff: 'Activar sonido',
         soundOn: 'Silenciar',
         servicesEyebrow: 'Servicios',
@@ -80,40 +82,23 @@ const copy = {
         artistsBody: 'Roster curado de artistas disponibles para bookings, showcases y proyectos especiales.',
         viewRoster: 'VER ROSTER',
         selectedBody: '',
-        joinTitle: 'JOIN THE LIST',
-        joinBody: 'Early access to events, artist announcements and selected projects before public release.',
+        joinTitle: 'UNIRME A LA LISTA',
+        joinBody: 'Acceso anticipado a eventos, anuncios de artistas y proyectos seleccionados antes de su lanzamiento publico.',
         name: 'Nombre',
         email: 'Correo electronico',
         whatsapp: 'WhatsApp (opcional)',
-        joinSubmit: 'JOIN',
-        joinSuccess: 'Ya estas en la lista.',
+        joinSubmit: 'UNIRME',
+        joinSuccess: 'Gracias. Ya estas en la lista. Tu registro quedo guardado y te contactaremos por los canales de Trascendental.',
         joinError: 'No se pudo registrar. Revisa los campos e intenta de nuevo.',
+        joinClose: 'Cerrar popup de registro',
         contactTitle: 'CONTACTO',
         contactBody: 'Para booking, proyectos, partnerships y prensa, envia el contexto y lo llevamos a la conversacion correcta.',
         contactCta: 'CONTACTO',
     },
 } satisfies Record<Locale, Record<string, string>>;
 
-const services = {
-    en: [
-        ['BOOKING', 'Representation, contracting and opportunity development for national and international artists.'],
-        ['EVENTS', 'Concept, production and execution for clubs, festivals and brands.'],
-        ['COMMUNITY', 'Access to events, experiences and projects selected by Trascendental.'],
-    ],
-    es: [
-        ['BOOKING', 'Representacion, contratacion y desarrollo de oportunidades para artistas nacionales e internacionales.'],
-        ['EVENTS', 'Concepto, produccion y ejecucion para clubes, festivales y marcas.'],
-        ['COMMUNITY', 'Acceso a eventos, experiencias y proyectos seleccionados por Trascendental.'],
-    ],
-} satisfies Record<Locale, Array<[string, string]>>;
-
-const impact = [
-    ['300+', 'Events Produced'],
-    ['30+', 'International Bookings'],
-    ['30+', 'Venues Operated'],
-    ['12+', 'Countries Connected'],
-    ['Since 2014', 'Continuous Operations'],
-];
+const impactValues = ['300+', '30+', '30+', '12+', null] as const;
+const impactLabelKeys = ['events', 'bookings', 'venues', 'countries', 'operations'] as const;
 
 const artists = [
     {
@@ -123,7 +108,8 @@ const artists = [
         instagram: '@discret_popescu',
         soundcloud: 'https://on.soundcloud.com/zPmi7kTiXJ802hmL8P',
         dates: 'SOLD OUT',
-        markets: 'Romanian · Discret Popescu',
+        nationality: 'Romanian',
+        label: 'Discret Popescu',
     },
     {
         name: 'Jay Tripwire',
@@ -132,7 +118,8 @@ const artists = [
         instagram: '@jaytripwire',
         soundcloud: 'https://on.soundcloud.com/aujhnGUYV96wiRavZk',
         dates: 'LAST DATES',
-        markets: 'Canadian · Rawax Music',
+        nationality: 'Canadian',
+        label: 'Rawax Music',
     },
     {
         name: 'Mike.D',
@@ -141,7 +128,8 @@ const artists = [
         instagram: '@mikedubssss',
         soundcloud: 'https://on.soundcloud.com/8rF8kxHjll1z6cpTEf',
         dates: 'OPEN DATES',
-        markets: 'Mexican · Cadenza Music',
+        nationality: 'Mexican',
+        label: 'Cadenza Music',
     },
     {
         name: 'Zone+',
@@ -150,7 +138,8 @@ const artists = [
         instagram: '@z0neplus',
         soundcloud: 'https://on.soundcloud.com/X14HzDlO4rAL1aqG8r',
         dates: 'LAST DATES',
-        markets: 'Bahrain · All Day I Dream',
+        nationality: 'Bahrain',
+        label: 'All Day I Dream',
     },
     {
         name: 'Barry Sound',
@@ -159,7 +148,8 @@ const artists = [
         instagram: '@barrysound_music',
         soundcloud: 'https://on.soundcloud.com/pjxWil9vE9Wf8Hgih2',
         dates: 'OPEN DATES',
-        markets: 'Mexican · House Cookin',
+        nationality: 'Mexican',
+        label: 'House Cookin',
     },
     {
         name: 'Gala',
@@ -168,14 +158,21 @@ const artists = [
         instagram: '@galamx__',
         soundcloud: 'https://on.soundcloud.com/sJFAWimFvO7IRCZJJs',
         dates: 'OPEN DATES',
-        markets: 'Mexican · Boogie Room Records',
+        nationality: 'Mexican',
+        label: 'Boogie Room Records',
     },
 ];
 
 export default function Home({ producedEvents }: HomeProps) {
     const { ziggy, locale, site } = usePage<PageProps>().props;
+    const { t } = useTranslations();
     const activeLocale: Locale = locale === 'en' ? 'en' : 'es';
     const c = copy[activeLocale];
+    const serviceCards = [
+        [t('trascendental.home.services.booking'), t('trascendental.home.services.booking_text'), 'booking'],
+        [t('trascendental.home.services.events'), t('trascendental.home.services.events_text'), 'events'],
+        [t('trascendental.home.services.community'), t('trascendental.home.services.community_text'), 'community'],
+    ];
     const videoRef = useRef<HTMLVideoElement>(null);
     const [heroVideo] = useState(() => heroVideos[Math.floor(Math.random() * heroVideos.length)]);
     const [soundEnabled, setSoundEnabled] = useState(false);
@@ -302,11 +299,11 @@ export default function Home({ producedEvents }: HomeProps) {
                 <div className="tdl-wrap">
                     <p className="tdl-eyebrow">{c.servicesEyebrow}</p>
                     <div className="mt-8 grid gap-8 md:grid-cols-3">
-                        {services[activeLocale].map(([title, text]) => (
-                            <article key={title} className="border-t border-black pt-4">
+                        {serviceCards.map(([title, text, key]) => (
+                            <article key={key} className="border-t border-black pt-4">
                                 <h2 className="text-3xl font-black uppercase leading-none">{title}</h2>
                                 <p className="mt-4 max-w-sm text-sm leading-relaxed text-black/65">{text}</p>
-                                {title === 'COMMUNITY' ? (
+                                {key === 'community' ? (
                                     <div className="mt-5 flex flex-wrap gap-2 text-xs font-bold uppercase">
                                         {site.instagramUrl ? (
                                             <a href={site.instagramUrl} target="_blank" rel="noopener noreferrer" className="border border-black px-3 py-2">
@@ -320,7 +317,7 @@ export default function Home({ producedEvents }: HomeProps) {
                                         ) : null}
                                         {whatsappCommunityHref ? (
                                             <a href={whatsappCommunityHref} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 border border-black px-3 py-2">
-                                                {activeLocale === 'es' ? 'Unirme a la comunidad' : 'Join the community'}
+                                                {t('trascendental.whatsapp.community_cta')}
                                                 <MessageCircle className="h-3.5 w-3.5" />
                                             </a>
                                         ) : null}
@@ -336,10 +333,10 @@ export default function Home({ producedEvents }: HomeProps) {
                 <div className="mx-auto max-w-[1500px]">
                     <p className="tdl-eyebrow text-white/50">{c.impactTitle}</p>
                     <div className="mt-8 grid gap-px bg-white/20 sm:grid-cols-2 lg:grid-cols-5">
-                        {impact.map(([value, label]) => (
-                            <div key={`${value}-${label}`} className="bg-black p-5 sm:p-6">
-                                <p className="text-4xl font-black uppercase leading-none sm:text-5xl">{value}</p>
-                                <p className="mt-3 text-xs font-bold uppercase leading-relaxed text-white/58">{label}</p>
+                        {impactLabelKeys.map((key, index) => (
+                            <div key={key} className="bg-black p-5 sm:p-6">
+                                <p className="text-4xl font-black uppercase leading-none sm:text-5xl">{impactValues[index] ?? t('trascendental.home.impact.since')}</p>
+                                <p className="mt-3 text-xs font-bold uppercase leading-relaxed text-white/58">{t(`trascendental.home.impact.${key}`)}</p>
                             </div>
                         ))}
                     </div>
@@ -362,7 +359,7 @@ export default function Home({ producedEvents }: HomeProps) {
                 <div className="tdl-wrap">
                     <div className="mb-9 grid gap-5 md:grid-cols-[1fr_auto] md:items-end">
                         <div>
-                            <p className="tdl-eyebrow">Roster</p>
+                            <p className="tdl-eyebrow">{t('trascendental.home.roster')}</p>
                             <h2 className="tdl-heading">{c.artistsTitle}</h2>
                             <p className="mt-4 max-w-xl text-base leading-relaxed text-black/62">{c.artistsBody}</p>
                         </div>
@@ -374,13 +371,13 @@ export default function Home({ producedEvents }: HomeProps) {
                     <div className="grid gap-x-5 gap-y-8 sm:grid-cols-2">
                         {artists.map((artist) => (
                             <article key={artist.name} className="grid gap-4 border-t border-black pt-4 md:grid-cols-[0.48fr_0.52fr]">
-                                <img src={artist.image} alt={`${artist.name} booking visual`} className="aspect-[4/5] w-full bg-black object-contain" loading="lazy" />
+                                <img src={artist.image} alt={t('trascendental.tours_card.booking_portrait', { artist: artist.name })} className="aspect-[4/5] w-full bg-black object-contain" loading="lazy" />
                                 <div className="flex min-h-full flex-col justify-between gap-6">
                                     <div>
                                         {artist.alias ? <p className="text-xs font-bold uppercase text-black/45">{artist.alias}</p> : null}
                                         <h3 className="mt-2 text-4xl font-black uppercase leading-none">{artist.name}</h3>
-                                        <p className="mt-4 text-sm font-bold uppercase leading-relaxed text-black/62">{artist.markets}</p>
-                                        <p className="mt-3 text-sm leading-relaxed text-black/58">{artist.dates}</p>
+                                        <p className="mt-4 text-sm font-bold uppercase leading-relaxed text-black/62">{t(`trascendental.tours_card.nationalities.${artist.nationality}`)} · {artist.label}</p>
+                                        <p className="mt-3 text-sm leading-relaxed text-black/58">{artistStatusLabel(artist.dates, t)}</p>
                                     </div>
                                     <div className="grid gap-2 text-xs font-bold uppercase text-black/72">
                                         <a href={`https://www.instagram.com/${artist.instagram.replace('@', '')}/`} target="_blank" rel="noopener noreferrer" className="border-t border-black/15 pt-2">
@@ -403,7 +400,7 @@ export default function Home({ producedEvents }: HomeProps) {
                         <div className="grid gap-x-5 gap-y-8 sm:grid-cols-2 lg:grid-cols-3">
                             {selectedProjects.map((project) => (
                                 <article key={`${project.title}-${project.date}`} className="border-t border-black pt-4">
-                                    <img src={project.image} alt={`${project.title} visual`} className="aspect-[4/5] w-full bg-black/5 object-contain" loading="lazy" />
+                                    <img src={project.image} alt={t('trascendental.produced.flyer_alt', { title: project.title })} className="aspect-[4/5] w-full bg-black/5 object-contain" loading="lazy" />
                                     <p className="mt-4 text-xs font-bold uppercase text-black/45">{project.date} / {project.city}</p>
                                     <h3 className="mt-2 text-2xl font-black uppercase leading-none">{project.title}</h3>
                                 </article>
@@ -416,7 +413,7 @@ export default function Home({ producedEvents }: HomeProps) {
             <section className="tdl-section bg-[#eeeeec]" id="join-list">
                 <div className="tdl-wrap grid gap-9 lg:grid-cols-[0.8fr_1.2fr] lg:items-start">
                     <div>
-                        <p className="tdl-eyebrow">Registration</p>
+                        <p className="tdl-eyebrow">{t('trascendental.home.registration')}</p>
                         <h2 className="tdl-heading">{c.joinTitle}</h2>
                         <p className="mt-5 max-w-md text-base leading-relaxed text-black/62">{c.joinBody}</p>
                         <button type="button" onClick={() => setJoinOpen(true)} className="tdl-button mt-7 border-black bg-black text-white">
@@ -431,15 +428,15 @@ export default function Home({ producedEvents }: HomeProps) {
             <section className="tdl-section border-t border-black/10">
                 <div className="tdl-wrap grid gap-8 lg:grid-cols-[0.72fr_1.28fr] lg:items-end">
                     <div>
-                        <p className="tdl-eyebrow">Booking / Projects / Partnerships / Press</p>
+                        <p className="tdl-eyebrow">{t('trascendental.home.contact_eyebrow')}</p>
                         <h2 className="tdl-heading">{c.contactTitle}</h2>
                     </div>
                     <div>
                         <p className="max-w-xl text-base leading-relaxed text-black/62">{c.contactBody}</p>
                         <div className="mt-6 flex flex-wrap gap-3">
-                            {['BOOKING', 'PROJECTS', 'PARTNERSHIPS', 'PRESS'].map((item) => (
+                            {['booking', 'projects', 'partnerships', 'press'].map((item) => (
                                 <span key={item} className="border border-black px-3 py-2 text-xs font-bold uppercase text-black">
-                                    {item}
+                                    {t(`trascendental.home.contact_chip_${item}`)}
                                 </span>
                             ))}
                         </div>
@@ -456,10 +453,21 @@ export default function Home({ producedEvents }: HomeProps) {
     );
 }
 
+function artistStatusLabel(status: string, t: (key: string) => string) {
+    const key = {
+        'SOLD OUT': 'sold_out',
+        'LAST DATES': 'last_dates',
+        'OPEN DATES': 'open_dates',
+    }[status];
+
+    return key ? t(`trascendental.home.artist_status.${key}`) : status;
+}
+
 function JoinListForm({ labels, mode }: { labels: Record<string, string>; mode: 'section' | 'popup' }) {
     const { ziggy, locale } = usePage<PageProps>().props;
     const [form, setForm] = useState<JoinFormState>(initialJoinForm);
     const [status, setStatus] = useState<'idle' | 'sending' | 'success' | 'error'>('idle');
+    const [statusMessage, setStatusMessage] = useState<string | null>(null);
 
     const update = (key: keyof JoinFormState, value: string) => {
         setForm((current) => ({ ...current, [key]: value }));
@@ -468,6 +476,7 @@ function JoinListForm({ labels, mode }: { labels: Record<string, string>; mode: 
     const submit = async (event: FormEvent<HTMLFormElement>) => {
         event.preventDefault();
         setStatus('sending');
+        setStatusMessage(null);
 
         const token = document.querySelector<HTMLMetaElement>('meta[name="csrf-token"]')?.content ?? '';
         const response = await fetch(route('trascendental.leads.store', undefined, false, ziggy), {
@@ -493,13 +502,17 @@ function JoinListForm({ labels, mode }: { labels: Record<string, string>; mode: 
             }),
         });
 
+        const data = (await response.json().catch(() => null)) as { message?: string } | null;
+
         if (response.ok) {
             setStatus('success');
+            setStatusMessage(data?.message ?? labels.joinSuccess);
             setForm(initialJoinForm);
             return;
         }
 
         setStatus('error');
+        setStatusMessage(data?.message ?? labels.joinError);
     };
 
     return (
@@ -518,9 +531,11 @@ function JoinListForm({ labels, mode }: { labels: Record<string, string>; mode: 
                 {labels.joinSubmit}
             </button>
             {status === 'success' ? (
-                <p className="text-sm font-bold uppercase text-black">{labels.joinSuccess}</p>
+                <div className="border border-black bg-white px-4 py-3 text-sm font-bold uppercase leading-relaxed text-black">
+                    {statusMessage ?? labels.joinSuccess}
+                </div>
             ) : null}
-            {status === 'error' ? <p className="text-sm font-bold uppercase text-red-700">{labels.joinError}</p> : null}
+            {status === 'error' ? <p className="text-sm font-bold uppercase text-red-700">{statusMessage ?? labels.joinError}</p> : null}
         </form>
     );
 }
@@ -577,7 +592,7 @@ function JoinListPopup({ open, onClose, labels }: { open: boolean; onClose: () =
                         </h2>
                         <p className="mt-4 max-w-md text-sm leading-relaxed text-black/62">{labels.joinBody}</p>
                     </div>
-                    <button type="button" onClick={onClose} className="inline-flex h-10 w-10 shrink-0 items-center justify-center border border-black text-black" aria-label="Close join list popup">
+                    <button type="button" onClick={onClose} className="inline-flex h-10 w-10 shrink-0 items-center justify-center border border-black text-black" aria-label={labels.joinClose}>
                         <X className="h-5 w-5" />
                     </button>
                 </div>

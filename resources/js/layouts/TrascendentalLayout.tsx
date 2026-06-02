@@ -69,7 +69,7 @@ export function TrascendentalLayout({ children }: TrascendentalLayoutProps) {
                         size="icon"
                         className="md:hidden"
                         onClick={() => setOpen((value) => !value)}
-                        aria-label={open ? 'Close navigation' : 'Open navigation'}
+                        aria-label={open ? t('trascendental.nav.close') : t('trascendental.nav.open')}
                     >
                         {open ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
                     </Button>
@@ -99,7 +99,7 @@ export function TrascendentalLayout({ children }: TrascendentalLayoutProps) {
                 <div className="mx-auto flex max-w-[1500px] flex-col gap-6 text-sm sm:flex-row sm:items-end sm:justify-between">
                     <div>
                         <p className="text-3xl font-black uppercase">TRASCENDENTAL.</p>
-                        <p className="mt-2 max-w-md text-black/60">Artists / Events / Culture</p>
+                        <p className="mt-2 max-w-md text-black/60">{t('trascendental.nav.footer_tagline')}</p>
                     </div>
                     <div className="flex flex-wrap items-center gap-3">
                         {site.email ? (
