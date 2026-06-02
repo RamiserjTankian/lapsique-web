@@ -9,6 +9,7 @@ const sections = [
         items: ['concept', 'booking', 'production', 'execution', 'marketing', 'operations'],
         image: '/images/trascendental/events/rebolledo-zal-marina-flyer.jpg',
         imageFit: 'contain',
+        imageAspect: 'portrait',
     },
     {
         key: 'booking',
@@ -16,6 +17,7 @@ const sections = [
         items: ['artists', 'touring', 'routing'],
         image: '/images/trascendental/artists/jay-tripwire-live.jpeg',
         imageFit: 'cover',
+        imageAspect: 'portrait',
     },
     {
         key: 'capabilities',
@@ -23,6 +25,7 @@ const sections = [
         items: ['cashless', 'ads', 'content', 'logistics'],
         image: '/images/trascendental/about/jaguar-house-wide.jpeg',
         imageFit: 'cover',
+        imageAspect: 'landscape',
     },
 ] as const;
 
@@ -42,7 +45,7 @@ export default function Services() {
                             <img
                                 src={section.image}
                                 alt={t(`trascendental.services.${section.key}`)}
-                                className={`aspect-[4/5] w-full bg-black/5 ${section.imageFit === 'cover' ? 'object-cover' : 'object-contain'}`}
+                                className={`${section.imageAspect === 'landscape' ? 'aspect-[16/10]' : 'aspect-[4/5]'} w-full bg-black/5 ${section.imageFit === 'cover' ? 'object-cover' : 'object-contain'}`}
                                 loading="lazy"
                             />
                             <ul className="grid gap-0">

@@ -18,12 +18,13 @@ interface EventsProps {
 }
 
 interface UpcomingEvent {
-    category: 'produced' | 'roster';
+    category: 'produced' | 'announce' | 'roster';
     title: string;
     date: string;
     venue: string;
     city: string;
     lineup: string;
+    image?: string | null;
     details_url: string | null;
     tickets_url: string | null;
 }
@@ -32,6 +33,7 @@ export default function Events({ events, upcomingEvents, pagination }: EventsPro
     const { ziggy } = usePage<PageProps>().props;
     const { t } = useTranslations();
     const producedUpcoming = upcomingEvents.filter((event) => event.category === 'produced');
+    const announceUpcoming = upcomingEvents.filter((event) => event.category === 'announce');
     const rosterAppearances = upcomingEvents.filter((event) => event.category === 'roster');
 
     const pageLabel = t('trascendental.events.page')
@@ -53,15 +55,15 @@ export default function Events({ events, upcomingEvents, pagination }: EventsPro
         <TrascendentalLayout>
             <PageShell title={t('trascendental.events.title')} intro={t('trascendental.events.intro')}>
                 <section className="mb-14 border-y border-black/15 py-8">
-                    <div className="mb-8 grid gap-5 md:grid-cols-[0.8fr_1.2fr] md:items-end">
+                    <div className="mb-8">
                         <div>
                             <p className="text-xs font-bold uppercase text-black/45">{t('trascendental.events.upcoming_eyebrow')}</p>
                             <h2 className="text-5xl font-black uppercase leading-none">{t('trascendental.events.upcoming_title')}</h2>
                         </div>
-                        <p className="text-base leading-relaxed text-black/62">{t('trascendental.events.upcoming_intro')}</p>
                     </div>
-                    <div className="grid gap-8 lg:grid-cols-[0.46fr_0.54fr]">
+                    <div className="grid gap-8 lg:grid-cols-3">
                         <UpcomingGroup title="Produced by Trascendental" events={producedUpcoming} />
+                        <UpcomingGroup title="To be announce" events={announceUpcoming} />
                         <UpcomingGroup title="Roster appearances" events={rosterAppearances} />
                     </div>
                 </section>
@@ -119,19 +121,25 @@ function UpcomingGroup({ title, events }: { title: string; events: UpcomingEvent
             <h3 className="border-t border-black pt-3 text-2xl font-black uppercase leading-none">{title}</h3>
             <div className="mt-5 grid gap-4">
                 {events.map((event) => (
-                    <article key={`${event.title}-${event.date}-${event.city}`} className="grid gap-4 border-t border-black/15 pt-4 md:grid-cols-[1fr_auto] md:items-end">
+                    <article
+                        key={`${event.title}-${event.date}-${event.city}`}
+                        className={`grid gap-4 border-t border-black/15 pt-4 md:items-end ${event.image ? 'md:grid-cols-[minmax(0,0.42fr)_minmax(0,1fr)_auto]' : 'md:grid-cols-[1fr_auto]'}`}
+                    >
+                        {event.image ? (
+                            <img src={event.image} alt={`${event.title} flyer`} className="aspect-[4/5] w-full bg-black/5 object-contain md:max-w-40" loading="lazy" />
+                        ) : null}
                         <div>
-                            <p className="text-xs font-bold uppercase text-black/45">
-                                {event.date} / {event.city}
-                            </p>
+                            <p className="text-xs font-bold uppercase text-black/45">{[event.date, event.city].filter(Boolean).join(' / ')}</p>
                             <h4 className="mt-2 text-2xl font-black uppercase leading-none">{event.title}</h4>
-                            <p className="mt-2 text-sm font-bold uppercase text-black/55">{event.venue}</p>
-                            <p className="mt-3 text-xs font-bold uppercase leading-relaxed text-black/70">{event.lineup}</p>
+                            {event.venue ? <p className="mt-2 text-sm font-bold uppercase text-black/55">{event.venue}</p> : null}
+                            {event.lineup ? <p className="mt-3 text-xs font-bold uppercase leading-relaxed text-black/70">{event.lineup}</p> : null}
                         </div>
-                        <div className="flex gap-2 text-xs font-bold uppercase md:flex-col">
-                            <EventAction href={event.details_url}>Event details</EventAction>
-                            <EventAction href={event.tickets_url}>Buy tickets</EventAction>
-                        </div>
+                        {event.details_url || event.tickets_url ? (
+                            <div className="flex gap-2 text-xs font-bold uppercase md:flex-col">
+                                <EventAction href={event.details_url}>{eventActionLabel(event.details_url, 'Event details')}</EventAction>
+                                <EventAction href={event.tickets_url}>{eventActionLabel(event.tickets_url, 'Buy tickets')}</EventAction>
+                            </div>
+                        ) : null}
                     </article>
                 ))}
             </div>
@@ -141,11 +149,7 @@ function UpcomingGroup({ title, events }: { title: string; events: UpcomingEvent
 
 function EventAction({ href, children }: { href: string | null; children: string }) {
     if (!href) {
-        return (
-            <span className="inline-flex min-h-10 items-center justify-center border border-black/20 px-3 text-black/35">
-                {children}
-            </span>
-        );
+        return null;
     }
 
     return (
@@ -153,4 +157,20 @@ function EventAction({ href, children }: { href: string | null; children: string
             {children}
         </a>
     );
+}
+
+function eventActionLabel(href: string | null, fallback: string) {
+    if (!href) {
+        return fallback;
+    }
+
+    if (href.includes('instagram.com')) {
+        return 'Instagram';
+    }
+
+    if (href.includes('flashpass') || href.includes('ticketea')) {
+        return 'Buy tickets';
+    }
+
+    return fallback;
 }

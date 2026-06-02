@@ -106,6 +106,15 @@ export function CaseRows({ cases }: { cases: TrascendentalCase[] }) {
                             <p className="text-xs font-bold uppercase text-black/45">{[item.venue, item.city].filter(Boolean).join(' / ')}</p>
                             <h2 className="mt-3 text-4xl font-black uppercase leading-none sm:text-5xl">{item.title}</h2>
                             <p className="mt-4 max-w-xl text-base leading-relaxed text-black/65">{item.summary ?? item.headline}</p>
+                            {item.services.length > 0 ? (
+                                <ul className="mt-5 flex flex-wrap gap-2">
+                                    {item.services.map((service) => (
+                                        <li key={`${item.id}-${service}`} className="border border-black/20 px-3 py-2 text-xs font-bold uppercase text-black/60">
+                                            {service}
+                                        </li>
+                                    ))}
+                                </ul>
+                            ) : null}
                         </div>
                         <dl className="grid content-end gap-3">
                             {item.metrics.map((metric) => (

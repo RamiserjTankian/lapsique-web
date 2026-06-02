@@ -15,13 +15,12 @@ class TrascendentalJoinListConfirmation extends Mailable
 
     public function __construct(
         public Customer $customer,
-        public string $discountCode,
     ) {}
 
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: 'Trascendental - 20% para tu siguiente evento',
+            subject: 'Trascendental - Estas en la lista',
         );
     }
 
@@ -31,7 +30,6 @@ class TrascendentalJoinListConfirmation extends Mailable
             view: 'emails.trascendental-join-list-confirmation',
             with: [
                 'customer' => $this->customer,
-                'discountCode' => $this->discountCode,
             ],
         );
     }

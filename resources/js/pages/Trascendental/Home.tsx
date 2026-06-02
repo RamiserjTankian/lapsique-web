@@ -18,14 +18,12 @@ type JoinFormState = {
     name: string;
     email: string;
     whatsapp: string;
-    company_website: string;
 };
 
 const initialJoinForm: JoinFormState = {
     name: '',
     email: '',
     whatsapp: '',
-    company_website: '',
 };
 
 const heroVideos = [
@@ -36,7 +34,7 @@ const heroVideos = [
 const copy = {
     en: {
         heroEyebrow: 'International booking / Executive production / Culture',
-        heroTitle: 'ARTISTS. EVENTS. CULTURE.',
+        heroTitle: 'EVENTS.\nARTISTS.\nCULTURE.',
         heroBody: '',
         book: 'SOLICITAR BOOKING',
         start: 'INICIAR PROYECTO',
@@ -53,12 +51,12 @@ const copy = {
         viewRoster: 'VIEW ROSTER',
         selectedBody: '',
         joinTitle: 'JOIN THE LIST',
-        joinBody: 'Early access to events, announcements, special projects and a 20% code for the next Trascendental event.',
+        joinBody: 'Early access to events, artist announcements and selected projects before public release.',
         name: 'Name',
         email: 'Email Address',
         whatsapp: 'WhatsApp (optional)',
         joinSubmit: 'JOIN',
-        joinSuccess: 'You are on the list. Your 20% code is',
+        joinSuccess: 'You are on the list.',
         joinError: 'Could not join the list. Check the fields and try again.',
         contactTitle: 'CONTACT',
         contactBody: 'For bookings, projects, partnerships and press, send the context and we will route it to the right conversation.',
@@ -66,7 +64,7 @@ const copy = {
     },
     es: {
         heroEyebrow: 'Booking internacional / Produccion ejecutiva / Cultura',
-        heroTitle: 'ARTISTAS. EVENTOS. CULTURA.',
+        heroTitle: 'EVENTS.\nARTISTS.\nCULTURE.',
         heroBody: '',
         book: 'SOLICITAR BOOKING',
         start: 'INICIAR PROYECTO',
@@ -83,12 +81,12 @@ const copy = {
         viewRoster: 'VER ROSTER',
         selectedBody: '',
         joinTitle: 'JOIN THE LIST',
-        joinBody: 'Acceso anticipado a eventos, anuncios, proyectos especiales y un codigo de 20% para el siguiente evento Trascendental.',
+        joinBody: 'Early access to events, artist announcements and selected projects before public release.',
         name: 'Nombre',
         email: 'Correo electronico',
         whatsapp: 'WhatsApp (opcional)',
         joinSubmit: 'JOIN',
-        joinSuccess: 'Ya estas en la lista. Tu codigo de 20% es',
+        joinSuccess: 'Ya estas en la lista.',
         joinError: 'No se pudo registrar. Revisa los campos e intenta de nuevo.',
         contactTitle: 'CONTACTO',
         contactBody: 'Para booking, proyectos, partnerships y prensa, envia el contexto y lo llevamos a la conversacion correcta.',
@@ -120,7 +118,7 @@ const impact = [
 const artists = [
     {
         name: 'Crihan',
-        alias: 'Discret Popescu',
+        alias: 'Into The Woods',
         image: '/images/trascendental/artists/crihan-portrait.jpeg',
         instagram: '@discret_popescu',
         soundcloud: 'https://on.soundcloud.com/zPmi7kTiXJ802hmL8P',
@@ -129,12 +127,12 @@ const artists = [
     },
     {
         name: 'Jay Tripwire',
-        alias: '',
+        alias: 'Rawax Music',
         image: '/images/trascendental/artists/jay-tripwire-live.jpeg',
         instagram: '@jaytripwire',
         soundcloud: 'https://on.soundcloud.com/aujhnGUYV96wiRavZk',
         dates: 'LAST DATES',
-        markets: 'Canadian',
+        markets: 'Canadian · Rawax Music',
     },
     {
         name: 'Mike.D',
@@ -186,6 +184,7 @@ export default function Home({ producedEvents }: HomeProps) {
     const [typedHeroTitle, setTypedHeroTitle] = useState('');
     const selectedProjects = producedEvents.slice(0, 6);
     const whatsappCommunityHref = site.whatsappCommunityUrl;
+    const heroTitleComplete = typedHeroTitle.length >= c.heroTitle.length;
 
     useEffect(() => {
         if (typeof window === 'undefined' || window.sessionStorage.getItem('trascendental_join_popup_seen')) {
@@ -217,7 +216,7 @@ export default function Home({ producedEvents }: HomeProps) {
             if (index >= title.length) {
                 window.clearInterval(timer);
             }
-        }, 42);
+        }, 88);
 
         return () => window.clearInterval(timer);
     }, [c.heroTitle, heroCopyVisible]);
@@ -267,12 +266,12 @@ export default function Home({ producedEvents }: HomeProps) {
 
                         <div className="max-w-5xl">
                             <h1
-                                className={`min-h-[clamp(10rem,25vw,22rem)] max-w-4xl text-[clamp(3rem,12vw,8.5rem)] font-black uppercase leading-[0.83] transition-opacity duration-300 ${heroCopyVisible ? 'opacity-100' : 'opacity-0'}`}
+                                className={`min-h-[clamp(10rem,25vw,22rem)] max-w-4xl whitespace-pre-line text-[clamp(3rem,12vw,8.5rem)] font-black uppercase leading-[0.83] transition-opacity duration-300 ${heroCopyVisible ? 'opacity-100' : 'opacity-0'}`}
                                 aria-label={c.heroTitle}
                             >
                                 <span aria-hidden="true">
                                     {typedHeroTitle}
-                                    <span className={`ml-1 inline-block h-[0.78em] w-[0.07em] translate-y-[0.08em] bg-white align-baseline ${heroCopyVisible ? 'animate-pulse' : 'hidden'}`} />
+                                    <span className={`ml-2 inline-block h-[0.11em] w-[0.11em] rounded-full bg-white align-baseline ${heroCopyVisible && heroTitleComplete ? 'animate-pulse' : 'hidden'}`} />
                                 </span>
                             </h1>
                             {c.heroBody ? (
@@ -461,7 +460,6 @@ function JoinListForm({ labels, mode }: { labels: Record<string, string>; mode: 
     const { ziggy, locale } = usePage<PageProps>().props;
     const [form, setForm] = useState<JoinFormState>(initialJoinForm);
     const [status, setStatus] = useState<'idle' | 'sending' | 'success' | 'error'>('idle');
-    const [discountCode, setDiscountCode] = useState<string | null>(null);
 
     const update = (key: keyof JoinFormState, value: string) => {
         setForm((current) => ({ ...current, [key]: value }));
@@ -470,7 +468,6 @@ function JoinListForm({ labels, mode }: { labels: Record<string, string>; mode: 
     const submit = async (event: FormEvent<HTMLFormElement>) => {
         event.preventDefault();
         setStatus('sending');
-        setDiscountCode(null);
 
         const token = document.querySelector<HTMLMetaElement>('meta[name="csrf-token"]')?.content ?? '';
         const response = await fetch(route('trascendental.leads.store', undefined, false, ziggy), {
@@ -493,15 +490,11 @@ function JoinListForm({ labels, mode }: { labels: Record<string, string>; mode: 
                 current_url: window.location.href,
                 privacy_accepted: true,
                 captcha_answer: '11',
-                company_website: form.company_website,
             }),
         });
 
-        const data = (await response.json().catch(() => null)) as { discount_code?: string } | null;
-
         if (response.ok) {
             setStatus('success');
-            setDiscountCode(data?.discount_code ?? null);
             setForm(initialJoinForm);
             return;
         }
@@ -511,15 +504,6 @@ function JoinListForm({ labels, mode }: { labels: Record<string, string>; mode: 
 
     return (
         <form onSubmit={submit} className={mode === 'popup' ? 'grid gap-5' : 'grid gap-6 border-y border-black/15 py-8'}>
-            <input
-                type="text"
-                name="company_website"
-                value={form.company_website}
-                onChange={(event) => update('company_website', event.target.value)}
-                className="hidden"
-                tabIndex={-1}
-                autoComplete="off"
-            />
             <Field label={labels.name}>
                 <input value={form.name} onChange={(event) => update('name', event.target.value)} className="contact-input" autoComplete="name" />
             </Field>
@@ -534,10 +518,7 @@ function JoinListForm({ labels, mode }: { labels: Record<string, string>; mode: 
                 {labels.joinSubmit}
             </button>
             {status === 'success' ? (
-                <p className="text-sm font-bold uppercase text-black">
-                    {labels.joinSuccess}
-                    {discountCode ? <span className="ml-1 inline-block border border-black px-2 py-1">{discountCode}</span> : null}
-                </p>
+                <p className="text-sm font-bold uppercase text-black">{labels.joinSuccess}</p>
             ) : null}
             {status === 'error' ? <p className="text-sm font-bold uppercase text-red-700">{labels.joinError}</p> : null}
         </form>

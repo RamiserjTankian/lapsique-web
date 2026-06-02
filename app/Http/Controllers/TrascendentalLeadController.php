@@ -10,7 +10,6 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
-use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 
 class TrascendentalLeadController extends Controller
@@ -30,8 +29,16 @@ class TrascendentalLeadController extends Controller
             'locale' => ['nullable', 'string', 'max:10'],
             'privacy_accepted' => ['accepted'],
             'captcha_answer' => ['required', 'string', 'max:20'],
-            'company_website' => ['nullable', 'string', 'max:0'],
+            'company_website' => ['nullable', 'string', 'max:255'],
         ]);
+
+        $leadType = $validated['lead_type'] ?? 'contact';
+
+        if ($leadType !== 'join_list' && ! empty($validated['company_website'])) {
+            throw ValidationException::withMessages([
+                'company_website' => __('trascendental.contact.error'),
+            ]);
+        }
 
         if (trim($validated['captcha_answer']) !== '11') {
             throw ValidationException::withMessages([
@@ -42,11 +49,7 @@ class TrascendentalLeadController extends Controller
         $customer = Customer::query()->firstOrNew(['email' => $validated['email']]);
         $existingTags = is_array($customer->tags) ? $customer->tags : [];
         $metadata = is_array($customer->metadata) ? $customer->metadata : [];
-        $leadType = $validated['lead_type'] ?? 'contact';
         $metadataKey = $leadType === 'join_list' ? 'trascendental_join_list' : 'trascendental_contact';
-        $discountCode = $leadType === 'join_list'
-            ? ($metadata[$metadataKey]['discount_code'] ?? 'TDL-'.Str::upper(Str::random(8)))
-            : null;
 
         $metadata[$metadataKey] = [
             'lead_type' => $leadType,
@@ -59,8 +62,6 @@ class TrascendentalLeadController extends Controller
             'submitted_at' => now()->toIso8601String(),
             'privacy_accepted_at' => now()->toIso8601String(),
             'url' => $request->input('current_url', $request->headers->get('referer')),
-            'discount_code' => $discountCode,
-            'discount_percent' => $leadType === 'join_list' ? 20 : null,
         ];
 
         $customer->fill([
@@ -100,8 +101,8 @@ class TrascendentalLeadController extends Controller
             $this->sendMailSafely(fn () => Mail::to($notificationEmail)->send(new TrascendentalLeadNotification($customer, $contactLog)));
         }
 
-        if ($leadType === 'join_list' && $discountCode) {
-            $this->sendMailSafely(fn () => Mail::to($customer->email)->send(new TrascendentalJoinListConfirmation($customer, $discountCode)));
+        if ($leadType === 'join_list') {
+            $this->sendMailSafely(fn () => Mail::to($customer->email)->send(new TrascendentalJoinListConfirmation($customer)));
         }
 
         return response()->json([
@@ -109,7 +110,6 @@ class TrascendentalLeadController extends Controller
             'message' => $leadType === 'join_list'
                 ? __('trascendental.join_list.success')
                 : __('trascendental.contact.success'),
-            'discount_code' => $discountCode,
         ]);
     }
 

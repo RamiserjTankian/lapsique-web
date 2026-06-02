@@ -49,9 +49,10 @@ class TrascendentalSiteTest extends TestCase
                 ->where('events.1.title', 'TDL & Atypical invites Lizz')
                 ->where('events.1.source_url', 'https://ra.co/events/2384899')
                 ->where('events.2.image', asset('images/trascendental/events/umi-iluminal-ii-original.jpg'))
-                ->has('upcomingEvents', 15)
+                ->has('upcomingEvents', 11)
                 ->where('upcomingEvents.0.category', 'produced')
-                ->where('upcomingEvents.1.title', 'Crihan - Besarabia Aniversario 4')
+                ->where('upcomingEvents.1.category', 'announce')
+                ->where('upcomingEvents.2.title', 'Crihan - Besarabia Aniversario 4')
                 ->where('pagination.currentPage', 1)
                 ->where('pagination.lastPage', 2)
                 ->where('pagination.perPage', 12)
@@ -122,17 +123,19 @@ class TrascendentalSiteTest extends TestCase
             'message' => 'Early access to events, announcements and special projects.',
             'captcha_answer' => '11',
             'privacy_accepted' => true,
-            'company_website' => '',
+            'company_website' => 'https://autofilled.example',
         ]);
 
-        $response->assertOk()->assertJson(['success' => true]);
+        $response->assertOk()
+            ->assertJson(['success' => true])
+            ->assertJsonMissing(['discount_code']);
 
         $customer = Customer::where('email', 'list@example.com')->firstOrFail();
 
         $this->assertContains('trascendental_join_list', $customer->tags);
         $this->assertArrayHasKey('trascendental_join_list', $customer->metadata);
-        $this->assertArrayHasKey('discount_code', $customer->metadata['trascendental_join_list']);
-        $this->assertSame(20, $customer->metadata['trascendental_join_list']['discount_percent']);
+        $this->assertArrayNotHasKey('discount_code', $customer->metadata['trascendental_join_list']);
+        $this->assertArrayNotHasKey('discount_percent', $customer->metadata['trascendental_join_list']);
 
         $this->assertDatabaseHas('contact_logs', [
             'customer_id' => $customer->id,

@@ -119,7 +119,7 @@ class PageMeta
 
     public static function forTrascendental(string $canonicalUrl): PageMetaData
     {
-        $ogImage = self::absoluteImageUrl('/images/trascendental/og-rebolledo.webp');
+        $ogImage = self::absoluteImageUrl('/images/trascendental/og-logo.webp');
 
         return new PageMetaData(
             title: 'Trascendentalby',
@@ -135,7 +135,7 @@ class PageMeta
 
     public static function forTrascendentalSection(string $title, string $description, string $canonicalUrl): PageMetaData
     {
-        $ogImage = self::absoluteImageUrl('/images/trascendental/og-rebolledo.webp');
+        $ogImage = self::absoluteImageUrl('/images/trascendental/og-logo.webp');
 
         return new PageMetaData(
             title: $title,

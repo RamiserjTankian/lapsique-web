@@ -8,16 +8,16 @@
     <h2 style="{{ EmailBrand::headingStyle() }}">Estas en la lista</h2>
 
     <p style="{{ EmailBrand::paragraphStyle() }}">
-        {{ $customer->name ?: 'Hola' }}, tu registro quedo confirmado. Este codigo valida un 20% de descuento para nuestro siguiente evento Trascendental.
+        {{ $customer->name ?: 'Hola' }}, tu registro quedo confirmado. Te enviaremos acceso anticipado a lanzamientos de tickets, eventos de cupo limitado, anuncios de artistas y oportunidades de guest list.
     </p>
 
     <div class="card" style="{{ EmailBrand::cardStyle() }}">
-        <p style="{{ EmailBrand::cardRowStyle() }}"><strong style="{{ EmailBrand::strongStyle() }}">Codigo:</strong> {{ $discountCode }}</p>
-        <p style="{{ EmailBrand::cardRowStyle() }}"><strong style="{{ EmailBrand::strongStyle() }}">Descuento:</strong> 20%</p>
-        <p style="{{ EmailBrand::cardRowStyle() }}"><strong style="{{ EmailBrand::strongStyle() }}">Uso:</strong> valido para el siguiente evento anunciado por Trascendental.</p>
+        <p style="{{ EmailBrand::cardRowStyle() }}"><strong style="{{ EmailBrand::strongStyle() }}">Tickets:</strong> lanzamientos y preventas seleccionadas.</p>
+        <p style="{{ EmailBrand::cardRowStyle() }}"><strong style="{{ EmailBrand::strongStyle() }}">Eventos:</strong> fechas de capacidad limitada.</p>
+        <p style="{{ EmailBrand::cardRowStyle() }}"><strong style="{{ EmailBrand::strongStyle() }}">Comunidad:</strong> oportunidades y anuncios para la lista.</p>
     </div>
 
     <p style="{{ EmailBrand::paragraphStyle() }}">
-        Conserva este correo. Cuando se anuncie la siguiente fecha, usa el codigo en el canal de compra o escribenos para validarlo.
+        Conserva este correo. Cuando se anuncie una nueva fecha, recibiras el siguiente paso por los canales oficiales de Trascendental.
     </p>
 @endsection

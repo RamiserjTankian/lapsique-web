@@ -19,13 +19,36 @@ class TrascendentalCaseResource extends JsonResource
             'summary' => $this->case_summary,
             'description' => $this->description,
             'venue' => $this->venue,
-            'city' => $this->city,
+            'city' => $this->caseCity(),
             'starts_at' => $this->starts_at?->toIso8601String(),
             'metrics' => $this->case_metrics ?? [],
-            'services' => $this->case_services ?? [],
+            'services' => $this->caseServices(),
             'image_url' => $this->imageUrl(),
             'media' => $this->mediaItems(),
         ];
+    }
+
+    private function caseCity(): ?string
+    {
+        return match ($this->slug) {
+            'rebolledo-zal-marina' => 'Progreso, Yucatan',
+            default => $this->city,
+        };
+    }
+
+    private function caseServices(): array
+    {
+        return match ($this->slug) {
+            'rebolledo-zal-marina', 'umi-fest-tulum' => [
+                'Concept',
+                'Booking',
+                'Production',
+                'Execution',
+                'Marketing',
+                'Operations',
+            ],
+            default => $this->case_services ?? [],
+        };
     }
 
     private function imageUrl(): ?string

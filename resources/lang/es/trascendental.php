@@ -144,7 +144,7 @@ return [
         'error' => 'No se pudo enviar la solicitud. Revisa los campos e intenta de nuevo.',
     ],
     'join_list' => [
-        'success' => 'Registro confirmado. Revisa tu correo para recibir tu codigo del 20%.',
+        'success' => 'Registro confirmado. Ya estas en la lista.',
     ],
     'whatsapp' => [
         'default_prefill' => 'Hola, quiero evaluar una fecha con Trascendental.',

@@ -16,14 +16,14 @@ class TrascendentalCaseSeeder extends Seeder
                 'headline' => 'Sold out con 21 dias de promocion.',
                 'description' => 'Operacion completa para conectar un artista internacional con un venue premium y convertir una ventana corta de promocion en resultado medible.',
                 'venue' => 'Zal Marina',
-                'city' => 'Riviera Maya',
+                'city' => 'Progreso, Yucatan',
                 'case_summary' => 'Produccion integral, cashless y pauta para un evento sold out.',
                 'case_metrics' => [
                     ['label' => 'Asistentes', 'value' => '450'],
                     ['label' => 'Resultado', 'value' => 'Sold out'],
                     ['label' => 'Promocion', 'value' => '21 dias'],
                 ],
-                'case_services' => ['Produccion integral', 'Cashless', 'Ads'],
+                'case_services' => ['Concept', 'Booking', 'Production', 'Execution', 'Marketing', 'Operations'],
                 'case_sort' => 1,
             ],
             [
@@ -39,7 +39,7 @@ class TrascendentalCaseSeeder extends Seeder
                     ['label' => 'Asistentes', 'value' => '~2000'],
                     ['label' => 'Formato', 'value' => 'Beach club'],
                 ],
-                'case_services' => ['Booking', 'Curaduria', 'Produccion', 'Marketing'],
+                'case_services' => ['Concept', 'Booking', 'Production', 'Execution', 'Marketing', 'Operations'],
                 'case_sort' => 2,
             ],
         ];

@@ -144,7 +144,7 @@ return [
         'error' => 'The request could not be sent. Check the fields and try again.',
     ],
     'join_list' => [
-        'success' => 'Registration confirmed. Check your email for your 20% code.',
+        'success' => 'Registration confirmed. You are on the list.',
     ],
     'whatsapp' => [
         'default_prefill' => 'Hi, I want to evaluate a date with Trascendental.',
