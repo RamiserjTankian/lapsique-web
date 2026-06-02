@@ -239,7 +239,7 @@ export function TourRows({ tours }: { tours: TrascendentalTour[] }) {
         <div className="grid gap-x-5 gap-y-9 sm:grid-cols-2 lg:grid-cols-3">
             {tours.map((tour) => (
                 <article key={tour.artist} className="border-t border-black pt-4">
-                    <img src={tour.image} alt={`${tour.artist} booking portrait`} className="aspect-[16/13] w-full object-cover object-top" loading="lazy" />
+                    <img src={tour.image} alt={`${tour.artist} booking portrait`} className="aspect-[4/5] w-full bg-black object-contain" loading="lazy" />
                     <div className="mt-4 flex items-start justify-between gap-4">
                         <div>
                             <p className="text-xs font-bold uppercase text-black/45">{tour.label}</p>

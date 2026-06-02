@@ -373,7 +373,7 @@ export default function Home({ producedEvents }: HomeProps) {
                     <div className="grid gap-x-5 gap-y-8 sm:grid-cols-2">
                         {artists.map((artist) => (
                             <article key={artist.name} className="grid gap-4 border-t border-black pt-4 md:grid-cols-[0.48fr_0.52fr]">
-                                <img src={artist.image} alt={`${artist.name} booking visual`} className="aspect-[16/13] w-full object-cover object-top" loading="lazy" />
+                                <img src={artist.image} alt={`${artist.name} booking visual`} className="aspect-[4/5] w-full bg-black object-contain" loading="lazy" />
                                 <div className="flex min-h-full flex-col justify-between gap-6">
                                     <div>
                                         <p className="text-xs font-bold uppercase text-black/45">{artist.alias}</p>
