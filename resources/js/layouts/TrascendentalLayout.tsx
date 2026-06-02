@@ -1,5 +1,5 @@
 import { Link, usePage } from '@inertiajs/react';
-import { Camera, Mail, Menu, Music2, X } from 'lucide-react';
+import { Camera, Mail, Menu, Music2, Users, X } from 'lucide-react';
 import { useState, type ReactNode } from 'react';
 import { LanguageToggle } from '@/components/lapsique/LanguageToggle';
 import { SeoHead } from '@/components/lapsique/SeoHead';
@@ -38,7 +38,7 @@ export function TrascendentalLayout({ children }: TrascendentalLayoutProps) {
             <header className="sticky top-0 z-40 border-b border-black/15 bg-[#f5f5f2]/95">
                 <div className="mx-auto flex h-16 max-w-[1500px] items-center justify-between px-4 sm:px-6 lg:px-8">
                     <Link href={homeHref} className="text-[1.05rem] font-black uppercase tracking-normal">
-                        Trascendentalby
+                        TRASCENDENTAL.
                     </Link>
 
                     <nav className="hidden items-center gap-7 text-[0.72rem] font-bold uppercase md:flex">
@@ -98,7 +98,7 @@ export function TrascendentalLayout({ children }: TrascendentalLayoutProps) {
             <footer className="border-t border-black/15 px-4 py-10 sm:px-6 lg:px-8">
                 <div className="mx-auto flex max-w-[1500px] flex-col gap-6 text-sm sm:flex-row sm:items-end sm:justify-between">
                     <div>
-                        <p className="text-3xl font-black uppercase">Trascendentalby</p>
+                        <p className="text-3xl font-black uppercase">TRASCENDENTAL.</p>
                         <p className="mt-2 max-w-md text-black/60">Artists / Events / Culture</p>
                     </div>
                     <div className="flex flex-wrap items-center gap-3">
@@ -112,6 +112,12 @@ export function TrascendentalLayout({ children }: TrascendentalLayoutProps) {
                             <a href={site.instagramUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 font-bold uppercase">
                                 <Camera className="h-4 w-4" />
                                 Instagram
+                            </a>
+                        ) : null}
+                        {site.facebookUrl ? (
+                            <a href={site.facebookUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 font-bold uppercase">
+                                <Users className="h-4 w-4" />
+                                Facebook
                             </a>
                         ) : null}
                         {site.residentAdvisorUrl ? (

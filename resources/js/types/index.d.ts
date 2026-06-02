@@ -201,6 +201,7 @@ export interface SiteProps {
     whatsapp: string;
     email: string | null;
     instagramUrl: string;
+    facebookUrl: string | null;
     residentAdvisorUrl: string | null;
     youtubeHandle: string;
     studioLocation: string | null;

@@ -37,7 +37,7 @@ const copy = {
     en: {
         heroEyebrow: 'International booking / Executive production / Culture',
         heroTitle: 'ARTISTS. EVENTS. CULTURE.',
-        heroBody: 'International booking, executive production and strategic artist development.',
+        heroBody: '',
         book: 'SOLICITAR BOOKING',
         start: 'INICIAR PROYECTO',
         join: 'JOIN THE LIST',
@@ -54,7 +54,7 @@ const copy = {
         artistsBody: 'A curated roster of artists available for bookings, showcases and special projects.',
         viewRoster: 'VIEW ROSTER',
         selectedTitle: 'SELECTED PROJECTS',
-        selectedBody: 'A visual and chronological portfolio of relevant projects. Curated selection, not an event database.',
+        selectedBody: '',
         joinTitle: 'JOIN THE LIST',
         joinBody: 'Early access to events, announcements and special projects.',
         name: 'Name',
@@ -70,7 +70,7 @@ const copy = {
     es: {
         heroEyebrow: 'Booking internacional / Produccion ejecutiva / Cultura',
         heroTitle: 'ARTISTAS. EVENTOS. CULTURA.',
-        heroBody: 'Booking internacional, produccion ejecutiva y desarrollo estrategico.',
+        heroBody: '',
         book: 'SOLICITAR BOOKING',
         start: 'INICIAR PROYECTO',
         join: 'JOIN THE LIST',
@@ -87,7 +87,7 @@ const copy = {
         artistsBody: 'Roster curado de artistas disponibles para bookings, showcases y proyectos especiales.',
         viewRoster: 'VER ROSTER',
         selectedTitle: 'SELECTED PROJECTS',
-        selectedBody: 'Portafolio visual y cronologico de proyectos relevantes. Seleccion curada, no base de datos de eventos.',
+        selectedBody: '',
         joinTitle: 'JOIN THE LIST',
         joinBody: 'Acceso anticipado a eventos, anuncios y proyectos especiales.',
         name: 'Nombre',
@@ -143,8 +143,8 @@ const artists = [
         image: '/images/trascendental/artists/crihan-portrait.jpeg',
         instagram: '@discret_popescu',
         soundcloud: 'https://on.soundcloud.com/zPmi7kTiXJ802hmL8P',
-        dates: 'Open dates June 26',
-        markets: 'South America · Central America · Mexico',
+        dates: 'SOLD OUT',
+        markets: 'Romanian · Discret Popescu',
     },
     {
         name: 'Jay Tripwire',
@@ -152,8 +152,8 @@ const artists = [
         image: '/images/trascendental/artists/jay-tripwire-live.jpeg',
         instagram: '@jaytripwire',
         soundcloud: 'https://on.soundcloud.com/aujhnGUYV96wiRavZk',
-        dates: 'Open dates August & September 26',
-        markets: 'South America · Central America · Mexico',
+        dates: 'LAST DATES',
+        markets: 'Canadian · Witching Hour',
     },
     {
         name: 'Mike.D',
@@ -161,8 +161,8 @@ const artists = [
         image: '/images/trascendental/artists/mike-d-01.jpeg',
         instagram: '@mikedubssss',
         soundcloud: 'https://on.soundcloud.com/8rF8kxHjll1z6cpTEf',
-        dates: 'Open dates September & October 26',
-        markets: 'South America · Central America · Mexico',
+        dates: 'OPEN DATES',
+        markets: 'Mexican · Cadenza Music',
     },
     {
         name: 'Zone+',
@@ -170,8 +170,8 @@ const artists = [
         image: '/images/trascendental/artists/zone-plus.jpeg',
         instagram: '@z0neplus',
         soundcloud: 'https://on.soundcloud.com/X14HzDlO4rAL1aqG8r',
-        dates: 'Open dates September & October 26',
-        markets: 'South America · Central America · Mexico',
+        dates: 'LAST DATES',
+        markets: 'South Arabia · All Day I Dream',
     },
     {
         name: 'Barry Sound',
@@ -179,8 +179,8 @@ const artists = [
         image: '/images/trascendental/artists/barry-sound.jpeg',
         instagram: '@barrysound_music',
         soundcloud: 'https://on.soundcloud.com/pjxWil9vE9Wf8Hgih2',
-        dates: 'Open dates August - December 26',
-        markets: 'South America · Central America · Mexico',
+        dates: 'OPEN DATES',
+        markets: 'Mexican · House Groove',
     },
     {
         name: 'Gala',
@@ -188,13 +188,13 @@ const artists = [
         image: '/images/trascendental/artists/gala.jpeg',
         instagram: '@galamx__',
         soundcloud: 'https://on.soundcloud.com/sJFAWimFvO7IRCZJJs',
-        dates: 'Open dates August - December 26',
-        markets: 'South America · Central America · Mexico',
+        dates: 'OPEN DATES',
+        markets: 'Mexican · Boogie Room Records',
     },
 ];
 
 export default function Home({ producedEvents }: HomeProps) {
-    const { ziggy, locale } = usePage<PageProps>().props;
+    const { ziggy, locale, site } = usePage<PageProps>().props;
     const activeLocale: Locale = locale === 'en' ? 'en' : 'es';
     const c = copy[activeLocale];
     const videoRef = useRef<HTMLVideoElement>(null);
@@ -261,9 +261,11 @@ export default function Home({ producedEvents }: HomeProps) {
                             <h1 className="max-w-4xl text-[clamp(3rem,12vw,8.5rem)] font-black uppercase leading-[0.83]">
                                 {c.heroTitle}
                             </h1>
-                            <p className="mt-6 max-w-xl text-base leading-relaxed text-white/76 sm:text-lg">
-                                {c.heroBody}
-                            </p>
+                            {c.heroBody ? (
+                                <p className="mt-6 max-w-xl text-base leading-relaxed text-white/76 sm:text-lg">
+                                    {c.heroBody}
+                                </p>
+                            ) : null}
                             <div className="mt-8 flex flex-col gap-3 sm:flex-row">
                                 <Link href={route('trascendental.tours', undefined, false, ziggy)} className="tdl-button tdl-button-dark">
                                     {c.book}
@@ -291,6 +293,20 @@ export default function Home({ producedEvents }: HomeProps) {
                             <article key={title} className="border-t border-black pt-4">
                                 <h2 className="text-3xl font-black uppercase leading-none">{title}</h2>
                                 <p className="mt-4 max-w-sm text-sm leading-relaxed text-black/65">{text}</p>
+                                {title === 'COMMUNITY' ? (
+                                    <div className="mt-5 flex flex-wrap gap-2 text-xs font-bold uppercase">
+                                        {site.instagramUrl ? (
+                                            <a href={site.instagramUrl} target="_blank" rel="noopener noreferrer" className="border border-black px-3 py-2">
+                                                Instagram
+                                            </a>
+                                        ) : null}
+                                        {site.facebookUrl ? (
+                                            <a href={site.facebookUrl} target="_blank" rel="noopener noreferrer" className="border border-black px-3 py-2">
+                                                Facebook
+                                            </a>
+                                        ) : null}
+                                    </div>
+                                ) : null}
                             </article>
                         ))}
                     </div>
@@ -349,15 +365,15 @@ export default function Home({ producedEvents }: HomeProps) {
                             <h2 className="tdl-heading">{c.artistsTitle}</h2>
                             <p className="mt-4 max-w-xl text-base leading-relaxed text-black/62">{c.artistsBody}</p>
                         </div>
-                        <a href="#artists" className="tdl-button border-black text-black">
+                        <Link href={route('trascendental.tours', undefined, false, ziggy)} className="tdl-button border-black text-black">
                             {c.viewRoster}
                             <ArrowUpRight className="h-4 w-4" />
-                        </a>
+                        </Link>
                     </div>
                     <div className="grid gap-x-5 gap-y-8 sm:grid-cols-2">
                         {artists.map((artist) => (
                             <article key={artist.name} className="grid gap-4 border-t border-black pt-4 md:grid-cols-[0.48fr_0.52fr]">
-                                <img src={artist.image} alt={`${artist.name} booking visual`} className="aspect-[4/5] w-full object-cover" loading="lazy" />
+                                <img src={artist.image} alt={`${artist.name} booking visual`} className="aspect-[16/13] w-full object-cover object-top" loading="lazy" />
                                 <div className="flex min-h-full flex-col justify-between gap-6">
                                     <div>
                                         <p className="text-xs font-bold uppercase text-black/45">{artist.alias}</p>
@@ -388,15 +404,16 @@ export default function Home({ producedEvents }: HomeProps) {
                                 <p className="tdl-eyebrow">Portfolio</p>
                                 <h2 className="tdl-heading">{c.selectedTitle}</h2>
                             </div>
-                            <p className="max-w-xl text-base leading-relaxed text-black/62">{c.selectedBody}</p>
+                            {c.selectedBody ? <p className="max-w-xl text-base leading-relaxed text-black/62">{c.selectedBody}</p> : null}
                         </div>
                         <div className="grid gap-x-5 gap-y-8 sm:grid-cols-2 lg:grid-cols-3">
                             {selectedProjects.map((project) => (
                                 <article key={`${project.title}-${project.date}`} className="border-t border-black pt-4">
-                                    <img src={project.image} alt={`${project.title} visual`} className="aspect-[4/5] w-full object-cover grayscale" loading="lazy" />
+                                    <img src={project.image} alt={`${project.title} visual`} className="aspect-[4/5] w-full object-cover" loading="lazy" />
                                     <p className="mt-4 text-xs font-bold uppercase text-black/45">{project.date} / {project.city}</p>
                                     <h3 className="mt-2 text-2xl font-black uppercase leading-none">{project.title}</h3>
-                                    <p className="mt-3 text-sm leading-relaxed text-black/62">{project.summary}</p>
+                                    <p className="mt-3 text-sm font-bold uppercase text-black/50">{project.venue}</p>
+                                    <p className="mt-4 text-xs font-bold uppercase leading-relaxed text-black/75">{project.lineup}</p>
                                 </article>
                             ))}
                         </div>
@@ -550,7 +567,7 @@ function JoinListPopup({ open, onClose, labels }: { open: boolean; onClose: () =
             <div className="w-full max-w-xl border border-white/18 bg-[#f6f6f3] p-5 text-black shadow-2xl sm:p-7" onMouseDown={(event) => event.stopPropagation()}>
                 <div className="mb-7 flex items-start justify-between gap-5 border-b border-black/15 pb-5">
                     <div>
-                        <p className="tdl-eyebrow">Trascendentalby</p>
+                        <p className="tdl-eyebrow">TRASCENDENTAL.</p>
                         <h2 id="join-list-popup-title" className="mt-3 text-4xl font-black uppercase leading-none">
                             {labels.joinTitle}
                         </h2>

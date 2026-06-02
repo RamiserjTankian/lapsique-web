@@ -46,6 +46,7 @@ class HandleInertiaRequests extends Middleware
                 'whatsapp' => $whatsapp,
                 'email' => $isTrascendental ? config('trascendental.email') : null,
                 'instagramUrl' => $isTrascendental ? config('trascendental.instagram_url') : config('lapsique.instagram_url'),
+                'facebookUrl' => $isTrascendental ? config('trascendental.facebook_url') : null,
                 'residentAdvisorUrl' => $isTrascendental ? config('trascendental.resident_advisor_url') : null,
                 'youtubeHandle' => config('lapsique.youtube_handle'),
                 'studioLocation' => $settings?->booking_studio_location,

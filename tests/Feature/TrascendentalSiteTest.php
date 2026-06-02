@@ -31,8 +31,11 @@ class TrascendentalSiteTest extends TestCase
                 ->component('Trascendental/Home')
                 ->has('cases', 1)
                 ->where('cases.0.title', 'Rebolledo - Zal Marina')
-                ->has('tours', 2)
-                ->where('tours.0.artist', 'Crihan'));
+                ->has('tours', 6)
+                ->where('tours.0.artist', 'Crihan')
+                ->where('tours.0.status', 'SOLD OUT')
+                ->where('tours.5.artist', 'Zone+')
+                ->where('tours.5.status', 'LAST DATES'));
     }
 
     public function test_preview_events_renders_local_event_flyers(): void

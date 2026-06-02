@@ -50,7 +50,6 @@ export default function Events({ events, pagination }: EventsProps) {
                                     {event.title}
                                 </h2>
                                 <p className="mt-3 text-sm font-bold uppercase text-black/50">{event.venue}</p>
-                                <p className="mt-3 text-sm leading-relaxed text-black/65">{event.summary}</p>
                                 <p className="mt-4 text-xs font-bold uppercase leading-relaxed text-black/75">{event.lineup}</p>
                             </a>
                         </article>

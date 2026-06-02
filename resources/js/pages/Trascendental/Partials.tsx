@@ -1,5 +1,5 @@
 import { Link, usePage } from '@inertiajs/react';
-import { ArrowUpRight, Mail } from 'lucide-react';
+import { ArrowUpRight, Mail, MessageCircle } from 'lucide-react';
 import { type ReactNode } from 'react';
 import { useTranslations } from '@/hooks/useTranslations';
 import { route } from '@/lib/route';
@@ -28,9 +28,13 @@ export interface TrascendentalCase {
 export interface TrascendentalTour {
     artist: string;
     status: string;
-    availability: string;
-    detail: string;
-    markets: string[];
+    nationality: string;
+    label: string;
+    instagram: string;
+    instagram_url: string;
+    soundcloud_url: string;
+    bio: string;
+    image: string;
 }
 
 export interface ProducedEvent {
@@ -59,7 +63,7 @@ export function PageShell({
         <div className="px-4 py-12 sm:px-6 lg:px-8">
             <div className="mx-auto max-w-[1500px]">
                 {eyebrow ? <p className="text-xs font-bold uppercase text-black/50">{eyebrow}</p> : null}
-                <h1 className="mt-5 max-w-6xl text-5xl font-black uppercase leading-[0.9] sm:text-7xl lg:text-8xl">
+                <h1 className="mt-5 max-w-6xl break-words text-4xl font-black uppercase leading-[0.9] sm:text-7xl lg:text-8xl">
                     {title}
                 </h1>
                 <p className="mt-6 max-w-2xl text-lg leading-relaxed text-black/65">{intro}</p>
@@ -170,7 +174,6 @@ export function ProducedEventsSection({ events }: { events: ProducedEvent[] }) {
                                     {event.title}
                                 </h3>
                                 <p className="mt-3 text-sm font-bold uppercase text-black/50">{event.venue}</p>
-                                <p className="mt-3 text-sm leading-relaxed text-black/65">{event.summary}</p>
                                 <p className="mt-4 text-xs font-bold uppercase leading-relaxed text-black/75">{event.lineup}</p>
                             </a>
                         </article>
@@ -233,17 +236,35 @@ function MediaItem({
 
 export function TourRows({ tours }: { tours: TrascendentalTour[] }) {
     return (
-        <div className="divide-y divide-black/15 border-y border-black/15">
+        <div className="grid gap-x-5 gap-y-9 sm:grid-cols-2 lg:grid-cols-3">
             {tours.map((tour) => (
-                <article key={tour.artist} className="grid gap-5 py-8 md:grid-cols-[0.8fr_1fr_0.7fr] md:items-center">
-                    <h2 className="text-5xl font-black uppercase leading-none">{tour.artist}</h2>
-                    <div>
-                        <p className="text-sm font-bold uppercase text-black/45">{tour.status}</p>
-                        <p className="mt-2 text-lg text-black/70">{tour.detail}</p>
+                <article key={tour.artist} className="border-t border-black pt-4">
+                    <img src={tour.image} alt={`${tour.artist} booking portrait`} className="aspect-[16/13] w-full object-cover object-top" loading="lazy" />
+                    <div className="mt-4 flex items-start justify-between gap-4">
+                        <div>
+                            <p className="text-xs font-bold uppercase text-black/45">{tour.label}</p>
+                            <h2 className="mt-2 text-4xl font-black uppercase leading-none">{tour.artist}</h2>
+                        </div>
+                        <p className="shrink-0 border border-black px-2 py-1 text-[0.65rem] font-black uppercase text-black">{tour.status}</p>
                     </div>
-                    <div className="md:text-right">
-                        <p className="text-xl font-black uppercase">{tour.availability}</p>
-                        <p className="mt-2 text-sm text-black/50">{tour.markets.join(' / ')}</p>
+                    <dl className="mt-5 grid gap-2 border-y border-black/15 py-4 text-xs font-bold uppercase">
+                        <div className="flex justify-between gap-3">
+                            <dt className="text-black/45">Nationality</dt>
+                            <dd className="text-right">{tour.nationality}</dd>
+                        </div>
+                        <div className="flex justify-between gap-3">
+                            <dt className="text-black/45">Record label</dt>
+                            <dd className="text-right">{tour.label}</dd>
+                        </div>
+                    </dl>
+                    <p className="mt-4 text-sm leading-relaxed text-black/65">{tour.bio}</p>
+                    <div className="mt-5 grid grid-cols-2 gap-2 text-xs font-bold uppercase">
+                        <a href={tour.instagram_url} target="_blank" rel="noopener noreferrer" className="border border-black px-3 py-2 text-center">
+                            Instagram
+                        </a>
+                        <a href={tour.soundcloud_url} target="_blank" rel="noopener noreferrer" className="border border-black px-3 py-2 text-center">
+                            SoundCloud
+                        </a>
                     </div>
                 </article>
             ))}
@@ -254,6 +275,9 @@ export function TourRows({ tours }: { tours: TrascendentalTour[] }) {
 export function FinalCta() {
     const { ziggy, site } = usePage<PageProps>().props;
     const { t } = useTranslations();
+    const whatsappHref = site.whatsapp
+        ? `https://wa.me/${site.whatsapp.replace(/\D/g, '')}?text=${encodeURIComponent(t('trascendental.whatsapp.default_prefill'))}`
+        : null;
 
     return (
         <section className="border-t border-black/15 px-4 py-16 sm:px-6 lg:px-8">
@@ -262,9 +286,21 @@ export function FinalCta() {
                     {t('trascendental.home.final')}
                 </h2>
                 <div className="flex flex-col gap-3 sm:flex-row md:flex-col lg:flex-row">
-                    <EditorialButton href={route('trascendental.contact', undefined, false, ziggy)} dark>
-                        {t('trascendental.hero.produce_cta')}
-                    </EditorialButton>
+                    {whatsappHref ? (
+                        <a
+                            href={whatsappHref}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-flex min-h-11 items-center justify-center gap-2 rounded-full border border-black bg-black px-5 text-xs font-bold uppercase text-white sm:min-h-12 sm:px-6 sm:text-sm"
+                        >
+                            WhatsApp
+                            <MessageCircle className="h-4 w-4" />
+                        </a>
+                    ) : (
+                        <EditorialButton href={route('trascendental.contact', undefined, false, ziggy)} dark>
+                            {t('trascendental.hero.produce_cta')}
+                        </EditorialButton>
+                    )}
                     {site.email ? (
                         <a
                             href={`mailto:${site.email}`}

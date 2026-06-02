@@ -24,7 +24,7 @@ return [
         'cases' => 'Featured cases',
         'tours' => 'Active tours',
         'difference' => 'A collective turned operator: curation, booking, production, and community in one chain.',
-        'final' => 'Let’s build your next date.',
+        'final' => 'Booking now',
     ],
     'services' => [
         'title' => 'Services',
@@ -81,12 +81,12 @@ return [
         ],
     ],
     'cases' => [
-        'title' => 'Cases',
+        'title' => 'Projects',
         'intro' => 'Dates operated as full experiences: concept, artists, audience, production, and follow-up.',
     ],
     'produced' => [
         'eyebrow' => 'Produced events',
-        'title' => 'Dates with real operation.',
+        'title' => 'Our last events',
         'intro' => 'Productions carried out by Trascendental: real dates with curation, artists, operations, and follow-up.',
         'view_all' => 'View events',
     ],

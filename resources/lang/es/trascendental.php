@@ -21,10 +21,10 @@ return [
     ],
     'home' => [
         'what' => 'Que hacemos',
-        'cases' => 'Casos destacados',
+        'cases' => 'Proyectos destacados',
         'tours' => 'Tours activos',
         'difference' => 'Un colectivo convertido en operador: curaduria, booking, produccion y comunidad en una misma cadena.',
-        'final' => 'Construyamos tu siguiente fecha.',
+        'final' => 'Booking now',
     ],
     'services' => [
         'title' => 'Servicios',
@@ -81,12 +81,12 @@ return [
         ],
     ],
     'cases' => [
-        'title' => 'Casos',
+        'title' => 'Proyectos',
         'intro' => 'Fechas operadas como experiencias completas: concepto, artistas, audiencia, produccion y seguimiento.',
     ],
     'produced' => [
         'eyebrow' => 'Eventos producidos',
-        'title' => 'Fechas con operacion real.',
+        'title' => 'Our last events',
         'intro' => 'Producciones realizadas por Trascendental: fechas reales con curaduria, artistas, operacion y seguimiento.',
         'view_all' => 'Ver eventos',
     ],
