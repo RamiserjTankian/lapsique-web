@@ -249,8 +249,7 @@ export default function Home({ producedEvents }: HomeProps) {
                 <div className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-black via-black/40 to-transparent" />
                 <div className="relative px-4 pb-8 pt-7 sm:px-6 lg:px-8">
                     <div className="mx-auto grid min-h-[min(680px,calc(100svh-5rem))] max-w-[1500px] content-between gap-12">
-                        <div className="flex items-center justify-between gap-4 border-b border-white/20 pb-4 text-[0.7rem] font-bold uppercase text-white/68">
-                            <span>{c.heroEyebrow}</span>
+                        <div className="flex items-center justify-end gap-4 border-b border-white/20 pb-4 text-[0.7rem] font-bold uppercase text-white/68">
                             <button type="button" onClick={toggleSound} className="inline-flex items-center gap-2">
                                 {soundEnabled ? <Volume2 className="h-4 w-4" /> : <VolumeX className="h-4 w-4" />}
                                 {soundEnabled ? c.soundOn : c.soundOff}
