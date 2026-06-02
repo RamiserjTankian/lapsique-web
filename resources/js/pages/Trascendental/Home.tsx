@@ -44,8 +44,6 @@ const copy = {
         soundOff: 'Enable sound',
         soundOn: 'Mute',
         servicesEyebrow: 'Services',
-        featuredTitle: 'FEATURED PROJECTS',
-        featuredBody: 'A focused selection of booking, event and community work by Trascendental.',
         impactTitle: 'IMPACT',
         presenceTitle: 'INTERNATIONAL PRESENCE',
         presenceRegion: 'Latin America · Europe · Middle East',
@@ -77,8 +75,6 @@ const copy = {
         soundOff: 'Activar sonido',
         soundOn: 'Silenciar',
         servicesEyebrow: 'Servicios',
-        featuredTitle: 'PROYECTOS DESTACADOS',
-        featuredBody: 'Una seleccion precisa de booking, eventos y comunidad operada por Trascendental.',
         impactTitle: 'IMPACTO',
         presenceTitle: 'PRESENCIA INTERNACIONAL',
         presenceRegion: 'Latinoamerica · Europa · Medio Oriente',
@@ -112,19 +108,6 @@ const services = {
         ['BOOKING', 'Representacion, contratacion y desarrollo de oportunidades para artistas nacionales e internacionales.'],
         ['EVENTS', 'Concepto, produccion y ejecucion para clubes, festivales y marcas.'],
         ['COMMUNITY', 'Acceso a eventos, experiencias y proyectos seleccionados por Trascendental.'],
-    ],
-} satisfies Record<Locale, Array<[string, string]>>;
-
-const featured = {
-    en: [
-        ['BOOKING', 'Artist representation and contracting.'],
-        ['EVENTS', 'Production for clubs, festivals and brands.'],
-        ['JOIN THE NETWORK', 'Priority access to events and announcements.'],
-    ],
-    es: [
-        ['BOOKING', 'Representacion y contratacion de artistas.'],
-        ['EVENTS', 'Produccion para clubes, festivales y marcas.'],
-        ['JOIN THE NETWORK', 'Acceso prioritario a eventos y novedades.'],
     ],
 } satisfies Record<Locale, Array<[string, string]>>;
 
@@ -306,24 +289,6 @@ export default function Home({ producedEvents }: HomeProps) {
                                         ) : null}
                                     </div>
                                 ) : null}
-                            </article>
-                        ))}
-                    </div>
-                </div>
-            </section>
-
-            <section className="tdl-section border-t border-black/10">
-                <div className="tdl-wrap grid gap-8 lg:grid-cols-[0.78fr_1.22fr] lg:items-end">
-                    <div>
-                        <p className="tdl-eyebrow">01</p>
-                        <h2 className="tdl-heading">{c.featuredTitle}</h2>
-                        <p className="mt-5 max-w-lg text-base leading-relaxed text-black/62">{c.featuredBody}</p>
-                    </div>
-                    <div className="grid gap-5 sm:grid-cols-3">
-                        {featured[activeLocale].map(([title, text]) => (
-                            <article key={title} className="border-t border-black pt-4">
-                                <h3 className="text-2xl font-black uppercase leading-none">{title}</h3>
-                                <p className="mt-4 text-sm leading-relaxed text-black/62">{text}</p>
                             </article>
                         ))}
                     </div>
