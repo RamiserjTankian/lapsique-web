@@ -518,6 +518,18 @@ function JoinListPopup({ open, onClose, labels }: { open: boolean; onClose: () =
             return;
         }
 
+        const { overflow, paddingRight, position, top, width } = document.body.style;
+        const scrollY = window.scrollY;
+        const scrollbarWidth = window.innerWidth - document.documentElement.clientWidth;
+
+        document.body.style.overflow = 'hidden';
+        document.body.style.position = 'fixed';
+        document.body.style.top = `-${scrollY}px`;
+        document.body.style.width = '100%';
+        if (scrollbarWidth > 0) {
+            document.body.style.paddingRight = `${scrollbarWidth}px`;
+        }
+
         const handleKeyDown = (event: KeyboardEvent) => {
             if (event.key === 'Escape') {
                 onClose();
@@ -526,7 +538,15 @@ function JoinListPopup({ open, onClose, labels }: { open: boolean; onClose: () =
 
         document.addEventListener('keydown', handleKeyDown);
 
-        return () => document.removeEventListener('keydown', handleKeyDown);
+        return () => {
+            document.body.style.overflow = overflow;
+            document.body.style.paddingRight = paddingRight;
+            document.body.style.position = position;
+            document.body.style.top = top;
+            document.body.style.width = width;
+            window.scrollTo(0, scrollY);
+            document.removeEventListener('keydown', handleKeyDown);
+        };
     }, [onClose, open]);
 
     if (!open) {
