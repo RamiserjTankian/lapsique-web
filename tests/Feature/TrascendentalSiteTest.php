@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Mail\TrascendentalLeadNotification;
+use App\Mail\TrascendentalJoinListConfirmation;
 use App\Models\Customer;
 use App\Models\Event;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -46,7 +47,10 @@ class TrascendentalSiteTest extends TestCase
                 ->component('Trascendental/Events')
                 ->has('events', 16)
                 ->where('events.1.title', 'TDL & Atypical invites Lizz')
-                ->where('events.2.image', asset('images/trascendental/events/umi-iluminal-ii.webp'))
+                ->where('events.2.image', asset('images/trascendental/events/umi-iluminal-ii-original.jpg'))
+                ->has('upcomingEvents', 15)
+                ->where('upcomingEvents.0.category', 'produced')
+                ->where('upcomingEvents.1.title', 'Crihan - Besarabia Aniversario 4')
                 ->where('pagination.currentPage', 1)
                 ->where('pagination.lastPage', 1));
     }
@@ -112,11 +116,16 @@ class TrascendentalSiteTest extends TestCase
 
         $this->assertContains('trascendental_join_list', $customer->tags);
         $this->assertArrayHasKey('trascendental_join_list', $customer->metadata);
+        $this->assertArrayHasKey('discount_code', $customer->metadata['trascendental_join_list']);
+        $this->assertSame(20, $customer->metadata['trascendental_join_list']['discount_percent']);
 
         $this->assertDatabaseHas('contact_logs', [
             'customer_id' => $customer->id,
             'subject' => 'Join The List Trascendental',
             'status' => 'pending',
         ]);
+
+        Mail::assertSent(TrascendentalLeadNotification::class);
+        Mail::assertSent(TrascendentalJoinListConfirmation::class);
     }
 }

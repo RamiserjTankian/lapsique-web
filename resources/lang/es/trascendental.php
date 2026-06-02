@@ -29,54 +29,64 @@ return [
     'services' => [
         'title' => 'Servicios',
         'intro' => 'De la idea inicial al cierre de puertas: curaduria, booking, produccion, marketing y operacion para eventos de musica electronica.',
-        'integral_label' => 'Parte del servicio integral',
+        'service_label' => 'Servicio integral',
+        'touring_label' => 'Booking & Touring',
+        'capabilities_label' => 'Additional capabilities',
         'production' => 'Produccion de eventos',
         'booking' => 'Booking & Touring',
-        'operation' => 'Operacion',
+        'capabilities' => 'Additional capabilities',
         'items' => [
             'concept' => [
                 'title' => 'Concepto',
-                'text' => 'Definimos formato, narrativa, capacidad, calendario y objetivo comercial antes de producir.',
+                'text' => 'Definimos formato, narrativa, capacidad, calendario y objetivos comerciales antes de producir.',
             ],
             'booking' => [
                 'title' => 'Booking',
-                'text' => 'Negociamos disponibilidad, fee, condiciones y ventanas reales de routing con el artista.',
+                'text' => 'Negociamos artistas, disponibilidad, fees y oportunidades de routing en multiples territorios.',
             ],
             'production' => [
                 'title' => 'Produccion',
-                'text' => 'Aterrizamos venue, proveedores, hospitality, tecnica y operacion con un solo plan.',
+                'text' => 'Alineamos venue, proveedores, hospitality, audio, iluminacion, visuales y requerimientos tecnicos en un solo plan.',
             ],
             'execution' => [
                 'title' => 'Ejecucion',
-                'text' => 'Coordinamos apertura, puerta, cashless, cabina, tiempos y cierre de la fecha.',
+                'text' => 'Coordinamos staff, tiempos, sistemas cashless, logistica de artistas y operacion en sitio.',
             ],
             'marketing' => [
                 'title' => 'Marketing',
-                'text' => 'Activamos pauta, contenido y seguimiento con lectura de venta para ajustar rapido.',
+                'text' => 'Desarrollamos campanas, contenido y estrategias de audiencia antes, durante y despues de cada proyecto.',
+            ],
+            'operations' => [
+                'title' => 'Operations',
+                'text' => 'Supervisamos logistica, reportes y project management desde planeacion hasta entrega.',
             ],
             'artists' => [
-                'title' => 'Artistas internacionales',
-                'text' => 'Conectamos propuestas compatibles con el mercado, el venue y el momento de la ruta.',
+                'title' => 'Artist representation',
+                'text' => 'Construimos oportunidades a traves de desarrollo artistico de largo plazo y partnerships estrategicos.',
             ],
             'touring' => [
-                'title' => 'Desarrollo de tours',
-                'text' => 'Agrupamos solicitudes por pais y ciudad para que cada fecha tenga sentido logistico.',
+                'title' => 'Tour development',
+                'text' => 'Disenamos tours sostenibles en multiples mercados y territorios.',
             ],
             'routing' => [
-                'title' => 'Routing en LATAM',
-                'text' => 'Cuidamos distancias, vuelos, descansos y ventanas para reducir riesgo operativo.',
+                'title' => 'International routing',
+                'text' => 'Coordinamos logistica, agenda y viajes en Latinoamerica, Europa y Medio Oriente.',
             ],
             'cashless' => [
                 'title' => 'Cashless',
-                'text' => 'Sistema de cobro y lectura de consumo para operar mejor durante y despues del evento.',
+                'text' => 'Datos de pago y operacion en tiempo real para tomar mejores decisiones antes, durante y despues del evento.',
             ],
             'ads' => [
                 'title' => 'Ads',
-                'text' => 'Campanas orientadas a venta, no solo alcance, con ajustes segun respuesta real.',
+                'text' => 'Campanas orientadas a performance para generar awareness, venta de boletos y resultados medibles.',
             ],
             'content' => [
                 'title' => 'Contenido',
-                'text' => 'Registro visual util para promocion, prueba social y continuidad de marca.',
+                'text' => 'Activos visuales que extienden la vida de cada proyecto en marketing, media y comunidad.',
+            ],
+            'logistics' => [
+                'title' => 'Logistics',
+                'text' => 'Viajes, hospitality, agenda y coordinacion en sitio en cada etapa del proyecto.',
             ],
         ],
     ],
@@ -93,6 +103,9 @@ return [
     'events' => [
         'title' => 'Eventos',
         'intro' => 'Producciones realizadas por Trascendental, documentadas con fecha, venue, ciudad, artistas y contexto de operacion.',
+        'upcoming_eyebrow' => 'Upcoming events',
+        'upcoming_title' => 'Upcoming events',
+        'upcoming_intro' => 'Fechas producidas y apariciones del roster separadas con claridad para mostrar detalles, tickets y contexto.',
         'previous' => 'Anterior',
         'next' => 'Siguiente',
         'page' => 'Pagina :current de :total',
@@ -107,9 +120,9 @@ return [
     ],
     'contact' => [
         'title' => 'Contacto',
-        'intro' => 'Cuéntanos la ciudad, fecha y objetivo. Revisamos si hay artista, routing, presupuesto y condiciones para producirla bien.',
+        'intro' => 'Bookings, proyectos, partnerships y prensa.',
         'prompt_title' => 'Hablemos con datos reales de tu fecha.',
-        'prompt_body' => 'Con ciudad, fecha, presupuesto y contexto podemos decirte si conviene booking, produccion completa o una mejor ventana de tour. Si hace sentido, respondemos con el siguiente paso concreto.',
+        'prompt_body' => 'Envia el contexto central y llevamos la solicitud a la conversacion correcta.',
         'service_type' => 'Tipo de servicio',
         'booking' => 'Booking',
         'production' => 'Produccion',
@@ -129,6 +142,9 @@ return [
         'submit' => 'Enviar solicitud',
         'success' => 'Solicitud enviada. Revisaremos el contexto y responderemos con el siguiente paso.',
         'error' => 'No se pudo enviar la solicitud. Revisa los campos e intenta de nuevo.',
+    ],
+    'join_list' => [
+        'success' => 'Registro confirmado. Revisa tu correo para recibir tu codigo del 20%.',
     ],
     'whatsapp' => [
         'default_prefill' => 'Hola, quiero evaluar una fecha con Trascendental.',

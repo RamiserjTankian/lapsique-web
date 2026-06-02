@@ -8,6 +8,7 @@ import { useTranslations } from '@/hooks/useTranslations';
 
 interface EventsProps {
     events: ProducedEvent[];
+    upcomingEvents: UpcomingEvent[];
     pagination: {
         currentPage: number;
         lastPage: number;
@@ -16,9 +17,22 @@ interface EventsProps {
     };
 }
 
-export default function Events({ events, pagination }: EventsProps) {
+interface UpcomingEvent {
+    category: 'produced' | 'roster';
+    title: string;
+    date: string;
+    venue: string;
+    city: string;
+    lineup: string;
+    details_url: string | null;
+    tickets_url: string | null;
+}
+
+export default function Events({ events, upcomingEvents, pagination }: EventsProps) {
     const { ziggy } = usePage<PageProps>().props;
     const { t } = useTranslations();
+    const producedUpcoming = upcomingEvents.filter((event) => event.category === 'produced');
+    const rosterAppearances = upcomingEvents.filter((event) => event.category === 'roster');
 
     const pageLabel = t('trascendental.events.page')
         .replace(':current', pagination.currentPage.toString())
@@ -38,11 +52,30 @@ export default function Events({ events, pagination }: EventsProps) {
     return (
         <TrascendentalLayout>
             <PageShell title={t('trascendental.events.title')} intro={t('trascendental.events.intro')}>
+                <section className="mb-14 border-y border-black/15 py-8">
+                    <div className="mb-8 grid gap-5 md:grid-cols-[0.8fr_1.2fr] md:items-end">
+                        <div>
+                            <p className="text-xs font-bold uppercase text-black/45">{t('trascendental.events.upcoming_eyebrow')}</p>
+                            <h2 className="text-5xl font-black uppercase leading-none">{t('trascendental.events.upcoming_title')}</h2>
+                        </div>
+                        <p className="text-base leading-relaxed text-black/62">{t('trascendental.events.upcoming_intro')}</p>
+                    </div>
+                    <div className="grid gap-8 lg:grid-cols-[0.46fr_0.54fr]">
+                        <UpcomingGroup title="Produced by Trascendental" events={producedUpcoming} />
+                        <UpcomingGroup title="Roster appearances" events={rosterAppearances} />
+                    </div>
+                </section>
+
+                <div className="mb-8">
+                    <p className="text-xs font-bold uppercase text-black/45">{t('trascendental.produced.eyebrow')}</p>
+                    <h2 className="mt-3 text-5xl font-black uppercase leading-none">{t('trascendental.produced.title')}</h2>
+                </div>
+
                 <div className="grid gap-x-5 gap-y-10 sm:grid-cols-2 lg:grid-cols-4">
                     {events.map((event) => (
                         <article key={`${event.title}-${event.date}`} className="border-t border-black pt-3">
                             <a href={event.source_url ?? '#'} target={event.source_url ? '_blank' : undefined} rel={event.source_url ? 'noopener noreferrer' : undefined} className={event.source_url ? 'group block' : 'pointer-events-none block'}>
-                                <img src={event.image} alt={`${event.title} flyer`} className="aspect-[4/5] w-full bg-black/5 object-cover" loading="lazy" />
+                                <img src={event.image} alt={`${event.title} flyer`} className="aspect-[4/5] w-full bg-black/5 object-contain" loading="lazy" />
                                 <p className="mt-4 text-xs font-bold uppercase text-black/45">
                                     {event.date} / {event.city}
                                 </p>
@@ -77,5 +110,47 @@ export default function Events({ events, pagination }: EventsProps) {
                 </nav>
             </PageShell>
         </TrascendentalLayout>
+    );
+}
+
+function UpcomingGroup({ title, events }: { title: string; events: UpcomingEvent[] }) {
+    return (
+        <section>
+            <h3 className="border-t border-black pt-3 text-2xl font-black uppercase leading-none">{title}</h3>
+            <div className="mt-5 grid gap-4">
+                {events.map((event) => (
+                    <article key={`${event.title}-${event.date}-${event.city}`} className="grid gap-4 border-t border-black/15 pt-4 md:grid-cols-[1fr_auto] md:items-end">
+                        <div>
+                            <p className="text-xs font-bold uppercase text-black/45">
+                                {event.date} / {event.city}
+                            </p>
+                            <h4 className="mt-2 text-2xl font-black uppercase leading-none">{event.title}</h4>
+                            <p className="mt-2 text-sm font-bold uppercase text-black/55">{event.venue}</p>
+                            <p className="mt-3 text-xs font-bold uppercase leading-relaxed text-black/70">{event.lineup}</p>
+                        </div>
+                        <div className="flex gap-2 text-xs font-bold uppercase md:flex-col">
+                            <EventAction href={event.details_url}>Event details</EventAction>
+                            <EventAction href={event.tickets_url}>Buy tickets</EventAction>
+                        </div>
+                    </article>
+                ))}
+            </div>
+        </section>
+    );
+}
+
+function EventAction({ href, children }: { href: string | null; children: string }) {
+    if (!href) {
+        return (
+            <span className="inline-flex min-h-10 items-center justify-center border border-black/20 px-3 text-black/35">
+                {children}
+            </span>
+        );
+    }
+
+    return (
+        <a href={href} target="_blank" rel="noopener noreferrer" className="inline-flex min-h-10 items-center justify-center border border-black px-3 text-black hover:bg-black hover:text-white">
+            {children}
+        </a>
     );
 }

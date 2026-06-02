@@ -44,6 +44,7 @@ class HandleInertiaRequests extends Middleware
                 'bookingTeamName' => $settings?->booking_team_name,
                 'bookingTeamBio' => $settings?->booking_team_bio,
                 'whatsapp' => $whatsapp,
+                'whatsappCommunityUrl' => $isTrascendental ? config('trascendental.whatsapp_community_url') : null,
                 'email' => $isTrascendental ? config('trascendental.email') : null,
                 'instagramUrl' => $isTrascendental ? config('trascendental.instagram_url') : config('lapsique.instagram_url'),
                 'facebookUrl' => $isTrascendental ? config('trascendental.facebook_url') : null,

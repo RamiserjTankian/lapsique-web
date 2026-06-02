@@ -3,11 +3,14 @@
 namespace App\Http\Controllers;
 
 use App\Mail\TrascendentalLeadNotification;
+use App\Mail\TrascendentalJoinListConfirmation;
 use App\Models\ContactLog;
 use App\Models\Customer;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 
 class TrascendentalLeadController extends Controller
@@ -41,6 +44,9 @@ class TrascendentalLeadController extends Controller
         $metadata = is_array($customer->metadata) ? $customer->metadata : [];
         $leadType = $validated['lead_type'] ?? 'contact';
         $metadataKey = $leadType === 'join_list' ? 'trascendental_join_list' : 'trascendental_contact';
+        $discountCode = $leadType === 'join_list'
+            ? ($metadata[$metadataKey]['discount_code'] ?? 'TDL-'.Str::upper(Str::random(8)))
+            : null;
 
         $metadata[$metadataKey] = [
             'lead_type' => $leadType,
@@ -53,6 +59,8 @@ class TrascendentalLeadController extends Controller
             'submitted_at' => now()->toIso8601String(),
             'privacy_accepted_at' => now()->toIso8601String(),
             'url' => $request->input('current_url', $request->headers->get('referer')),
+            'discount_code' => $discountCode,
+            'discount_percent' => $leadType === 'join_list' ? 20 : null,
         ];
 
         $customer->fill([
@@ -60,9 +68,11 @@ class TrascendentalLeadController extends Controller
             'phone' => $validated['phone'] ?? $customer->phone,
             'whatsapp' => $validated['phone'] ?? $customer->whatsapp,
             'status' => $customer->exists ? $customer->status : 'lead',
-            'source' => $customer->source ?: 'trascendental_contact',
+            'source' => $customer->source ?: ($leadType === 'join_list' ? 'trascendental_join_list' : 'trascendental_contact'),
             'lifecycle_stage' => $customer->lifecycle_stage ?: 'lead',
             'lead_score' => max((int) ($customer->lead_score ?? 0), 25),
+            'subscribed_newsletter' => $leadType === 'join_list' ? true : (bool) ($customer->subscribed_newsletter ?? false),
+            'subscribed_whatsapp' => $leadType === 'join_list' && ! empty($validated['phone']) ? true : (bool) ($customer->subscribed_whatsapp ?? false),
             'tags' => array_values(array_unique(array_merge($existingTags, [
                 'trascendental',
                 $leadType === 'join_list' ? 'trascendental_join_list' : 'trascendental_contact',
@@ -84,24 +94,44 @@ class TrascendentalLeadController extends Controller
             'status' => 'pending',
         ]);
 
-        if ($email = $this->notificationEmail()) {
-            Mail::to($email)->send(new TrascendentalLeadNotification($customer, $contactLog));
+        $notificationEmail = $this->notificationEmail();
+
+        if ($notificationEmail) {
+            $this->sendMailSafely(fn () => Mail::to($notificationEmail)->send(new TrascendentalLeadNotification($customer, $contactLog)));
+        }
+
+        if ($leadType === 'join_list' && $discountCode) {
+            $this->sendMailSafely(fn () => Mail::to($customer->email)->send(new TrascendentalJoinListConfirmation($customer, $discountCode)));
         }
 
         return response()->json([
             'success' => true,
-            'message' => __('trascendental.contact.success'),
+            'message' => $leadType === 'join_list'
+                ? __('trascendental.join_list.success')
+                : __('trascendental.contact.success'),
+            'discount_code' => $discountCode,
         ]);
     }
 
     private function serviceLabel(string $service): string
     {
-        return $service === 'booking' ? 'Booking' : 'Producción';
+        return $service === 'booking' ? 'Booking' : 'Produccion';
     }
 
     private function notificationEmail(): ?string
     {
         return config('trascendental.lead_notify_email')
             ?: config('mail.from.address');
+    }
+
+    private function sendMailSafely(callable $send): void
+    {
+        try {
+            $send();
+        } catch (\Throwable $exception) {
+            Log::warning('Trascendental lead email could not be sent.', [
+                'message' => $exception->getMessage(),
+            ]);
+        }
     }
 }

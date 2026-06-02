@@ -199,6 +199,7 @@ export interface SiteProps {
     bookingTeamName: string | null;
     bookingTeamBio: string | null;
     whatsapp: string;
+    whatsappCommunityUrl: string | null;
     email: string | null;
     instagramUrl: string;
     facebookUrl: string | null;

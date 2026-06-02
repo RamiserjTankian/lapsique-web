@@ -1,6 +1,6 @@
 import { Link, usePage } from '@inertiajs/react';
 import { ArrowUpRight, Mail, MessageCircle } from 'lucide-react';
-import { type ReactNode } from 'react';
+import { useState, type ReactNode } from 'react';
 import { useTranslations } from '@/hooks/useTranslations';
 import { route } from '@/lib/route';
 import type { PageProps } from '@/types';
@@ -164,7 +164,7 @@ export function ProducedEventsSection({ events }: { events: ProducedEvent[] }) {
                                 <img
                                     src={event.image}
                                     alt={`${event.title} flyer`}
-                                    className="aspect-[4/5] w-full object-cover"
+                                    className="aspect-[4/5] w-full bg-black/5 object-contain"
                                     loading="lazy"
                                 />
                                 <p className="mt-4 text-xs font-bold uppercase text-black/45">
@@ -237,38 +237,52 @@ function MediaItem({
 export function TourRows({ tours }: { tours: TrascendentalTour[] }) {
     return (
         <div className="grid gap-x-5 gap-y-9 sm:grid-cols-2 lg:grid-cols-3">
-            {tours.map((tour) => (
-                <article key={tour.artist} className="border-t border-black pt-4">
-                    <img src={tour.image} alt={`${tour.artist} booking portrait`} className="aspect-[4/5] w-full bg-black object-contain" loading="lazy" />
-                    <div className="mt-4 flex items-start justify-between gap-4">
-                        <div>
-                            <p className="text-xs font-bold uppercase text-black/45">{tour.label}</p>
-                            <h2 className="mt-2 text-4xl font-black uppercase leading-none">{tour.artist}</h2>
-                        </div>
-                        <p className="shrink-0 border border-black px-2 py-1 text-[0.65rem] font-black uppercase text-black">{tour.status}</p>
-                    </div>
-                    <dl className="mt-5 grid gap-2 border-y border-black/15 py-4 text-xs font-bold uppercase">
-                        <div className="flex justify-between gap-3">
-                            <dt className="text-black/45">Nationality</dt>
-                            <dd className="text-right">{tour.nationality}</dd>
-                        </div>
-                        <div className="flex justify-between gap-3">
-                            <dt className="text-black/45">Record label</dt>
-                            <dd className="text-right">{tour.label}</dd>
-                        </div>
-                    </dl>
-                    <p className="mt-4 text-sm leading-relaxed text-black/65">{tour.bio}</p>
-                    <div className="mt-5 grid grid-cols-2 gap-2 text-xs font-bold uppercase">
-                        <a href={tour.instagram_url} target="_blank" rel="noopener noreferrer" className="border border-black px-3 py-2 text-center">
-                            Instagram
-                        </a>
-                        <a href={tour.soundcloud_url} target="_blank" rel="noopener noreferrer" className="border border-black px-3 py-2 text-center">
-                            SoundCloud
-                        </a>
-                    </div>
-                </article>
-            ))}
+            {tours.map((tour) => <TourCard key={tour.artist} tour={tour} />)}
         </div>
+    );
+}
+
+function TourCard({ tour }: { tour: TrascendentalTour }) {
+    const [expanded, setExpanded] = useState(false);
+    const preview = tour.bio.length > 176 ? `${tour.bio.slice(0, 176).trim()}...` : tour.bio;
+
+    return (
+        <article className="border-t border-black pt-4">
+            <img src={tour.image} alt={`${tour.artist} booking portrait`} className="aspect-[4/5] w-full bg-black object-contain" loading="lazy" />
+            <div className="mt-4 flex items-start justify-between gap-4">
+                <div>
+                    {tour.label ? <p className="text-xs font-bold uppercase text-black/45">{tour.label}</p> : null}
+                    <h2 className="mt-2 text-4xl font-black uppercase leading-none">{tour.artist}</h2>
+                </div>
+                <p className="shrink-0 border border-black px-2 py-1 text-[0.65rem] font-black uppercase text-black">{tour.status}</p>
+            </div>
+            <dl className="mt-5 grid gap-2 border-y border-black/15 py-4 text-xs font-bold uppercase">
+                <div className="flex justify-between gap-3">
+                    <dt className="text-black/45">Nationality</dt>
+                    <dd className="text-right">{tour.nationality}</dd>
+                </div>
+                {tour.label ? (
+                    <div className="flex justify-between gap-3">
+                        <dt className="text-black/45">Record label</dt>
+                        <dd className="text-right">{tour.label}</dd>
+                    </div>
+                ) : null}
+            </dl>
+            <p className="mt-4 min-h-28 text-sm leading-relaxed text-black/65">{expanded ? tour.bio : preview}</p>
+            {tour.bio.length > preview.length ? (
+                <button type="button" onClick={() => setExpanded((value) => !value)} className="mt-3 text-xs font-black uppercase text-black underline underline-offset-4">
+                    {expanded ? 'Read less' : 'Read more'}
+                </button>
+            ) : null}
+            <div className="mt-5 grid grid-cols-2 gap-2 text-xs font-bold uppercase">
+                <a href={tour.instagram_url} target="_blank" rel="noopener noreferrer" className="border border-black px-3 py-2 text-center">
+                    Instagram
+                </a>
+                <a href={tour.soundcloud_url} target="_blank" rel="noopener noreferrer" className="border border-black px-3 py-2 text-center">
+                    SoundCloud
+                </a>
+            </div>
+        </article>
     );
 }
 

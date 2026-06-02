@@ -1,5 +1,5 @@
 import { Link, usePage } from '@inertiajs/react';
-import { ArrowUpRight, Check, Mail, Volume2, VolumeX, X } from 'lucide-react';
+import { ArrowUpRight, Check, Mail, MessageCircle, Volume2, VolumeX, X } from 'lucide-react';
 import { useEffect, useRef, useState, type FormEvent, type ReactNode } from 'react';
 import { TrascendentalLayout } from '@/layouts/TrascendentalLayout';
 import { route } from '@/lib/route';
@@ -53,12 +53,12 @@ const copy = {
         viewRoster: 'VIEW ROSTER',
         selectedBody: '',
         joinTitle: 'JOIN THE LIST',
-        joinBody: 'Early access to events, announcements and special projects.',
+        joinBody: 'Early access to events, announcements, special projects and a 20% code for the next Trascendental event.',
         name: 'Name',
         email: 'Email Address',
         whatsapp: 'WhatsApp (optional)',
         joinSubmit: 'JOIN',
-        joinSuccess: 'You are on the list.',
+        joinSuccess: 'You are on the list. Your 20% code is',
         joinError: 'Could not join the list. Check the fields and try again.',
         contactTitle: 'CONTACT',
         contactBody: 'For bookings, projects, partnerships and press, send the context and we will route it to the right conversation.',
@@ -83,12 +83,12 @@ const copy = {
         viewRoster: 'VER ROSTER',
         selectedBody: '',
         joinTitle: 'JOIN THE LIST',
-        joinBody: 'Acceso anticipado a eventos, anuncios y proyectos especiales.',
+        joinBody: 'Acceso anticipado a eventos, anuncios, proyectos especiales y un codigo de 20% para el siguiente evento Trascendental.',
         name: 'Nombre',
         email: 'Correo electronico',
         whatsapp: 'WhatsApp (opcional)',
         joinSubmit: 'JOIN',
-        joinSuccess: 'Ya estas en la lista.',
+        joinSuccess: 'Ya estas en la lista. Tu codigo de 20% es',
         joinError: 'No se pudo registrar. Revisa los campos e intenta de nuevo.',
         contactTitle: 'CONTACTO',
         contactBody: 'Para booking, proyectos, partnerships y prensa, envia el contexto y lo llevamos a la conversacion correcta.',
@@ -129,12 +129,12 @@ const artists = [
     },
     {
         name: 'Jay Tripwire',
-        alias: 'Witching Hour',
+        alias: '',
         image: '/images/trascendental/artists/jay-tripwire-live.jpeg',
         instagram: '@jaytripwire',
         soundcloud: 'https://on.soundcloud.com/aujhnGUYV96wiRavZk',
         dates: 'LAST DATES',
-        markets: 'Canadian · Witching Hour',
+        markets: 'Canadian',
     },
     {
         name: 'Mike.D',
@@ -152,16 +152,16 @@ const artists = [
         instagram: '@z0neplus',
         soundcloud: 'https://on.soundcloud.com/X14HzDlO4rAL1aqG8r',
         dates: 'LAST DATES',
-        markets: 'South Arabia · All Day I Dream',
+        markets: 'Bahrain · All Day I Dream',
     },
     {
         name: 'Barry Sound',
-        alias: 'House Groove',
+        alias: 'House Cookin',
         image: '/images/trascendental/artists/barry-sound.jpeg',
         instagram: '@barrysound_music',
         soundcloud: 'https://on.soundcloud.com/pjxWil9vE9Wf8Hgih2',
         dates: 'OPEN DATES',
-        markets: 'Mexican · House Groove',
+        markets: 'Mexican · House Cookin',
     },
     {
         name: 'Gala',
@@ -183,6 +183,8 @@ export default function Home({ producedEvents }: HomeProps) {
     const [soundEnabled, setSoundEnabled] = useState(false);
     const [joinOpen, setJoinOpen] = useState(false);
     const selectedProjects = producedEvents.slice(0, 6);
+    const whatsappCommunityHref = site.whatsappCommunityUrl
+        ?? (site.whatsapp ? `https://wa.me/${site.whatsapp.replace(/\D/g, '')}?text=${encodeURIComponent('Hola, quiero entrar a la comunidad de Trascendental.')}` : null);
 
     useEffect(() => {
         if (typeof window === 'undefined' || window.sessionStorage.getItem('trascendental_join_popup_seen')) {
@@ -285,6 +287,12 @@ export default function Home({ producedEvents }: HomeProps) {
                                                 Facebook
                                             </a>
                                         ) : null}
+                                        {whatsappCommunityHref ? (
+                                            <a href={whatsappCommunityHref} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 border border-black px-3 py-2">
+                                                WhatsApp
+                                                <MessageCircle className="h-3.5 w-3.5" />
+                                            </a>
+                                        ) : null}
                                     </div>
                                 ) : null}
                             </article>
@@ -338,7 +346,7 @@ export default function Home({ producedEvents }: HomeProps) {
                                 <img src={artist.image} alt={`${artist.name} booking visual`} className="aspect-[4/5] w-full bg-black object-contain" loading="lazy" />
                                 <div className="flex min-h-full flex-col justify-between gap-6">
                                     <div>
-                                        <p className="text-xs font-bold uppercase text-black/45">{artist.alias}</p>
+                                        {artist.alias ? <p className="text-xs font-bold uppercase text-black/45">{artist.alias}</p> : null}
                                         <h3 className="mt-2 text-4xl font-black uppercase leading-none">{artist.name}</h3>
                                         <p className="mt-4 text-sm font-bold uppercase leading-relaxed text-black/62">{artist.markets}</p>
                                         <p className="mt-3 text-sm leading-relaxed text-black/58">{artist.dates}</p>
@@ -364,7 +372,7 @@ export default function Home({ producedEvents }: HomeProps) {
                         <div className="grid gap-x-5 gap-y-8 sm:grid-cols-2 lg:grid-cols-3">
                             {selectedProjects.map((project) => (
                                 <article key={`${project.title}-${project.date}`} className="border-t border-black pt-4">
-                                    <img src={project.image} alt={`${project.title} visual`} className="aspect-[4/5] w-full object-cover" loading="lazy" />
+                                    <img src={project.image} alt={`${project.title} visual`} className="aspect-[4/5] w-full bg-black/5 object-contain" loading="lazy" />
                                     <p className="mt-4 text-xs font-bold uppercase text-black/45">{project.date} / {project.city}</p>
                                     <h3 className="mt-2 text-2xl font-black uppercase leading-none">{project.title}</h3>
                                 </article>
@@ -421,6 +429,7 @@ function JoinListForm({ labels, mode }: { labels: Record<string, string>; mode: 
     const { ziggy, locale } = usePage<PageProps>().props;
     const [form, setForm] = useState<JoinFormState>(initialJoinForm);
     const [status, setStatus] = useState<'idle' | 'sending' | 'success' | 'error'>('idle');
+    const [discountCode, setDiscountCode] = useState<string | null>(null);
 
     const update = (key: keyof JoinFormState, value: string) => {
         setForm((current) => ({ ...current, [key]: value }));
@@ -429,6 +438,7 @@ function JoinListForm({ labels, mode }: { labels: Record<string, string>; mode: 
     const submit = async (event: FormEvent<HTMLFormElement>) => {
         event.preventDefault();
         setStatus('sending');
+        setDiscountCode(null);
 
         const token = document.querySelector<HTMLMetaElement>('meta[name="csrf-token"]')?.content ?? '';
         const response = await fetch(route('trascendental.leads.store', undefined, false, ziggy), {
@@ -455,8 +465,11 @@ function JoinListForm({ labels, mode }: { labels: Record<string, string>; mode: 
             }),
         });
 
+        const data = (await response.json().catch(() => null)) as { discount_code?: string } | null;
+
         if (response.ok) {
             setStatus('success');
+            setDiscountCode(data?.discount_code ?? null);
             setForm(initialJoinForm);
             return;
         }
@@ -488,7 +501,12 @@ function JoinListForm({ labels, mode }: { labels: Record<string, string>; mode: 
                 {status === 'success' ? <Check className="h-4 w-4" /> : <Mail className="h-4 w-4" />}
                 {labels.joinSubmit}
             </button>
-            {status === 'success' ? <p className="text-sm font-bold uppercase text-black">{labels.joinSuccess}</p> : null}
+            {status === 'success' ? (
+                <p className="text-sm font-bold uppercase text-black">
+                    {labels.joinSuccess}
+                    {discountCode ? <span className="ml-1 inline-block border border-black px-2 py-1">{discountCode}</span> : null}
+                </p>
+            ) : null}
             {status === 'error' ? <p className="text-sm font-bold uppercase text-red-700">{labels.joinError}</p> : null}
         </form>
     );
