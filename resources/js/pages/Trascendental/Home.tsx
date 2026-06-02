@@ -51,7 +51,6 @@ const copy = {
         artistsTitle: 'ARTISTS',
         artistsBody: 'A curated roster of artists available for bookings, showcases and special projects.',
         viewRoster: 'VIEW ROSTER',
-        selectedTitle: 'SELECTED PROJECTS',
         selectedBody: '',
         joinTitle: 'JOIN THE LIST',
         joinBody: 'Early access to events, announcements and special projects.',
@@ -82,7 +81,6 @@ const copy = {
         artistsTitle: 'ARTISTAS',
         artistsBody: 'Roster curado de artistas disponibles para bookings, showcases y proyectos especiales.',
         viewRoster: 'VER ROSTER',
-        selectedTitle: 'SELECTED PROJECTS',
         selectedBody: '',
         joinTitle: 'JOIN THE LIST',
         joinBody: 'Acceso anticipado a eventos, anuncios y proyectos especiales.',
@@ -363,21 +361,12 @@ export default function Home({ producedEvents }: HomeProps) {
             {selectedProjects.length > 0 ? (
                 <section className="tdl-section border-t border-black/10">
                     <div className="tdl-wrap">
-                        <div className="mb-9 grid gap-5 md:grid-cols-[0.9fr_1.1fr] md:items-end">
-                            <div>
-                                <p className="tdl-eyebrow">Portfolio</p>
-                                <h2 className="tdl-heading">{c.selectedTitle}</h2>
-                            </div>
-                            {c.selectedBody ? <p className="max-w-xl text-base leading-relaxed text-black/62">{c.selectedBody}</p> : null}
-                        </div>
                         <div className="grid gap-x-5 gap-y-8 sm:grid-cols-2 lg:grid-cols-3">
                             {selectedProjects.map((project) => (
                                 <article key={`${project.title}-${project.date}`} className="border-t border-black pt-4">
                                     <img src={project.image} alt={`${project.title} visual`} className="aspect-[4/5] w-full object-cover" loading="lazy" />
                                     <p className="mt-4 text-xs font-bold uppercase text-black/45">{project.date} / {project.city}</p>
                                     <h3 className="mt-2 text-2xl font-black uppercase leading-none">{project.title}</h3>
-                                    <p className="mt-3 text-sm font-bold uppercase text-black/50">{project.venue}</p>
-                                    <p className="mt-4 text-xs font-bold uppercase leading-relaxed text-black/75">{project.lineup}</p>
                                 </article>
                             ))}
                         </div>
