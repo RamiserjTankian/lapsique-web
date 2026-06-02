@@ -376,8 +376,8 @@ class TrascendentalController extends Controller
                 'city' => 'Lima, Peru',
                 'venue' => '@habemusclub',
                 'lineup' => 'Discret Popescu',
-                'details_url' => 'https://www.instagram.com/in.sight____?igsh=ZmF5OXp4MWx3Zmw0',
-                'tickets_url' => null,
+                'details_url' => null,
+                'tickets_url' => 'https://www.passline.com/eventos/insight-pres-crihan-rumania',
             ],
             [
                 'category' => 'roster',

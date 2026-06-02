@@ -53,6 +53,8 @@ class TrascendentalSiteTest extends TestCase
                 ->where('upcomingEvents.0.category', 'produced')
                 ->where('upcomingEvents.1.category', 'announce')
                 ->where('upcomingEvents.2.title', 'Crihan - Besarabia Aniversario 4')
+                ->where('upcomingEvents.4.title', 'Crihan - Insight')
+                ->where('upcomingEvents.4.tickets_url', 'https://www.passline.com/eventos/insight-pres-crihan-rumania')
                 ->where('pagination.currentPage', 1)
                 ->where('pagination.lastPage', 2)
                 ->where('pagination.perPage', 12)
