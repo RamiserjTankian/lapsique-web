@@ -55,7 +55,9 @@ class TrascendentalSiteTest extends TestCase
                 ->where('pagination.currentPage', 1)
                 ->where('pagination.lastPage', 2)
                 ->where('pagination.perPage', 12)
-                ->where('pagination.total', 16));
+                ->where('pagination.total', 16)
+                ->where('seo.title', 'Events')
+                ->where('seo.metaTitle', 'Events · Trascendentalby'));
 
         $this->get(route('trascendental.events', ['page' => 2]))
             ->assertOk()

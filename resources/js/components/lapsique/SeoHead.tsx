@@ -7,7 +7,7 @@ interface SeoHeadProps {
 }
 
 export function SeoHead({ seo: override }: SeoHeadProps) {
-    const { seo: shared, locale } = usePage<PageProps>().props;
+    const { seo: shared, locale, site } = usePage<PageProps>().props;
     const ogLocale = locale === 'en' ? 'en_US' : 'es_MX';
     if (!shared && !override) {
         return null;
@@ -15,8 +15,8 @@ export function SeoHead({ seo: override }: SeoHeadProps) {
 
     const seo: SeoMeta = { ...shared!, ...override };
     const ogImage = seo.ogImage ?? '';
-    const siteName = seo.metaTitle.includes('Trascendental') || seo.title === 'Trascendental'
-        ? 'Trascendental'
+    const siteName = site.whatsappCommunityUrl || seo.metaTitle.includes('Trascendental')
+        ? 'Trascendentalby'
         : 'lapsique.media';
 
     return (

@@ -3,6 +3,8 @@
     $ogImage = $meta->ogImage ?: \App\Support\PageMeta::defaultOgImageUrl();
     $twitterImage = $ogImage;
     $ogImageAlt = $meta->ogImageAlt ?: $meta->metaTitle;
+    $isTrascendental = str_contains($meta->metaTitle, 'Trascendental') || str_contains($meta->canonicalUrl, 'trascendentalby');
+    $siteName = $isTrascendental ? 'Trascendentalby' : 'lapsique.media';
 @endphp
 
 <title>{{ $meta->metaTitle }}</title>
@@ -11,7 +13,7 @@
 @if (filled($meta->keywords))
     <meta name="keywords" content="{{ $meta->keywords }}">
 @endif
-<meta name="author" content="lapsique.media">
+<meta name="author" content="{{ $siteName }}">
 <meta name="robots" content="{{ $meta->noindex ? 'noindex, nofollow' : 'index, follow' }}">
 
 <link rel="canonical" href="{{ $meta->canonicalUrl }}">
@@ -27,7 +29,7 @@
 <meta property="og:image:height" content="630">
 <meta property="og:image:type" content="image/jpeg">
 <meta property="og:image:alt" content="{{ $ogImageAlt }}">
-<meta property="og:site_name" content="lapsique.media">
+<meta property="og:site_name" content="{{ $siteName }}">
 <meta property="og:locale" content="es_MX">
 
 <meta name="twitter:card" content="summary_large_image">

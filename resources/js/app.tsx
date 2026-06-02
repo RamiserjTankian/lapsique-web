@@ -9,8 +9,20 @@ import './pixel';
 
 const appName = window.location.hostname.includes('trascendental')
     || window.location.pathname.startsWith('/trascendental')
-    ? 'Trascendental'
+    ? 'Trascendentalby'
     : 'lapsique.media';
+
+function formatDocumentTitle(title?: string): string {
+    if (!title) {
+        return appName;
+    }
+
+    if (title.includes(appName)) {
+        return title;
+    }
+
+    return `${title} · ${appName}`;
+}
 
 // El PageView inicial lo dispara el HTML root (fbq) y analytics.js en la carga.
 // Aqui reportamos las navegaciones client-side de Inertia, omitiendo la primera.
@@ -26,7 +38,7 @@ router.on('navigate', () => {
 });
 
 createInertiaApp({
-    title: (title) => (title ? `${title} · ${appName}` : appName),
+    title: formatDocumentTitle,
     resolve: (name) =>
         resolvePageComponent(
             `./pages/${name}.tsx`,
