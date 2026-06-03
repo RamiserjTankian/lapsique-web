@@ -3,12 +3,14 @@
 namespace App\Http\Controllers;
 
 use App\Mail\TrascendentalLeadNotification;
+use App\Mail\TrascendentalJoinListConfirmation;
 use App\Models\ContactLog;
 use App\Models\Customer;
+use App\Services\MailDeliveryService;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Mail\Mailable;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Mail;
 use Illuminate\Validation\ValidationException;
 
 class TrascendentalLeadController extends Controller
@@ -61,7 +63,7 @@ class TrascendentalLeadController extends Controller
             'submitted_at' => now()->toIso8601String(),
             'privacy_accepted_at' => now()->toIso8601String(),
             'url' => $request->input('current_url', $request->headers->get('referer')),
-            'mail_suppressed' => $leadType === 'join_list' ? true : null,
+            'mail_status' => 'pending',
         ];
 
         $customer->fill([
@@ -95,11 +97,25 @@ class TrascendentalLeadController extends Controller
             'status' => 'pending',
         ]);
 
-        $notificationEmail = $leadType === 'join_list' ? null : $this->notificationEmail();
+        $mailResult = null;
 
-        if ($notificationEmail !== null) {
-            $this->sendMailSafely(fn () => Mail::to($notificationEmail)->send(new TrascendentalLeadNotification($customer, $contactLog)));
+        if ($leadType === 'join_list') {
+            $mailResult = $this->sendMailSafely(
+                new TrascendentalJoinListConfirmation($customer),
+                $customer->email,
+                $customer->name,
+                'trascendental-join-list',
+            );
+        } elseif ($notificationEmail = $this->notificationEmail()) {
+            $mailResult = $this->sendMailSafely(
+                new TrascendentalLeadNotification($customer, $contactLog),
+                $notificationEmail,
+                'Trascendental',
+                'trascendental-contact',
+            );
         }
+
+        $this->recordMailStatus($customer, $contactLog, $metadataKey, $mailResult);
 
         return response()->json([
             'success' => true,
@@ -116,18 +132,51 @@ class TrascendentalLeadController extends Controller
 
     private function notificationEmail(): ?string
     {
-        return config('trascendental.lead_notify_email')
+        $email = config('trascendental.lead_notify_email')
+            ?: config('trascendental.email')
             ?: config('mail.from.address');
+
+        return filter_var($email, FILTER_VALIDATE_EMAIL) ? $email : null;
     }
 
-    private function sendMailSafely(callable $send): void
+    private function sendMailSafely(Mailable $mailable, string $toEmail, ?string $toName, string $category): string|false|null
     {
         try {
-            $send();
+            return app(MailDeliveryService::class)->send($mailable, $toEmail, $toName, $category);
         } catch (\Throwable $exception) {
             Log::warning('Trascendental lead email could not be sent.', [
+                'category' => $category,
+                'to' => $toEmail,
                 'message' => $exception->getMessage(),
             ]);
+
+            return false;
         }
+    }
+
+    private function recordMailStatus(Customer $customer, ContactLog $contactLog, string $metadataKey, string|false|null $mailResult): void
+    {
+        $mailStatus = match (true) {
+            is_string($mailResult) && $mailResult !== '' => 'sent',
+            $mailResult === false => 'failed',
+            default => 'sent_without_id',
+        };
+        $mailMetadata = [
+            'mail_status' => $mailStatus,
+            'mailtrap_message_id' => is_string($mailResult) && $mailResult !== '' ? $mailResult : null,
+        ];
+
+        $contactMetadata = is_array($contactLog->metadata) ? $contactLog->metadata : [];
+        $contactLog->forceFill([
+            'metadata' => array_merge($contactMetadata, $mailMetadata),
+        ])->save();
+
+        $customerMetadata = is_array($customer->metadata) ? $customer->metadata : [];
+        $customerMetadata[$metadataKey] = array_merge(
+            is_array($customerMetadata[$metadataKey] ?? null) ? $customerMetadata[$metadataKey] : [],
+            $mailMetadata,
+        );
+
+        $customer->forceFill(['metadata' => $customerMetadata])->save();
     }
 }

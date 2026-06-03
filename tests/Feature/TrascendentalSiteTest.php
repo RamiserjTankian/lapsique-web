@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Mail\TrascendentalLeadNotification;
+use App\Mail\TrascendentalJoinListConfirmation;
 use App\Models\Customer;
 use App\Models\Event;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -12,6 +13,13 @@ use Tests\TestCase;
 class TrascendentalSiteTest extends TestCase
 {
     use RefreshDatabase;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        config()->set('services.mailtrap.api_token', '');
+    }
 
     public function test_preview_home_renders_case_studies_and_tours(): void
     {
@@ -136,7 +144,7 @@ class TrascendentalSiteTest extends TestCase
 
         $this->assertContains('trascendental_join_list', $customer->tags);
         $this->assertArrayHasKey('trascendental_join_list', $customer->metadata);
-        $this->assertTrue($customer->metadata['trascendental_join_list']['mail_suppressed']);
+        $this->assertSame('sent_without_id', $customer->metadata['trascendental_join_list']['mail_status']);
         $this->assertArrayNotHasKey('discount_code', $customer->metadata['trascendental_join_list']);
         $this->assertArrayNotHasKey('discount_percent', $customer->metadata['trascendental_join_list']);
 
@@ -146,6 +154,6 @@ class TrascendentalSiteTest extends TestCase
             'status' => 'pending',
         ]);
 
-        Mail::assertNothingSent();
+        Mail::assertSent(TrascendentalJoinListConfirmation::class);
     }
 }

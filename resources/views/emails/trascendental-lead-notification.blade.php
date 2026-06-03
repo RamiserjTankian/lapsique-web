@@ -1,28 +1,27 @@
-@extends('emails.layout')
-@php use App\Support\EmailBrand; @endphp
+@extends('emails.trascendental-layout')
 
 @section('title', 'Nuevo lead Trascendental')
 
 @section('content')
-    <p class="eyebrow" style="{{ EmailBrand::eyebrowStyle() }}">Trascendental</p>
-    <h2 style="{{ EmailBrand::headingStyle() }}">Nuevo lead calificado</h2>
+    <p class="tdl-eyebrow">Trascendental</p>
+    <h2 class="tdl-heading">Nuevo lead calificado</h2>
 
-    <p style="{{ EmailBrand::paragraphStyle() }}">
+    <p class="tdl-copy">
         {{ $customer->name }} envio una solicitud desde trascendentalby.mx.
     </p>
 
-    <div class="card" style="{{ EmailBrand::cardStyle() }}">
-        <p style="{{ EmailBrand::cardRowStyle() }}"><strong style="{{ EmailBrand::strongStyle() }}">Servicio:</strong> {{ $lead['service_type'] ?? 'n/a' }}</p>
-        <p style="{{ EmailBrand::cardRowStyle() }}"><strong style="{{ EmailBrand::strongStyle() }}">Ciudad:</strong> {{ $lead['city'] ?? 'n/a' }}</p>
-        <p style="{{ EmailBrand::cardRowStyle() }}"><strong style="{{ EmailBrand::strongStyle() }}">Fecha:</strong> {{ $lead['event_date'] ?? 'Por definir' }}</p>
-        <p style="{{ EmailBrand::cardRowStyle() }}"><strong style="{{ EmailBrand::strongStyle() }}">Presupuesto:</strong> {{ $lead['budget'] ?? 'n/a' }}</p>
-        <p style="{{ EmailBrand::cardRowStyle() }}"><strong style="{{ EmailBrand::strongStyle() }}">Email:</strong> {{ $customer->email }}</p>
-        <p style="{{ EmailBrand::cardRowStyle() }}"><strong style="{{ EmailBrand::strongStyle() }}">Telefono:</strong> {{ $customer->phone ?: 'n/a' }}</p>
+    <div class="tdl-card">
+        <p class="tdl-row"><strong>Servicio:</strong> {{ $lead['service_type'] ?? 'n/a' }}</p>
+        <p class="tdl-row"><strong>Ciudad:</strong> {{ $lead['city'] ?? 'n/a' }}</p>
+        <p class="tdl-row"><strong>Fecha:</strong> {{ $lead['event_date'] ?? 'Por definir' }}</p>
+        <p class="tdl-row"><strong>Presupuesto:</strong> {{ $lead['budget'] ?? 'n/a' }}</p>
+        <p class="tdl-row"><strong>Email:</strong> {{ $customer->email }}</p>
+        <p class="tdl-row"><strong>Telefono:</strong> {{ $customer->phone ?: 'n/a' }}</p>
     </div>
 
     @if (! empty($lead['message']))
-        <p style="{{ EmailBrand::paragraphStyle() }}">
-            <strong style="{{ EmailBrand::strongStyle() }}">Mensaje:</strong><br>
+        <p class="tdl-copy">
+            <strong>Mensaje:</strong><br>
             {{ $lead['message'] }}
         </p>
     @endif

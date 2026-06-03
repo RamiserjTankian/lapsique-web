@@ -1,23 +1,22 @@
-@extends('emails.layout')
-@php use App\Support\EmailBrand; @endphp
+@extends('emails.trascendental-layout')
 
 @section('title', 'Join The List Trascendental')
 
 @section('content')
-    <p class="eyebrow" style="{{ EmailBrand::eyebrowStyle() }}">Trascendental.</p>
-    <h2 style="{{ EmailBrand::headingStyle() }}">Estas en la lista</h2>
+    <p class="tdl-eyebrow">Trascendental.</p>
+    <h2 class="tdl-heading">Estas en la lista</h2>
 
-    <p style="{{ EmailBrand::paragraphStyle() }}">
-        {{ $customer->name ?: 'Hola' }}, tu registro quedo confirmado. Te enviaremos acceso anticipado a lanzamientos de tickets, eventos de cupo limitado, anuncios de artistas y oportunidades de guest list.
+    <p class="tdl-copy">
+        {{ $customer->name ?: 'Hola' }}, tu registro quedo confirmado. Tendras acceso anticipado a eventos, anuncios de artistas y proyectos seleccionados antes de su lanzamiento publico.
     </p>
 
-    <div class="card" style="{{ EmailBrand::cardStyle() }}">
-        <p style="{{ EmailBrand::cardRowStyle() }}"><strong style="{{ EmailBrand::strongStyle() }}">Tickets:</strong> lanzamientos y preventas seleccionadas.</p>
-        <p style="{{ EmailBrand::cardRowStyle() }}"><strong style="{{ EmailBrand::strongStyle() }}">Eventos:</strong> fechas de capacidad limitada.</p>
-        <p style="{{ EmailBrand::cardRowStyle() }}"><strong style="{{ EmailBrand::strongStyle() }}">Comunidad:</strong> oportunidades y anuncios para la lista.</p>
+    <div class="tdl-card">
+        <p class="tdl-row"><strong>Eventos:</strong> acceso temprano a fechas seleccionadas.</p>
+        <p class="tdl-row"><strong>Artistas:</strong> anuncios del roster y showcases.</p>
+        <p class="tdl-row"><strong>Proyectos:</strong> novedades antes del lanzamiento publico.</p>
     </div>
 
-    <p style="{{ EmailBrand::paragraphStyle() }}">
+    <p class="tdl-copy">
         Conserva este correo. Cuando se anuncie una nueva fecha, recibiras el siguiente paso por los canales oficiales de Trascendental.
     </p>
 @endsection
