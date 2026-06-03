@@ -1,5 +1,5 @@
 import { Link, usePage } from '@inertiajs/react';
-import { ArrowUpRight, Check, Mail, MessageCircle, Volume2, VolumeX, X } from 'lucide-react';
+import { ArrowUpRight, Check, LoaderCircle, Mail, MessageCircle, Volume2, VolumeX, X } from 'lucide-react';
 import { useEffect, useRef, useState, type FormEvent, type ReactNode } from 'react';
 import { TrascendentalLayout } from '@/layouts/TrascendentalLayout';
 import { useTranslations } from '@/hooks/useTranslations';
@@ -57,6 +57,7 @@ const copy = {
         email: 'Email Address',
         whatsapp: 'WhatsApp (optional)',
         joinSubmit: 'JOIN',
+        joinSending: 'SENDING',
         joinSuccess: 'Thank you. You are on the list. Your registration was saved and we will contact you through Trascendental channels.',
         joinError: 'Could not join the list. Check the fields and try again.',
         joinClose: 'Close join list popup',
@@ -88,6 +89,7 @@ const copy = {
         email: 'Correo electronico',
         whatsapp: 'WhatsApp (opcional)',
         joinSubmit: 'UNIRME',
+        joinSending: 'ENVIANDO',
         joinSuccess: 'Gracias. Ya estas en la lista. Tu registro quedo guardado y te contactaremos por los canales de Trascendental.',
         joinError: 'No se pudo registrar. Revisa los campos e intenta de nuevo.',
         joinClose: 'Cerrar popup de registro',
@@ -468,6 +470,35 @@ function JoinListForm({ labels, mode }: { labels: Record<string, string>; mode: 
     const [form, setForm] = useState<JoinFormState>(initialJoinForm);
     const [status, setStatus] = useState<'idle' | 'sending' | 'success' | 'error'>('idle');
     const [statusMessage, setStatusMessage] = useState<string | null>(null);
+    const [successVisible, setSuccessVisible] = useState(false);
+    const [typedSuccessMessage, setTypedSuccessMessage] = useState('');
+
+    useEffect(() => {
+        if (status !== 'success' || !statusMessage) {
+            setSuccessVisible(false);
+            setTypedSuccessMessage('');
+            return;
+        }
+
+        setSuccessVisible(false);
+        setTypedSuccessMessage('');
+
+        const revealTimer = window.setTimeout(() => setSuccessVisible(true), 40);
+        let index = 0;
+        const typeTimer = window.setInterval(() => {
+            index += 1;
+            setTypedSuccessMessage(statusMessage.slice(0, index));
+
+            if (index >= statusMessage.length) {
+                window.clearInterval(typeTimer);
+            }
+        }, 18);
+
+        return () => {
+            window.clearTimeout(revealTimer);
+            window.clearInterval(typeTimer);
+        };
+    }, [status, statusMessage]);
 
     const update = (key: keyof JoinFormState, value: string) => {
         setForm((current) => ({ ...current, [key]: value }));
@@ -477,6 +508,8 @@ function JoinListForm({ labels, mode }: { labels: Record<string, string>; mode: 
         event.preventDefault();
         setStatus('sending');
         setStatusMessage(null);
+        setSuccessVisible(false);
+        setTypedSuccessMessage('');
 
         const token = document.querySelector<HTMLMetaElement>('meta[name="csrf-token"]')?.content ?? '';
         const response = await fetch(route('trascendental.leads.store', undefined, false, ziggy), {
@@ -516,23 +549,27 @@ function JoinListForm({ labels, mode }: { labels: Record<string, string>; mode: 
     };
 
     return (
-        <form onSubmit={submit} className={mode === 'popup' ? 'grid gap-5' : 'grid gap-6 border-y border-black/15 py-8'}>
+        <form onSubmit={submit} className={mode === 'popup' ? 'grid gap-5' : 'grid gap-6 border-y border-black/15 py-8'} aria-busy={status === 'sending'}>
             <Field label={labels.name}>
-                <input value={form.name} onChange={(event) => update('name', event.target.value)} className="contact-input" autoComplete="name" />
+                <input value={form.name} onChange={(event) => update('name', event.target.value)} className="contact-input" autoComplete="name" disabled={status === 'sending'} />
             </Field>
             <Field label={labels.email}>
-                <input value={form.email} onChange={(event) => update('email', event.target.value)} className="contact-input" type="email" autoComplete="email" required />
+                <input value={form.email} onChange={(event) => update('email', event.target.value)} className="contact-input" type="email" autoComplete="email" required disabled={status === 'sending'} />
             </Field>
             <Field label={labels.whatsapp}>
-                <input value={form.whatsapp} onChange={(event) => update('whatsapp', event.target.value)} className="contact-input" autoComplete="tel" />
+                <input value={form.whatsapp} onChange={(event) => update('whatsapp', event.target.value)} className="contact-input" autoComplete="tel" disabled={status === 'sending'} />
             </Field>
             <button type="submit" disabled={status === 'sending'} className="tdl-button justify-center border-black bg-black text-white disabled:opacity-60">
-                {status === 'success' ? <Check className="h-4 w-4" /> : <Mail className="h-4 w-4" />}
-                {labels.joinSubmit}
+                {status === 'sending' ? <LoaderCircle className="h-4 w-4 animate-spin" /> : status === 'success' ? <Check className="h-4 w-4" /> : <Mail className="h-4 w-4" />}
+                {status === 'sending' ? labels.joinSending : labels.joinSubmit}
             </button>
             {status === 'success' ? (
-                <div className="border border-black bg-white px-4 py-3 text-sm font-bold uppercase leading-relaxed text-black">
-                    {statusMessage ?? labels.joinSuccess}
+                <div
+                    className={`border border-black bg-white px-4 py-3 text-sm font-bold uppercase leading-relaxed text-black transition-all duration-700 ${successVisible ? 'translate-y-0 opacity-100' : 'translate-y-2 opacity-0'}`}
+                    aria-live="polite"
+                >
+                    {typedSuccessMessage}
+                    <span className={`ml-1 inline-block h-[0.75em] w-[0.75em] rounded-full bg-black align-baseline ${typedSuccessMessage.length >= (statusMessage?.length ?? 0) ? 'animate-pulse' : ''}`} />
                 </div>
             ) : null}
             {status === 'error' ? <p className="text-sm font-bold uppercase text-red-700">{statusMessage ?? labels.joinError}</p> : null}
