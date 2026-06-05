@@ -1,5 +1,5 @@
-const pixelConfig = window.LapsiquePixel || {};
-const pixelQueue = Array.isArray(window.__lapsiquePixelQueue) ? window.__lapsiquePixelQueue : [];
+const pixelConfig = window.SitePixel || {};
+const pixelQueue = Array.isArray(window.__sitePixelQueue) ? window.__sitePixelQueue : [];
 let advancedMatchingApplied = false;
 
 function trackMetaPixel(event, payload, options) {

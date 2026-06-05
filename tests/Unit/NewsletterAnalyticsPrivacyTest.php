@@ -11,7 +11,7 @@ class NewsletterAnalyticsPrivacyTest extends TestCase
         $source = file_get_contents(__DIR__.'/../../resources/js/hooks/useNewsletterAnalytics.ts');
 
         $this->assertStringContainsString('...internalPayload', $source);
-        $this->assertStringContainsString('window.LapsiqueTracker?.track(name, internalPayload)', $source);
+        $this->assertStringContainsString('window.SiteTracker?.track(name, internalPayload)', $source);
         $this->assertStringContainsString('client_email: _clientEmail', $source);
         $this->assertStringContainsString('window.trackMetaPixel?.(\'Lead\'', $source);
     }

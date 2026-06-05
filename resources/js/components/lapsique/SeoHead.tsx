@@ -17,7 +17,7 @@ export function SeoHead({ seo: override }: SeoHeadProps) {
     const ogImage = seo.ogImage ?? '';
     const siteName = site.whatsappCommunityUrl || seo.metaTitle.includes('Trascendental')
         ? 'Trascendentalby'
-        : 'lapsique.media';
+        : 'Trascendentalby';
 
     return (
         <Head title={seo.title}>

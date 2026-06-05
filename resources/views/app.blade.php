@@ -14,7 +14,7 @@
     <link rel="apple-touch-icon" href="/favicon-light.svg" id="apple-touch-icon">
     <script>
         (function () {
-            var key = 'lapsique-theme';
+            var key = 'trascendental-theme';
             var stored = localStorage.getItem(key);
             var isTrascendental = @json(config('trascendental.enabled_as_primary')) || window.location.pathname.indexOf('/trascendental') === 0;
             var theme = isTrascendental ? 'light' : (stored === 'dark' || stored === 'light' ? stored : 'light');
@@ -86,31 +86,31 @@
         ];
     @endphp
     <script>
-        window.LapsiqueAnalytics = @json($analyticsConfig);
-        window.LapsiquePixel = @json($metaPixelConfig);
-        window.LapsiquePage = @json($pageConfig);
-        window.__lapsiqueTrackerQueue = window.__lapsiqueTrackerQueue || [];
-        window.__lapsiquePixelQueue = window.__lapsiquePixelQueue || [];
+        window.SiteAnalytics = @json($analyticsConfig);
+        window.SitePixel = @json($metaPixelConfig);
+        window.SitePage = @json($pageConfig);
+        window.__siteTrackerQueue = window.__siteTrackerQueue || [];
+        window.__sitePixelQueue = window.__sitePixelQueue || [];
 
-        window.LapsiqueTracker = window.LapsiqueTracker || {
+        window.SiteTracker = window.SiteTracker || {
             getContext: function () {
-                return window.LapsiqueTrackingContext || {};
+                return window.SiteTrackingContext || {};
             },
             track: function (name, options) {
-                window.__lapsiqueTrackerQueue.push({
+                window.__siteTrackerQueue.push({
                     method: 'track',
                     name: name,
                     options: options || {},
                 });
             },
             trackPageview: function (options) {
-                window.__lapsiqueTrackerQueue.push({
+                window.__siteTrackerQueue.push({
                     method: 'trackPageview',
                     options: options || {},
                 });
             },
             syncForms: function () {
-                window.__lapsiqueTrackerQueue.push({
+                window.__siteTrackerQueue.push({
                     method: 'syncForms',
                     options: {},
                 });
@@ -118,7 +118,7 @@
         };
 
         window.trackMetaPixel = window.trackMetaPixel || function (eventName, payload) {
-            window.__lapsiquePixelQueue.push({
+            window.__sitePixelQueue.push({
                 method: 'track',
                 eventName: eventName,
                 payload: payload || {},
@@ -126,7 +126,7 @@
         };
 
         window.trackMetaPixelCustom = window.trackMetaPixelCustom || function (eventName, payload) {
-            window.__lapsiquePixelQueue.push({
+            window.__sitePixelQueue.push({
                 method: 'trackCustom',
                 eventName: eventName,
                 payload: payload || {},

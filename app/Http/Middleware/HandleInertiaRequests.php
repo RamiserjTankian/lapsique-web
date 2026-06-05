@@ -37,7 +37,7 @@ class HandleInertiaRequests extends Middleware
                 'location' => $request->url(),
             ],
             'site' => fn () => [
-                'name' => $isTrascendental ? 'Trascendentalby' : 'lapsique.media',
+                'name' => 'Trascendentalby',
                 'bookingPrice' => $settings?->booking_price ?? (int) config('booking.content_price', 3000),
                 'bookingTitle' => $settings?->booking_title,
                 'bookingSubtitle' => $settings?->booking_subtitle,
@@ -49,7 +49,7 @@ class HandleInertiaRequests extends Middleware
                 'instagramUrl' => $isTrascendental ? config('trascendental.instagram_url') : config('lapsique.instagram_url'),
                 'facebookUrl' => $isTrascendental ? config('trascendental.facebook_url') : null,
                 'residentAdvisorUrl' => $isTrascendental ? config('trascendental.resident_advisor_url') : null,
-                'youtubeHandle' => config('lapsique.youtube_handle'),
+                'youtubeHandle' => $isTrascendental ? config('trascendental.youtube_handle') : config('lapsique.youtube_handle'),
                 'studioLocation' => $settings?->booking_studio_location,
             ],
             'booking' => fn () => [

@@ -1,6 +1,6 @@
-const analyticsConfig = window.LapsiqueAnalytics || {};
-const pageConfig = window.LapsiquePage || {};
-const trackerQueue = Array.isArray(window.__lapsiqueTrackerQueue) ? window.__lapsiqueTrackerQueue : [];
+const analyticsConfig = window.SiteAnalytics || {};
+const pageConfig = window.SitePage || {};
+const trackerQueue = Array.isArray(window.__siteTrackerQueue) ? window.__siteTrackerQueue : [];
 const dntEnabled =
     navigator.doNotTrack === '1' ||
     window.doNotTrack === '1' ||
@@ -31,8 +31,8 @@ const trackerApi = {
     syncForms: syncTrackingForms,
 };
 
-window.LapsiqueTracker = trackerApi;
-window.LapsiqueTrackingContext = getContext();
+window.SiteTracker = trackerApi;
+window.SiteTrackingContext = getContext();
 
 syncTrackingForms();
 observeTrackingForms();

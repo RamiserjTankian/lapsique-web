@@ -1,6 +1,6 @@
 declare global {
     interface Window {
-        LapsiqueTracker?: {
+        SiteTracker?: {
             track: (name: string, options?: Record<string, unknown>) => void;
             getContext?: () => Record<string, unknown>;
             pageview?: (overrides?: Record<string, unknown>) => void;
@@ -28,7 +28,7 @@ export function trackNewsletterEvent(
         ...internalPayload
     } = payload;
 
-    window.LapsiqueTracker?.track(name, internalPayload);
+    window.SiteTracker?.track(name, internalPayload);
 
     if (name === 'newsletter_form_submitted') {
         const eventID = typeof payload.event_id === 'string'

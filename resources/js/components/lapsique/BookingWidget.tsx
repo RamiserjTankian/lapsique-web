@@ -537,7 +537,7 @@ export function BookingWidget({
     const submitCheckout = (e: React.FormEvent) => {
         e.preventDefault();
         submittedRef.current = true;
-        const trackingContext = window.LapsiqueTracker?.getContext?.() ?? {};
+        const trackingContext = window.SiteTracker?.getContext?.() ?? {};
         // event_id compartido entre el pixel (browser) y el CAPI (servidor) para deduplicar InitiateCheckout.
         const checkoutEventId = generateCheckoutEventId();
 

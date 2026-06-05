@@ -5,7 +5,7 @@ import {
 
 declare global {
     interface Window {
-        LapsiqueTracker?: {
+        SiteTracker?: {
             track: (name: string, options?: Record<string, unknown>) => void;
             getContext?: () => Record<string, unknown>;
             pageview?: (overrides?: Record<string, unknown>) => void;
@@ -21,7 +21,7 @@ declare global {
 
 const BOOKING_CONTENT = {
     content_category: 'content_booking',
-    content_name: 'Sesion de contenido lapsique.media',
+    content_name: 'Sesion de contenido Trascendentalby',
 } as const;
 
 /** Eventos internos que también disparan un evento estándar de Meta (para optimización de campañas). */
@@ -96,8 +96,8 @@ function trackBookingInternalEvent(event: string, data: Record<string, unknown>)
         recordFunnelContentEngagement(section);
     }
 
-    if (window.LapsiqueTracker) {
-        window.LapsiqueTracker.track(event, {
+    if (window.SiteTracker) {
+        window.SiteTracker.track(event, {
             category: 'booking_funnel',
             metadata: data,
         });

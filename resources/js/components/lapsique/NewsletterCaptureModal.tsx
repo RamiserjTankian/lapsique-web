@@ -35,7 +35,7 @@ interface NewsletterCaptureModalProps {
 }
 
 function getTrackingPayload(): Record<string, string | null> {
-    const context = window.LapsiqueTracker?.getContext?.() ?? {};
+    const context = window.SiteTracker?.getContext?.() ?? {};
 
     return {
         current_page: window.location.href,

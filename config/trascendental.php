@@ -16,4 +16,6 @@ return [
     'facebook_url' => env('TRASCENDENTAL_FACEBOOK_URL', 'https://www.facebook.com/trascendentalby'),
 
     'resident_advisor_url' => env('TRASCENDENTAL_RA_URL', 'https://es-mx.ra.co/promoters/132583'),
+
+    'youtube_handle' => env('TRASCENDENTAL_YOUTUBE_HANDLE', '@trascendentalby'),
 ];

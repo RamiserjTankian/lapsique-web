@@ -7,10 +7,7 @@ import { ThemeProvider } from '@/providers/ThemeProvider';
 import './analytics';
 import './pixel';
 
-const appName = window.location.hostname.includes('trascendental')
-    || window.location.pathname.startsWith('/trascendental')
-    ? 'Trascendentalby'
-    : 'lapsique.media';
+const appName = 'Trascendentalby';
 
 function formatDocumentTitle(title?: string): string {
     if (!title) {
@@ -34,7 +31,7 @@ router.on('navigate', () => {
     }
 
     window.trackMetaPixel?.('PageView');
-    window.LapsiqueTracker?.pageview?.({ url: window.location.href });
+    window.SiteTracker?.pageview?.({ url: window.location.href });
 });
 
 createInertiaApp({
