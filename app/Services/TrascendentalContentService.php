@@ -44,7 +44,9 @@ class TrascendentalContentService
                 'instagram_url' => $artist->instagram_url ?: $this->instagramUrl($artist->instagram_handle),
                 'soundcloud_url' => $artist->soundcloud_url ?: '#',
                 'bio' => $artist->bio ?: '',
-                'image' => $this->modelImage($artist, 'profile') ?: asset('images/og-default.jpg'),
+                'image' => $this->publicAsset($artist->public_image_path)
+                    ?? $this->modelImage($artist, 'profile')
+                    ?? asset('images/og-default.jpg'),
             ])
             ->values()
             ->all();
