@@ -49,7 +49,7 @@
         <div x-show="!submitted" x-cloak>
             <div class="mb-6 text-center">
                 <h2 class="text-3xl font-bold text-gray-900 dark:text-white mb-2">
-                    🎧 ¡Únete a Lapsique!
+                    Únete a Trascendental
                 </h2>
                 <p class="text-gray-600 dark:text-gray-300">
                     Recibe noticias exclusivas sobre eventos, DJs y música electrónica.
@@ -152,7 +152,7 @@
                 </button>
 
                 <p class="text-xs text-center text-gray-500 dark:text-gray-400">
-                    Al suscribirte aceptas recibir emails sobre eventos y noticias de Lapsique.
+                    Al suscribirte aceptas recibir emails sobre eventos y noticias de Trascendental.
                 </p>
             </form>
         </div>
@@ -303,4 +303,3 @@ function leadCapturePopup() {
 <style>
 [x-cloak] { display: none !important; }
 </style>
-

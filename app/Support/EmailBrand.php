@@ -26,9 +26,9 @@ final class EmailBrand
 
     public const FONT_DISPLAY = "'Syne', ui-sans-serif, system-ui, sans-serif";
 
-    public const WORDMARK = 'lapsique.media';
+    public const WORDMARK = 'TRASCENDENTAL.';
 
-    public const TAGLINE = 'Producción de contenido · Eventos · Experiencias';
+    public const TAGLINE = 'Artists · Events · Culture';
 
     public static function fontFamiliesUrl(): string
     {

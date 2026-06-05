@@ -4,6 +4,7 @@ namespace App\Filament\Resources\Djs\Schemas;
 
 use Filament\Forms\Components\CheckboxList;
 use Filament\Forms\Components\Repeater;
+use Filament\Forms\Components\Select;
 use Filament\Forms\Components\SpatieMediaLibraryFileUpload;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
@@ -69,6 +70,10 @@ class DjForm
                     ->label('Instagram')
                     ->prefix('@')
                     ->maxLength(255),
+                TextInput::make('instagram_url')
+                    ->label('Instagram URL')
+                    ->url()
+                    ->maxLength(255),
                 TextInput::make('youtube_url')
                     ->label('Enlace a YouTube')
                     ->url()
@@ -82,6 +87,30 @@ class DjForm
                     ->url()
                     ->maxLength(255)
                     ->columnSpanFull(),
+                TextInput::make('public_image_path')
+                    ->label('Imagen pública existente')
+                    ->placeholder('/images/trascendental/artists/artist.jpeg')
+                    ->maxLength(255)
+                    ->helperText('Úsalo para imágenes ya publicadas cuando no quieras subir media nueva.')
+                    ->columnSpanFull(),
+
+                Toggle::make('trascendental_roster')
+                    ->label('Mostrar en roster Trascendental')
+                    ->helperText('Activa esto para alimentar Home y Tours & Routing.'),
+                Select::make('booking_status')
+                    ->label('Estado de booking')
+                    ->options([
+                        'SOLD OUT' => 'Sold out',
+                        'LAST DATES' => 'Last dates',
+                        'OPEN DATES' => 'Open dates',
+                    ])
+                    ->native(false),
+                TextInput::make('nationality')
+                    ->label('Nacionalidad')
+                    ->maxLength(255),
+                TextInput::make('record_label')
+                    ->label('Sello / agencia')
+                    ->maxLength(255),
 
                 CheckboxList::make('tags')
                     ->label('Tags del DJ')

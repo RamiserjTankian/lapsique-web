@@ -37,6 +37,11 @@ class BookingSettings extends Page implements HasSchemas
 
     protected static ?int $navigationSort = 5;
 
+    public static function shouldRegisterNavigation(): bool
+    {
+        return false;
+    }
+
     public ?array $data = [];
 
     protected function getHeaderActions(): array
@@ -101,7 +106,7 @@ class BookingSettings extends Page implements HasSchemas
                     ->schema([
                         TextInput::make('booking_title')
                             ->label('Título')
-                            ->placeholder('Sesión de Contenido Profesional')
+                            ->placeholder('Producción ejecutiva / booking')
                             ->columnSpanFull(),
 
                         TextInput::make('booking_subtitle')
@@ -123,7 +128,7 @@ class BookingSettings extends Page implements HasSchemas
 
                         TextInput::make('booking_team_name')
                             ->label('Nombre del equipo / lead')
-                            ->placeholder('Psiquemedia Studio'),
+                            ->placeholder('Trascendental'),
 
                         Textarea::make('booking_team_bio')
                             ->label('Bio corta del equipo')
@@ -177,7 +182,7 @@ class BookingSettings extends Page implements HasSchemas
                         TextInput::make('booking_calendar_notify_email')
                             ->label('Email interno (invitación calendario)')
                             ->email()
-                            ->placeholder('produccion@lapsique.media')
+                            ->placeholder('produccion@trascendentalby.mx')
                             ->helperText('Recibe copia de la invitación de Google Calendar (Workspace).')
                             ->columnSpanFull(),
 

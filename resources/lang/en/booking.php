@@ -18,7 +18,7 @@ return [
         'duration' => 'The standard session lasts :duration. Extra time, locations, or scope changes may be quoted separately.',
         'inclusions' => 'Includes 1 edited :seconds-second Sony reel, :drone_shots DJI aerial shots (when location, permits, and flight conditions allow), and :photos_count edited photos. Raw footage, extra versions, or rush delivery are not included unless agreed in writing.',
         'reschedule' => "You may request date changes with at least 24 hours' notice. Late changes or no-shows may forfeit the reserved slot.",
-        'portfolio_use' => 'You authorize use of produced material for the lapsique.media portfolio unless confidentiality is agreed before the session.',
+        'portfolio_use' => 'You authorize use of produced material for the trascendentalby.mx portfolio unless confidentiality is agreed before the session.',
         'accept' => 'I accept the booking terms and conditions, including change policy, deliverables, and material usage.',
         'accept_lead' => 'I accept the',
         'accept_rest' => 'of the booking, including change policy, deliverables, and material usage.',
@@ -157,7 +157,7 @@ return [
             'inclusions' => 'The offer includes 2 hours of DJ set recording edited to the beat with 2 fixed cameras, 1 mobile Ronin camera, drone shots when viable, 32-bit ambient audio, Zoom mixer capture, S-Log3, and DaVinci color.',
             'scope' => 'Location, sound system, mixer for playing, venue permits, and event technical production are not included. Location, permits, weather, and drone flight conditions must allow safe operation; scope changes are quoted separately.',
             'reschedule' => 'You can request date changes with at least 24 hours notice. Late changes or no-shows may forfeit the reserved slot.',
-            'portfolio_use' => 'You authorize use of produced material for the lapsique.media portfolio unless confidentiality is agreed beforehand.',
+            'portfolio_use' => 'You authorize use of produced material for the trascendentalby.mx portfolio unless confidentiality is agreed beforehand.',
         ],
     ],
     'hero' => [

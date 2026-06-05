@@ -113,11 +113,11 @@ class VideoForm
                 CheckboxList::make('tags')
                     ->label('Tags')
                     ->options([
-                        'psique-originals' => '🎬 PSIQUE ORIGINALS (Producción de lapsique)',
-                        'youtube' => '📺 YOUTUBE (Video de referencia del DJ)',
+                        'psique-originals' => 'TRASCENDENTAL ORIGINALS (Producción propia)',
+                        'youtube' => 'YOUTUBE (Video de referencia del DJ)',
                     ])
                     ->columns(1)
-                    ->helperText('Selecciona el tipo de video: producción original de lapsique o video de referencia del artista')
+                    ->helperText('Selecciona el tipo de video: producción propia o video de referencia del artista')
                     ->columnSpanFull(),
                 Textarea::make('description')
                     ->label('Descripción')

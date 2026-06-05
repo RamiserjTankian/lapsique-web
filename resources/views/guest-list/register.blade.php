@@ -2,7 +2,7 @@
     $eventTitle = $event->title;
     $djName = $dj ? $dj->name : null;
     $rpName = $rp ? $rp->name : null;
-    $invitedBy = $djName ?? $rpName ?? 'Lapsique';
+    $invitedBy = $djName ?? $rpName ?? 'Trascendental';
     $metaTitle = "Guest List {$eventTitle}" . ($invitedBy ? " - Invitación de {$invitedBy}" : '') . " | " . __('messages.site.brand');
     $metaDescription = "Regístrate en la guest list para {$eventTitle}" . ($invitedBy ? " con invitación de {$invitedBy}" : '') . ". " . ($event->headline ?: ($event->description ? \Illuminate\Support\Str::limit(strip_tags($event->description), 120) : 'Evento de música electrónica'));
     $eventImage = $event->getFirstMediaUrl('cover', 'cover_large') ?: $event->getFirstMediaUrl('cover');

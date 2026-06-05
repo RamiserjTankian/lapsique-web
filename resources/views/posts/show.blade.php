@@ -14,20 +14,20 @@
         $gallery = $post->getMedia('gallery');
         $postMetaDesc = $post->excerpt ?: \Illuminate\Support\Str::limit(strip_tags($post->content), 155);
         $postOgImage = $cover ?: asset('images/og-default.jpg');
-        $authorName = $post->author->name ?? 'lapsique.media';
+        $authorName = $post->author->name ?? 'Trascendental';
     @endphp
 
-@section('meta_title', $post->title . ' - Blog | lapsique.media')
+@section('meta_title', $post->title . ' - Blog | Trascendental')
 @section('meta_description', $postMetaDesc)
-@section('meta_keywords', $post->title . ', blog, música electrónica, noticias, lapsique')
+@section('meta_keywords', $post->title . ', blog, música electrónica, noticias, Trascendental')
 
 @section('og_type', 'article')
-@section('og_title', $post->title . ' - Blog | lapsique.media')
+@section('og_title', $post->title . ' - Blog | Trascendental')
 @section('og_description', $postMetaDesc)
 @section('og_image', $postOgImage)
 @section('og_url', route('posts.show', $post))
 
-@section('twitter_title', $post->title . ' - Blog | lapsique.media')
+@section('twitter_title', $post->title . ' - Blog | Trascendental')
 @section('twitter_description', $postMetaDesc)
 @section('twitter_image', $postOgImage)
 @section('twitter_url', route('posts.show', $post))
@@ -55,7 +55,7 @@
   },
   "publisher": {
     "@type": "Organization",
-    "name": "lapsique.media",
+    "name": "Trascendental",
     "url": "{{ route('home') }}"
   }
 }
@@ -186,4 +186,3 @@
         </section>
     @endif
 @endsection
-

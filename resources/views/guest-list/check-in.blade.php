@@ -24,7 +24,7 @@
         $invitedBy = $entry->dj?->name
             ?? $entry->rp?->name
             ?? $entry->inviteLink?->name
-            ?? 'Lapsique';
+            ?? 'Trascendental';
 
         $checkInLimit = $entry->getCheckInLimit();
         $checkInCount = $entry->getCheckInCount();

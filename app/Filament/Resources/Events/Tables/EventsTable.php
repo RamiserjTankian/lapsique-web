@@ -44,6 +44,16 @@ class EventsTable
                 TextColumn::make('city')
                     ->label('Ciudad')
                     ->sortable(),
+                TextColumn::make('trascendental_kind')
+                    ->label('Trascendental')
+                    ->formatStateUsing(fn (?string $state): string => match ($state) {
+                        'produced' => 'Producido',
+                        'roster_appearance' => 'Roster',
+                        'announcement' => 'Anuncio',
+                        default => '—',
+                    })
+                    ->badge()
+                    ->toggleable(),
                 TextColumn::make('rps_count')
                     ->label('RPs')
                     ->counts('rps')
@@ -82,9 +92,26 @@ class EventsTable
                     ->label('Caso')
                     ->boolean()
                     ->toggleable(),
+                IconColumn::make('trascendental_visible')
+                    ->label('TDL')
+                    ->boolean()
+                    ->toggleable(),
             ])
             ->filters([
                 TrashedFilter::make(),
+                SelectFilter::make('trascendental_kind')
+                    ->label('Tipo Trascendental')
+                    ->options([
+                        'produced' => 'Evento producido',
+                        'roster_appearance' => 'Aparición del roster',
+                        'announcement' => 'Anuncio / por confirmar',
+                    ]),
+                SelectFilter::make('trascendental_visible')
+                    ->label('Visible en Trascendental')
+                    ->options([
+                        1 => 'Visible',
+                        0 => 'No visible',
+                    ]),
                 SelectFilter::make('is_featured')
                     ->options([
                         1 => 'Destacado',

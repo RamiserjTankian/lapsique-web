@@ -6,6 +6,7 @@ use App\Mail\TrascendentalLeadNotification;
 use App\Mail\TrascendentalJoinListConfirmation;
 use App\Models\Customer;
 use App\Models\Event;
+use Database\Seeders\TrascendentalPublicContentSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Mail;
@@ -20,19 +21,22 @@ class TrascendentalSiteTest extends TestCase
         parent::setUp();
 
         config()->set('services.mailtrap.api_token', '');
+        $this->seed(TrascendentalPublicContentSeeder::class);
     }
 
     public function test_preview_home_renders_case_studies_and_tours(): void
     {
-        Event::create([
-            'title' => 'Rebolledo - Zal Marina',
-            'slug' => 'rebolledo-zal-marina',
-            'is_case_study' => true,
-            'case_summary' => 'Sold out.',
-            'case_metrics' => [['label' => 'Asistentes', 'value' => '450']],
-            'case_services' => ['Produccion integral'],
-            'case_sort' => 1,
-        ]);
+        Event::query()->updateOrCreate(
+            ['slug' => 'rebolledo-zal-marina'],
+            [
+                'title' => 'Rebolledo - Zal Marina',
+                'is_case_study' => true,
+                'case_summary' => 'Sold out.',
+                'case_metrics' => [['label' => 'Asistentes', 'value' => '450']],
+                'case_services' => ['Produccion integral'],
+                'case_sort' => 1,
+            ],
+        );
 
         $this->get(route('trascendental.home'))
             ->assertOk()

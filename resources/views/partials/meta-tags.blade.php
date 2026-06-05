@@ -4,7 +4,7 @@
     $twitterImage = $ogImage;
     $ogImageAlt = $meta->ogImageAlt ?: $meta->metaTitle;
     $isTrascendental = str_contains($meta->metaTitle, 'Trascendental') || str_contains($meta->canonicalUrl, 'trascendentalby');
-    $siteName = $isTrascendental ? 'Trascendentalby' : 'lapsique.media';
+    $siteName = 'Trascendentalby';
 @endphp
 
 <title>{{ $meta->metaTitle }}</title>

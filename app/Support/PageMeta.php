@@ -14,7 +14,7 @@ use Illuminate\Support\Str;
 
 class PageMeta
 {
-    public const SITE_NAME = 'lapsique.media';
+    public const SITE_NAME = 'Trascendentalby';
 
     public static function forRequest(Request $request): PageMetaData
     {
@@ -221,7 +221,7 @@ class PageMeta
             ogType: 'profile',
             ogImage: $ogImage ?: self::defaultOgImageUrl(),
             ogImageAlt: "{$dj->name} — ".self::SITE_NAME,
-            keywords: "{$dj->name}, DJ, música electrónica, lapsique.media",
+            keywords: "{$dj->name}, DJ, música electrónica, Trascendentalby",
         );
     }
 
@@ -247,7 +247,7 @@ class PageMeta
             ogType: 'video.other',
             ogImage: $ogImage ?: self::defaultOgImageUrl(),
             ogImageAlt: "{$video->title} — ".self::SITE_NAME,
-            keywords: "{$video->title}, video, DJ set, lapsique.media",
+            keywords: "{$video->title}, video, DJ set, Trascendentalby",
         );
     }
 
@@ -277,7 +277,7 @@ class PageMeta
             ogType: 'website',
             ogImage: $ogImage ?: self::defaultOgImageUrl(),
             ogImageAlt: "{$event->title} — ".self::SITE_NAME,
-            keywords: "{$event->title}, evento, música electrónica, lapsique.media",
+            keywords: "{$event->title}, evento, música electrónica, Trascendentalby",
         );
     }
 
@@ -300,7 +300,7 @@ class PageMeta
             ogType: 'article',
             ogImage: $ogImage ?: self::defaultOgImageUrl(),
             ogImageAlt: "{$post->title} — ".self::SITE_NAME,
-            keywords: "{$post->title}, blog, lapsique.media",
+            keywords: "{$post->title}, blog, Trascendentalby",
         );
     }
 

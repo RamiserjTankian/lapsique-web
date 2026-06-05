@@ -100,6 +100,42 @@ class EventForm
                     ->helperText('Agrega tags como "🎥 Recording Party", "🌟 Special Event", etc.')
                     ->columnSpanFull(),
 
+                Section::make('Contenido público Trascendental')
+                    ->description('Clasifica si este evento aparece en trascendentalby.mx y cómo se muestra.')
+                    ->columns(2)
+                    ->schema([
+                        Toggle::make('trascendental_visible')
+                            ->label('Mostrar en Trascendental')
+                            ->helperText('Activa esto para que el evento alimente la landing pública.'),
+                        Select::make('trascendental_kind')
+                            ->label('Tipo en Trascendental')
+                            ->options([
+                                'produced' => 'Evento producido',
+                                'roster_appearance' => 'Aparición del roster',
+                                'announcement' => 'Anuncio / por confirmar',
+                            ])
+                            ->native(false),
+                        TextInput::make('lineup_text')
+                            ->label('Lineup público')
+                            ->maxLength(255)
+                            ->columnSpanFull(),
+                        TextInput::make('public_image_path')
+                            ->label('Imagen pública existente')
+                            ->placeholder('/images/trascendental/events/flyer.webp')
+                            ->maxLength(255)
+                            ->helperText('Usa este campo para assets ya publicados cuando no quieras subir media nueva.')
+                            ->columnSpanFull(),
+                        TextInput::make('source_url')
+                            ->label('Fuente / Resident Advisor')
+                            ->url()
+                            ->maxLength(255),
+                        TextInput::make('details_url')
+                            ->label('Detalles / Instagram')
+                            ->url()
+                            ->maxLength(255),
+                    ])
+                    ->columnSpanFull(),
+
                 SpatieMediaLibraryFileUpload::make('cover')
                     ->label('Cover')
                     ->collection('cover')

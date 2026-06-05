@@ -26,6 +26,7 @@ class DatabaseSeeder extends Seeder
             DjSeeder::class,
             LocationSeeder::class,
             TrascendentalCaseSeeder::class,
+            TrascendentalPublicContentSeeder::class,
             VideoSeeder::class,
             PortfolioAssetsSeeder::class,
             CampaignSeeder::class,

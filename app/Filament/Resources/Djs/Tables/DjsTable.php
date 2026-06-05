@@ -34,9 +34,20 @@ class DjsTable
                     ->label('Instagram')
                     ->formatStateUsing(fn (?string $state) => $state ? '@' . $state : '—')
                     ->sortable(),
+                TextColumn::make('booking_status')
+                    ->label('Booking')
+                    ->badge()
+                    ->toggleable(),
+                TextColumn::make('nationality')
+                    ->label('Nacionalidad')
+                    ->toggleable(),
                 IconColumn::make('is_featured')
                     ->label('Destacado')
                     ->boolean(),
+                IconColumn::make('trascendental_roster')
+                    ->label('TDL roster')
+                    ->boolean()
+                    ->toggleable(),
                 TextColumn::make('priority')
                     ->label('Orden')
                     ->sortable(),
@@ -60,6 +71,12 @@ class DjsTable
                         0 => 'No destacados',
                     ])
                     ->label('Destacado'),
+                SelectFilter::make('trascendental_roster')
+                    ->options([
+                        1 => 'Roster Trascendental',
+                        0 => 'Fuera del roster',
+                    ])
+                    ->label('Roster Trascendental'),
             ])
             ->recordActions([
                 EditAction::make(),

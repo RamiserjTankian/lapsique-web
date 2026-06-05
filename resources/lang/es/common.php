@@ -31,7 +31,7 @@ return [
         'open' => 'Abrir WhatsApp',
         'close_prompt' => 'Cerrar mensaje de WhatsApp',
         'write_now' => 'Escribir ahora →',
-        'default_prefill' => 'Hola, me interesa lapsique.media',
+        'default_prefill' => 'Hola, me interesa Trascendental.',
         'prompt_1' => 'Haz tu producción realidad.',
         'prompt_2' => 'Cuéntanos tu proyecto por WhatsApp.',
         'prompt_3' => 'Reserva tu sesión en minutos.',
@@ -53,7 +53,7 @@ return [
     'alt' => [
         'portfolio_project' => 'proyecto de portafolio',
         'portfolio_video' => 'Video de portafolio',
-        'portfolio_visual' => 'Portafolio visual de Lapsique',
+        'portfolio_visual' => 'Portafolio visual de Trascendental',
         'open_portfolio' => 'Abrir :title',
     ],
     'empty' => [

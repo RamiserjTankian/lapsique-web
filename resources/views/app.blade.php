@@ -80,7 +80,7 @@
         $pageConfig = [
             'type' => request()->route()?->getName() ?: 'site',
             'name' => request()->route()?->getName(),
-            'title' => config('app.name', 'lapsique.media'),
+            'title' => config('app.name', 'Trascendentalby'),
             'path' => request()->getPathInfo(),
             'url' => url()->current(),
         ];

@@ -20,15 +20,20 @@ class BookingLandingAnalyticsResource extends Resource
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedChartBar;
 
-    protected static ?string $navigationLabel = 'Embudo Sesión de Contenido';
+    protected static ?string $navigationLabel = 'Embudo de proyectos';
 
     protected static ?string $modelLabel = 'Sesión analítica';
 
-    protected static ?string $pluralModelLabel = 'Embudo Sesión de Contenido';
+    protected static ?string $pluralModelLabel = 'Embudo de proyectos';
 
     protected static UnitEnum|string|null $navigationGroup = 'Reportes';
 
     protected static ?int $navigationSort = 2;
+
+    public static function shouldRegisterNavigation(): bool
+    {
+        return false;
+    }
 
     public static function table(Table $table): Table
     {

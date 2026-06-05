@@ -102,70 +102,7 @@ const copy = {
 const impactValues = ['300+', '30+', '30+', '12+', null] as const;
 const impactLabelKeys = ['events', 'bookings', 'venues', 'countries', 'operations'] as const;
 
-const artists = [
-    {
-        name: 'Crihan',
-        alias: 'Into The Woods',
-        image: '/images/trascendental/artists/crihan-portrait.jpeg',
-        instagram: '@discret_popescu',
-        soundcloud: 'https://on.soundcloud.com/zPmi7kTiXJ802hmL8P',
-        dates: 'SOLD OUT',
-        nationality: 'Romanian',
-        label: 'Discret Popescu',
-    },
-    {
-        name: 'Jay Tripwire',
-        alias: 'Rawax Music',
-        image: '/images/trascendental/artists/jay-tripwire-live.jpeg',
-        instagram: '@jaytripwire',
-        soundcloud: 'https://on.soundcloud.com/aujhnGUYV96wiRavZk',
-        dates: 'LAST DATES',
-        nationality: 'Canadian',
-        label: 'Rawax Music',
-    },
-    {
-        name: 'Mike.D',
-        alias: 'Cadenza Music',
-        image: '/images/trascendental/artists/mike-d-01.jpeg',
-        instagram: '@mikedubssss',
-        soundcloud: 'https://on.soundcloud.com/8rF8kxHjll1z6cpTEf',
-        dates: 'OPEN DATES',
-        nationality: 'Mexican',
-        label: 'Cadenza Music',
-    },
-    {
-        name: 'Zone+',
-        alias: 'All Day I Dream',
-        image: '/images/trascendental/artists/zone-plus.jpeg',
-        instagram: '@z0neplus',
-        soundcloud: 'https://on.soundcloud.com/X14HzDlO4rAL1aqG8r',
-        dates: 'LAST DATES',
-        nationality: 'Bahrain',
-        label: 'All Day I Dream',
-    },
-    {
-        name: 'Barry Sound',
-        alias: 'House Cookin',
-        image: '/images/trascendental/artists/barry-sound.jpeg',
-        instagram: '@barrysound_music',
-        soundcloud: 'https://on.soundcloud.com/pjxWil9vE9Wf8Hgih2',
-        dates: 'OPEN DATES',
-        nationality: 'Mexican',
-        label: 'House Cookin',
-    },
-    {
-        name: 'Gala',
-        alias: 'Boogie Room Records',
-        image: '/images/trascendental/artists/gala.jpeg',
-        instagram: '@galamx__',
-        soundcloud: 'https://on.soundcloud.com/sJFAWimFvO7IRCZJJs',
-        dates: 'OPEN DATES',
-        nationality: 'Mexican',
-        label: 'Boogie Room Records',
-    },
-];
-
-export default function Home({ producedEvents }: HomeProps) {
+export default function Home({ tours, producedEvents }: HomeProps) {
     const { ziggy, locale, site } = usePage<PageProps>().props;
     const { t } = useTranslations();
     const activeLocale: Locale = locale === 'en' ? 'en' : 'es';
@@ -371,21 +308,21 @@ export default function Home({ producedEvents }: HomeProps) {
                         </Link>
                     </div>
                     <div className="grid gap-x-5 gap-y-8 sm:grid-cols-2">
-                        {artists.map((artist) => (
-                            <article key={artist.name} className="grid gap-4 border-t border-black pt-4 md:grid-cols-[0.48fr_0.52fr]">
-                                <img src={artist.image} alt={t('trascendental.tours_card.booking_portrait', { artist: artist.name })} className="aspect-[4/5] w-full bg-black object-contain" loading="lazy" />
+                        {tours.map((artist) => (
+                            <article key={artist.artist} className="grid gap-4 border-t border-black pt-4 md:grid-cols-[0.48fr_0.52fr]">
+                                <img src={artist.image} alt={t('trascendental.tours_card.booking_portrait', { artist: artist.artist })} className="aspect-[4/5] w-full bg-black object-contain" loading="lazy" />
                                 <div className="flex min-h-full flex-col justify-between gap-6">
                                     <div>
-                                        {artist.alias ? <p className="text-xs font-bold uppercase text-black/45">{artist.alias}</p> : null}
-                                        <h3 className="mt-2 text-4xl font-black uppercase leading-none">{artist.name}</h3>
+                                        {artist.label ? <p className="text-xs font-bold uppercase text-black/45">{artist.label}</p> : null}
+                                        <h3 className="mt-2 text-4xl font-black uppercase leading-none">{artist.artist}</h3>
                                         <p className="mt-4 text-sm font-bold uppercase leading-relaxed text-black/62">{t(`trascendental.tours_card.nationalities.${artist.nationality}`)} · {artist.label}</p>
-                                        <p className="mt-3 text-sm leading-relaxed text-black/58">{artistStatusLabel(artist.dates, t)}</p>
+                                        <p className="mt-3 text-sm leading-relaxed text-black/58">{artistStatusLabel(artist.status, t)}</p>
                                     </div>
                                     <div className="grid gap-2 text-xs font-bold uppercase text-black/72">
-                                        <a href={`https://www.instagram.com/${artist.instagram.replace('@', '')}/`} target="_blank" rel="noopener noreferrer" className="border-t border-black/15 pt-2">
+                                        <a href={artist.instagram_url} target="_blank" rel="noopener noreferrer" className="border-t border-black/15 pt-2">
                                             Instagram {artist.instagram}
                                         </a>
-                                        <a href={artist.soundcloud} target="_blank" rel="noopener noreferrer" className="border-t border-black/15 pt-2">
+                                        <a href={artist.soundcloud_url} target="_blank" rel="noopener noreferrer" className="border-t border-black/15 pt-2">
                                             SoundCloud
                                         </a>
                                     </div>

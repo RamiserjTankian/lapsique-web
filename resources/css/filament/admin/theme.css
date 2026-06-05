@@ -2,3 +2,249 @@
 
 @source '../../../../app/Filament/**/*.php';
 @source '../../../../resources/views/filament/**/*.blade.php';
+
+@font-face {
+    font-family: 'Gotham TDL';
+    src: url('/fonts/gotham/Gotham-Book.otf') format('opentype');
+    font-weight: 400;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'Gotham TDL';
+    src: url('/fonts/gotham/Gotham-Bold.otf') format('opentype');
+    font-weight: 700;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'Gotham TDL';
+    src: url('/fonts/gotham/Gotham-Black.otf') format('opentype');
+    font-weight: 900;
+    font-style: normal;
+    font-display: swap;
+}
+
+html,
+body.fi-body {
+    font-family: 'Gotham TDL', ui-sans-serif, system-ui, sans-serif;
+    background: #f7f7f5;
+    color: #050505;
+}
+
+body.fi-panel-admin .fi-logo {
+    color: #050505;
+    font-family: 'Gotham TDL', ui-sans-serif, system-ui, sans-serif;
+    font-size: clamp(1.45rem, 4vw, 2.35rem);
+    font-weight: 900;
+    letter-spacing: 0;
+    line-height: 0.9;
+    text-transform: uppercase;
+}
+
+body.fi-panel-admin .fi-simple-layout {
+    min-height: 100vh;
+    background:
+        linear-gradient(90deg, transparent 0, transparent calc(100% - 1px), rgba(0, 0, 0, 0.08) calc(100% - 1px)) 0 0 / 64px 64px,
+        #f7f7f5;
+}
+
+body.fi-panel-admin .fi-simple-layout::before {
+    content: 'TRASCENDENTAL.';
+    position: fixed;
+    left: clamp(1rem, 4vw, 3rem);
+    top: clamp(1rem, 4vw, 3rem);
+    z-index: 0;
+    max-width: 92vw;
+    color: rgba(0, 0, 0, 0.045);
+    font-size: clamp(4rem, 16vw, 16rem);
+    font-weight: 900;
+    line-height: 0.82;
+    pointer-events: none;
+    text-transform: uppercase;
+}
+
+body.fi-panel-admin .fi-simple-main-ctn {
+    position: relative;
+    z-index: 1;
+}
+
+body.fi-panel-admin .fi-simple-main {
+    border: 1px solid #050505;
+    border-radius: 0;
+    background: rgba(247, 247, 245, 0.94);
+    box-shadow: 20px 20px 0 #050505;
+}
+
+body.fi-panel-admin .fi-simple-header {
+    margin-bottom: 2rem;
+}
+
+body.fi-panel-admin .fi-simple-header-heading {
+    color: #050505;
+    font-size: clamp(1.7rem, 4vw, 2.6rem);
+    font-weight: 900;
+    letter-spacing: 0;
+    line-height: 0.95;
+    text-transform: uppercase;
+}
+
+body.fi-panel-admin .fi-input-wrp,
+body.fi-panel-admin .fi-select-input,
+body.fi-panel-admin .fi-ta-ctn,
+body.fi-panel-admin .fi-section,
+body.fi-panel-admin .fi-sidebar,
+body.fi-panel-admin .fi-topbar,
+body.fi-panel-admin .fi-modal-window {
+    border-radius: 0;
+}
+
+body.fi-panel-admin .fi-input-wrp {
+    border: 1px solid #050505;
+    background: #ffffff;
+    box-shadow: none !important;
+    min-height: 3rem;
+}
+
+body.fi-panel-admin .fi-input,
+body.fi-panel-admin .fi-select-input {
+    min-height: 2.875rem;
+    background: #ffffff;
+    color: #050505;
+}
+
+body.fi-panel-admin .fi-input-wrp:focus-within {
+    border-color: #050505;
+    box-shadow: 4px 4px 0 #050505 !important;
+}
+
+body.fi-panel-admin .fi-input::placeholder {
+    color: rgba(5, 5, 5, 0.35);
+}
+
+body.fi-panel-admin .fi-input-wrp .fi-icon-btn {
+    color: #050505;
+}
+
+body.fi-panel-admin .fi-fo-field-wrp-label span {
+    color: #050505;
+    font-size: 0.72rem;
+    font-weight: 900;
+    letter-spacing: 0;
+    text-transform: uppercase;
+}
+
+body.fi-panel-admin .fi-btn {
+    border-radius: 0;
+    font-weight: 900;
+    letter-spacing: 0;
+    text-transform: uppercase;
+}
+
+body.fi-panel-admin .fi-btn.fi-color-primary {
+    background: #050505;
+    color: #ffffff;
+    box-shadow: none;
+}
+
+body.fi-panel-admin .fi-btn.fi-color-primary:hover {
+    background: #2b2b2b;
+}
+
+body.fi-panel-admin .fi-checkbox-input:checked {
+    background-color: #050505;
+    border-color: #050505;
+}
+
+body.fi-panel-admin .fi-sidebar,
+body.fi-panel-admin .fi-topbar {
+    background: #f7f7f5;
+}
+
+body.fi-panel-admin .fi-layout {
+    background:
+        linear-gradient(90deg, transparent 0, transparent calc(100% - 1px), rgba(0, 0, 0, 0.055) calc(100% - 1px)) 0 0 / 64px 64px,
+        #f7f7f5;
+}
+
+body.fi-panel-admin .fi-topbar {
+    border-bottom: 1px solid rgba(5, 5, 5, 0.18);
+    box-shadow: 0 1px 0 rgba(5, 5, 5, 0.06);
+}
+
+body.fi-panel-admin .fi-sidebar {
+    border-right: 1px solid rgba(5, 5, 5, 0.18);
+    box-shadow: 8px 0 0 rgba(5, 5, 5, 0.035);
+}
+
+body.fi-panel-admin .fi-main,
+body.fi-panel-admin .fi-page {
+    background: transparent;
+}
+
+body.fi-panel-admin .fi-section,
+body.fi-panel-admin .fi-ta-ctn,
+body.fi-panel-admin .fi-wi-widget,
+body.fi-panel-admin .fi-infolist,
+body.fi-panel-admin .fi-form,
+body.fi-panel-admin .fi-modal-window {
+    border: 1px solid rgba(5, 5, 5, 0.22);
+    background: #ffffff;
+    box-shadow: 8px 8px 0 rgba(5, 5, 5, 0.08);
+}
+
+body.fi-panel-admin .fi-ta-header,
+body.fi-panel-admin .fi-ta-content,
+body.fi-panel-admin .fi-ta-footer,
+body.fi-panel-admin .fi-ta-row,
+body.fi-panel-admin .fi-ta-header-toolbar {
+    background: #ffffff;
+}
+
+body.fi-panel-admin .fi-ta-row {
+    border-color: rgba(5, 5, 5, 0.14);
+}
+
+body.fi-panel-admin .fi-ta-row:hover {
+    background: #f1f1ec;
+}
+
+body.fi-panel-admin .fi-ta-cell,
+body.fi-panel-admin .fi-ta-header-cell {
+    border-color: rgba(5, 5, 5, 0.12);
+}
+
+body.fi-panel-admin .fi-sidebar-item-btn,
+body.fi-panel-admin .fi-sidebar-group-button {
+    border-radius: 0;
+}
+
+body.fi-panel-admin .fi-sidebar-item-active > .fi-sidebar-item-btn,
+body.fi-panel-admin .fi-sidebar-item-btn:hover {
+    background: #050505;
+    color: #ffffff;
+}
+
+body.fi-panel-admin .fi-sidebar-item-active svg,
+body.fi-panel-admin .fi-sidebar-item-btn:hover svg {
+    color: #ffffff;
+}
+
+body.fi-panel-admin .fi-breadcrumbs,
+body.fi-panel-admin .fi-breadcrumbs a,
+body.fi-panel-admin .fi-page-heading,
+body.fi-panel-admin .fi-ta-header-cell-label {
+    color: #050505;
+}
+
+body.fi-panel-admin .fi-page-heading {
+    font-weight: 900;
+    letter-spacing: 0;
+    text-transform: uppercase;
+}
+
+body.fi-panel-admin .fi-badge {
+    border-radius: 0;
+}

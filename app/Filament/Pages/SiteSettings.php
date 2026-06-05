@@ -121,12 +121,12 @@ class SiteSettings extends Page implements HasSchemas
                             ->helperText('Opcional. Debe coincidir con el pixel usado en META_CAPI_ENABLED y en Ads Manager.'),
                     ]),
 
-                Section::make('Landing Page de Booking')
-                    ->description('Configuración base del funnel de agenda que vive en el home y conserva compatibilidad con campañas existentes.')
+                Section::make('Landing de proyectos')
+                    ->description('Configuración base para CTAs, contacto y activos compartidos del sitio.')
                     ->schema([
                         TextInput::make('booking_title')
                             ->label('Título principal')
-                            ->placeholder('Ej: Sesión de Contenido Profesional')
+                            ->placeholder('Ej: Producción ejecutiva / booking')
                             ->maxLength(255),
 
                         TextInput::make('booking_subtitle')
@@ -165,8 +165,8 @@ class SiteSettings extends Page implements HasSchemas
                             ->maxLength(30),
                     ]),
 
-                Section::make('Landing DJ Set (/dj-set)')
-                    ->description('Open Graph al compartir https://lapsique.media/dj-set en WhatsApp, Facebook, etc.')
+                Section::make('Open Graph alterno')
+                    ->description('Open Graph para enlaces públicos de Trascendental en WhatsApp, Facebook, etc.')
                     ->schema([
                         FileUpload::make('djset_og_image')
                             ->label('Imagen para compartir (Open Graph)')

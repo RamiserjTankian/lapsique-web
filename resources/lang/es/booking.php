@@ -18,7 +18,7 @@ return [
         'duration' => 'La sesión estándar tiene duración de :duration. Tiempo adicional, locaciones extra o cambios de alcance pueden cotizarse aparte.',
         'inclusions' => 'Incluye 1 reel editado de :seconds segundos con cámara Sony, :drone_shots tomas aéreas con dron DJI (cuando locación, permisos y condiciones de vuelo lo permiten) y :photos_count fotografías editadas. Material bruto, versiones adicionales o entregas urgentes no están incluidos salvo acuerdo escrito.',
         'reschedule' => 'Puedes solicitar cambios de fecha con mínimo 24 horas de anticipación. Cambios tardíos o inasistencias pueden perder el horario reservado.',
-        'portfolio_use' => 'Autorizas el uso del material producido para portafolio de lapsique.media salvo que se acuerde confidencialidad antes de la sesión.',
+        'portfolio_use' => 'Autorizas el uso del material producido para portafolio de trascendentalby.mx salvo que se acuerde confidencialidad antes de la sesión.',
         'accept' => 'Acepto los términos y condiciones de la reserva, incluyendo política de cambios, entregables y uso de material.',
         'accept_lead' => 'Acepto los',
         'accept_rest' => 'de la reserva, incluyendo política de cambios, entregables y uso de material.',
@@ -157,7 +157,7 @@ return [
             'inclusions' => 'La oferta incluye 2 horas de grabación de DJ set editadas al beat con 2 cámaras fijas, 1 cámara móvil con Ronin, tomas de dron cuando sea viable, audio ambiente 32-bit, captura de mixer con Zoom, S-Log3 y colorización en DaVinci.',
             'scope' => 'No incluye locación, sonido, mixer para tocar, permisos del venue ni producción técnica del evento. Locación, permisos, clima y condiciones de vuelo del dron deben permitir una operación segura; cambios de alcance se cotizan aparte.',
             'reschedule' => 'Puedes solicitar cambios de fecha con mínimo 24 horas de anticipación. Cambios tardíos o inasistencias pueden perder el horario reservado.',
-            'portfolio_use' => 'Autorizas el uso del material producido para portafolio de lapsique.media salvo acuerdo de confidencialidad previo.',
+            'portfolio_use' => 'Autorizas el uso del material producido para portafolio de trascendentalby.mx salvo acuerdo de confidencialidad previo.',
         ],
     ],
     'hero' => [
