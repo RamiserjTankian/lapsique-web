@@ -62,7 +62,6 @@ export default function Events({ events, upcomingEvents, pastRosterEvents, pagin
                     <section className="mb-14 border-y border-black/15 py-8">
                         <div className="mb-8">
                             <div>
-                                <p className="text-xs font-bold uppercase text-black/45">{t('trascendental.events.upcoming_eyebrow')}</p>
                                 <h2 className="text-5xl font-black uppercase leading-none">{t('trascendental.events.upcoming_title')}</h2>
                             </div>
                         </div>

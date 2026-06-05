@@ -41,7 +41,7 @@ export function TrascendentalLayout({ children }: TrascendentalLayoutProps) {
                         TRASCENDENTAL.
                     </Link>
 
-                    <nav className="hidden items-center gap-7 text-[0.72rem] font-bold uppercase md:flex">
+                    <nav className="hidden items-center gap-6 text-[0.72rem] font-bold uppercase lg:flex xl:gap-7">
                         {navRoutes.map(([key, name]) => (
                             <Link
                                 key={name}
@@ -53,11 +53,11 @@ export function TrascendentalLayout({ children }: TrascendentalLayoutProps) {
                         ))}
                     </nav>
 
-                    <div className="hidden items-center gap-3 md:flex">
+                    <div className="hidden shrink-0 items-center gap-3 lg:flex">
                         <LanguageToggle />
                         <Link
                             href={route('trascendental.contact', undefined, false, ziggy)}
-                            className="rounded-full bg-black px-5 py-2 text-[0.72rem] font-bold uppercase text-white"
+                            className="whitespace-nowrap rounded-full bg-black px-5 py-2 text-[0.72rem] font-bold uppercase leading-none text-white"
                         >
                             {t('trascendental.nav.booking')}
                         </Link>
@@ -67,7 +67,7 @@ export function TrascendentalLayout({ children }: TrascendentalLayoutProps) {
                         type="button"
                         variant="ghost"
                         size="icon"
-                        className="md:hidden"
+                        className="lg:hidden"
                         onClick={() => setOpen((value) => !value)}
                         aria-label={open ? t('trascendental.nav.close') : t('trascendental.nav.open')}
                     >
@@ -75,7 +75,7 @@ export function TrascendentalLayout({ children }: TrascendentalLayoutProps) {
                     </Button>
                 </div>
 
-                <div className={cn('border-t border-black/15 px-4 py-5 md:hidden', open ? 'block' : 'hidden')}>
+                <div className={cn('border-t border-black/15 px-4 py-5 lg:hidden', open ? 'block' : 'hidden')}>
                     <nav className="grid gap-4 text-2xl font-black uppercase">
                         {navRoutes.map(([key, name]) => (
                             <Link
@@ -90,6 +90,13 @@ export function TrascendentalLayout({ children }: TrascendentalLayoutProps) {
                     <div className="mt-6">
                         <LanguageToggle />
                     </div>
+                    <Link
+                        href={route('trascendental.contact', undefined, false, ziggy)}
+                        onClick={() => setOpen(false)}
+                        className="mt-6 inline-flex min-h-11 items-center rounded-full bg-black px-5 text-sm font-bold uppercase text-white"
+                    >
+                        {t('trascendental.nav.booking')}
+                    </Link>
                 </div>
             </header>
 
