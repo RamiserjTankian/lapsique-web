@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Resources\TrascendentalCaseResource;
 use App\Models\Event;
+use Illuminate\Support\Carbon;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -34,13 +35,15 @@ class TrascendentalController extends Controller
     public function events(): Response
     {
         $events = $this->producedEvents();
+        $rosterEvents = $this->splitRosterEvents($this->rosterEvents());
         $perPage = 12;
         $lastPage = max(1, (int) ceil(count($events) / $perPage));
         $page = min($lastPage, max(1, (int) request()->query('page', 1)));
 
         return Inertia::render('Trascendental/Events', [
             'events' => array_slice($events, ($page - 1) * $perPage, $perPage),
-            'upcomingEvents' => $this->upcomingEvents(),
+            'upcomingEvents' => $rosterEvents['upcoming'],
+            'pastRosterEvents' => $rosterEvents['past'],
             'pagination' => [
                 'currentPage' => $page,
                 'lastPage' => $lastPage,
@@ -325,29 +328,42 @@ class TrascendentalController extends Controller
         ];
     }
 
-    private function upcomingEvents(): array
+    private function splitRosterEvents(array $events): array
+    {
+        $today = Carbon::today(config('app.timezone'));
+        $upcoming = [];
+        $past = [];
+
+        foreach ($events as $event) {
+            if ($this->eventHasPassed($event, $today)) {
+                $past[] = $event;
+            } else {
+                $upcoming[] = $event;
+            }
+        }
+
+        return [
+            'upcoming' => $upcoming,
+            'past' => array_reverse($past),
+        ];
+    }
+
+    private function eventHasPassed(array $event, Carbon $today): bool
+    {
+        if (blank($event['date'] ?? null) || ($event['date'] ?? '') === 'TBA') {
+            return false;
+        }
+
+        try {
+            return Carbon::parse($event['date'], config('app.timezone'))->endOfDay()->lt($today);
+        } catch (\Throwable) {
+            return false;
+        }
+    }
+
+    private function rosterEvents(): array
     {
         return [
-            [
-                'category' => 'produced',
-                'title' => 'Produced by Trascendental',
-                'date' => 'TBA',
-                'city' => '',
-                'venue' => '',
-                'lineup' => '',
-                'details_url' => null,
-                'tickets_url' => null,
-            ],
-            [
-                'category' => 'announce',
-                'title' => 'To be announced',
-                'date' => 'TBA',
-                'city' => '',
-                'venue' => '',
-                'lineup' => '',
-                'details_url' => null,
-                'tickets_url' => null,
-            ],
             [
                 'category' => 'roster',
                 'title' => 'Crihan - Besarabia Aniversario 4',
@@ -355,6 +371,7 @@ class TrascendentalController extends Controller
                 'city' => 'Buenos Aires, Argentina',
                 'venue' => '@dunepark',
                 'lineup' => 'Discret Popescu',
+                'image' => asset('images/trascendental/events/crihan-besarabia-aniversario-4-2026.webp'),
                 'details_url' => null,
                 'tickets_url' => 'https://events.flashpass.com.ar/eventos/besarabia-aniversario-vol4-6306',
             ],

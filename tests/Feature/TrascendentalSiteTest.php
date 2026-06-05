@@ -7,6 +7,7 @@ use App\Mail\TrascendentalJoinListConfirmation;
 use App\Models\Customer;
 use App\Models\Event;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Mail;
 use Tests\TestCase;
 
@@ -48,6 +49,8 @@ class TrascendentalSiteTest extends TestCase
 
     public function test_preview_events_renders_local_event_flyers(): void
     {
+        Carbon::setTestNow(Carbon::parse('2026-06-05 10:00:00'));
+
         $this->get(route('trascendental.events'))
             ->assertOk()
             ->assertInertia(fn ($page) => $page
@@ -56,12 +59,16 @@ class TrascendentalSiteTest extends TestCase
                 ->where('events.1.title', 'TDL & Atypical invites Lizz')
                 ->where('events.1.source_url', 'https://ra.co/events/2384899')
                 ->where('events.2.image', asset('images/trascendental/events/umi-iluminal-ii-original.jpg'))
-                ->has('upcomingEvents', 11)
-                ->where('upcomingEvents.0.category', 'produced')
-                ->where('upcomingEvents.1.category', 'announce')
-                ->where('upcomingEvents.2.title', 'Crihan - Besarabia Aniversario 4')
-                ->where('upcomingEvents.4.title', 'Crihan - Insight')
-                ->where('upcomingEvents.4.tickets_url', 'https://www.passline.com/eventos/insight-pres-crihan-rumania')
+                ->has('upcomingEvents', 9)
+                ->where('upcomingEvents.0.category', 'roster')
+                ->where('upcomingEvents.0.title', 'Crihan - Besarabia Aniversario 4')
+                ->where('upcomingEvents.0.image', asset('images/trascendental/events/crihan-besarabia-aniversario-4-2026.webp'))
+                ->where('upcomingEvents.2.title', 'Crihan - Insight')
+                ->where('upcomingEvents.2.image', asset('images/trascendental/events/crihan-insight-2026.webp'))
+                ->where('upcomingEvents.2.tickets_url', 'https://www.passline.com/eventos/insight-pres-crihan-rumania')
+                ->where('upcomingEvents.4.title', 'Crihan - Diez Cero Uno')
+                ->where('upcomingEvents.4.image', asset('images/trascendental/events/crihan-diez-cero-uno-2026.webp'))
+                ->has('pastRosterEvents', 0)
                 ->where('pagination.currentPage', 1)
                 ->where('pagination.lastPage', 2)
                 ->where('pagination.perPage', 12)
@@ -78,6 +85,20 @@ class TrascendentalSiteTest extends TestCase
                 ->where('events.3.title', 'TDL presents: Game at Salon Gallos')
                 ->where('pagination.currentPage', 2)
                 ->where('pagination.lastPage', 2));
+
+        Carbon::setTestNow(Carbon::parse('2026-06-21 10:00:00'));
+
+        $this->get(route('trascendental.events'))
+            ->assertOk()
+            ->assertInertia(fn ($page) => $page
+                ->component('Trascendental/Events')
+                ->has('upcomingEvents', 5)
+                ->where('upcomingEvents.0.title', 'Crihan - Diez Cero Uno')
+                ->has('pastRosterEvents', 4)
+                ->where('pastRosterEvents.0.title', 'Crihan - ENQA + Black 808')
+                ->where('pastRosterEvents.1.title', 'Crihan - Insight'));
+
+        Carbon::setTestNow();
     }
 
     public function test_contact_endpoint_creates_customer_contact_log_and_notification(): void

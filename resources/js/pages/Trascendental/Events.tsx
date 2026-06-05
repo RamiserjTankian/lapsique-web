@@ -9,6 +9,7 @@ import { useTranslations } from '@/hooks/useTranslations';
 interface EventsProps {
     events: ProducedEvent[];
     upcomingEvents: UpcomingEvent[];
+    pastRosterEvents: UpcomingEvent[];
     pagination: {
         currentPage: number;
         lastPage: number;
@@ -29,12 +30,15 @@ interface UpcomingEvent {
     tickets_url: string | null;
 }
 
-export default function Events({ events, upcomingEvents, pagination }: EventsProps) {
+export default function Events({ events, upcomingEvents, pastRosterEvents, pagination }: EventsProps) {
     const { ziggy } = usePage<PageProps>().props;
     const { t } = useTranslations();
-    const producedUpcoming = upcomingEvents.filter((event) => event.category === 'produced');
-    const announceUpcoming = upcomingEvents.filter((event) => event.category === 'announce');
-    const rosterAppearances = upcomingEvents.filter((event) => event.category === 'roster');
+    const upcomingGroups = [
+        { key: 'produced', title: t('trascendental.events.groups.produced'), events: upcomingEvents.filter((event) => event.category === 'produced' && hasEventContent(event)) },
+        { key: 'announce', title: t('trascendental.events.groups.announce'), events: upcomingEvents.filter((event) => event.category === 'announce' && hasEventContent(event)) },
+        { key: 'roster', title: t('trascendental.events.groups.roster'), events: upcomingEvents.filter((event) => event.category === 'roster' && hasEventContent(event)) },
+    ].filter((group) => group.events.length > 0);
+    const upcomingGridClass = upcomingGroups.length > 1 ? 'grid gap-8 lg:grid-cols-3' : 'grid gap-8';
 
     const pageLabel = t('trascendental.events.page')
         .replace(':current', pagination.currentPage.toString())
@@ -54,19 +58,31 @@ export default function Events({ events, upcomingEvents, pagination }: EventsPro
     return (
         <TrascendentalLayout>
             <PageShell title={t('trascendental.events.title')} intro={t('trascendental.events.intro')}>
-                <section className="mb-14 border-y border-black/15 py-8">
-                    <div className="mb-8">
-                        <div>
-                            <p className="text-xs font-bold uppercase text-black/45">{t('trascendental.events.upcoming_eyebrow')}</p>
-                            <h2 className="text-5xl font-black uppercase leading-none">{t('trascendental.events.upcoming_title')}</h2>
+                {upcomingGroups.length > 0 ? (
+                    <section className="mb-14 border-y border-black/15 py-8">
+                        <div className="mb-8">
+                            <div>
+                                <p className="text-xs font-bold uppercase text-black/45">{t('trascendental.events.upcoming_eyebrow')}</p>
+                                <h2 className="text-5xl font-black uppercase leading-none">{t('trascendental.events.upcoming_title')}</h2>
+                            </div>
                         </div>
-                    </div>
-                    <div className="grid gap-8 lg:grid-cols-3">
-                        <UpcomingGroup title={t('trascendental.events.groups.produced')} events={producedUpcoming} />
-                        <UpcomingGroup title={t('trascendental.events.groups.announce')} events={announceUpcoming} />
-                        <UpcomingGroup title={t('trascendental.events.groups.roster')} events={rosterAppearances} />
-                    </div>
-                </section>
+                        <div className={upcomingGridClass}>
+                            {upcomingGroups.map((group) => (
+                                <UpcomingGroup key={group.key} title={group.title} events={group.events} isFeatured={upcomingGroups.length === 1} />
+                            ))}
+                        </div>
+                    </section>
+                ) : null}
+
+                {pastRosterEvents.length > 0 ? (
+                    <section className="mb-14 border-b border-black/15 pb-10">
+                        <div className="mb-8">
+                            <p className="text-xs font-bold uppercase text-black/45">{t('trascendental.events.past_roster_eyebrow')}</p>
+                            <h2 className="mt-3 text-5xl font-black uppercase leading-none">{t('trascendental.events.past_roster_title')}</h2>
+                        </div>
+                        <UpcomingGroup title={t('trascendental.events.groups.roster')} events={pastRosterEvents} isFeatured />
+                    </section>
+                ) : null}
 
                 <div className="mb-8">
                     <p className="text-xs font-bold uppercase text-black/45">{t('trascendental.produced.eyebrow')}</p>
@@ -115,20 +131,25 @@ export default function Events({ events, upcomingEvents, pagination }: EventsPro
     );
 }
 
-function UpcomingGroup({ title, events }: { title: string; events: UpcomingEvent[] }) {
+function hasEventContent(event: UpcomingEvent) {
+    return Boolean(event.image || event.details_url || event.tickets_url || event.city || event.venue || event.lineup || event.date !== 'TBA');
+}
+
+function UpcomingGroup({ title, events, isFeatured = false }: { title: string; events: UpcomingEvent[]; isFeatured?: boolean }) {
     const { t } = useTranslations();
+    const listClassName = isFeatured ? 'mt-5 grid gap-x-8 gap-y-5 lg:grid-cols-2' : 'mt-5 grid gap-4';
 
     return (
         <section>
             <h3 className="border-t border-black pt-3 text-2xl font-black uppercase leading-none">{title}</h3>
-            <div className="mt-5 grid gap-4">
+            <div className={listClassName}>
                 {events.map((event) => (
                     <article
                         key={`${event.title}-${event.date}-${event.city}`}
-                        className={`grid gap-4 border-t border-black/15 pt-4 md:items-end ${event.image ? 'md:grid-cols-[minmax(0,0.42fr)_minmax(0,1fr)_auto]' : 'md:grid-cols-[1fr_auto]'}`}
+                        className={`grid gap-4 border-t border-black/15 pt-4 md:items-end ${event.image ? 'md:grid-cols-[minmax(0,0.36fr)_minmax(0,1fr)_auto]' : 'md:grid-cols-[1fr_auto]'}`}
                     >
                         {event.image ? (
-                            <img src={event.image} alt={t('trascendental.produced.flyer_alt', { title: event.title })} className="aspect-[4/5] w-full bg-black/5 object-contain md:max-w-40" loading="lazy" />
+                            <img src={event.image} alt={t('trascendental.produced.flyer_alt', { title: event.title })} className="aspect-[4/5] w-full bg-black/5 object-contain md:max-w-44" loading="lazy" />
                         ) : null}
                         <div>
                             <p className="text-xs font-bold uppercase text-black/45">{[event.date, event.city].filter(Boolean).join(' / ')}</p>

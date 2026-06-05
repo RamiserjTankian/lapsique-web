@@ -138,6 +138,8 @@ return [
         'upcoming_eyebrow' => 'Upcoming events',
         'upcoming_title' => 'Upcoming events',
         'upcoming_intro' => 'Produced dates and roster appearances separated clearly so each event has details, ticket access and context.',
+        'past_roster_eyebrow' => 'Roster archive',
+        'past_roster_title' => 'Last roster appearances',
         'groups' => [
             'produced' => 'Produced by Trascendental',
             'announce' => 'To be announced',

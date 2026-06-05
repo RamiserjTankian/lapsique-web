@@ -138,6 +138,8 @@ return [
         'upcoming_eyebrow' => 'Proximos eventos',
         'upcoming_title' => 'Proximos eventos',
         'upcoming_intro' => 'Fechas producidas y apariciones del roster separadas con claridad para mostrar detalles, tickets y contexto.',
+        'past_roster_eyebrow' => 'Archivo del roster',
+        'past_roster_title' => 'Ultimas apariciones del roster',
         'groups' => [
             'produced' => 'Producido por Trascendental',
             'announce' => 'Por anunciar',
