@@ -43,7 +43,7 @@ class EventForm
                 DateTimePicker::make('starts_at')
                     ->label('Fecha y hora')
                     ->timezone('America/Mexico_City')
-                    ->required(),
+                    ->helperText('Déjalo vacío para eventos por confirmar / TBA.'),
                 TextInput::make('venue')
                     ->label('Venue')
                     ->maxLength(255),
@@ -60,7 +60,9 @@ class EventForm
                         TextInput::make('name')
                             ->label('Nombre')
                             ->required()
-                            ->maxLength(255),
+                            ->maxLength(255)
+                            ->live(onBlur: true)
+                            ->afterStateUpdated(fn (Set $set, ?string $state) => $set('slug', Str::slug((string) $state))),
                         TextInput::make('slug')
                             ->label('Slug')
                             ->required()
@@ -141,7 +143,7 @@ class EventForm
                     ->collection('cover')
                     ->image()
                     ->imageEditor()
-                    ->required(),
+                    ->helperText('Opcional. Si el evento ya usa una imagen pública existente, no necesitas subir cover.'),
                 SpatieMediaLibraryFileUpload::make('cover_vertical')
                     ->label('Flayer vertical')
                     ->collection('cover_vertical')

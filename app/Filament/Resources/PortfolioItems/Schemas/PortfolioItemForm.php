@@ -154,8 +154,21 @@ class PortfolioItemForm
                     ->minValue(0)
                     ->default(0),
                 Section::make('Archivo')
-                    ->description('Sube la pieza principal (foto o video)')
+                    ->description('Sube una pieza nueva o apunta a un archivo público ya existente.')
                     ->schema([
+                        TextInput::make('asset_path')
+                            ->label('Ruta pública del archivo')
+                            ->placeholder('/videos/trascendental/reel.mp4')
+                            ->maxLength(255)
+                            ->helperText('Úsalo para fotos o videos que ya viven en public/images o public/videos.')
+                            ->visible(fn (Get $get) => $get('source') !== 'youtube')
+                            ->columnSpanFull(),
+                        TextInput::make('poster_path')
+                            ->label('Ruta pública del poster')
+                            ->placeholder('/images/trascendental/projects/poster.webp')
+                            ->maxLength(255)
+                            ->helperText('Opcional. Sirve como portada cuando el archivo principal es video.')
+                            ->columnSpanFull(),
                         SpatieMediaLibraryFileUpload::make('asset')
                             ->label('Archivo')
                             ->collection('asset')
@@ -170,7 +183,7 @@ class PortfolioItemForm
                                 'video/webm',
                             ])
                             ->maxSize(256000)
-                            ->helperText('Admite JPG, PNG, WEBP y videos MP4/MOV/WEBM hasta 256MB.')
+                            ->helperText('Opcional. Admite JPG, PNG, WEBP y videos MP4/MOV/WEBM hasta 256MB.')
                             ->columnSpanFull(),
                         SpatieMediaLibraryFileUpload::make('poster')
                             ->label('Poster (opcional)')

@@ -2,13 +2,14 @@
 
 namespace App\Filament\Resources\Djs\Tables;
 
+use App\Models\Dj;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
 use Filament\Actions\ForceDeleteBulkAction;
 use Filament\Actions\RestoreBulkAction;
 use Filament\Tables\Columns\IconColumn;
-use Filament\Tables\Columns\SpatieMediaLibraryImageColumn;
+use Filament\Tables\Columns\ImageColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Filters\TrashedFilter;
@@ -21,9 +22,9 @@ class DjsTable
         return $table
             ->defaultSort('priority')
             ->columns([
-                SpatieMediaLibraryImageColumn::make('profile')
+                ImageColumn::make('preview')
                     ->label('Foto')
-                    ->collection('profile')
+                    ->getStateUsing(fn (Dj $record): ?string => self::previewUrl($record))
                     ->square()
                     ->size(56),
                 TextColumn::make('name')
@@ -88,5 +89,23 @@ class DjsTable
                     RestoreBulkAction::make(),
                 ]),
             ]);
+    }
+
+    private static function previewUrl(Dj $dj): ?string
+    {
+        if (filled($dj->public_image_path)) {
+            return self::publicAssetUrl($dj->public_image_path);
+        }
+
+        return $dj->getFirstMediaUrl('profile', 'thumb') ?: $dj->getFirstMediaUrl('profile') ?: null;
+    }
+
+    private static function publicAssetUrl(string $path): string
+    {
+        if (str_starts_with($path, 'http://') || str_starts_with($path, 'https://')) {
+            return $path;
+        }
+
+        return asset(ltrim($path, '/'));
     }
 }

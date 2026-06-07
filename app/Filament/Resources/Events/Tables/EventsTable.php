@@ -15,7 +15,7 @@ use Filament\Actions\EditAction;
 use Filament\Actions\ForceDeleteBulkAction;
 use Filament\Actions\RestoreBulkAction;
 use Filament\Tables\Columns\IconColumn;
-use Filament\Tables\Columns\SpatieMediaLibraryImageColumn;
+use Filament\Tables\Columns\ImageColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Filters\TrashedFilter;
@@ -28,9 +28,9 @@ class EventsTable
         return $table
             ->defaultSort('starts_at', 'desc')
             ->columns([
-                SpatieMediaLibraryImageColumn::make('cover')
+                ImageColumn::make('preview')
                     ->label('Cover')
-                    ->collection('cover')
+                    ->getStateUsing(fn (Event $record): ?string => self::previewUrl($record))
                     ->square()
                     ->size(64),
                 TextColumn::make('title')
@@ -249,5 +249,31 @@ class EventsTable
                     RestoreBulkAction::make(),
                 ]),
             ]);
+    }
+
+    private static function previewUrl(Event $event): ?string
+    {
+        if (filled($event->public_image_path)) {
+            return self::publicAssetUrl($event->public_image_path);
+        }
+
+        foreach (['cover_vertical', 'cover', 'cover_horizontal'] as $collection) {
+            $url = $event->getFirstMediaUrl($collection, 'thumb') ?: $event->getFirstMediaUrl($collection);
+
+            if (filled($url)) {
+                return $url;
+            }
+        }
+
+        return null;
+    }
+
+    private static function publicAssetUrl(string $path): string
+    {
+        if (str_starts_with($path, 'http://') || str_starts_with($path, 'https://')) {
+            return $path;
+        }
+
+        return asset(ltrim($path, '/'));
     }
 }

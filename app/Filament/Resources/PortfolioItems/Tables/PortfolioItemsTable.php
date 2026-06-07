@@ -2,13 +2,14 @@
 
 namespace App\Filament\Resources\PortfolioItems\Tables;
 
+use App\Models\PortfolioItem;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
 use Filament\Actions\ForceDeleteBulkAction;
 use Filament\Actions\RestoreBulkAction;
 use Filament\Tables\Columns\IconColumn;
-use Filament\Tables\Columns\SpatieMediaLibraryImageColumn;
+use Filament\Tables\Columns\ImageColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Filters\TrashedFilter;
@@ -21,9 +22,9 @@ class PortfolioItemsTable
         return $table
             ->defaultSort('priority')
             ->columns([
-                SpatieMediaLibraryImageColumn::make('asset')
+                ImageColumn::make('preview')
                     ->label('Preview')
-                    ->collection('asset')
+                    ->getStateUsing(fn (PortfolioItem $record): ?string => self::previewUrl($record))
                     ->square()
                     ->size(64),
                 TextColumn::make('title')
@@ -89,5 +90,48 @@ class PortfolioItemsTable
                     RestoreBulkAction::make(),
                 ]),
             ]);
+    }
+
+    private static function previewUrl(PortfolioItem $item): ?string
+    {
+        if (filled($item->poster_path)) {
+            return self::publicAssetUrl($item->poster_path);
+        }
+
+        $posterUrl = $item->getFirstMediaUrl('poster', 'thumb') ?: $item->getFirstMediaUrl('poster');
+
+        if (filled($posterUrl)) {
+            return $posterUrl;
+        }
+
+        if ($item->source === 'youtube' && filled($item->youtube_id)) {
+            return "https://img.youtube.com/vi/{$item->youtube_id}/maxresdefault.jpg";
+        }
+
+        if (filled($item->asset_path) && self::isImagePath($item->asset_path)) {
+            return self::publicAssetUrl($item->asset_path);
+        }
+
+        $asset = $item->getFirstMedia('asset');
+
+        if ($asset && str_starts_with((string) $asset->mime_type, 'image/')) {
+            return $item->getFirstMediaUrl('asset', 'thumb') ?: $item->getFirstMediaUrl('asset');
+        }
+
+        return null;
+    }
+
+    private static function publicAssetUrl(string $path): string
+    {
+        if (str_starts_with($path, 'http://') || str_starts_with($path, 'https://')) {
+            return $path;
+        }
+
+        return asset(ltrim($path, '/'));
+    }
+
+    private static function isImagePath(string $path): bool
+    {
+        return (bool) preg_match('/\.(avif|gif|jpe?g|png|webp)(\?.*)?$/i', $path);
     }
 }

@@ -75,7 +75,9 @@ class PageContentBlockForm
                             ->columnSpanFull(),
                         TextInput::make('asset_path')
                             ->label('Asset público')
-                            ->placeholder('/images/trascendental/...'),
+                            ->placeholder('/images/trascendental/...')
+                            ->maxLength(255)
+                            ->helperText('Ruta o URL de una imagen/video ya publicado.'),
                         TextInput::make('cta_label')
                             ->label('Texto CTA')
                             ->maxLength(255),

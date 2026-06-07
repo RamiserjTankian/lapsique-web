@@ -48,10 +48,9 @@ class DjForm
                         '16:9' => 'Card / Hero (16:9)',
                         '1:1' => 'Cuadrado (avatar)',
                     ])
-                    ->required()
                     ->maxSize(51200)
                     ->acceptedFileTypes(['image/jpeg', 'image/png', 'image/webp', 'image/jpg'])
-                    ->helperText('Ajusta el recorte en 16:9 para que se vea perfecto en las cards y hero. Máximo 50MB.')
+                    ->helperText('Opcional. Ajusta el recorte en 16:9 para cards/hero, o usa la imagen pública existente de abajo. Máximo 50MB.')
                     ->columnSpanFull(),
                 SpatieMediaLibraryFileUpload::make('gallery')
                     ->label('Galería')
