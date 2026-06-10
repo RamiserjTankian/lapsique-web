@@ -10,6 +10,16 @@ class LapsiqueSiteIsolationTest extends TestCase
 {
     use RefreshDatabase;
 
+    public function test_lapsique_pages_use_lapsique_meta_site_name(): void
+    {
+        config()->set('trascendental.enabled_as_primary', false);
+
+        $this->get(route('portfolio.index'))
+            ->assertOk()
+            ->assertSee('<meta name="author" content="Lapsique Media">', false)
+            ->assertSee('<meta property="og:site_name" content="Lapsique Media">', false);
+    }
+
     public function test_lapsique_public_site_does_not_expose_registered_djs(): void
     {
         config()->set('trascendental.enabled_as_primary', false);
