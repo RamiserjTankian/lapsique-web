@@ -14,7 +14,8 @@ use Illuminate\Support\Str;
 
 class PageMeta
 {
-    public const SITE_NAME = 'Trascendentalby';
+    public const LAPSIQUE_SITE_NAME = 'Lapsique Media';
+    public const TRASCENDENTAL_SITE_NAME = 'Trascendentalby';
 
     public static function forRequest(Request $request): PageMetaData
     {
@@ -98,7 +99,7 @@ class PageMeta
     {
         $price = (int) config('booking.dj_set_price', 12000);
         $title = __('seo.djset.title');
-        $metaTitle = "{$title} · ".self::SITE_NAME;
+        $metaTitle = "{$title} · ".self::siteName();
         $description = self::truncate(
             __('seo.djset.description', ['price' => number_format($price, 0, '.', ',')]),
         );
@@ -157,7 +158,7 @@ class PageMeta
         $bookingTitle = LocalizedBookingCopy::title($settings?->booking_title);
 
         $title = __('seo.home.title');
-        $metaTitle = "{$title} · ".self::SITE_NAME;
+        $metaTitle = "{$title} · ".self::siteName();
         $description = self::truncate(
             trim("{$subtitle} ".__('seo.home.description', ['price' => number_format($price, 0, '.', ',')])),
         );
@@ -172,7 +173,7 @@ class PageMeta
             'image' => $ogImage,
             'provider' => [
                 '@type' => 'Organization',
-                'name' => self::SITE_NAME,
+                'name' => self::siteName(),
                 'url' => config('app.url'),
             ],
             'offers' => [
@@ -204,7 +205,7 @@ class PageMeta
         }
 
         $title = $dj->name;
-        $metaTitle = "{$title} · ".self::SITE_NAME;
+        $metaTitle = "{$title} · ".self::siteName();
         $description = self::truncate($dj->bio ?: __('seo.dj_profile', ['name' => $dj->name]));
         $ogImage = self::absoluteImageUrl(
             $dj->getFirstMediaUrl('profile', 'card')
@@ -220,8 +221,8 @@ class PageMeta
             canonicalUrl: $canonicalUrl,
             ogType: 'profile',
             ogImage: $ogImage ?: self::defaultOgImageUrl(),
-            ogImageAlt: "{$dj->name} — ".self::SITE_NAME,
-            keywords: "{$dj->name}, DJ, música electrónica, Trascendentalby",
+            ogImageAlt: "{$dj->name} — ".self::siteName(),
+            keywords: "{$dj->name}, DJ, música electrónica, ".self::siteName(),
         );
     }
 
@@ -232,7 +233,7 @@ class PageMeta
         }
 
         $title = $video->title;
-        $metaTitle = "{$title} · ".self::SITE_NAME;
+        $metaTitle = "{$title} · ".self::siteName();
         $description = self::truncate($video->description ?: __('seo.video_description', ['title' => $video->title]));
         $ogImage = self::absoluteImageUrl(
             $video->getFirstMediaUrl('thumbnail')
@@ -246,8 +247,8 @@ class PageMeta
             canonicalUrl: $canonicalUrl,
             ogType: 'video.other',
             ogImage: $ogImage ?: self::defaultOgImageUrl(),
-            ogImageAlt: "{$video->title} — ".self::SITE_NAME,
-            keywords: "{$video->title}, video, DJ set, Trascendentalby",
+            ogImageAlt: "{$video->title} — ".self::siteName(),
+            keywords: "{$video->title}, video, DJ set, ".self::siteName(),
         );
     }
 
@@ -258,7 +259,7 @@ class PageMeta
         }
 
         $title = $event->title;
-        $metaTitle = "{$title} · ".self::SITE_NAME;
+        $metaTitle = "{$title} · ".self::siteName();
         $location = $event->location?->name;
         $datePart = $event->starts_at?->translatedFormat('d M Y');
         $description = self::truncate(
@@ -276,8 +277,8 @@ class PageMeta
             canonicalUrl: $canonicalUrl,
             ogType: 'website',
             ogImage: $ogImage ?: self::defaultOgImageUrl(),
-            ogImageAlt: "{$event->title} — ".self::SITE_NAME,
-            keywords: "{$event->title}, evento, música electrónica, Trascendentalby",
+            ogImageAlt: "{$event->title} — ".self::siteName(),
+            keywords: "{$event->title}, evento, música electrónica, ".self::siteName(),
         );
     }
 
@@ -288,7 +289,7 @@ class PageMeta
         }
 
         $title = $post->title;
-        $metaTitle = "{$title} · ".self::SITE_NAME;
+        $metaTitle = "{$title} · ".self::siteName();
         $description = self::truncate($post->excerpt ?: Str::limit(strip_tags((string) $post->content), 200));
         $ogImage = self::absoluteImageUrl($post->getFirstMediaUrl('cover', 'large'));
 
@@ -299,8 +300,8 @@ class PageMeta
             canonicalUrl: $canonicalUrl,
             ogType: 'article',
             ogImage: $ogImage ?: self::defaultOgImageUrl(),
-            ogImageAlt: "{$post->title} — ".self::SITE_NAME,
-            keywords: "{$post->title}, blog, Trascendentalby",
+            ogImageAlt: "{$post->title} — ".self::siteName(),
+            keywords: "{$post->title}, blog, ".self::siteName(),
         );
     }
 
@@ -311,7 +312,7 @@ class PageMeta
         string $keywords = '',
         bool $noindex = false,
     ): PageMetaData {
-        $metaTitle = "{$title} · ".self::SITE_NAME;
+        $metaTitle = "{$title} · ".self::siteName();
 
         return new PageMetaData(
             title: $title,
@@ -319,7 +320,7 @@ class PageMeta
             description: self::truncate($description),
             canonicalUrl: $canonicalUrl,
             ogImage: self::defaultOgImageUrl(),
-            ogImageAlt: "{$title} — ".self::SITE_NAME,
+            ogImageAlt: "{$title} — ".self::siteName(),
             keywords: $keywords,
             noindex: $noindex,
         );
@@ -342,6 +343,13 @@ class PageMeta
             $canonicalUrl,
             __('seo.default.keywords'),
         );
+    }
+
+    private static function siteName(): string
+    {
+        return config('trascendental.enabled_as_primary')
+            ? self::TRASCENDENTAL_SITE_NAME
+            : self::LAPSIQUE_SITE_NAME;
     }
 
     public static function djsetOgImageUrl(?SiteSetting $settings): string

@@ -15,9 +15,7 @@ export function SeoHead({ seo: override }: SeoHeadProps) {
 
     const seo: SeoMeta = { ...shared!, ...override };
     const ogImage = seo.ogImage ?? '';
-    const siteName = site.whatsappCommunityUrl || seo.metaTitle.includes('Trascendental')
-        ? 'Trascendentalby'
-        : 'Trascendentalby';
+    const siteName = site.name;
 
     return (
         <Head title={seo.title}>

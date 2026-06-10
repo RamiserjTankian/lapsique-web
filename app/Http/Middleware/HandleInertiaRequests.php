@@ -37,7 +37,7 @@ class HandleInertiaRequests extends Middleware
                 'location' => $request->url(),
             ],
             'site' => fn () => [
-                'name' => 'Trascendentalby',
+                'name' => $isTrascendental ? 'Trascendentalby' : 'Lapsique Media',
                 'bookingPrice' => $settings?->booking_price ?? (int) config('booking.content_price', 3000),
                 'bookingTitle' => $settings?->booking_title,
                 'bookingSubtitle' => $settings?->booking_subtitle,

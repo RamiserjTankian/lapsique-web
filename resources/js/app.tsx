@@ -7,7 +7,7 @@ import { ThemeProvider } from '@/providers/ThemeProvider';
 import './analytics';
 import './pixel';
 
-const appName = 'Trascendentalby';
+const appName = 'Lapsique Media';
 
 function formatDocumentTitle(title?: string): string {
     if (!title) {

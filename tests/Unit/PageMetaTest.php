@@ -32,7 +32,7 @@ class PageMetaTest extends TestCase
         $meta = PageMeta::forBookingFunnel($settings, 'https://lapsique.media/');
 
         $this->assertSame('Agenda reels para tu negocio', $meta->title);
-        $this->assertStringContainsString('lapsique.media', $meta->metaTitle);
+        $this->assertStringContainsString('Lapsique Media', $meta->metaTitle);
         $this->assertStringContainsString('1 reel + 10 fotos editadas', $meta->description);
         $this->assertStringContainsString('4,000', $meta->description);
         $this->assertNotNull($meta->jsonLd);

@@ -1,0 +1,44 @@
+<?php
+
+namespace Tests\Feature;
+
+use App\Models\Dj;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use Tests\TestCase;
+
+class LapsiqueSiteIsolationTest extends TestCase
+{
+    use RefreshDatabase;
+
+    public function test_lapsique_public_site_does_not_expose_registered_djs(): void
+    {
+        config()->set('trascendental.enabled_as_primary', false);
+
+        Dj::query()->create([
+            'name' => 'Roster Artist',
+            'slug' => 'roster-artist',
+            'is_featured' => true,
+        ]);
+
+        $this->get(route('djs.index'))->assertNotFound();
+        $this->get(route('djs.show', ['dj' => 'roster-artist']))->assertNotFound();
+    }
+
+    public function test_trascendental_primary_site_can_still_render_registered_djs(): void
+    {
+        config()->set('trascendental.enabled_as_primary', true);
+
+        Dj::query()->create([
+            'name' => 'Roster Artist',
+            'slug' => 'roster-artist',
+            'is_featured' => true,
+        ]);
+
+        $this->get(route('djs.index'))
+            ->assertOk()
+            ->assertInertia(fn ($page) => $page
+                ->component('Djs/Index')
+                ->has('djs', 1)
+                ->where('djs.0.name', 'Roster Artist'));
+    }
+}
