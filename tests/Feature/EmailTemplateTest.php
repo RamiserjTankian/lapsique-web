@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use App\Mail\CustomerPasswordResetEmail;
 use App\Mail\MailtrapTestEmail;
 use App\Mail\WelcomeEmail;
+use App\Models\BookingSlot;
 use App\Models\ContentBooking;
 use App\Models\Customer;
 use App\Models\Event;
@@ -159,6 +160,49 @@ class EmailTemplateTest extends TestCase
         $this->assertBrandTokens($html);
         $this->assertStringContainsString('Recibo de pago', $html);
         $this->assertStringNotContainsString('Recibo de compra', $html);
+    }
+
+    public function test_content_booking_confirmation_renders_session_details(): void
+    {
+        app()->setLocale('es');
+
+        $slot = BookingSlot::create([
+            'date' => now()->addDays(4)->toDateString(),
+            'time_label' => '2:00 PM',
+            'time_value' => '14:00',
+            'max_bookings' => 1,
+            'booked_count' => 1,
+            'is_active' => true,
+        ]);
+
+        $booking = ContentBooking::create([
+            'public_id' => (string) Str::uuid(),
+            'booking_slot_id' => $slot->id,
+            'service_type' => ContentBooking::SERVICE_CONTENT_SESSION,
+            'client_name' => 'Cliente Agenda',
+            'client_email' => 'agenda@example.com',
+            'client_phone' => '529841234567',
+            'amount' => 4000,
+            'currency' => 'MXN',
+            'status' => 'confirmed',
+            'paid_at' => now(),
+            'payment_provider' => 'stripe',
+        ]);
+
+        $html = View::make('emails.content-booking-confirmation', [
+            'booking' => $booking,
+            'slot' => $slot,
+            'confirmUrl' => 'https://lapsique.test/sesion-de-contenido/'.$booking->public_id.'/confirm',
+            'portalUrl' => 'https://lapsique.test/portal',
+        ])->render();
+
+        $this->assertBrandTokens($html);
+        $this->assertStringContainsString('Reserva confirmada', $html);
+        $this->assertStringContainsString('Cliente Agenda', $html);
+        $this->assertStringContainsString('Sesión de contenido', $html);
+        $this->assertStringContainsString('2:00 PM', $html);
+        $this->assertStringContainsString('$4,000 MXN', $html);
+        $this->assertStringContainsString('Ver mi reserva', $html);
     }
 
     public function test_mailtrap_test_template_renders(): void
