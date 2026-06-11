@@ -29,6 +29,7 @@ import { DjCard } from '@/components/lapsique/DjCard';
 import { FunnelPopups } from '@/components/lapsique/FunnelPopups';
 import { GlassSection } from '@/components/lapsique/GlassSection';
 import { PaymentTrustOrTestMode } from '@/components/lapsique/PaymentTrustPanel';
+import { ReelLoopCard } from '@/components/lapsique/ReelLoopCard';
 import { SpecBadge } from '@/components/lapsique/SpecBadge';
 import { Button } from '@/components/ui/button';
 import { useTranslations } from '@/hooks/useTranslations';
@@ -93,6 +94,7 @@ export default function DjSetShow({
     slots,
     originals,
     portfolioItems,
+    djSetReels,
     djs,
     errors,
 }: DjSetShowProps) {
@@ -301,6 +303,16 @@ export default function DjSetShow({
 
             <NightRecordingSection />
 
+            {djSetReels.length > 0 && (
+                <GlassSection
+                    eyebrow={t('pages.djset.reels_eyebrow')}
+                    title={t('pages.djset.reels_title')}
+                    description={t('pages.djset.reels_description')}
+                >
+                    <DjSetReelGrid clips={djSetReels} />
+                </GlassSection>
+            )}
+
             {originals.length > 0 && (
                 <GlassSection
                     eyebrow={t('pages.djset.originals_eyebrow')}
@@ -506,6 +518,34 @@ function NightRecordingSection() {
                 />
             </div>
         </GlassSection>
+    );
+}
+
+function DjSetReelGrid({ clips }: { clips: ReelLibraryEntry[] }) {
+    return (
+        <div className="grid gap-3 rounded-xl border border-border/70 bg-black/45 p-3 sm:grid-cols-2 lg:grid-cols-4">
+            {clips.slice(0, 8).map((clip, index) => (
+                <ReelLoopCard
+                    key={clip.id}
+                    src={clip.src}
+                    poster={clip.poster}
+                    title={clip.title}
+                    bookingSource="djset_reel_reference"
+                    eager={index < 2}
+                    pauseWhenOffscreen
+                    preload={index < 2 ? 'metadata' : 'none'}
+                    openPlayerOnClick={false}
+                    articleClassName="min-h-[360px]"
+                    footer={(
+                        <div className="pointer-events-none absolute bottom-0 left-0 right-0 p-3">
+                            <p className="line-clamp-2 rounded-lg border border-white/10 bg-black/55 px-3 py-2 text-xs font-semibold leading-snug text-white/88 backdrop-blur">
+                                {clip.title}
+                            </p>
+                        </div>
+                    )}
+                />
+            ))}
+        </div>
     );
 }
 

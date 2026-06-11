@@ -4,12 +4,12 @@ namespace App\Http\Controllers;
 
 use App\Http\Resources\BookingSlotResource;
 use App\Http\Resources\PortfolioItemResource;
-use App\Models\PortfolioItem;
 use App\Support\LocalizedBookingCopy;
 use App\Support\HomeHeroBackground;
 use App\Support\HomeHeroProofVideos;
 use App\Support\HomeReelDistribution;
 use App\Support\LandingPageVideos;
+use App\Support\PortfolioCuration;
 use Illuminate\Support\Facades\Log;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -20,14 +20,7 @@ class HomeController extends Controller
     {
         $bookingData = ContentBookingController::bookingPageData();
 
-        $portfolioItems = PortfolioItem::query()
-            ->where('is_active', true)
-            ->orderByDesc('is_featured')
-            ->orderBy('priority')
-            ->orderByDesc('created_at')
-            ->with('media')
-            ->take(12)
-            ->get();
+        $portfolioItems = PortfolioCuration::forHome(12);
 
         $settings = $bookingData['settings'];
         $reelDistribution = HomeReelDistribution::forHome(

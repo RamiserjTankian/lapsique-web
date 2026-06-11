@@ -163,6 +163,18 @@ class ReelLibrary
         return $entries;
     }
 
+    public static function posterForSrc(string $src): ?string
+    {
+        $basename = pathinfo($src, PATHINFO_FILENAME);
+        $posterSrc = dirname($src).'/'.$basename.'.jpg';
+
+        if (! self::publicFileExists($posterSrc)) {
+            return null;
+        }
+
+        return $posterSrc;
+    }
+
     protected static function publicFileExists(string $publicPath): bool
     {
         if (! str_starts_with($publicPath, '/')) {

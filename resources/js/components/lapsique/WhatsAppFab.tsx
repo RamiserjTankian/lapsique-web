@@ -120,6 +120,12 @@ export function WhatsAppFab() {
     }, []);
 
     useEffect(() => {
+        if (isMobile) {
+            setIsPromptVisible(false);
+
+            return;
+        }
+
         if (!href || isDismissed || bookingModalOpen) {
             return;
         }
@@ -129,7 +135,7 @@ export function WhatsAppFab() {
         }, 1800);
 
         return () => window.clearTimeout(showTimer);
-    }, [href, isDismissed, bookingModalOpen]);
+    }, [href, isDismissed, bookingModalOpen, isMobile]);
 
     const dismissPrompt = () => {
         setIsPromptVisible(false);

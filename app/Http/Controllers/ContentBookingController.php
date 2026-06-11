@@ -16,6 +16,7 @@ use App\Services\Meta\MetaConversionsApiService;
 use App\Services\StripeService;
 use App\Support\BookingMode;
 use App\Support\LocalizedBookingCopy;
+use App\Support\PortfolioCuration;
 use App\Support\ReelLibrary;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
@@ -47,20 +48,6 @@ class ContentBookingController extends Controller
     public function showDjSet(): Response
     {
         $data = $this->bookingPageData();
-        $filterDjSetPortfolio = fn ($items) => $items
-            ->reject(function (PortfolioItem $item): bool {
-                $haystack = Str::lower(implode(' ', array_filter([
-                    $item->type,
-                    $item->slug,
-                    $item->asset_path,
-                    $item->poster_path,
-                    ...($item->tags ?? []),
-                ])));
-
-                return Str::contains($haystack, ['aftermovie', 'after-movie', 'after movie'])
-                    || ! $this->portfolioItemHasPublicMedia($item);
-            })
-            ->values();
 
         $originals = \App\Models\Video::query()
             ->whereJsonContains('tags', 'psique-originals')
@@ -71,32 +58,7 @@ class ContentBookingController extends Controller
             ->take(8)
             ->get();
 
-        $portfolioItems = PortfolioItem::query()
-            ->where('is_active', true)
-            ->where(function ($query): void {
-                $query
-                    ->whereJsonContains('tags', 'nightlife')
-                    ->orWhereJsonContains('tags', 'events');
-            })
-            ->with('media')
-            ->orderByDesc('is_featured')
-            ->orderBy('priority')
-            ->orderByDesc('created_at')
-            ->take(10)
-            ->get();
-        $portfolioItems = $filterDjSetPortfolio($portfolioItems);
-
-        if ($portfolioItems->isEmpty()) {
-            $portfolioItems = PortfolioItem::query()
-                ->where('is_active', true)
-                ->with('media')
-                ->orderByDesc('is_featured')
-                ->orderBy('priority')
-                ->orderByDesc('created_at')
-                ->take(10)
-                ->get();
-            $portfolioItems = $filterDjSetPortfolio($portfolioItems);
-        }
+        $portfolioItems = PortfolioCuration::forDjSet(10);
 
         $djs = \App\Models\Dj::query()
             ->with('media')
@@ -107,38 +69,18 @@ class ContentBookingController extends Controller
             ->take(8)
             ->get();
 
-        $djSetReels = collect(ReelLibrary::all())
-            ->reject(fn (array $reel): bool => (bool) preg_match(
-                '/aftermovie|after-movie|bluepointrs/i',
-                ($reel['title'] ?? '').' '.($reel['src'] ?? ''),
-            ))
-            ->filter(fn (array $reel): bool => (bool) preg_match(
-                '/lapsique|psique|set|dj|rebolledo|satoshi|umi|kapi/i',
-                ($reel['title'] ?? '').' '.($reel['src'] ?? ''),
-            ))
-            ->take(8)
-            ->values()
-            ->all();
-
-        if ($djSetReels === []) {
-            $djSetReels = collect(ReelLibrary::all())
-                ->reject(fn (array $reel): bool => (bool) preg_match(
-                    '/aftermovie|after-movie|bluepointrs/i',
-                    ($reel['title'] ?? '').' '.($reel['src'] ?? ''),
-                ))
-                ->take(8)
-                ->values()
-                ->all();
-        }
+        $djSetReels = $this->djSetReels();
 
         $portfolioPayload = \App\Http\Resources\PortfolioItemResource::collection($portfolioItems)->resolve();
 
-        if (! collect($portfolioPayload)->contains(fn (array $item): bool => ($item['media_type'] ?? null) === 'image')) {
-            $portfolioPayload = [
-                ...$this->djSetFallbackPortfolioItems(),
-                ...$portfolioPayload,
-            ];
-        }
+        $portfolioPayload = collect([
+            ...$this->djSetFallbackPortfolioItems(),
+            ...$portfolioPayload,
+        ])
+            ->unique(fn (array $item): string => (string) ($item['asset_url'] ?? $item['slug'] ?? $item['id']))
+            ->take(12)
+            ->values()
+            ->all();
 
         return Inertia::render('DjSet/Show', [
             'price' => (int) config('booking.dj_set_price', 12000),
@@ -151,38 +93,55 @@ class ContentBookingController extends Controller
         ]);
     }
 
-    private function portfolioItemHasPublicMedia(PortfolioItem $item): bool
+    /**
+     * @return array<int, array{id: string, title: string, src: string, poster: string|null}>
+     */
+    private function djSetReels(): array
     {
-        if (app()->environment('testing')) {
-            return true;
+        $all = collect(ReelLibrary::all());
+        $preferred = $all
+            ->filter(fn (array $reel): bool => $this->isDjSetReel($reel))
+            ->values();
+
+        if ($preferred->isEmpty()) {
+            $preferred = $all->values();
         }
 
-        if ($item->source === 'youtube' && filled($item->youtube_id)) {
-            return true;
+        return $preferred
+            ->take(8)
+            ->map(fn (array $reel): array => [
+                'id' => $reel['id'],
+                'title' => $reel['title'],
+                'src' => $reel['src'],
+                'poster' => ReelLibrary::posterForSrc($reel['src']),
+            ])
+            ->all();
+    }
+
+    private function isDjSetReel(array $reel): bool
+    {
+        $haystack = Str::lower(($reel['title'] ?? '').' '.($reel['src'] ?? ''));
+
+        if (Str::contains($haystack, [
+            'barber',
+            'bioevolution',
+            'hamburguesa',
+            'juanis',
+            'new-life',
+            'padel',
+            'sound-healing',
+            'tacos',
+            'tanuki',
+            'tatuaje',
+            'yoga',
+        ])) {
+            return false;
         }
 
-        foreach ([$item->asset_path, $item->poster_path] as $path) {
-            if (filled($path) && is_readable(public_path(ltrim((string) $path, '/')))) {
-                return true;
-            }
-        }
-
-        foreach (['asset', 'poster'] as $collection) {
-            $media = $item->getFirstMedia($collection);
-
-            if (! $media) {
-                continue;
-            }
-
-            $urlPath = parse_url($media->getUrl(), PHP_URL_PATH);
-
-            if (is_string($urlPath) && is_readable(public_path(ltrim($urlPath, '/')))) {
-                return true;
-            }
-
-        }
-
-        return false;
+        return (bool) preg_match(
+            '/aaron-sevilla|basement|ceballos|concept-night|danny|daymon|demerry|dj|galgo|graziano|guy-mantzur|james-zabiela|kapi|magdalena|mellino|noferini|pergola|provenza|rebolledo|sasha|satoshi|set|sudbeat|umi|victor-ruiz|wav|zaza/i',
+            $haystack,
+        );
     }
 
     /**

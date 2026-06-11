@@ -177,13 +177,6 @@ class HomeReelDistribution
 
     protected static function posterForSrc(string $src): ?string
     {
-        $basename = pathinfo($src, PATHINFO_FILENAME);
-        $posterSrc = dirname($src).'/'.$basename.'.jpg';
-
-        if (! LandingPageVideos::publicFileExists($posterSrc)) {
-            return null;
-        }
-
-        return $posterSrc;
+        return ReelLibrary::posterForSrc($src);
     }
 }

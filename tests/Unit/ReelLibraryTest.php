@@ -56,4 +56,18 @@ class ReelLibraryTest extends TestCase
 
         File::deleteDirectory($publicDir);
     }
+
+    public function test_poster_for_src_returns_matching_jpg_when_available(): void
+    {
+        $dir = 'videos/reels-poster-test-'.uniqid();
+        $publicDir = public_path($dir);
+        File::ensureDirectoryExists($publicDir);
+        File::put($publicDir.'/001-dj-set.mp4', 'test');
+        File::put($publicDir.'/001-dj-set.jpg', 'poster');
+
+        $this->assertSame('/'.$dir.'/001-dj-set.jpg', ReelLibrary::posterForSrc('/'.$dir.'/001-dj-set.mp4'));
+        $this->assertNull(ReelLibrary::posterForSrc('/'.$dir.'/002-missing.mp4'));
+
+        File::deleteDirectory($publicDir);
+    }
 }
