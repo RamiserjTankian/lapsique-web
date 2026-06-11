@@ -31,11 +31,16 @@ class PageMetaTest extends TestCase
 
         $meta = PageMeta::forBookingFunnel($settings, 'https://lapsique.media/');
 
-        $this->assertSame('Agenda reels para tu negocio', $meta->title);
+        $this->assertSame('Reels para anuncios de tu negocio', $meta->title);
         $this->assertStringContainsString('Lapsique Media', $meta->metaTitle);
-        $this->assertStringContainsString('1 reel + 10 fotos editadas', $meta->description);
+        $this->assertStringContainsString('Meta Ads', $meta->description);
+        $this->assertStringContainsString('dron DJI', $meta->description);
         $this->assertStringContainsString('4,000', $meta->description);
         $this->assertNotNull($meta->jsonLd);
+        $this->assertSame('Producción de reels para anuncios', $meta->jsonLd['serviceType']);
+        $this->assertSame('Riviera Maya', $meta->jsonLd['areaServed']['name']);
+        $this->assertSame(4000, $meta->jsonLd['offers']['price']);
+        $this->assertSame('https://lapsique.media/#agenda', $meta->jsonLd['offers']['url']);
         $this->assertStringContainsString('booking-og.jpg', (string) $meta->ogImage);
     }
 
@@ -54,7 +59,7 @@ class PageMetaTest extends TestCase
         $this->assertStringContainsString('images/og/custom.jpg', (string) $meta->ogImage);
     }
 
-    public function test_booking_og_image_uses_active_portfolio_photo_before_static_fallback(): void
+    public function test_booking_og_image_uses_static_campaign_image_before_portfolio_photo(): void
     {
         Storage::fake('public');
 
@@ -71,8 +76,8 @@ class PageMetaTest extends TestCase
 
         $meta = PageMeta::forBookingFunnel(null, 'https://lapsique.media/');
 
-        $this->assertStringContainsString('portfolio', (string) $meta->ogImage);
-        $this->assertStringNotContainsString('booking-og.jpg', (string) $meta->ogImage);
+        $this->assertStringContainsString('booking-og.jpg', (string) $meta->ogImage);
+        $this->assertStringNotContainsString('portfolio', (string) $meta->ogImage);
     }
 
     public function test_booking_og_image_falls_back_when_portfolio_file_is_missing(): void

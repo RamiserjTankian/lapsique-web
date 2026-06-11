@@ -1,4 +1,5 @@
 import { trackBookingEvent } from '@/hooks/useBookingAnalytics';
+import { markBookingIntent } from '@/lib/funnelModalEvents';
 
 export const BOOKING_OPEN_EVENT = 'booking:open';
 export const BOOKING_OPEN_PENDING_KEY = 'booking:open';
@@ -24,6 +25,8 @@ export function openBookingModal({
     analyticsPayload,
     skipAnalytics = false,
 }: OpenBookingModalOptions = {}): void {
+    markBookingIntent();
+
     if (!skipAnalytics) {
         trackBookingEvent(analyticsEvent, {
             target: 'booking_popup',

@@ -2,9 +2,10 @@
 
 return [
     'home' => [
-        'title' => 'Agenda reels para tu negocio',
-        'description' => 'Sesión reservable desde $:price MXN.',
-        'keywords' => 'reels para negocios, sesión de contenido, aftermovies, fotografía profesional, anuncios, producción audiovisual, lapsique.media',
+        'title' => 'Reels para anuncios de tu negocio',
+        'description' => 'Agenda una sesión de contenido lista para Meta Ads: reel vertical, cámara Sony, 3 tomas de dron DJI y 10 fotos editadas desde $:price MXN.',
+        'keywords' => 'reels para negocios, reels para anuncios, Meta Ads, sesión de contenido, fotografía profesional, dron DJI, producción audiovisual, Riviera Maya, lapsique.media',
+        'service_type' => 'Producción de reels para anuncios',
     ],
     'djset' => [
         'title' => 'Grabación de DJ Set',
@@ -57,5 +58,5 @@ return [
     'dj_profile' => 'Perfil de :name en lapsique.media.',
     'video_description' => 'Video: :title en lapsique.media.',
     'event_fallback' => 'Evento :title en lapsique.media.',
-    'content_session_alt' => 'Sesión de contenido profesional — lapsique.media',
+    'content_session_alt' => 'Reel para negocio con dron y fotos editadas — Lapsique Media',
 ];

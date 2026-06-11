@@ -160,7 +160,7 @@ class PageMeta
         $title = __('seo.home.title');
         $metaTitle = "{$title} · ".self::siteName();
         $description = self::truncate(
-            trim("{$subtitle} ".__('seo.home.description', ['price' => number_format($price, 0, '.', ',')])),
+            __('seo.home.description', ['price' => number_format($price, 0, '.', ',')]),
         );
         $ogImage = self::bookingOgImageUrl($settings);
         $ogImageAlt = __('seo.content_session_alt');
@@ -169,19 +169,25 @@ class PageMeta
             '@context' => 'https://schema.org',
             '@type' => 'Service',
             'name' => $bookingTitle,
-            'description' => $subtitle,
+            'description' => $description,
             'image' => $ogImage,
+            'serviceType' => __('seo.home.service_type'),
+            'areaServed' => [
+                '@type' => 'AdministrativeArea',
+                'name' => 'Riviera Maya',
+            ],
             'provider' => [
                 '@type' => 'Organization',
                 'name' => self::siteName(),
                 'url' => config('app.url'),
+                'sameAs' => self::sameAsUrls(),
             ],
             'offers' => [
                 '@type' => 'Offer',
                 'price' => $price,
                 'priceCurrency' => 'MXN',
                 'availability' => 'https://schema.org/InStock',
-                'url' => route('home').'#agenda',
+                'url' => Str::finish($canonicalUrl, '/').'#agenda',
             ],
         ];
 
@@ -352,6 +358,20 @@ class PageMeta
             : self::LAPSIQUE_SITE_NAME;
     }
 
+    private static function sameAsUrls(): array
+    {
+        if (config('trascendental.enabled_as_primary')) {
+            return array_values(array_filter([
+                config('trascendental.instagram_url'),
+                config('trascendental.facebook_url'),
+            ]));
+        }
+
+        return array_values(array_filter([
+            config('lapsique.instagram_url'),
+        ]));
+    }
+
     public static function djsetOgImageUrl(?SiteSetting $settings): string
     {
         $uploaded = $settings?->djset_og_image;
@@ -388,13 +408,13 @@ class PageMeta
             return self::absoluteImageUrl(Storage::disk('public')->url($uploaded)) ?? self::defaultOgImageUrl();
         }
 
+        if (self::staticPublicImageUrl('images/booking-og.jpg')) {
+            return self::staticPublicImageUrl('images/booking-og.jpg');
+        }
+
         $portfolioImage = self::portfolioOgImageUrl();
         if (filled($portfolioImage)) {
             return $portfolioImage;
-        }
-
-        if (self::staticPublicImageUrl('images/booking-og.jpg')) {
-            return self::staticPublicImageUrl('images/booking-og.jpg');
         }
 
         return self::defaultOgImageUrl();

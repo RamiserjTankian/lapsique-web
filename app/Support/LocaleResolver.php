@@ -27,7 +27,7 @@ class LocaleResolver
         }
 
         return self::fromAcceptLanguage($request->header('Accept-Language'))
-            ?? config('app.locale', 'es');
+            ?? 'es';
     }
 
     public static function normalize(?string $locale): string

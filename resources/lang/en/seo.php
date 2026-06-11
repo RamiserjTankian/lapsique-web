@@ -2,9 +2,10 @@
 
 return [
     'home' => [
-        'title' => 'Book reels for your business',
-        'description' => 'Bookable session from $:price MXN.',
-        'keywords' => 'business reels, content session, aftermovies, professional photography, ads, audiovisual production, lapsique.media',
+        'title' => 'Reels for business ads',
+        'description' => 'Book a content session ready for Meta Ads: vertical reel, Sony camera, 3 DJI drone shots, and 10 edited photos from $:price MXN.',
+        'keywords' => 'business reels, reels for ads, Meta Ads, content session, professional photography, DJI drone, audiovisual production, Riviera Maya, lapsique.media',
+        'service_type' => 'Reel production for ads',
     ],
     'djset' => [
         'title' => 'DJ set recording',
@@ -57,5 +58,5 @@ return [
     'dj_profile' => ':name profile on lapsique.media.',
     'video_description' => 'Video: :title on lapsique.media.',
     'event_fallback' => 'Event :title on lapsique.media.',
-    'content_session_alt' => 'Professional content session — lapsique.media',
+    'content_session_alt' => 'Business reel with drone shots and edited photos — Lapsique Media',
 ];

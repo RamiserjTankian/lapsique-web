@@ -27,6 +27,14 @@ class LocaleTest extends TestCase
         $this->assertEquals('en', app()->getLocale());
     }
 
+    public function test_defaults_lapsique_public_pages_to_spanish_without_language_hint(): void
+    {
+        $this->withHeaders(['Accept-Language' => ''])
+            ->get('/');
+
+        $this->assertEquals('es', app()->getLocale());
+    }
+
     public function test_locale_switch_sets_session_and_cookie(): void
     {
         $response = $this->get('/locale/en');

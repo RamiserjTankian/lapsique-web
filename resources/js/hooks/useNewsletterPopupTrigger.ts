@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import {
-    FUNNEL_MODAL_STATE_EVENT,
+    canOpenAutomatedFunnelPopup,
     getActiveFunnelModal,
     hasSeenNewsletterPopupWithinDays,
     markNewsletterPopupSeen,
@@ -12,8 +12,10 @@ import {
     supportsExitIntent,
 } from '@/lib/funnelScrollTrigger';
 
-const NEWSLETTER_DELAY_MS = 45_000;
-const BOOKING_CONFLICT_DELAY_MS = 30_000;
+const NEWSLETTER_DELAY_MS = 90_000;
+const NEWSLETTER_SCROLL_THRESHOLD_PERCENT = 84;
+const NEWSLETTER_MIN_TIME_ON_PAGE_MS = 70_000;
+const NEWSLETTER_EXIT_MIN_TIME_MS = 45_000;
 
 export function useNewsletterPopupTrigger({
     enabled,
@@ -30,7 +32,6 @@ export function useNewsletterPopupTrigger({
     const [open, setOpenState] = useState(false);
     const triggeredRef = useRef(false);
     const exitTriggeredRef = useRef(false);
-    const bookingOpenedEarlyRef = useRef(false);
     const mountTimeRef = useRef(Date.now());
     const pendingTimeoutRef = useRef<number | null>(null);
 
@@ -51,6 +52,15 @@ export function useNewsletterPopupTrigger({
         }
 
         if (getActiveFunnelModal() !== null) {
+            return false;
+        }
+
+        if (
+            !canOpenAutomatedFunnelPopup({
+                bookingIntentMs: 180_000,
+                modalQuietMs: 30_000,
+            })
+        ) {
             return false;
         }
 
@@ -81,13 +91,6 @@ export function useNewsletterPopupTrigger({
             }
 
             clearPendingOpen();
-
-            const delay =
-                bookingOpenedEarlyRef.current
-                && Date.now() - mountTimeRef.current < 15_000
-                    ? BOOKING_CONFLICT_DELAY_MS
-                    : 0;
-
             pendingTimeoutRef.current = window.setTimeout(() => {
                 pendingTimeoutRef.current = null;
 
@@ -97,7 +100,7 @@ export function useNewsletterPopupTrigger({
 
                 triggeredRef.current = true;
                 setOpen(true);
-            }, delay);
+            }, 0);
         },
         [canShow, clearPendingOpen, setOpen],
     );
@@ -134,20 +137,6 @@ export function useNewsletterPopupTrigger({
     }, [openManually]);
 
     useEffect(() => {
-        const onModalState = (event: Event) => {
-            const type = (event as CustomEvent<{ type: string | null }>).detail?.type;
-
-            if (type === 'booking' && Date.now() - mountTimeRef.current < 15_000) {
-                bookingOpenedEarlyRef.current = true;
-            }
-        };
-
-        window.addEventListener(FUNNEL_MODAL_STATE_EVENT, onModalState);
-
-        return () => window.removeEventListener(FUNNEL_MODAL_STATE_EVENT, onModalState);
-    }, []);
-
-    useEffect(() => {
         if (!enabled || skipIfLoggedIn) {
             return;
         }
@@ -160,17 +149,25 @@ export function useNewsletterPopupTrigger({
 
         const detachScroll = attachScrollDepthTrigger(
             () => tryOpen('scroll_depth'),
-            { mountTime: mountTimeRef.current },
+            {
+                mountTime: mountTimeRef.current,
+                thresholdPercent: NEWSLETTER_SCROLL_THRESHOLD_PERCENT,
+                minTimeOnPageMs: NEWSLETTER_MIN_TIME_ON_PAGE_MS,
+            },
         );
 
         const onExitIntent = (event: MouseEvent) => {
-            if (event.clientY < 0 && !exitTriggeredRef.current) {
+            if (
+                event.clientY < 0
+                && !exitTriggeredRef.current
+                && Date.now() - mountTimeRef.current >= NEWSLETTER_EXIT_MIN_TIME_MS
+            ) {
                 exitTriggeredRef.current = true;
                 tryOpen('exit_intent');
             }
         };
 
-        const timer = window.setTimeout(() => tryOpen('timer_45s'), NEWSLETTER_DELAY_MS);
+        const timer = window.setTimeout(() => tryOpen('timer_90s'), NEWSLETTER_DELAY_MS);
 
         const exitIntentEnabled = supportsExitIntent();
 

@@ -5,6 +5,7 @@ import {
 } from '@/lib/funnelEngagement';
 import {
     BOOKING_MODAL_CLOSED_EVENT,
+    canOpenAutomatedFunnelPopup,
     FUNNEL_MODAL_STATE_EVENT,
     getActiveFunnelModal,
     hasSeenWhatsAppPopupWithinDays,
@@ -14,23 +15,23 @@ import {
 } from '@/lib/funnelModalEvents';
 import { attachScrollDepthTrigger } from '@/lib/funnelScrollTrigger';
 
-const OPEN_COOLDOWN_MS = 1_500;
-const BOOKING_CLOSE_DELAY_MS = 2_500;
+const OPEN_COOLDOWN_MS = 5_000;
+const BOOKING_CLOSE_DELAY_MS = 90_000;
 
 const DESKTOP = {
-    randomDelayMinMs: 80_000,
-    randomDelayRangeMs: 70_000,
-    engagementMinSections: 3,
-    engagementMinTimeMs: 50_000,
-    scrollThresholdPercent: 68,
+    settledDelayMinMs: 150_000,
+    settledDelayRangeMs: 60_000,
+    engagementMinSections: 4,
+    engagementMinTimeMs: 90_000,
+    scrollThresholdPercent: 82,
 } as const;
 
 const MOBILE = {
-    randomDelayMinMs: 40_000,
-    randomDelayRangeMs: 35_000,
-    engagementMinSections: 2,
-    engagementMinTimeMs: 30_000,
-    scrollThresholdPercent: 52,
+    settledDelayMinMs: 120_000,
+    settledDelayRangeMs: 45_000,
+    engagementMinSections: 3,
+    engagementMinTimeMs: 70_000,
+    scrollThresholdPercent: 76,
 } as const;
 
 function isMobileViewport(): boolean {
@@ -86,6 +87,15 @@ export function useWhatsAppPopupTrigger({
         }
 
         if (getActiveFunnelModal() !== null) {
+            return false;
+        }
+
+        if (
+            !canOpenAutomatedFunnelPopup({
+                bookingIntentMs: 180_000,
+                modalQuietMs: 35_000,
+            })
+        ) {
             return false;
         }
 
@@ -171,10 +181,13 @@ export function useWhatsAppPopupTrigger({
 
         const profile = getTriggerProfile();
 
-        const randomDelay =
-            profile.randomDelayMinMs
-            + Math.floor(Math.random() * profile.randomDelayRangeMs);
-        const randomTimer = window.setTimeout(() => tryOpen('random_timer'), randomDelay);
+        const settledDelay =
+            profile.settledDelayMinMs
+            + Math.floor(Math.random() * profile.settledDelayRangeMs);
+        const settledTimer = window.setTimeout(
+            () => tryOpen('settled_timer'),
+            settledDelay,
+        );
 
         const detachScroll = attachScrollDepthTrigger(
             () => tryOpen('scroll_depth'),
@@ -223,7 +236,7 @@ export function useWhatsAppPopupTrigger({
         window.addEventListener(FUNNEL_MODAL_STATE_EVENT, onModalState);
 
         return () => {
-            window.clearTimeout(randomTimer);
+            window.clearTimeout(settledTimer);
             clearPendingOpen();
             detachScroll();
             window.removeEventListener(FUNNEL_CONTENT_ENGAGEMENT_EVENT, onEngagement);
