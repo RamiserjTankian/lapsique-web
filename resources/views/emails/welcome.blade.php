@@ -19,7 +19,7 @@
     @if($variant === 'dj_set')
         <p style="{{ EmailBrand::paragraphStyle() }}">{{ $language === 'en' ? 'We will send you recorded sessions, artist references and production ideas for turning a set into a career asset.' : 'Te vamos a compartir sesiones grabadas, referencias de artistas e ideas de producción para convertir un set en una pieza que te ayude a crecer carrera.' }}</p>
     @elseif($variant === 'events')
-        <p style="{{ EmailBrand::paragraphStyle() }}">{{ $language === 'en' ? 'We will send you event updates, ticket access, guest list alerts and visual references from Trascendental.' : 'Te vamos a compartir eventos, tickets, guest list y referencias visuales de Trascendental.' }}</p>
+        <p style="{{ EmailBrand::paragraphStyle() }}">{{ $language === 'en' ? 'We will send you event updates, ticket access, guest list alerts and visual references from ' . EmailBrand::WORDMARK . '.' : 'Te vamos a compartir eventos, tickets, guest list y referencias visuales de ' . EmailBrand::WORDMARK . '.' }}</p>
     @else
         <p style="{{ EmailBrand::paragraphStyle() }}">{{ $language === 'en' ? 'We will send you production references, business content ideas and ways to make your offer look more cinematic before booking.' : 'Te vamos a compartir referencias de producción, ideas de contenido para negocio y formas de hacer que tu oferta se vea más cinematográfica antes de agendar.' }}</p>
     @endif
@@ -28,7 +28,7 @@
         <h3 style="{{ EmailBrand::cardTitleStyle() }}">{{ $language === 'en' ? 'What you will receive' : 'Qué vas a recibir' }}</h3>
         <p style="{{ EmailBrand::cardRowStyle() }}"><strong>{{ $language === 'en' ? 'Audiovisual production:' : 'Producción audiovisual:' }}</strong> {{ $language === 'en' ? 'references and packages for brands that need to look premium.' : 'ideas, referencias y paquetes para marcas que necesitan verse más premium.' }}</p>
         <p style="{{ EmailBrand::cardRowStyle() }}"><strong>DJ sets:</strong> {{ $language === 'en' ? 'sessions, artists and content built for bookings and visual presence.' : 'sesiones, artistas y contenido pensado para crecer carrera, booking y presencia visual.' }}</p>
-        <p style="{{ EmailBrand::cardRowStyle() }}"><strong>{{ $language === 'en' ? 'Events:' : 'Eventos:' }}</strong> {{ $language === 'en' ? 'tickets, guest list and Trascendental experience updates.' : 'tickets, guest list y avisos de experiencias de ' . EmailBrand::WORDMARK }}</p>
+        <p style="{{ EmailBrand::cardRowStyle() }}"><strong>{{ $language === 'en' ? 'Events:' : 'Eventos:' }}</strong> {{ $language === 'en' ? 'tickets, guest list and ' . EmailBrand::WORDMARK . ' experience updates.' : 'tickets, guest list y avisos de experiencias de ' . EmailBrand::WORDMARK }}</p>
     </div>
 
     @include('emails.partials._button', ['url' => $ctaUrl, 'label' => $ctaLabel])

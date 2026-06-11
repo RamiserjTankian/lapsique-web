@@ -262,5 +262,10 @@ class EmailTemplateTest extends TestCase
         $this->assertStringContainsString(EmailBrand::PRIMARY, $html);
         $this->assertStringContainsString('DM Sans', $html);
         $this->assertStringContainsString('Syne', $html);
+        $this->assertStringContainsString('Lapsique Media', $html);
+        $this->assertStringContainsString('https://lapsique.media', $html);
+        $this->assertStringContainsString('https://www.instagram.com/lapsique.media/', $html);
+        $this->assertStringNotContainsString('TRASCENDENTAL.', $html);
+        $this->assertStringNotContainsString('trascendentalby', $html);
     }
 }

@@ -3,9 +3,9 @@
 @endphp
 <div class="email-footer" style="{{ EmailBrand::footerStyle() }}">
     <div class="social-links" style="margin:16px 0;">
-        <a href="https://instagram.com/trascendentalby" style="color:{{ EmailBrand::FOREGROUND }};text-decoration:none;margin:0 10px;font-weight:500;">Instagram</a>
+        <a href="{{ EmailBrand::INSTAGRAM_URL }}" style="color:{{ EmailBrand::FOREGROUND }};text-decoration:none;margin:0 10px;font-weight:500;">Instagram</a>
         |
-        <a href="https://trascendentalby.mx" style="color:{{ EmailBrand::FOREGROUND }};text-decoration:none;margin:0 10px;font-weight:500;">Web</a>
+        <a href="{{ EmailBrand::WEBSITE_URL }}" style="color:{{ EmailBrand::FOREGROUND }};text-decoration:none;margin:0 10px;font-weight:500;">Web</a>
     </div>
 
     <p style="color:{{ EmailBrand::MUTED }};margin:0 0 12px;font-size:13px;">

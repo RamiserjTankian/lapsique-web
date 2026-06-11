@@ -26,9 +26,13 @@ final class EmailBrand
 
     public const FONT_DISPLAY = "'Syne', ui-sans-serif, system-ui, sans-serif";
 
-    public const WORDMARK = 'TRASCENDENTAL.';
+    public const WORDMARK = 'Lapsique Media';
 
-    public const TAGLINE = 'Artists · Events · Culture';
+    public const TAGLINE = 'Produccion audiovisual · DJ sets · Eventos';
+
+    public const WEBSITE_URL = 'https://lapsique.media';
+
+    public const INSTAGRAM_URL = 'https://www.instagram.com/lapsique.media/';
 
     public static function fontFamiliesUrl(): string
     {
