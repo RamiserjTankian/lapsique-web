@@ -2,12 +2,12 @@
 
 @section('title', 'Blog | ' . __('messages.site.brand'))
 
-@section('meta_title', 'Blog - Trascendental')
+@section('meta_title', 'Blog - ' . __('messages.site.brand'))
 @section('meta_description', 'Mantente al día con las últimas noticias de la escena electrónica. Artículos, entrevistas y contenido exclusivo.')
 @section('meta_keywords', 'blog electrónico, noticias música electrónica, artículos DJ, escena electrónica, Riviera Maya')
 
 @section('og_type', 'website')
-@section('og_title', 'Blog - Trascendental')
+@section('og_title', 'Blog - ' . __('messages.site.brand'))
 @section('og_description', 'Mantente al día con las últimas noticias de la escena electrónica.')
 @php
     // Intentar obtener imagen del evento destacado probando todas las opciones disponibles
@@ -54,7 +54,7 @@
 @section('og_image', $postsOgImage)
 @section('og_url', route('posts.index'))
 
-@section('twitter_title', 'Blog - Trascendental')
+@section('twitter_title', 'Blog - ' . __('messages.site.brand'))
 @section('twitter_description', 'Mantente al día con las últimas noticias de la escena electrónica.')
 @section('twitter_image', $postsOgImage)
 @section('twitter_url', route('posts.index'))
@@ -66,12 +66,12 @@
 {
   "@@context": "https://schema.org",
   "@type": "Blog",
-  "name": "Blog Trascendental",
+  "name": "Blog Lapsique Media",
   "description": "Noticias y contenido sobre música electrónica",
   "url": "{{ route('posts.index') }}",
   "publisher": {
     "@type": "Organization",
-    "name": "Trascendental",
+    "name": "Lapsique Media",
     "url": "{{ route('home') }}"
   }
 }

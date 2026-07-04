@@ -22,7 +22,7 @@ class PageContentBlockForm
                         Select::make('site')
                             ->label('Sitio')
                             ->options([
-                                'trascendental' => 'Trascendental',
+                                'trascendental' => 'Sitio alterno',
                             ])
                             ->default('trascendental')
                             ->required(),
@@ -75,7 +75,7 @@ class PageContentBlockForm
                             ->columnSpanFull(),
                         TextInput::make('asset_path')
                             ->label('Asset público')
-                            ->placeholder('/images/trascendental/...')
+                            ->placeholder('/images/...')
                             ->maxLength(255)
                             ->helperText('Ruta o URL de una imagen/video ya publicado.'),
                         TextInput::make('cta_label')

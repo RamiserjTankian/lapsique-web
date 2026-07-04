@@ -29,6 +29,8 @@ class ContentBookingSalesOverviewWidget extends BaseWidget
         $serviceText = collect($byService)
             ->map(fn ($amount, $service) => match ($service) {
                 ContentBooking::SERVICE_DJ_SET => 'DJ Set',
+                ContentBooking::SERVICE_DRONE_SESSION => 'Dron',
+                ContentBooking::SERVICE_CONSTRUCTION_PROGRESS => 'Avance obra',
                 ContentBooking::SERVICE_CONTENT_SESSION => 'Sesión',
                 default => (string) $service,
             }.': $'.number_format($amount, 0))

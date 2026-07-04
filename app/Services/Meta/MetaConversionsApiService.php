@@ -54,6 +54,26 @@ class MetaConversionsApiService
         );
     }
 
+    public function sendAddPaymentInfoForBooking(ContentBooking $booking): void
+    {
+        if (! $this->isEnabled() || $this->isTestBooking($booking)) {
+            return;
+        }
+
+        $metadata = is_array($booking->metadata) ? $booking->metadata : [];
+
+        $this->sendEvent(
+            eventName: 'AddPaymentInfo',
+            eventId: data_get($metadata, 'payment_info_event_id') ?: 'booking_payment_info_'.$booking->public_id,
+            eventSourceUrl: $booking->landing_url ?: config('app.url'),
+            userData: $this->userDataFromBooking($booking),
+            customData: array_filter(array_merge(
+                $this->purchaseCustomData($booking),
+                ['payment_provider' => $booking->payment_provider],
+            )),
+        );
+    }
+
     public function sendPurchaseForBooking(ContentBooking $booking): void
     {
         if (! $this->isEnabled() || $this->isTestBooking($booking)) {
@@ -262,7 +282,12 @@ class MetaConversionsApiService
             'content_type' => 'product',
             'content_ids' => [(string) $booking->public_id],
             'content_name' => $booking->service_name,
-            'content_category' => $booking->isDjSet() ? 'dj_set_booking' : 'content_booking',
+            'content_category' => match ($booking->service_type) {
+                ContentBooking::SERVICE_DJ_SET => 'dj_set_booking',
+                ContentBooking::SERVICE_DRONE_SESSION => 'drone_session_booking',
+                ContentBooking::SERVICE_CONSTRUCTION_PROGRESS => 'construction_progress_booking',
+                default => 'content_booking',
+            },
         ];
     }
 

@@ -14,12 +14,16 @@ class FrontendTranslations
         'trascendental',
     ];
 
-    public static function all(?string $locale = null): array
+    public static function all(?string $locale = null, bool $includeTrascendental = true): array
     {
         $locale = $locale ?? app()->getLocale();
         $translations = [];
 
-        foreach (self::FILES as $file) {
+        $files = $includeTrascendental
+            ? self::FILES
+            : array_values(array_filter(self::FILES, fn (string $file): bool => $file !== 'trascendental'));
+
+        foreach ($files as $file) {
             $translations[$file] = trans($file, [], $locale);
         }
 

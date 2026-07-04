@@ -61,7 +61,18 @@ class LocaleTest extends TestCase
             ->assertInertia(fn ($page) => $page
                 ->where('locale', 'en')
                 ->has('translations.common.nav.portfolio')
-                ->where('translations.common.nav.portfolio', 'Portfolio'));
+                ->where('translations.common.nav.portfolio', 'Portfolio')
+                ->missing('translations.trascendental'));
+    }
+
+    public function test_trascendental_preview_shares_its_translation_bundle(): void
+    {
+        $this->withHeaders(['Accept-Language' => 'en-US,en;q=0.9'])
+            ->get('/trascendental')
+            ->assertOk()
+            ->assertInertia(fn ($page) => $page
+                ->where('locale', 'en')
+                ->has('translations.trascendental.hero.headline'));
     }
 
     public function test_locale_resolver_normalizes_tags(): void

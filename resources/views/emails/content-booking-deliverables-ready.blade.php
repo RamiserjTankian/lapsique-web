@@ -10,7 +10,7 @@
     <p style="{{ EmailBrand::paragraphStyle() }}">Hola {{ $booking->client_name }},</p>
 
     <p style="{{ EmailBrand::paragraphStyle() }}">
-        Publicamos nuevo material de tu <strong style="{{ EmailBrand::strongStyle() }}">sesión de contenido</strong>.
+        Publicamos nuevo material para <strong style="{{ EmailBrand::strongStyle() }}">{{ $booking->service_short_name }}</strong>.
         @if ($deliverableLink->displayLabel())
             <br><span style="{{ EmailBrand::mutedStyle() }}">{{ $deliverableLink->displayLabel() }}</span>
         @endif
@@ -18,7 +18,7 @@
 
     @if ($slot)
         <p style="{{ EmailBrand::mutedStyle() }} margin-bottom:24px;">
-            Sesión: {{ $slot->date->locale('es')->isoFormat('D [de] MMMM [de] YYYY') }} · {{ $slot->time_label }}
+            {{ $booking->service_short_name }}: {{ $slot->date->locale('es')->isoFormat('D [de] MMMM [de] YYYY') }} · {{ $slot->time_label }}
         </p>
     @endif
 
@@ -42,7 +42,7 @@
     </p>
 
     <p style="{{ EmailBrand::paragraphStyle() }} font-size:14px;">
-        En tu portal puedes consultar el historial de entregas y el estado de tu sesión cuando quieras.
+        En tu portal puedes consultar el historial de entregas y el estado de tu reserva cuando quieras.
     </p>
 
     <p style="{{ EmailBrand::paragraphStyle() }} margin-top:30px;">¡Gracias por confiar en {{ EmailBrand::WORDMARK }}!</p>

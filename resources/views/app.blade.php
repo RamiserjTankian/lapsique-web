@@ -16,8 +16,8 @@
         (function () {
             var key = 'trascendental-theme';
             var stored = localStorage.getItem(key);
-            var isTrascendental = @json(config('trascendental.enabled_as_primary')) || window.location.pathname.indexOf('/trascendental') === 0;
-            var theme = isTrascendental ? 'light' : (stored === 'dark' || stored === 'light' ? stored : 'light');
+            var isAlternateSite = @json(config('trascendental.enabled_as_primary')) || window.location.pathname.indexOf('/trascendental') === 0;
+            var theme = isAlternateSite ? 'light' : (stored === 'dark' || stored === 'light' ? stored : 'light');
             var root = document.documentElement;
 
             function syncBrowserTheme(nextTheme) {
@@ -77,12 +77,20 @@
         $metaPixelConfig = \App\Support\Meta::pixelClientConfig();
         $metaPixelId = $metaPixelConfig['id'];
         $metaPixelEnabled = $metaPixelConfig['enabled'];
+        $routeName = request()->route()?->getName();
+        $serviceType = match ($routeName) {
+            'djset.show' => 'dj_set',
+            'drone-sessions.show' => 'drone_session',
+            'home', 'booking.show' => 'content_session',
+            default => null,
+        };
         $pageConfig = [
-            'type' => request()->route()?->getName() ?: 'site',
-            'name' => request()->route()?->getName(),
-            'title' => config('app.name', 'Trascendentalby'),
+            'type' => $routeName ?: 'site',
+            'name' => $routeName,
+            'title' => config('app.name', 'Lapsique Media'),
             'path' => request()->getPathInfo(),
             'url' => url()->current(),
+            'serviceType' => $serviceType,
         ];
     @endphp
     <script>
@@ -117,19 +125,21 @@
             },
         };
 
-        window.trackMetaPixel = window.trackMetaPixel || function (eventName, payload) {
+        window.trackMetaPixel = window.trackMetaPixel || function (eventName, payload, options) {
             window.__sitePixelQueue.push({
                 method: 'track',
                 eventName: eventName,
                 payload: payload || {},
+                options: options || null,
             });
         };
 
-        window.trackMetaPixelCustom = window.trackMetaPixelCustom || function (eventName, payload) {
+        window.trackMetaPixelCustom = window.trackMetaPixelCustom || function (eventName, payload, options) {
             window.__sitePixelQueue.push({
                 method: 'trackCustom',
                 eventName: eventName,
                 payload: payload || {},
+                options: options || null,
             });
         };
     </script>

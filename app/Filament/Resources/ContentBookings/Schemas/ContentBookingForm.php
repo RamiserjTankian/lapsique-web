@@ -55,6 +55,8 @@ class ContentBookingForm
                             ->options([
                                 'content_session' => 'Sesión de contenido',
                                 'dj_set' => 'DJ Set',
+                                'drone_session' => 'Vuelo con dron',
+                                'construction_progress' => 'Avance de obra',
                             ])
                             ->disabled()
                             ->dehydrated(false),

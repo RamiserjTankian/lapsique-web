@@ -166,7 +166,7 @@ class SiteSettings extends Page implements HasSchemas
                     ]),
 
                 Section::make('Open Graph alterno')
-                    ->description('Open Graph para enlaces públicos de Trascendental en WhatsApp, Facebook, etc.')
+                    ->description('Open Graph para enlaces públicos de Lapsique Media en WhatsApp, Facebook, etc.')
                     ->schema([
                         FileUpload::make('djset_og_image')
                             ->label('Imagen para compartir (Open Graph)')

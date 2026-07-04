@@ -88,13 +88,13 @@ class DjForm
                     ->columnSpanFull(),
                 TextInput::make('public_image_path')
                     ->label('Imagen pública existente')
-                    ->placeholder('/images/trascendental/artists/artist.jpeg')
+                    ->placeholder('/images/artists/artist.jpeg')
                     ->maxLength(255)
                     ->helperText('Úsalo para imágenes ya publicadas cuando no quieras subir media nueva.')
                     ->columnSpanFull(),
 
                 Toggle::make('trascendental_roster')
-                    ->label('Mostrar en roster Trascendental')
+                    ->label('Mostrar en roster alterno')
                     ->helperText('Activa esto para alimentar Home y Tours & Routing.'),
                 Select::make('booking_status')
                     ->label('Estado de booking')

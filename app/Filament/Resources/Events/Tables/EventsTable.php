@@ -45,7 +45,7 @@ class EventsTable
                     ->label('Ciudad')
                     ->sortable(),
                 TextColumn::make('trascendental_kind')
-                    ->label('Trascendental')
+                    ->label('Sitio alterno')
                     ->formatStateUsing(fn (?string $state): string => match ($state) {
                         'produced' => 'Producido',
                         'roster_appearance' => 'Roster',
@@ -100,14 +100,14 @@ class EventsTable
             ->filters([
                 TrashedFilter::make(),
                 SelectFilter::make('trascendental_kind')
-                    ->label('Tipo Trascendental')
+                    ->label('Tipo sitio alterno')
                     ->options([
                         'produced' => 'Evento producido',
                         'roster_appearance' => 'Aparición del roster',
                         'announcement' => 'Anuncio / por confirmar',
                     ]),
                 SelectFilter::make('trascendental_visible')
-                    ->label('Visible en Trascendental')
+                    ->label('Visible en sitio alterno')
                     ->options([
                         1 => 'Visible',
                         0 => 'No visible',

@@ -1,5 +1,5 @@
 import { format, parseISO } from 'date-fns';
-import { CalendarClock, Camera, Clock, Music } from 'lucide-react';
+import { Building2, CalendarClock, Camera, Clock, Drone, Music } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { DeliverablePanel } from '@/components/lapsique/portal/DeliverablePanel';
 import { SessionStatusTimeline } from '@/components/lapsique/portal/SessionStatusTimeline';
@@ -28,7 +28,9 @@ export function SessionCard({
     const status = resolveSessionStatus(booking, t);
 
     const isDjSet = booking.service_type === 'dj_set';
-    const ServiceIcon = isDjSet ? Music : Camera;
+    const isDroneSession = booking.service_type === 'drone_session';
+    const isConstructionProgress = booking.service_type === 'construction_progress';
+    const ServiceIcon = isDjSet ? Music : isDroneSession ? Drone : isConstructionProgress ? Building2 : Camera;
 
     const badgeKey = status.isException ? null : status.currentKey;
     const badgeLabel = status.isException

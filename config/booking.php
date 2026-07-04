@@ -14,7 +14,9 @@ return [
     'content_reel_duration_seconds' => 30,
     'content_drone_shots' => 3,
     'content_photos_count' => 10,
-    'dj_set_price' => 12000,
+    'dj_set_price' => 10000,
+    'drone_session_price' => 3000,
+    'construction_progress_price' => 5000,
 
     'skip_payment_hosts' => [
         'localhost',

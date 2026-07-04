@@ -128,7 +128,7 @@ class BookingSettings extends Page implements HasSchemas
 
                         TextInput::make('booking_team_name')
                             ->label('Nombre del equipo / lead')
-                            ->placeholder('Trascendental'),
+                            ->placeholder('Lapsique Media'),
 
                         Textarea::make('booking_team_bio')
                             ->label('Bio corta del equipo')
@@ -182,7 +182,7 @@ class BookingSettings extends Page implements HasSchemas
                         TextInput::make('booking_calendar_notify_email')
                             ->label('Email interno (invitación calendario)')
                             ->email()
-                            ->placeholder('produccion@trascendentalby.mx')
+                            ->placeholder('produccion@lapsique.media')
                             ->helperText('Recibe copia de la invitación de Google Calendar (Workspace).')
                             ->columnSpanFull(),
 

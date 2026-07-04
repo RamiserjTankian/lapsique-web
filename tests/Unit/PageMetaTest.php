@@ -117,7 +117,7 @@ class PageMetaTest extends TestCase
         $meta = PageMeta::forDjSet($settings, 'https://lapsique.media/dj-set');
 
         $this->assertSame('Grabación de DJ Set', $meta->title);
-        $this->assertStringContainsString('12,000', $meta->description);
+        $this->assertStringContainsString('10,000', $meta->description);
         $this->assertStringContainsString('Ronin', $meta->description);
         $this->assertStringContainsString('images/og/djset.jpg', (string) $meta->ogImage);
         $this->assertStringNotContainsString('og-default.jpg', (string) $meta->ogImage);
@@ -163,6 +163,34 @@ class PageMetaTest extends TestCase
 
         $this->assertStringContainsString('thumb', (string) $meta->ogImage);
         $this->assertStringNotContainsString('og-default.jpg', (string) $meta->ogImage);
+    }
+
+    public function test_drone_session_meta_includes_offer_and_static_media(): void
+    {
+        $meta = PageMeta::forDroneSession('https://lapsique.media/sesiones-de-dron');
+
+        $this->assertSame('Sesiones de vuelo con dron', $meta->title);
+        $this->assertStringContainsString('DJI Air 3', $meta->description);
+        $this->assertStringContainsString('3,000', $meta->description);
+        $this->assertStringContainsString('Cancún', $meta->description);
+        $this->assertStringContainsString('/images/drone-sessions/hero.jpg', (string) $meta->ogImage);
+        $this->assertSame('Vuelo con dron DJI Air 3', $meta->jsonLd['serviceType']);
+        $this->assertSame(3000, $meta->jsonLd['offers']['price']);
+        $this->assertSame('https://lapsique.media/sesiones-de-dron#agenda', $meta->jsonLd['offers']['url']);
+    }
+
+    public function test_construction_progress_meta_includes_offer_and_static_media(): void
+    {
+        $meta = PageMeta::forConstructionProgress('https://lapsique.media/avances-de-obra');
+
+        $this->assertSame('Avances de obra con dron', $meta->title);
+        $this->assertStringContainsString('DJI Air 3', $meta->description);
+        $this->assertStringContainsString('5,000', $meta->description);
+        $this->assertStringContainsString('Cancún', $meta->description);
+        $this->assertStringContainsString('/images/drone-sessions/goba-construction.jpg', (string) $meta->ogImage);
+        $this->assertSame('Avance de obra con dron DJI Air 3', $meta->jsonLd['serviceType']);
+        $this->assertSame(5000, $meta->jsonLd['offers']['price']);
+        $this->assertSame('https://lapsique.media/avances-de-obra#agenda', $meta->jsonLd['offers']['url']);
     }
 
     public function test_booking_status_meta_is_noindex(): void

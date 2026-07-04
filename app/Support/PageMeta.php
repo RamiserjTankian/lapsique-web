@@ -37,6 +37,9 @@ class PageMeta
             'trascendental.about' => self::forTrascendentalSection(__('trascendental.about.title'), __('trascendental.about.intro'), $canonicalUrl),
             'trascendental.contact' => self::forTrascendentalSection(__('trascendental.contact.title'), __('trascendental.contact.intro'), $canonicalUrl),
             'djset.show' => self::forDjSet($settings, $canonicalUrl),
+            'drone-sessions.show' => self::forDroneSession($canonicalUrl),
+            'construction-progress.show' => self::forConstructionProgress($canonicalUrl),
+            'food-reels.show' => self::forFoodReels($settings, $canonicalUrl),
             'djs.show' => self::forDj($request->route('dj'), $canonicalUrl),
             'videos.show' => self::forVideo($request->route('video'), $canonicalUrl),
             'events.show' => self::forEvent($request->route('event'), $canonicalUrl),
@@ -97,7 +100,7 @@ class PageMeta
 
     public static function forDjSet(?SiteSetting $settings, string $canonicalUrl): PageMetaData
     {
-        $price = (int) config('booking.dj_set_price', 12000);
+        $price = (int) config('booking.dj_set_price', 10000);
         $title = __('seo.djset.title');
         $metaTitle = "{$title} · ".self::siteName();
         $description = self::truncate(
@@ -115,6 +118,161 @@ class PageMeta
             ogImage: $ogImage,
             ogImageAlt: $ogImageAlt,
             keywords: __('seo.djset.keywords'),
+        );
+    }
+
+    public static function forDroneSession(string $canonicalUrl): PageMetaData
+    {
+        $price = (int) config('booking.drone_session_price', 3000);
+        $title = __('seo.drone_session.title');
+        $description = self::truncate(
+            __('seo.drone_session.description', ['price' => number_format($price, 0, '.', ',')]),
+        );
+        $ogImage = self::absoluteImageUrl('/images/drone-sessions/hero.jpg');
+
+        $jsonLd = [
+            '@context' => 'https://schema.org',
+            '@type' => 'Service',
+            'name' => $title,
+            'description' => $description,
+            'image' => $ogImage,
+            'serviceType' => __('seo.drone_session.service_type'),
+            'areaServed' => [
+                ['@type' => 'City', 'name' => 'Cancún'],
+                ['@type' => 'City', 'name' => 'Playa del Carmen'],
+                ['@type' => 'City', 'name' => 'Tulum'],
+            ],
+            'provider' => [
+                '@type' => 'Organization',
+                'name' => self::siteName(),
+                'url' => config('app.url'),
+                'sameAs' => self::sameAsUrls(),
+            ],
+            'offers' => [
+                '@type' => 'Offer',
+                'price' => $price,
+                'priceCurrency' => 'MXN',
+                'availability' => 'https://schema.org/InStock',
+                'url' => rtrim($canonicalUrl, '/').'#agenda',
+            ],
+        ];
+
+        return new PageMetaData(
+            title: $title,
+            metaTitle: "{$title} · ".self::siteName(),
+            description: $description,
+            canonicalUrl: $canonicalUrl,
+            ogType: 'website',
+            ogImage: $ogImage,
+            ogImageAlt: __('seo.drone_session.og_alt'),
+            keywords: __('seo.drone_session.keywords'),
+            jsonLd: $jsonLd,
+        );
+    }
+
+    public static function forConstructionProgress(string $canonicalUrl): PageMetaData
+    {
+        $price = (int) config('booking.construction_progress_price', 5000);
+        $title = __('seo.construction_progress.title');
+        $description = self::truncate(
+            __('seo.construction_progress.description', ['price' => number_format($price, 0, '.', ',')]),
+        );
+        $ogImage = self::absoluteImageUrl('/images/drone-sessions/goba-construction.jpg');
+
+        $jsonLd = [
+            '@context' => 'https://schema.org',
+            '@type' => 'Service',
+            'name' => $title,
+            'description' => $description,
+            'image' => $ogImage,
+            'serviceType' => __('seo.construction_progress.service_type'),
+            'areaServed' => [
+                ['@type' => 'City', 'name' => 'Cancún'],
+                ['@type' => 'City', 'name' => 'Playa del Carmen'],
+                ['@type' => 'City', 'name' => 'Tulum'],
+            ],
+            'provider' => [
+                '@type' => 'Organization',
+                'name' => self::siteName(),
+                'url' => config('app.url'),
+                'sameAs' => self::sameAsUrls(),
+            ],
+            'offers' => [
+                '@type' => 'Offer',
+                'price' => $price,
+                'priceCurrency' => 'MXN',
+                'availability' => 'https://schema.org/InStock',
+                'url' => rtrim($canonicalUrl, '/').'#agenda',
+            ],
+        ];
+
+        return new PageMetaData(
+            title: $title,
+            metaTitle: "{$title} · ".self::siteName(),
+            description: $description,
+            canonicalUrl: $canonicalUrl,
+            ogType: 'website',
+            ogImage: $ogImage,
+            ogImageAlt: __('seo.construction_progress.og_alt'),
+            keywords: __('seo.construction_progress.keywords'),
+            jsonLd: $jsonLd,
+        );
+    }
+
+    public static function forFoodReels(?SiteSetting $settings, string $canonicalUrl): PageMetaData
+    {
+        $price = (int) ($settings?->booking_price ?? config('booking.content_price', 4000));
+        $isEnglish = app()->getLocale() === 'en';
+        $title = $isEnglish
+            ? 'Food reels and restaurant content'
+            : 'Reels de comida y contenido para restaurantes';
+        $description = self::truncate($isEnglish
+            ? 'Food reels, product photos, and lifestyle activations for restaurants that need sharper Instagram, ads, and menu content.'
+            : 'Reels de comida, fotos de producto y activaciones para restaurantes que necesitan verse mejor en Instagram, anuncios y menú digital.');
+        $ogImage = self::staticPublicImageUrl('images/food-reels/sushiclub-day-sushi-promo-poster.jpg')
+            ?? self::bookingOgImageUrl($settings);
+
+        $jsonLd = [
+            '@context' => 'https://schema.org',
+            '@type' => 'Service',
+            'name' => $title,
+            'description' => $description,
+            'image' => $ogImage,
+            'serviceType' => $isEnglish ? 'Food reel production' : 'Producción de reels gastronómicos',
+            'areaServed' => [
+                ['@type' => 'City', 'name' => 'Cancun'],
+                ['@type' => 'City', 'name' => 'Playa del Carmen'],
+                ['@type' => 'City', 'name' => 'Tulum'],
+            ],
+            'provider' => [
+                '@type' => 'Organization',
+                'name' => self::siteName(),
+                'url' => config('app.url'),
+                'sameAs' => self::sameAsUrls(),
+            ],
+            'offers' => [
+                '@type' => 'Offer',
+                'price' => $price,
+                'priceCurrency' => 'MXN',
+                'availability' => 'https://schema.org/InStock',
+                'url' => rtrim($canonicalUrl, '/').'#agenda',
+            ],
+        ];
+
+        return new PageMetaData(
+            title: $title,
+            metaTitle: "{$title} · ".self::siteName(),
+            description: $description,
+            canonicalUrl: $canonicalUrl,
+            ogType: 'website',
+            ogImage: $ogImage,
+            ogImageAlt: $isEnglish
+                ? 'SushiClub food reel produced by Lapsique Media'
+                : 'Reel de comida de SushiClub producido por Lapsique Media',
+            keywords: $isEnglish
+                ? 'food reels, restaurant content, food photography, Cancun restaurants, Lapsique Media'
+                : 'reels de comida, contenido para restaurantes, fotografía gastronómica, restaurantes Cancún, Lapsique Media',
+            jsonLd: $jsonLd,
         );
     }
 

@@ -83,12 +83,45 @@ class ContentBookingController extends Controller
             ->all();
 
         return Inertia::render('DjSet/Show', [
-            'price' => (int) config('booking.dj_set_price', 12000),
+            'price' => (int) config('booking.dj_set_price', 10000),
             'slots' => BookingSlotResource::collection($data['slots'])->resolve(),
             'originals' => \App\Http\Resources\VideoResource::collection($originals)->resolve(),
             'portfolioItems' => $portfolioPayload,
             'djSetReels' => $djSetReels,
             'djs' => \App\Http\Resources\DjResource::collection($djs)->resolve(),
+            'errors' => session('errors')?->getBag('default')?->getMessages() ?? [],
+        ]);
+    }
+
+    public function showDroneSession(): Response
+    {
+        $data = $this->bookingPageData();
+
+        return Inertia::render('DroneSessions/Show', [
+            'price' => (int) config('booking.drone_session_price', 3000),
+            'slots' => BookingSlotResource::collection($data['slots'])->resolve(),
+            'errors' => session('errors')?->getBag('default')?->getMessages() ?? [],
+        ]);
+    }
+
+    public function showConstructionProgress(): Response
+    {
+        $data = $this->bookingPageData();
+
+        return Inertia::render('ConstructionProgress/Show', [
+            'price' => (int) config('booking.construction_progress_price', 5000),
+            'slots' => BookingSlotResource::collection($data['slots'])->resolve(),
+            'errors' => session('errors')?->getBag('default')?->getMessages() ?? [],
+        ]);
+    }
+
+    public function showFoodReels(): Response
+    {
+        $data = $this->bookingPageData();
+
+        return Inertia::render('FoodReels/Show', [
+            'price' => $data['price'],
+            'slots' => BookingSlotResource::collection($data['slots'])->resolve(),
             'errors' => session('errors')?->getBag('default')?->getMessages() ?? [],
         ]);
     }
@@ -108,6 +141,7 @@ class ContentBookingController extends Controller
         }
 
         return $preferred
+            ->unique(fn (array $reel): string => (string) ($reel['src'] ?? $reel['id']))
             ->take(8)
             ->map(fn (array $reel): array => [
                 'id' => $reel['id'],
@@ -150,12 +184,16 @@ class ContentBookingController extends Controller
     private function djSetFallbackPortfolioItems(): array
     {
         $items = [
-            ['035-santino-on-heaven-22-de-marzo-d53121e12f.webp', 'vertical'],
-            ['044-traumer-shonky-18f03299b9.webp', 'horizontal'],
-            ['084-rebolledo-aca3815016.webp', 'horizontal'],
-            ['059-umi-contenido-4dfea0d67c.webp', 'vertical'],
-            ['097-traumer-shonky-309e63566a.webp', 'horizontal'],
             ['082-proper-collective-cab1bed3f4.webp', 'horizontal'],
+            ['083-rebolledo-6303cc8117.webp', 'vertical'],
+            ['034-santino-on-heaven-22-de-marzo-afac794f4e.webp', 'vertical'],
+            ['081-proper-collective-8795ef25a1.webp', 'vertical'],
+            ['067-fotos-proper-54490411c4.webp', 'horizontal'],
+            ['009-fotos-proper-468084b45c.webp', 'vertical'],
+            ['068-fotos-proper-327011af30.webp', 'vertical'],
+            ['010-fotos-proper-861ac2f3b1.webp', 'vertical'],
+            ['084-rebolledo-aca3815016.webp', 'horizontal'],
+            ['027-proper-collective-27e2a81756.webp', 'horizontal'],
         ];
 
         return collect($items)
@@ -276,6 +314,44 @@ class ContentBookingController extends Controller
         );
     }
 
+    public function checkoutDroneSession(
+        Request $request,
+        MercadoPagoService $mercadoPago,
+        StripeService $stripe,
+        ContentBookingPaymentService $bookingPayment,
+        CustomerPortalAccessService $portalAccess,
+        CustomerAnalyticsAttributionService $attributionService,
+    ): SymfonyResponse {
+        return $this->checkoutForService(
+            $request,
+            $mercadoPago,
+            $stripe,
+            $bookingPayment,
+            $portalAccess,
+            $attributionService,
+            ContentBooking::SERVICE_DRONE_SESSION,
+        );
+    }
+
+    public function checkoutConstructionProgress(
+        Request $request,
+        MercadoPagoService $mercadoPago,
+        StripeService $stripe,
+        ContentBookingPaymentService $bookingPayment,
+        CustomerPortalAccessService $portalAccess,
+        CustomerAnalyticsAttributionService $attributionService,
+    ): SymfonyResponse {
+        return $this->checkoutForService(
+            $request,
+            $mercadoPago,
+            $stripe,
+            $bookingPayment,
+            $portalAccess,
+            $attributionService,
+            ContentBooking::SERVICE_CONSTRUCTION_PROGRESS,
+        );
+    }
+
     protected function checkoutForService(
         Request $request,
         MercadoPagoService $mercadoPago,
@@ -294,14 +370,17 @@ class ContentBookingController extends Controller
             'notes' => ['nullable', 'string', 'max:1000'],
             'payment_provider' => ['nullable', 'string', 'in:mercadopago,stripe'],
             'checkout_event_id' => ['nullable', 'string', 'max:64'],
+            'payment_info_event_id' => ['nullable', 'string', 'max:96'],
             'terms_accepted' => ['accepted'],
         ]);
 
         $settings = SiteSetting::current();
-        $isDjSet = $serviceType === ContentBooking::SERVICE_DJ_SET;
-        $price = $isDjSet
-            ? (int) config('booking.dj_set_price', 12000)
-            : ($settings?->booking_price ?: (int) config('booking.content_price', 3000));
+        $price = match ($serviceType) {
+            ContentBooking::SERVICE_DJ_SET => (int) config('booking.dj_set_price', 10000),
+            ContentBooking::SERVICE_DRONE_SESSION => (int) config('booking.drone_session_price', 3000),
+            ContentBooking::SERVICE_CONSTRUCTION_PROGRESS => (int) config('booking.construction_progress_price', 5000),
+            default => $settings?->booking_price ?: (int) config('booking.content_price', 3000),
+        };
         $paymentProvider = 'stripe';
 
         $booking = null;
@@ -379,6 +458,7 @@ class ContentBookingController extends Controller
                         'service_type' => $serviceType,
                         'checkout_route' => $request->route()?->getName(),
                         'checkout_event_id' => $request->input('checkout_event_id'),
+                        'payment_info_event_id' => $request->input('payment_info_event_id'),
                     ],
                 ]);
 
@@ -400,7 +480,9 @@ class ContentBookingController extends Controller
         }
 
         if (! BookingMode::shouldSkipPayment($request)) {
-            app(MetaConversionsApiService::class)->sendInitiateCheckoutForBooking($booking->fresh());
+            $freshBooking = $booking->fresh();
+            app(MetaConversionsApiService::class)->sendAddPaymentInfoForBooking($freshBooking);
+            app(MetaConversionsApiService::class)->sendInitiateCheckoutForBooking($freshBooking);
         }
 
         if (BookingMode::shouldSkipPayment($request)) {

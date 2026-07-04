@@ -24,7 +24,7 @@
         $invitedBy = $entry->dj?->name
             ?? $entry->rp?->name
             ?? $entry->inviteLink?->name
-            ?? 'Trascendental';
+            ?? __('messages.site.brand');
 
         $checkInLimit = $entry->getCheckInLimit();
         $checkInCount = $entry->getCheckInCount();

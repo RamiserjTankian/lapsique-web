@@ -62,7 +62,7 @@ class SendContentBookingDeliverablesReadyEmailJob implements ShouldQueue
                 'channel' => 'email',
                 'type' => 'transactional',
                 'subject' => 'Tu contenido Lapsique ya está listo',
-                'message' => 'Entregables de sesión de contenido publicados',
+                'message' => 'Entregables de '.$booking->service_short_name.' publicados',
                 'metadata' => [
                     'template' => 'content_booking_deliverables_ready',
                     'tracking_token' => $trackingToken,

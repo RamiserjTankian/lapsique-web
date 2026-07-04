@@ -45,7 +45,7 @@ class ContentBookingSalesInsightsTest extends TestCase
             'client_name' => 'Cliente DJ',
             'client_email' => 'dj@example.com',
             'client_phone' => '529841234567',
-            'amount' => 12000,
+            'amount' => 10000,
             'currency' => 'MXN',
             'status' => 'confirmed',
             'payment_provider' => 'internal',
@@ -59,7 +59,7 @@ class ContentBookingSalesInsightsTest extends TestCase
         $stats = ContentBookingSalesInsights::periodStats();
 
         $this->assertSame(1, $stats['orders']);
-        $this->assertSame(12000.0, $stats['revenue']);
+        $this->assertSame(10000.0, $stats['revenue']);
         $this->assertContains($booking->id, ContentBookingSalesInsights::confirmedSalesQuery()->pluck('id'));
     }
 
@@ -121,7 +121,7 @@ class ContentBookingSalesInsightsTest extends TestCase
             'client_name' => 'DJ',
             'client_email' => 'dj@example.com',
             'client_phone' => '529841234567',
-            'amount' => 12000,
+            'amount' => 10000,
             'currency' => 'MXN',
             'status' => 'confirmed',
             'paid_at' => now()->subDay(),
@@ -130,7 +130,7 @@ class ContentBookingSalesInsightsTest extends TestCase
         $byService = ContentBookingSalesInsights::revenueByService();
 
         $this->assertSame(3000.0, $byService[ContentBooking::SERVICE_CONTENT_SESSION]);
-        $this->assertSame(12000.0, $byService[ContentBooking::SERVICE_DJ_SET]);
+        $this->assertSame(10000.0, $byService[ContentBooking::SERVICE_DJ_SET]);
     }
 
     public function test_old_confirmed_booking_outside_period_is_excluded(): void

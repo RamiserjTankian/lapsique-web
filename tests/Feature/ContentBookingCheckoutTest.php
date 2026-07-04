@@ -171,6 +171,70 @@ class ContentBookingCheckoutTest extends TestCase
         $this->assertSame('cs_test_123', $booking->stripe_checkout_session_id);
     }
 
+    public function test_checkout_sends_meta_payment_info_and_initiate_checkout_with_browser_event_ids(): void
+    {
+        config([
+            'stripe.secret_key' => 'sk_test_fake',
+            'booking.skip_payment_hosts' => [],
+            'booking.skip_payment_host_suffixes' => [],
+            'meta.capi.enabled' => true,
+            'meta.pixel.id' => '123456789',
+            'meta.marketing_api.access_token' => 'test-token',
+            'meta.marketing_api.api_version' => 'v21.0',
+        ]);
+
+        Http::fake([
+            'https://api.stripe.com/v1/checkout/sessions' => Http::response([
+                'id' => 'cs_test_123',
+                'url' => 'https://checkout.stripe.com/pay/cs_test_123',
+                'status' => 'open',
+            ], 200),
+            'https://graph.facebook.com/*' => Http::response(['events_received' => 1], 200),
+        ]);
+
+        $slot = $this->createAvailableSlot();
+
+        $response = $this->post(route('booking.checkout'), array_merge($this->checkoutPayload($slot), [
+            'payment_provider' => 'stripe',
+            'checkout_event_id' => 'checkout-event-123',
+            'payment_info_event_id' => 'checkout-event-123_payment_info',
+            'fbp' => 'fb.1.1710000000000.123456789',
+            'fbc' => 'fb.1.1710000000000.fbclid',
+            'landing_url' => 'https://lapsique.media/?utm_source=facebook',
+        ]));
+
+        $response->assertRedirect('https://checkout.stripe.com/pay/cs_test_123');
+
+        Http::assertSent(function ($request) {
+            if (! str_contains($request->url(), '123456789/events')) {
+                return false;
+            }
+
+            $event = $request->data()['data'][0] ?? [];
+
+            return ($event['event_name'] ?? null) === 'AddPaymentInfo'
+                && ($event['event_id'] ?? null) === 'checkout-event-123_payment_info'
+                && ($event['event_source_url'] ?? null) === 'https://lapsique.media/?utm_source=facebook'
+                && ($event['user_data']['fbp'] ?? null) === 'fb.1.1710000000000.123456789'
+                && ($event['user_data']['fbc'] ?? null) === 'fb.1.1710000000000.fbclid'
+                && ($event['custom_data']['payment_provider'] ?? null) === 'stripe';
+        });
+
+        Http::assertSent(function ($request) {
+            if (! str_contains($request->url(), '123456789/events')) {
+                return false;
+            }
+
+            $event = $request->data()['data'][0] ?? [];
+
+            return ($event['event_name'] ?? null) === 'InitiateCheckout'
+                && ($event['event_id'] ?? null) === 'checkout-event-123'
+                && ($event['event_source_url'] ?? null) === 'https://lapsique.media/?utm_source=facebook'
+                && ($event['user_data']['fbp'] ?? null) === 'fb.1.1710000000000.123456789'
+                && ($event['user_data']['fbc'] ?? null) === 'fb.1.1710000000000.fbclid';
+        });
+    }
+
     public function test_inertia_stripe_checkout_uses_external_location_visit(): void
     {
         config([
@@ -229,10 +293,10 @@ class ContentBookingCheckoutTest extends TestCase
             ->assertOk()
             ->assertInertia(fn ($page) => $page
                 ->component('DjSet/Show')
-                ->where('price', 12000)
+                ->where('price', 10000)
                 ->has('slots', 1)
                 ->has('originals', 1)
-                ->has('portfolioItems', 1)
+                ->has('portfolioItems')
                 ->has('djSetReels')
                 ->has('djs', 1)
             );
@@ -265,7 +329,7 @@ class ContentBookingCheckoutTest extends TestCase
         $booking = ContentBooking::firstOrFail();
         $this->assertSame(ContentBooking::SERVICE_DJ_SET, $booking->service_type);
         $this->assertSame('stripe', $booking->payment_provider);
-        $this->assertSame(12000, $booking->amount);
+        $this->assertSame(10000, $booking->amount);
         $this->assertSame(1, $slot->fresh()->booked_count);
 
         Http::assertSent(function ($request) use ($booking): bool {
@@ -273,7 +337,113 @@ class ContentBookingCheckoutTest extends TestCase
 
             return $request->url() === 'https://api.stripe.com/v1/checkout/sessions'
                 && data_get($payload, 'line_items.0.price_data.product_data.name') === 'Grabación de DJ Set — multicámara, Ronin, dron y audio 32-bit'
-                && data_get($payload, 'line_items.0.price_data.unit_amount') === 1200000
+                && data_get($payload, 'line_items.0.price_data.unit_amount') === 1000000
+                && data_get($payload, 'metadata.content_booking_public_id') === $booking->public_id;
+            });
+    }
+
+    public function test_drone_session_landing_uses_shared_slots_and_price(): void
+    {
+        $this->createAvailableSlot();
+
+        $this->get(route('drone-sessions.show'))
+            ->assertOk()
+            ->assertInertia(fn ($page) => $page
+                ->component('DroneSessions/Show')
+                ->where('price', 3000)
+                ->has('slots', 1)
+            );
+    }
+
+    public function test_drone_session_checkout_forces_stripe_product_and_amount(): void
+    {
+        config([
+            'stripe.secret_key' => 'sk_test_fake',
+            'booking.skip_payment_hosts' => [],
+            'booking.skip_payment_host_suffixes' => [],
+        ]);
+
+        Http::fake([
+            'https://api.stripe.com/v1/checkout/sessions' => Http::response([
+                'id' => 'cs_drone_session',
+                'url' => 'https://checkout.stripe.com/pay/cs_drone_session',
+                'status' => 'open',
+            ], 200),
+        ]);
+
+        $slot = $this->createAvailableSlot();
+
+        $response = $this->post(route('drone-sessions.checkout'), array_merge($this->checkoutPayload($slot), [
+            'payment_provider' => 'mercadopago',
+        ]));
+
+        $response->assertRedirect('https://checkout.stripe.com/pay/cs_drone_session');
+
+        $booking = ContentBooking::firstOrFail();
+        $this->assertSame(ContentBooking::SERVICE_DRONE_SESSION, $booking->service_type);
+        $this->assertSame('stripe', $booking->payment_provider);
+        $this->assertSame(3000, $booking->amount);
+        $this->assertSame(1, $slot->fresh()->booked_count);
+
+        Http::assertSent(function ($request) use ($booking): bool {
+            $payload = $request->data();
+
+            return $request->url() === 'https://api.stripe.com/v1/checkout/sessions'
+                && data_get($payload, 'line_items.0.price_data.product_data.name') === 'Sesión de vuelo con dron DJI Air 3 — 10 tomas aéreas + 10 fotos'
+                && data_get($payload, 'line_items.0.price_data.unit_amount') === 300000
+                && data_get($payload, 'metadata.content_booking_public_id') === $booking->public_id;
+        });
+    }
+
+    public function test_construction_progress_landing_uses_shared_slots_and_price(): void
+    {
+        $this->createAvailableSlot();
+
+        $this->get(route('construction-progress.show'))
+            ->assertOk()
+            ->assertInertia(fn ($page) => $page
+                ->component('ConstructionProgress/Show')
+                ->where('price', 5000)
+                ->has('slots', 1)
+            );
+    }
+
+    public function test_construction_progress_checkout_forces_stripe_product_and_amount(): void
+    {
+        config([
+            'stripe.secret_key' => 'sk_test_fake',
+            'booking.skip_payment_hosts' => [],
+            'booking.skip_payment_host_suffixes' => [],
+        ]);
+
+        Http::fake([
+            'https://api.stripe.com/v1/checkout/sessions' => Http::response([
+                'id' => 'cs_construction_progress',
+                'url' => 'https://checkout.stripe.com/pay/cs_construction_progress',
+                'status' => 'open',
+            ], 200),
+        ]);
+
+        $slot = $this->createAvailableSlot();
+
+        $response = $this->post(route('construction-progress.checkout'), array_merge($this->checkoutPayload($slot), [
+            'payment_provider' => 'mercadopago',
+        ]));
+
+        $response->assertRedirect('https://checkout.stripe.com/pay/cs_construction_progress');
+
+        $booking = ContentBooking::firstOrFail();
+        $this->assertSame(ContentBooking::SERVICE_CONSTRUCTION_PROGRESS, $booking->service_type);
+        $this->assertSame('stripe', $booking->payment_provider);
+        $this->assertSame(5000, $booking->amount);
+        $this->assertSame(1, $slot->fresh()->booked_count);
+
+        Http::assertSent(function ($request) use ($booking): bool {
+            $payload = $request->data();
+
+            return $request->url() === 'https://api.stripe.com/v1/checkout/sessions'
+                && data_get($payload, 'line_items.0.price_data.product_data.name') === 'Avance de obra con dron DJI Air 3 — reporte visual de progreso'
+                && data_get($payload, 'line_items.0.price_data.unit_amount') === 500000
                 && data_get($payload, 'metadata.content_booking_public_id') === $booking->public_id;
         });
     }
@@ -290,7 +460,7 @@ class ContentBookingCheckoutTest extends TestCase
             'client_name' => 'DJ Cliente',
             'client_email' => 'dj@example.com',
             'client_phone' => '529841234567',
-            'amount' => 12000,
+            'amount' => 10000,
             'currency' => 'MXN',
             'status' => 'pending_payment',
             'payment_provider' => 'stripe',

@@ -1,6 +1,6 @@
 import { useState, type MouseEvent } from 'react';
 import { Link, usePage } from '@inertiajs/react';
-import { CalendarDays, Menu, Music2 } from 'lucide-react';
+import { Building2, CalendarDays, Drone, Menu, Music2, UtensilsCrossed } from 'lucide-react';
 import { BookingCtaButton } from '@/components/lapsique/BookingCtaButton';
 import { LapsiqueMediaLogo } from '@/components/lapsique/LapsiqueMediaLogo';
 import { Button } from '@/components/ui/button';
@@ -45,12 +45,20 @@ function MotionHeaderActions({
     open: boolean;
     setOpen: (v: boolean) => void;
 }) {
-    const { ziggy, customer } = usePage<PageProps>().props;
+    const { props, url } = usePage<PageProps>();
+    const { ziggy, customer } = props;
     const { t } = useTranslations();
     const homeAgenda = `${route('home', undefined, false, ziggy)}#agenda`;
+    const foodReelsHref = route('food-reels.show', undefined, false, ziggy);
     const djSetHref = route('djset.show', undefined, false, ziggy);
+    const droneSessionsHref = route('drone-sessions.show', undefined, false, ziggy);
+    const constructionProgressHref = route('construction-progress.show', undefined, false, ziggy);
+    const currentPath = typeof url === 'string' ? url.split('?')[0] : '';
+    const isConstructionProgressPage = currentPath === '/avances-de-obra';
+    const bookingCtaHref = isConstructionProgressPage ? `${constructionProgressHref}#agenda` : homeAgenda;
+    const bookingCtaLabel = isConstructionProgressPage ? t('common.nav.book_progress') : t('common.nav.book_session');
     const navHoverClass = 'hover:bg-primary/10 hover:text-foreground dark:hover:bg-primary/15';
-    const openBookingPopup = (event: MouseEvent<HTMLAnchorElement>) => {
+    const openBookingPopup = (event: MouseEvent) => {
         if (document.getElementById('agenda')) {
             event.preventDefault();
             openBookingModal({
@@ -69,8 +77,17 @@ function MotionHeaderActions({
             <Button variant="ghost" size="sm" className={`hidden md:inline-flex ${navHoverClass}`} asChild>
                 <Link href={route('portfolio.index', undefined, false, ziggy)}>{t('common.nav.portfolio')}</Link>
             </Button>
+            <Button variant="ghost" size="sm" className={`hidden lg:inline-flex ${navHoverClass}`} asChild>
+                <Link href={foodReelsHref}>{t('common.nav.food_reels')}</Link>
+            </Button>
             <Button variant="ghost" size="sm" className={`hidden md:inline-flex ${navHoverClass}`} asChild>
                 <Link href={djSetHref}>{t('common.nav.dj_sets')}</Link>
+            </Button>
+            <Button variant="ghost" size="sm" className={`hidden md:inline-flex ${navHoverClass}`} asChild>
+                <Link href={droneSessionsHref}>{t('common.nav.drone_sessions')}</Link>
+            </Button>
+            <Button variant="ghost" size="sm" className={`hidden lg:inline-flex ${navHoverClass}`} asChild>
+                <Link href={constructionProgressHref}>{t('common.nav.construction_progress')}</Link>
             </Button>
             {customer && (
                 <Button variant="ghost" size="sm" className={`hidden md:inline-flex ${navHoverClass}`} asChild>
@@ -79,8 +96,8 @@ function MotionHeaderActions({
             )}
             <LanguageToggle className="hidden sm:inline-flex" />
             <BookingCtaButton compact className="hidden md:inline-flex" asChild>
-                <Link href={homeAgenda} onClick={openBookingPopup}>
-                    {t('common.nav.book_session')}
+                <Link href={bookingCtaHref} onClick={openBookingPopup}>
+                    {bookingCtaLabel}
                 </Link>
             </BookingCtaButton>
 
@@ -115,11 +132,35 @@ function MotionHeaderActions({
                             </Link>
                         </Button>
                         <Button variant="ghost" asChild className={`h-auto min-h-12 w-full justify-start gap-3 whitespace-normal rounded-xl px-4 py-3 text-left ${navHoverClass}`}>
+                            <Link href={foodReelsHref} onClick={() => setOpen(false)}>
+                                <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-primary/25 bg-primary/10">
+                                    <UtensilsCrossed className="h-4 w-4 text-primary" />
+                                </span>
+                                {t('common.nav.food_reels')}
+                            </Link>
+                        </Button>
+                        <Button variant="ghost" asChild className={`h-auto min-h-12 w-full justify-start gap-3 whitespace-normal rounded-xl px-4 py-3 text-left ${navHoverClass}`}>
                             <Link href={djSetHref} onClick={() => setOpen(false)}>
                                 <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-primary/25 bg-primary/10">
                                     <Music2 className="h-4 w-4 text-primary" />
                                 </span>
                                 {t('common.nav.dj_sets')}
+                            </Link>
+                        </Button>
+                        <Button variant="ghost" asChild className={`h-auto min-h-12 w-full justify-start gap-3 whitespace-normal rounded-xl px-4 py-3 text-left ${navHoverClass}`}>
+                            <Link href={droneSessionsHref} onClick={() => setOpen(false)}>
+                                <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-primary/25 bg-primary/10">
+                                    <Drone className="h-4 w-4 text-primary" />
+                                </span>
+                                {t('common.nav.drone_sessions')}
+                            </Link>
+                        </Button>
+                        <Button variant="ghost" asChild className={`h-auto min-h-12 w-full justify-start gap-3 whitespace-normal rounded-xl px-4 py-3 text-left ${navHoverClass}`}>
+                            <Link href={constructionProgressHref} onClick={() => setOpen(false)}>
+                                <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-primary/25 bg-primary/10">
+                                    <Building2 className="h-4 w-4 text-primary" />
+                                </span>
+                                {t('common.nav.construction_progress')}
                             </Link>
                         </Button>
                         {customer && (
@@ -137,14 +178,14 @@ function MotionHeaderActions({
                         )}
                         <BookingCtaButton asChild className="mt-2 h-auto min-h-12 w-full justify-center whitespace-normal rounded-xl px-4 py-3 text-center">
                             <Link
-                                href={homeAgenda}
+                                href={bookingCtaHref}
                                 onClick={(event) => {
                                     setOpen(false);
                                     openBookingPopup(event);
                                 }}
                             >
                                 <CalendarDays className="h-5 w-5" />
-                                {t('common.nav.book_session')}
+                                {bookingCtaLabel}
                             </Link>
                         </BookingCtaButton>
                     </nav>

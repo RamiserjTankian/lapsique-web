@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Términos y condiciones | Trascendentalby</title>
+    <title>Términos y condiciones | Lapsique Media</title>
     <style>
         body { margin: 0; font-family: Arial, sans-serif; background: #f8f4ec; color: #102033; }
         main { max-width: 860px; margin: 0 auto; padding: 56px 24px; }

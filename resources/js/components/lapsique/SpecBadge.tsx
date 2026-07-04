@@ -12,7 +12,7 @@ export function SpecBadge({ children, highlight, className }: SpecBadgeProps) {
         <Badge
             variant="secondary"
             className={cn(
-                'font-mono text-xs uppercase tracking-wider px-3 py-1.5',
+                'inline-flex items-center gap-1.5 px-3 py-1.5 font-mono text-xs uppercase tracking-wider',
                 highlight && 'border-primary/40 bg-primary/10 text-primary',
                 className,
             )}

@@ -3,12 +3,16 @@
 namespace Tests\Feature;
 
 use App\Filament\Pages\SalesHub;
+use App\Filament\Pages\ContentBookingSalesDashboard;
 use App\Filament\Resources\BookingSlots\BookingSlotResource;
 use App\Filament\Resources\ContentBookings\ContentBookingResource;
+use App\Filament\Widgets\ContentBookingSalesOrdersTableWidget;
+use App\Filament\Widgets\ContentBookingSalesOverviewWidget;
 use App\Models\BookingSlot;
 use App\Models\ContentBooking;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Livewire\Livewire;
 use Tests\TestCase;
 
 class ContentBookingAdminTest extends TestCase
@@ -74,7 +78,22 @@ class ContentBookingAdminTest extends TestCase
         $this->actingAs($user)
             ->get(SalesHub::getUrl())
             ->assertOk()
-            ->assertSee('Ventas');
+            ->assertSee('Ventas')
+            ->assertSee('Ver reservas de sesiones')
+            ->assertSee('Ver clientes de sesiones');
+
+        $this->actingAs($user)
+            ->get(ContentBookingSalesDashboard::getUrl())
+            ->assertOk()
+            ->assertSee('Ventas de sesiones de contenido');
+
+        Livewire::test(ContentBookingSalesOverviewWidget::class)
+            ->assertSee('Ingresos sesiones')
+            ->assertSee('$4,000 MXN');
+
+        Livewire::test(ContentBookingSalesOrdersTableWidget::class)
+            ->assertSee('Ventas de sesiones confirmadas')
+            ->assertSee('Cliente Confirmado');
     }
 
     /**

@@ -118,6 +118,8 @@ class ContentBookingsTable
                     ->options([
                         'content_session' => 'Sesión de contenido',
                         'dj_set' => 'DJ Set',
+                        'drone_session' => 'Vuelo con dron',
+                        'construction_progress' => 'Avance de obra',
                     ]),
                 Filter::make('paid_at')
                     ->label('Pagadas en periodo')

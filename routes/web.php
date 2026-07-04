@@ -63,6 +63,13 @@ Route::get('/dj-set', [ContentBookingController::class, 'showDjSet'])->name('djs
 Route::get('/djset', fn () => redirect()->route('djset.show', status: 301))->name('djset.legacy');
 Route::post('/dj-set/checkout', [ContentBookingController::class, 'checkoutDjSet'])->name('djset.checkout');
 Route::post('/djset/checkout', [ContentBookingController::class, 'checkoutDjSet'])->name('djset.checkout.legacy');
+Route::get('/sesiones-de-dron', [ContentBookingController::class, 'showDroneSession'])->name('drone-sessions.show');
+Route::get('/drone-session', fn () => redirect()->route('drone-sessions.show', status: 301))->name('drone-sessions.legacy');
+Route::post('/sesiones-de-dron/checkout', [ContentBookingController::class, 'checkoutDroneSession'])->name('drone-sessions.checkout');
+Route::get('/avances-de-obra', [ContentBookingController::class, 'showConstructionProgress'])->name('construction-progress.show');
+Route::post('/avances-de-obra/checkout', [ContentBookingController::class, 'checkoutConstructionProgress'])->name('construction-progress.checkout');
+Route::get('/reels-de-comida', [ContentBookingController::class, 'showFoodReels'])->name('food-reels.show');
+Route::get('/comida-y-reels', fn () => redirect()->route('food-reels.show', status: 301))->name('food-reels.legacy');
 
 Route::get('/djs', [DjController::class, 'index'])->name('djs.index');
 Route::get('/djs/{dj:slug}', [DjController::class, 'show'])->name('djs.show');

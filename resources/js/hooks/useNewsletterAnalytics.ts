@@ -10,7 +10,11 @@ declare global {
             data?: Record<string, unknown>,
             options?: { eventID?: string },
         ) => void;
-        trackMetaPixelCustom?: (event: string, data?: Record<string, unknown>) => void;
+        trackMetaPixelCustom?: (
+            event: string,
+            data?: Record<string, unknown>,
+            options?: { eventID?: string },
+        ) => void;
     }
 }
 

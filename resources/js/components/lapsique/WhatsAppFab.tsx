@@ -26,24 +26,6 @@ export function WhatsAppFab() {
     const number = site.whatsapp;
     const trascendentalCommunityHref = site.whatsappCommunityUrl;
     const isTrascendental = Boolean(trascendentalCommunityHref);
-    const promptMessages = useMemo(
-        () => (
-            isTrascendental
-                ? [
-                    t('trascendental.whatsapp.prompt_1'),
-                    t('trascendental.whatsapp.prompt_2'),
-                    t('trascendental.whatsapp.prompt_3'),
-                ]
-                : PROMPT_MESSAGE_KEYS.map((key) => t(key))
-        ),
-        [isTrascendental, t],
-    );
-    const prefersReducedMotion = useReducedMotion();
-    const [isPromptVisible, setIsPromptVisible] = useState(false);
-    const [isDismissed, setIsDismissed] = useState(false);
-    const isMobile = useIsMobileViewport();
-    const [bookingModalOpen, setBookingModalOpen] = useState(getActiveFunnelModal() !== null);
-    const [reelPlayerOpen, setReelPlayerOpen] = useState(false);
     const currentPath = useMemo(() => {
         if (typeof url !== 'string' || url === '') {
             return '';
@@ -57,7 +39,40 @@ export function WhatsAppFab() {
     }, [url]);
     const isHomePage = currentPath === '/';
     const isDjSetPage = currentPath === '/dj-set' || currentPath === '/djset';
-
+    const isDronePage = currentPath === '/sesiones-de-dron' || currentPath === '/drone-session';
+    const isConstructionProgressPage = currentPath === '/avances-de-obra';
+    const promptMessages = useMemo(
+        () => (
+            isConstructionProgressPage
+                ? [
+                    t('common.whatsapp.construction_prompt_1'),
+                    t('common.whatsapp.construction_prompt_2'),
+                    t('common.whatsapp.construction_prompt_3'),
+                    t('common.whatsapp.construction_prompt_4'),
+                ]
+                : isDronePage
+                ? [
+                    t('common.whatsapp.drone_prompt_1'),
+                    t('common.whatsapp.drone_prompt_2'),
+                    t('common.whatsapp.drone_prompt_3'),
+                    t('common.whatsapp.drone_prompt_4'),
+                ]
+                : isTrascendental
+                ? [
+                    t('trascendental.whatsapp.prompt_1'),
+                    t('trascendental.whatsapp.prompt_2'),
+                    t('trascendental.whatsapp.prompt_3'),
+                ]
+                : PROMPT_MESSAGE_KEYS.map((key) => t(key))
+        ),
+        [isConstructionProgressPage, isDronePage, isTrascendental, t],
+    );
+    const prefersReducedMotion = useReducedMotion();
+    const [isPromptVisible, setIsPromptVisible] = useState(false);
+    const [isDismissed, setIsDismissed] = useState(false);
+    const isMobile = useIsMobileViewport();
+    const [bookingModalOpen, setBookingModalOpen] = useState(getActiveFunnelModal() !== null);
+    const [reelPlayerOpen, setReelPlayerOpen] = useState(false);
     const href = useMemo(() => {
         if (trascendentalCommunityHref) {
             return trascendentalCommunityHref;
@@ -67,14 +82,18 @@ export function WhatsAppFab() {
             return '';
         }
 
-        const message = isDjSetPage
+        const message = isConstructionProgressPage
+            ? t('funnel.whatsapp.prefill_construction')
+            : isDronePage
+            ? t('funnel.whatsapp.prefill_drone')
+            : isDjSetPage
             ? t('funnel.whatsapp.prefill_djset')
             : isTrascendental
               ? t('trascendental.whatsapp.default_prefill')
             : t('common.whatsapp.default_prefill');
 
         return `https://wa.me/${number}?text=${encodeURIComponent(message)}`;
-    }, [isDjSetPage, isTrascendental, number, t, trascendentalCommunityHref]);
+    }, [isConstructionProgressPage, isDjSetPage, isDronePage, isTrascendental, number, t, trascendentalCommunityHref]);
 
     const { displayed, showCursor } = useTypingCycle({
         texts: promptMessages,

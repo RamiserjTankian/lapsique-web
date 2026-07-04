@@ -13,6 +13,20 @@ return [
         'keywords' => 'grabación de DJ set, video DJ, DJ set Tulum, Ronin, dron, audio 32-bit, S-Log3, lapsique.media',
         'og_alt' => 'Grabación de DJ set — lapsique.media',
     ],
+    'drone_session' => [
+        'title' => 'Sesiones de vuelo con dron',
+        'description' => 'Agenda una sesión de vuelo con DJI Air 3 por $:price MXN en Cancún, Playa del Carmen y Tulum: 10 tomas aéreas, hasta 10 fotos, Rec.709 + D-Log para real estate, yates, eventos y avances de obra.',
+        'keywords' => 'sesiones de dron, vuelo con dron, DJI Air 3, dron Cancún, dron Playa del Carmen, dron Tulum, real estate, yates, Airbnb, avances de obra, lapsique.media',
+        'service_type' => 'Vuelo con dron DJI Air 3',
+        'og_alt' => 'Sesión de vuelo con dron DJI Air 3 — Lapsique Media',
+    ],
+    'construction_progress' => [
+        'title' => 'Avances de obra con dron',
+        'description' => 'Agenda un avance de obra con dron DJI Air 3 por $:price MXN en Cancún, Playa del Carmen y Tulum: progreso, accesos, contexto, escala y material listo para reportes e inversionistas.',
+        'keywords' => 'avances de obra con dron, dron para constructoras, reporte de obra, DJI Air 3, avance de obra Cancún, avance de obra Playa del Carmen, avance de obra Tulum, preventa inmobiliaria, lapsique.media',
+        'service_type' => 'Avance de obra con dron DJI Air 3',
+        'og_alt' => 'Avance de obra con dron DJI Air 3 — Lapsique Media',
+    ],
     'djs_index' => [
         'title' => 'DJs',
         'description' => 'Descubre DJs, sets y perfiles de la escena electrónica con lapsique.media.',

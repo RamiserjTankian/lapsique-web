@@ -34,7 +34,7 @@ export default function BookingConfirm({ booking, paymentVerified, isTestBooking
             amount: booking.amount,
             currency: booking.currency,
             content_name: booking.service_name,
-            content_category: 'content_booking',
+            content_category: bookingContentCategory(booking.service_type),
             customer_id: booking.customer_id ?? undefined,
             customer_name: booking.client_name,
             customer_email: booking.client_email,
@@ -47,10 +47,17 @@ export default function BookingConfirm({ booking, paymentVerified, isTestBooking
         }
 
         if (paymentVerified) {
+            const purchaseStorageKey = `lapsique_booking_purchase_tracked_${booking.public_id}`;
+
+            if (hasStoredEvent(purchaseStorageKey)) {
+                return;
+            }
+
             trackBookingEvent('booking_confirmed', {
                 ...purchasePayload,
                 payment_provider: booking.payment_provider,
             });
+            storeEvent(purchaseStorageKey);
         }
     }, [
         booking.amount,
@@ -108,4 +115,36 @@ export default function BookingConfirm({ booking, paymentVerified, isTestBooking
             </div>
         </SiteLayout>
     );
+}
+
+function bookingContentCategory(serviceType: ContentBookingData['service_type']): string {
+    if (serviceType === 'dj_set') {
+        return 'dj_set_booking';
+    }
+
+    if (serviceType === 'drone_session') {
+        return 'drone_session_booking';
+    }
+
+    if (serviceType === 'construction_progress') {
+        return 'construction_progress_booking';
+    }
+
+    return 'content_booking';
+}
+
+function hasStoredEvent(key: string): boolean {
+    try {
+        return window.localStorage.getItem(key) === '1';
+    } catch {
+        return false;
+    }
+}
+
+function storeEvent(key: string): void {
+    try {
+        window.localStorage.setItem(key, '1');
+    } catch {
+        // Browser storage can be unavailable in private modes.
+    }
 }

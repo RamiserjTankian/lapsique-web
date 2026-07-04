@@ -81,3 +81,71 @@ export function getDjSetProduct(t: TranslateFn): BookingWidgetProduct {
         unavailableWhatsApp: t('booking.whatsapp.unavailable_djset'),
     };
 }
+
+export function getDroneSessionProduct(t: TranslateFn): BookingWidgetProduct {
+    return {
+        checkoutLabel: t('booking.drone.checkout_label'),
+        headerTitle: t('booking.drone.header_title'),
+        headerDescription: t('booking.drone.header_description'),
+        summaryTitle: t('booking.drone.summary_title'),
+        summaryDescription: t('booking.drone.summary_description'),
+        summaryDescriptionLines: [
+            t('booking.drone.checkout_line_coverage'),
+            t('booking.drone.checkout_line_color'),
+            t('booking.drone.checkout_line_usecases'),
+        ],
+        cartService: t('booking.drone.cart_service'),
+        cartDuration: t('booking.drone.cart_duration'),
+        summaryPerks: [
+            t('booking.drone.perk_shots'),
+            t('booking.drone.perk_photos'),
+            t('booking.drone.perk_air3'),
+            t('booking.drone.perk_color'),
+            t('booking.drone.perk_range'),
+            t('booking.drone.perk_construction'),
+        ],
+        terms: [
+            t('booking.drone.terms.availability'),
+            t('booking.drone.terms.inclusions'),
+            t('booking.drone.terms.scope'),
+            t('booking.drone.terms.reschedule'),
+            t('booking.drone.terms.portfolio_use'),
+        ],
+        paymentCopy: t('booking.payment.stripe_copy'),
+        unavailableWhatsApp: t('booking.whatsapp.unavailable_drone'),
+    };
+}
+
+export function getConstructionProgressProduct(t: TranslateFn): BookingWidgetProduct {
+    return {
+        checkoutLabel: t('booking.construction.checkout_label'),
+        headerTitle: t('booking.construction.header_title'),
+        headerDescription: t('booking.construction.header_description'),
+        summaryTitle: t('booking.construction.summary_title'),
+        summaryDescription: t('booking.construction.summary_description'),
+        summaryDescriptionLines: [
+            t('booking.construction.checkout_line_progress'),
+            t('booking.construction.checkout_line_color'),
+            t('booking.construction.checkout_line_context'),
+        ],
+        cartService: t('booking.construction.cart_service'),
+        cartDuration: t('booking.construction.cart_duration'),
+        summaryPerks: [
+            t('booking.construction.perk_flight'),
+            t('booking.construction.perk_shots'),
+            t('booking.construction.perk_photos'),
+            t('booking.construction.perk_context'),
+            t('booking.construction.perk_color'),
+            t('booking.construction.perk_reports'),
+        ],
+        terms: [
+            t('booking.construction.terms.availability'),
+            t('booking.construction.terms.inclusions'),
+            t('booking.construction.terms.scope'),
+            t('booking.construction.terms.reschedule'),
+            t('booking.construction.terms.portfolio_use'),
+        ],
+        paymentCopy: t('booking.payment.stripe_copy'),
+        unavailableWhatsApp: t('booking.whatsapp.unavailable_construction'),
+    };
+}

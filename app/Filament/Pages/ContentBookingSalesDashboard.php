@@ -3,6 +3,7 @@
 namespace App\Filament\Pages;
 
 use App\Filament\Widgets\ContentBookingSalesOverviewWidget;
+use App\Filament\Widgets\ContentBookingSalesOrdersTableWidget;
 use App\Filament\Widgets\ContentBookingSalesTimelineWidget;
 use BackedEnum;
 use Filament\Pages\Dashboard;
@@ -32,6 +33,7 @@ class ContentBookingSalesDashboard extends Dashboard
         return [
             ContentBookingSalesOverviewWidget::class,
             ContentBookingSalesTimelineWidget::class,
+            ContentBookingSalesOrdersTableWidget::class,
         ];
     }
 }

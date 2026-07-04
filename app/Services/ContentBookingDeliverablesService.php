@@ -70,6 +70,6 @@ class ContentBookingDeliverablesService
     {
         $count = $booking->deliverableLinks()->count() + 1;
 
-        return $count > 1 ? "Entrega #{$count}" : 'Tu sesión de contenido';
+        return $count > 1 ? "Entrega #{$count}" : 'Tu '.$booking->service_short_name;
     }
 }

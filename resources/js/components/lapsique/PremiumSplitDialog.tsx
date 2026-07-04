@@ -19,7 +19,7 @@ export interface PremiumSplitDialogProps {
     onOpenChange: (open: boolean) => void;
     imageUrl: string;
     imageAlt: string;
-    badge: string;
+    badge?: string;
     title: string;
     description: string;
     caption?: string;
@@ -91,9 +91,11 @@ export function PremiumSplitDialog({
 
                         {isPromo ? (
                             <div className="relative flex h-full items-end p-3 sm:p-4 lg:flex-col lg:justify-end lg:p-5">
-                                <span className="inline-flex w-fit rounded-full border border-primary/30 bg-primary/15 px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-[0.22em] text-primary backdrop-blur-sm">
-                                    {badge}
-                                </span>
+                                {badge ? (
+                                    <span className="inline-flex w-fit rounded-full border border-primary/30 bg-primary/15 px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-[0.22em] text-primary backdrop-blur-sm">
+                                        {badge}
+                                    </span>
+                                ) : null}
                                 <p className="mt-3 hidden font-display text-2xl font-bold leading-tight text-white drop-shadow-md lg:block">
                                     {title}
                                 </p>
@@ -108,9 +110,11 @@ export function PremiumSplitDialog({
                             </div>
                         ) : (
                             <div className="relative hidden h-full flex-col justify-end gap-0 p-6 lg:flex">
-                                <span className="inline-flex w-fit rounded-full border border-primary/30 bg-primary/15 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.24em] text-primary backdrop-blur-sm">
-                                    {badge}
-                                </span>
+                                {badge ? (
+                                    <span className="inline-flex w-fit rounded-full border border-primary/30 bg-primary/15 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.24em] text-primary backdrop-blur-sm">
+                                        {badge}
+                                    </span>
+                                ) : null}
                                 <p className="mt-4 font-display text-3xl font-bold leading-tight text-white drop-shadow-md">
                                     {title}
                                 </p>

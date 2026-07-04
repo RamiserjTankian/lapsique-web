@@ -13,6 +13,7 @@ class DjResource extends JsonResource
     {
         $profileThumb = $this->readableFirstMediaUrl('profile', 'thumb');
         $galleryThumb = $this->readableFirstMediaUrl('gallery', 'thumb');
+        $fallbackImage = $this->fallbackPublicImageUrl();
 
         $gallery = $this->getMedia('gallery')->map(fn ($media) => [
             'id' => $media->id,
@@ -24,11 +25,11 @@ class DjResource extends JsonResource
             'id' => $this->id,
             'name' => $this->name,
             'slug' => $this->slug,
-            'avatar_url' => $profileThumb ?: $galleryThumb ?: null,
+            'avatar_url' => $profileThumb ?: $galleryThumb ?: $fallbackImage,
             'cover_url' => $this->readableFirstMediaUrl('profile', 'hero')
                 ?: $this->readableFirstMediaUrl('profile', 'card')
                 ?: $profileThumb
-                ?: null,
+                ?: $fallbackImage,
             'bio' => $this->bio,
             'instagram_handle' => $this->instagram_handle,
             'youtube_url' => $this->youtube_url,
@@ -58,11 +59,63 @@ class DjResource extends JsonResource
 
             $path = $media->getPath($conversion);
 
-            return is_readable($path) ? $media->getUrl($conversion) : null;
+            return is_readable($path) ? $this->browserReadableUrl($media->getUrl($conversion)) : null;
         }
 
         $path = $media->getPath();
 
-        return is_readable($path) ? $media->getUrl() : null;
+        return is_readable($path) ? $this->browserReadableUrl($media->getUrl()) : null;
+    }
+
+    private function fallbackPublicImageUrl(): ?string
+    {
+        $path = $this->public_image_path ?: $this->fallbackPublicImagePath();
+
+        if (! $path) {
+            return null;
+        }
+
+        $path = ltrim($path, '/');
+
+        return is_readable(public_path($path)) ? asset($path) : null;
+    }
+
+    private function fallbackPublicImagePath(): ?string
+    {
+        return match ($this->slug) {
+            'bryz' => 'images/djs/bryz.jpg',
+            'cedrick', 'cc-tdl', 'c-c-tdl', 'cctdl' => 'images/djs/cedrick.jpg',
+            'jimbo', 'jimbo-star' => 'images/djs/jimbo-star.jpg',
+            'john-pavas' => 'images/djs/john-pavas.jpg',
+            'kalani' => 'images/djs/kalani.jpg',
+            'kapi' => 'images/djs/kapi.jpg',
+            'lagunes-jr' => 'images/djs/lagunes-jr.jpg',
+            'rui', 'ru-i' => 'images/djs/rui.jpg',
+            'baruc', 'baruck' => 'images/portfolio/video-posters/079-mac-proyectos-baruc-reel.jpg',
+            default => null,
+        };
+    }
+
+    private function browserReadableUrl(string $url): string
+    {
+        $request = request();
+        $requestHost = $request->getHost();
+        $urlHost = parse_url($url, PHP_URL_HOST);
+
+        if (! $urlHost || strcasecmp($urlHost, $requestHost) !== 0 || ! $this->isLocalRequestHost($requestHost)) {
+            return $url;
+        }
+
+        $path = parse_url($url, PHP_URL_PATH) ?: '';
+        $query = parse_url($url, PHP_URL_QUERY);
+
+        return $request->getSchemeAndHttpHost().$path.($query ? '?'.$query : '');
+    }
+
+    private function isLocalRequestHost(string $host): bool
+    {
+        return $host === 'localhost'
+            || $host === '127.0.0.1'
+            || str_ends_with($host, '.test');
     }
 }

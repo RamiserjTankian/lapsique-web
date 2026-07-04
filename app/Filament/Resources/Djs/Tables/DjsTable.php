@@ -74,10 +74,10 @@ class DjsTable
                     ->label('Destacado'),
                 SelectFilter::make('trascendental_roster')
                     ->options([
-                        1 => 'Roster Trascendental',
+                        1 => 'Roster alterno',
                         0 => 'Fuera del roster',
                     ])
-                    ->label('Roster Trascendental'),
+                    ->label('Roster alterno'),
             ])
             ->recordActions([
                 EditAction::make(),

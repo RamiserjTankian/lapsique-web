@@ -3,9 +3,13 @@
 return [
     'nav' => [
         'portfolio' => 'Portafolio',
+        'food_reels' => 'Comida',
         'dj_sets' => 'DJ Sets',
+        'drone_sessions' => 'Vuelos con dron',
+        'construction_progress' => 'Avances de obra',
         'my_portal' => 'Mi portal',
         'book_session' => 'Agendar sesión',
+        'book_progress' => 'Agendar avance',
         'theme' => 'Tema',
         'language' => 'Idioma',
     ],
@@ -31,10 +35,18 @@ return [
         'open' => 'Abrir WhatsApp',
         'close_prompt' => 'Cerrar mensaje de WhatsApp',
         'write_now' => 'Escribir ahora →',
-        'default_prefill' => 'Hola, me interesa Trascendental.',
+        'default_prefill' => 'Hola, me interesa Lapsique Media.',
         'prompt_1' => 'Haz tu producción realidad.',
         'prompt_2' => 'Cuéntanos tu proyecto por WhatsApp.',
         'prompt_3' => 'Reserva tu sesión en minutos.',
+        'drone_prompt_1' => '¿Tu proyecto ya merece verse desde el cielo?',
+        'drone_prompt_2' => 'Agenda tu vuelo: 10 tomas, 10 fotos y cero planos aburridos.',
+        'drone_prompt_3' => 'Obra, yate, terreno o DJ set: lo vemos desde arriba.',
+        'drone_prompt_4' => 'Dime qué quieres grabar y levantamos el dron.',
+        'construction_prompt_1' => 'Tu avance de obra puede verse como reporte, no como evidencia improvisada.',
+        'construction_prompt_2' => 'Agenda Goba-style: progreso, accesos y escala desde el aire.',
+        'construction_prompt_3' => 'Mostremos la obra para inversionistas, preventa y dirección.',
+        'construction_prompt_4' => 'Dime qué etapa quieres documentar y levantamos el dron.',
     ],
     'form' => [
         'email' => 'Email',
@@ -53,7 +65,7 @@ return [
     'alt' => [
         'portfolio_project' => 'proyecto de portafolio',
         'portfolio_video' => 'Video de portafolio',
-        'portfolio_visual' => 'Portafolio visual de Trascendental',
+        'portfolio_visual' => 'Portafolio visual de Lapsique Media',
         'open_portfolio' => 'Abrir :title',
     ],
     'empty' => [

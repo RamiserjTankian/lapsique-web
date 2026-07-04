@@ -46,7 +46,7 @@ class PageContentBlocksTable
                 SelectFilter::make('site')
                     ->label('Sitio')
                     ->options([
-                        'trascendental' => 'Trascendental',
+                        'trascendental' => 'Sitio alterno',
                     ]),
                 SelectFilter::make('locale')
                     ->label('Idioma')

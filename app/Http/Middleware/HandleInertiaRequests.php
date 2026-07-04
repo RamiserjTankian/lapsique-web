@@ -71,7 +71,7 @@ class HandleInertiaRequests extends Middleware
             ]),
             'locale' => fn () => app()->getLocale(),
             'availableLocales' => LocaleResolver::SUPPORTED,
-            'translations' => fn () => FrontendTranslations::all(app()->getLocale()),
+            'translations' => fn () => FrontendTranslations::all(app()->getLocale(), includeTrascendental: $isTrascendental),
             'seo' => fn () => PageMeta::forRequest($request)->toArray(),
         ];
     }

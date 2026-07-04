@@ -1,5 +1,8 @@
-const pixelConfig = window.SitePixel || {};
-const pixelQueue = Array.isArray(window.__sitePixelQueue) ? window.__sitePixelQueue : [];
+const pixelConfig = window.SitePixel || window.LapsiquePixel || {};
+const pixelQueue = [
+    ...(Array.isArray(window.__sitePixelQueue) ? window.__sitePixelQueue : []),
+    ...(Array.isArray(window.__lapsiquePixelQueue) ? window.__lapsiquePixelQueue : []),
+];
 let advancedMatchingApplied = false;
 
 function trackMetaPixel(event, payload, options) {
@@ -23,7 +26,7 @@ function trackMetaPixel(event, payload, options) {
 }
 
 window.trackMetaPixel = trackMetaPixel;
-window.trackMetaPixelCustom = function trackMetaPixelCustom(event, payload) {
+window.trackMetaPixelCustom = function trackMetaPixelCustom(event, payload, options) {
     if (!pixelConfig.enabled || typeof window.fbq !== 'function') {
         return;
     }
@@ -38,7 +41,7 @@ window.trackMetaPixelCustom = function trackMetaPixelCustom(event, payload) {
         external_id: resolvePixelExternalId(rest),
     });
 
-    const trackOptions = event_id || eventID ? { eventID: event_id || eventID } : undefined;
+    const trackOptions = options || (event_id || eventID ? { eventID: event_id || eventID } : undefined);
 
     window.fbq('trackCustom', event, rest, trackOptions);
 };
@@ -90,7 +93,7 @@ function flushQueuedPixelCalls() {
         }
 
         if (queuedCall.method === 'trackCustom') {
-            window.trackMetaPixelCustom(queuedCall.eventName, queuedCall.payload || {});
+            window.trackMetaPixelCustom(queuedCall.eventName, queuedCall.payload || {}, queuedCall.options);
 
             return;
         }

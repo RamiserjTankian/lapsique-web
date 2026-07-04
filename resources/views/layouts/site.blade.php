@@ -65,7 +65,7 @@
     <meta name="twitter:image:alt" content="{{ $ogImageAlt }}">
     
     {{-- Additional Meta Tags --}}
-    <meta name="author" content="Trascendentalby">
+    <meta name="author" content="{{ __('messages.site.brand') }}">
     <meta name="robots" content="index, follow">
     <meta name="theme-color" content="#000000">
     
@@ -148,19 +148,21 @@
             },
         };
 
-        window.trackMetaPixel = window.trackMetaPixel || function (eventName, payload) {
+        window.trackMetaPixel = window.trackMetaPixel || function (eventName, payload, options) {
             window.__lapsiquePixelQueue.push({
                 method: 'track',
                 eventName: eventName,
                 payload: payload || {},
+                options: options || null,
             });
         };
 
-        window.trackMetaPixelCustom = window.trackMetaPixelCustom || function (eventName, payload) {
+        window.trackMetaPixelCustom = window.trackMetaPixelCustom || function (eventName, payload, options) {
             window.__lapsiquePixelQueue.push({
                 method: 'trackCustom',
                 eventName: eventName,
                 payload: payload || {},
+                options: options || null,
             });
         };
     </script>
@@ -192,7 +194,7 @@
     $contentFlush = trim($__env->yieldContent('content_flush', '')) === '1';
     $siteSettings = \App\Models\SiteSetting::current();
     $contactWhatsappNumber = preg_replace('/\D+/', '', (string) ($siteSettings?->booking_whatsapp ?: config('lapsique.whatsapp_number', '')));
-    $contactWhatsappMessage = 'Hola, vengo de parte de Trascendental. Quiero platicar sobre un proyecto.';
+    $contactWhatsappMessage = 'Hola, vengo de Lapsique Media. Quiero platicar sobre un proyecto.';
     $contactWhatsappUrl = $contactWhatsappNumber !== '' ? 'https://wa.me/' . $contactWhatsappNumber . '?text=' . urlencode($contactWhatsappMessage) : null;
     $bookingCtaUrl = route('home') . '#agenda';
     $showWhatsappWidget = (bool) $contactWhatsappUrl;
@@ -223,11 +225,6 @@
                     @else
                         <a href="{{ route('customers.login') }}" class="btn btn-ghost">Mi portal</a>
                     @endauth
-                    <a href="https://trascendentalby.mx" target="_blank" class="btn btn-primary hidden md:inline-flex" title="Trascendental">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="currentColor">
-                            <path d="M21.58 7.2c-.12-.86-.9-1.54-1.78-1.65C17.34 5.25 14 5.25 12 5.25s-5.34 0-7.8.3c-.88.11-1.66.79-1.78 1.65C2.25 8.77 2.25 10.13 2.25 12s0 3.23.17 4.8c.12.86.9 1.54 1.78 1.65 2.46.3 5.8.3 7.8.3s5.34 0 7.8-.3c.88-.11 1.66-.79 1.78-1.65.17-1.57.17-2.93.17-4.8s0-3.23-.17-4.8ZM10.5 14.7V9.3l4.1 2.7-4.1 2.7Z"/>
-                        </svg>
-                    </a>
                     @php
                         $locale = app()->getLocale();
                         $nextLocale = $locale === 'es' ? 'en' : 'es';
@@ -254,7 +251,7 @@
         @if ($minimalFooter)
         <footer class="border-t border-white/10">
             <div class="mx-auto max-w-6xl px-6 py-5 text-center text-sm text-gray-400">
-                TRASCENDENTAL.
+                {{ __('messages.site.brand') }}
             </div>
         </footer>
         @else
@@ -263,8 +260,8 @@
                 <div class="flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
                     {{-- Brand --}}
                     <div>
-                        <p class="font-semibold uppercase tracking-[0.2em] text-gray-200">TRASCENDENTAL.</p>
-                        <p class="text-sm text-gray-400">Artists, events and culture.</p>
+                        <p class="font-semibold uppercase tracking-[0.2em] text-gray-200">{{ __('messages.site.brand') }}</p>
+                        <p class="text-sm text-gray-400">{{ __('messages.site.brand_tagline') }}</p>
                     </div>
                     
                     {{-- Navigation Links --}}
@@ -309,7 +306,7 @@
                 <div class="whatsapp-popup__header">
                     <div>
                         <span class="whatsapp-popup__eyebrow">WhatsApp</span>
-                        <strong id="whatsapp-popup-title" class="whatsapp-popup__title">Trascendental</strong>
+                        <strong id="whatsapp-popup-title" class="whatsapp-popup__title">{{ __('messages.site.brand') }}</strong>
                         <span class="whatsapp-popup__status">Normalmente respondemos rápido</span>
                     </div>
                     <button type="button" class="whatsapp-popup__close" aria-label="Cerrar popup de WhatsApp" onclick="closeWhatsAppWidget()">
@@ -320,8 +317,8 @@
                 </div>
                 <div class="whatsapp-popup__body">
                     <div class="whatsapp-popup__bubble">
-                        <span class="whatsapp-popup__sender">De parte de Trascendental</span>
-                        <p class="whatsapp-popup__message">Podemos ayudarte a hacer realidad tu proyecto.</p>
+                        <span class="whatsapp-popup__sender">De parte de Lapsique Media</span>
+                        <p class="whatsapp-popup__message">Podemos ayudarte a producir contenido con intención.</p>
                         <div class="whatsapp-popup__meta">
                             <span>{{ now()->format('H:i') }}</span>
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 text-sky-500" viewBox="0 0 24 24" fill="currentColor">

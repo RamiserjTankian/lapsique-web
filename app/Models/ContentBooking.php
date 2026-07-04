@@ -21,6 +21,10 @@ class ContentBooking extends Model implements HasMedia
 
     public const SERVICE_DJ_SET = 'dj_set';
 
+    public const SERVICE_DRONE_SESSION = 'drone_session';
+
+    public const SERVICE_CONSTRUCTION_PROGRESS = 'construction_progress';
+
     protected $fillable = [
         'public_id',
         'booking_slot_id',
@@ -173,38 +177,66 @@ class ContentBooking extends Model implements HasMedia
         return $this->service_type === self::SERVICE_DJ_SET;
     }
 
+    public function isDroneSession(): bool
+    {
+        return $this->service_type === self::SERVICE_DRONE_SESSION;
+    }
+
+    public function isConstructionProgress(): bool
+    {
+        return $this->service_type === self::SERVICE_CONSTRUCTION_PROGRESS;
+    }
+
     public function getServiceNameAttribute(): string
     {
-        return $this->isDjSet()
-            ? 'Grabación de DJ Set'
-            : 'Sesión de contenido';
+        return match ($this->service_type) {
+            self::SERVICE_DJ_SET => 'Grabación de DJ Set',
+            self::SERVICE_DRONE_SESSION => 'Sesión de vuelo con dron',
+            self::SERVICE_CONSTRUCTION_PROGRESS => 'Avance de obra con dron',
+            default => 'Sesión de contenido',
+        };
     }
 
     public function getServiceShortNameAttribute(): string
     {
-        return $this->isDjSet()
-            ? 'DJ Set'
-            : 'Sesión de contenido';
+        return match ($this->service_type) {
+            self::SERVICE_DJ_SET => 'DJ Set',
+            self::SERVICE_DRONE_SESSION => 'Vuelo con dron',
+            self::SERVICE_CONSTRUCTION_PROGRESS => 'Avance de obra',
+            default => 'Sesión de contenido',
+        };
     }
 
     public function getServiceDescriptionAttribute(): string
     {
-        return $this->isDjSet()
-            ? '2 horas de grabación editadas al beat con 2 cámaras fijas, 1 cámara móvil Ronin, dron y audio 32-bit'
-            : ContentSessionOffer::description();
+        return match ($this->service_type) {
+            self::SERVICE_DJ_SET => '2 horas de grabación editadas al beat con 2 cámaras fijas, 1 cámara móvil Ronin, dron y audio 32-bit',
+            self::SERVICE_DRONE_SESSION => '1 hora de vuelo con DJI Air 3 para capturar 10 tomas aéreas y hasta 10 fotos en Rec.709 y D-Log',
+            self::SERVICE_CONSTRUCTION_PROGRESS => '1 hora de vuelo con DJI Air 3 para documentar avances de obra, contexto, accesos y escala del desarrollo',
+            default => ContentSessionOffer::description(),
+        };
     }
 
     public function getServiceStripeNameAttribute(): string
     {
-        return $this->isDjSet()
-            ? 'Grabación de DJ Set — multicámara, Ronin, dron y audio 32-bit'
-            : ContentSessionOffer::stripeProductName();
+        return match ($this->service_type) {
+            self::SERVICE_DJ_SET => 'Grabación de DJ Set — multicámara, Ronin, dron y audio 32-bit',
+            self::SERVICE_DRONE_SESSION => 'Sesión de vuelo con dron DJI Air 3 — 10 tomas aéreas + 10 fotos',
+            self::SERVICE_CONSTRUCTION_PROGRESS => 'Avance de obra con dron DJI Air 3 — reporte visual de progreso',
+            default => ContentSessionOffer::stripeProductName(),
+        };
     }
 
     public function getServiceCalendarSummaryAttribute(): string
     {
-        return ($this->isDjSet() ? '🎧 Grabación de DJ Set' : '📸 Sesión de Contenido')
-            .' — '.$this->client_name;
+        $prefix = match ($this->service_type) {
+            self::SERVICE_DJ_SET => '🎧 Grabación de DJ Set',
+            self::SERVICE_DRONE_SESSION => '🚁 Vuelo con dron',
+            self::SERVICE_CONSTRUCTION_PROGRESS => '🏗️ Avance de obra con dron',
+            default => '📸 Sesión de Contenido',
+        };
+
+        return $prefix.' — '.$this->client_name;
     }
 
     public function getPaymentStatusLabelAttribute(): string

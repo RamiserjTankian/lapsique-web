@@ -102,15 +102,15 @@ class EventForm
                     ->helperText('Agrega tags como "🎥 Recording Party", "🌟 Special Event", etc.')
                     ->columnSpanFull(),
 
-                Section::make('Contenido público Trascendental')
-                    ->description('Clasifica si este evento aparece en trascendentalby.mx y cómo se muestra.')
+                Section::make('Contenido público del sitio alterno')
+                    ->description('Clasifica si este evento aparece en el sitio alterno y cómo se muestra.')
                     ->columns(2)
                     ->schema([
                         Toggle::make('trascendental_visible')
-                            ->label('Mostrar en Trascendental')
+                            ->label('Mostrar en sitio alterno')
                             ->helperText('Activa esto para que el evento alimente la landing pública.'),
                         Select::make('trascendental_kind')
-                            ->label('Tipo en Trascendental')
+                            ->label('Tipo en sitio alterno')
                             ->options([
                                 'produced' => 'Evento producido',
                                 'roster_appearance' => 'Aparición del roster',
@@ -123,7 +123,7 @@ class EventForm
                             ->columnSpanFull(),
                         TextInput::make('public_image_path')
                             ->label('Imagen pública existente')
-                            ->placeholder('/images/trascendental/events/flyer.webp')
+                            ->placeholder('/images/events/flyer.webp')
                             ->maxLength(255)
                             ->helperText('Usa este campo para assets ya publicados cuando no quieras subir media nueva.')
                             ->columnSpanFull(),
@@ -262,8 +262,8 @@ class EventForm
                     ->default('horizontal'),
                 Toggle::make('is_featured')
                     ->label('Destacado en inicio'),
-                Section::make('Caso de éxito Trascendental')
-                    ->description('Datos editoriales que alimentan la web de trascendentalby.mx.')
+                Section::make('Caso de éxito del sitio alterno')
+                    ->description('Datos editoriales que alimentan la web alterna.')
                     ->columns(2)
                     ->schema([
                         Toggle::make('is_case_study')

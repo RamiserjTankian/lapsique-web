@@ -453,7 +453,7 @@ html, body {
                         <div class="venue-card">
                             <img src="{{ $venueUrl }}" alt="Venue" class="venue-photo">
                             <div class="aside-copy">
-                                {{ $locationText ?: ($event?->venue ?: 'Trascendental') }}
+                                {{ $locationText ?: ($event?->venue ?: 'Lapsique Media') }}
                             </div>
                         </div>
                     @endif
@@ -514,7 +514,7 @@ html, body {
                 <div class="main-wrap">
                     <div class="main-top">
                         <div class="main-title">
-                            <div class="pass-label">Pase de acceso · Trascendental</div>
+                            <div class="pass-label">Pase de acceso · Lapsique Media</div>
                             <div class="event-title">{{ $event?->title ?? 'Evento' }}</div>
                             <div class="event-meta">
                                 @if($event?->starts_at)
@@ -564,7 +564,7 @@ html, body {
                             <div class="panel deep-panel">
                                 <div class="panel-title">Experiencia</div>
                                 <div class="deep-copy">
-                                    {!! nl2br(e(\Illuminate\Support\Str::limit($headline ?: $descText ?: 'Una experiencia de música electrónica, visuales y comunidad curada por Trascendental.', 170))) !!}
+                                    {!! nl2br(e(\Illuminate\Support\Str::limit($headline ?: $descText ?: 'Una experiencia de música electrónica, visuales y comunidad curada por Lapsique Media.', 170))) !!}
                                 </div>
                             </div>
                         </div>
@@ -602,7 +602,7 @@ html, body {
                                 <div class="info-copy">
                                     <strong>Llega con tu PDF o QR listo.</strong><br>
                                     Este acceso es personal y se valida contra el código mostrado en esta hoja.<br><br>
-                                    {!! nl2br(e(\Illuminate\Support\Str::limit($descText ?: 'Una experiencia de música electrónica, visuales y comunidad curada por Trascendental.', 150))) !!}
+                                    {!! nl2br(e(\Illuminate\Support\Str::limit($descText ?: 'Una experiencia de música electrónica, visuales y comunidad curada por Lapsique Media.', 150))) !!}
                                 </div>
                             </div>
                         </div>

@@ -63,7 +63,7 @@ export function GlassSection({
                                     {eyebrow}
                                 </span>
                             )}
-                            <h2 className="font-display mt-3 text-2xl font-bold tracking-tight text-foreground md:text-3xl">
+                            <h2 className={cn('font-display text-2xl font-bold tracking-tight text-foreground md:text-3xl', eyebrow && 'mt-3')}>
                                 {title}
                             </h2>
                             {description && (

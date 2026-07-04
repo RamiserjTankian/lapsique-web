@@ -1,5 +1,5 @@
 import { Link, usePage } from '@inertiajs/react';
-import { ArrowRight, CalendarDays, CheckCircle2, Clapperboard, Disc3, Music2 } from 'lucide-react';
+import { ArrowRight, CalendarDays, Clapperboard, Disc3, Music2 } from 'lucide-react';
 import { useEffect, useRef, type RefObject } from 'react';
 import { SeoHead } from '@/components/lapsique/SeoHead';
 import SiteLayout from '@/layouts/SiteLayout';
@@ -190,18 +190,11 @@ export default function Home({
 
             {/* 3. Oferta/solución — bloque glass de conversión */}
             <GlassSection
-                eyebrow={t('pages.home.offer_eyebrow')}
                 title={t('pages.home.offer_title')}
                 description={t('pages.home.offer_description', {
                     seconds: CONTENT_REEL_DURATION_SECONDS,
                     drone_shots: CONTENT_DRONE_SHOTS,
                 })}
-                action={(
-                    <span className="inline-flex items-center gap-2 rounded-full border border-emerald-500/25 bg-emerald-500/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] text-emerald-700">
-                        <CheckCircle2 className="h-3.5 w-3.5" />
-                        {t('funnel.offer.market_fit_label')}
-                    </span>
-                )}
                 surfaceClassName="relative overflow-hidden border-emerald-500/25 shadow-[0_28px_80px_oklch(0.58_0.12_145/0.14)]"
                 surfaceStyle={{
                     background: 'radial-gradient(circle at 12% 14%, oklch(0.82 0.13 145 / 0.22), transparent 33%), radial-gradient(circle at 88% 18%, oklch(0.84 0.15 78 / 0.2), transparent 30%), linear-gradient(135deg, oklch(0.995 0.01 96), oklch(0.94 0.04 140 / 0.9))',
@@ -236,7 +229,6 @@ export default function Home({
 
             {/* 5. Deseo — contenido que da seriedad a la marca */}
             <GlassSection
-                eyebrow={t('pages.home.ads_cta')}
                 title={t('pages.home.ads_title')}
                 description={t('pages.home.ads_description')}
             >
@@ -268,7 +260,6 @@ export default function Home({
             {/* 10. Prueba final en video — biblioteca de reels */}
             <GlassSection
                 surface="solid"
-                eyebrow={t('pages.home.success_title')}
                 title={t('pages.home.success_title')}
                 description={t('pages.home.success_description')}
             >
@@ -320,7 +311,6 @@ function DjSetHomeCta({ href }: { href: string }) {
     return (
         <GlassSection
             surface="solid"
-            eyebrow={t('pages.home.djset_cta_eyebrow')}
             title={t('pages.home.djset_cta_title')}
             description={t('pages.home.djset_cta_description')}
             action={(
@@ -381,7 +371,6 @@ function AboutLapsique({ portfolioItems }: { portfolioItems: PortfolioItemData[]
     return (
         <GlassSection
             id="about"
-            eyebrow={t('pages.home.about_eyebrow')}
             title={t('pages.home.about_title')}
             description={t('pages.home.about_description')}
         >

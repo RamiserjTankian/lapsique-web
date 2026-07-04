@@ -55,9 +55,7 @@ export default function BookingFailure({ booking }: BookingFailureProps) {
                         {t('booking.failure.retry')}
                     </Button>
                     <Button variant="glass" asChild>
-                        <a href={(booking.service_type === 'dj_set'
-                            ? route('djset.show', undefined, false, ziggy)
-                            : route('home', undefined, false, ziggy)) + '#agenda'}>
+                        <a href={`${retryLandingPath(booking.service_type, ziggy)}#agenda`}>
                             {t('booking.failure.choose_slot')}
                         </a>
                     </Button>
@@ -65,4 +63,20 @@ export default function BookingFailure({ booking }: BookingFailureProps) {
             </div>
         </SiteLayout>
     );
+}
+
+function retryLandingPath(serviceType: ContentBookingData['service_type'], ziggy: PageProps['ziggy']): string {
+    if (serviceType === 'dj_set') {
+        return route('djset.show', undefined, false, ziggy);
+    }
+
+    if (serviceType === 'drone_session') {
+        return route('drone-sessions.show', undefined, false, ziggy);
+    }
+
+    if (serviceType === 'construction_progress') {
+        return route('construction-progress.show', undefined, false, ziggy);
+    }
+
+    return route('home', undefined, false, ziggy);
 }

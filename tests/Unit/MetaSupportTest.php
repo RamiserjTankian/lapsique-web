@@ -82,4 +82,42 @@ class MetaSupportTest extends TestCase
                 && ($body['data'][0]['event_id'] ?? null) === 'booking_paid-uuid';
         });
     }
+
+    public function test_capi_sends_add_payment_info_with_browser_event_id(): void
+    {
+        config([
+            'meta.capi.enabled' => true,
+            'meta.pixel.id' => '123456789',
+            'meta.marketing_api.access_token' => 'test-token',
+            'meta.marketing_api.api_version' => 'v21.0',
+        ]);
+
+        Http::fake([
+            'graph.facebook.com/*' => Http::response(['events_received' => 1], 200),
+        ]);
+
+        $booking = new ContentBooking([
+            'public_id' => 'booking-uuid',
+            'client_name' => 'Buyer',
+            'client_email' => 'buyer@example.com',
+            'client_phone' => '529841234567',
+            'amount' => 5000,
+            'currency' => 'MXN',
+            'payment_provider' => 'stripe',
+            'metadata' => [
+                'payment_info_event_id' => 'checkout-event_payment_info',
+            ],
+        ]);
+
+        app(MetaConversionsApiService::class)->sendAddPaymentInfoForBooking($booking);
+
+        Http::assertSent(function ($request) {
+            $body = $request->data();
+
+            return str_contains($request->url(), '123456789/events')
+                && ($body['data'][0]['event_name'] ?? null) === 'AddPaymentInfo'
+                && ($body['data'][0]['event_id'] ?? null) === 'checkout-event_payment_info'
+                && ($body['data'][0]['custom_data']['payment_provider'] ?? null) === 'stripe';
+        });
+    }
 }

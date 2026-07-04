@@ -15,13 +15,17 @@ declare global {
             data?: Record<string, unknown>,
             options?: { eventID?: string },
         ) => void;
-        trackMetaPixelCustom?: (event: string, data?: Record<string, unknown>) => void;
+        trackMetaPixelCustom?: (
+            event: string,
+            data?: Record<string, unknown>,
+            options?: { eventID?: string },
+        ) => void;
     }
 }
 
 const BOOKING_CONTENT = {
     content_category: 'content_booking',
-    content_name: 'Sesion de contenido Trascendentalby',
+    content_name: 'Sesion de contenido Lapsique Media',
 } as const;
 
 /** Eventos internos que también disparan un evento estándar de Meta (para optimización de campañas). */
@@ -45,8 +49,18 @@ const STANDARD_EVENTS: Record<string, string> = {
     booking_date_selected: 'Schedule',
     booking_slot_selected: 'AddToCart',
     booking_form_started: 'Lead',
+    booking_payment_info_added: 'AddPaymentInfo',
     booking_checkout_started: 'InitiateCheckout',
     booking_confirmed: 'Purchase',
+    djset_booking_cta_clicked: 'Lead',
+    djset_whatsapp_cta_clicked: 'Contact',
+    drone_session_page_viewed: 'ViewContent',
+    drone_session_booking_cta_clicked: 'Lead',
+    drone_session_whatsapp_cta_clicked: 'Contact',
+    construction_progress_page_viewed: 'ViewContent',
+    construction_progress_booking_cta_clicked: 'Lead',
+    construction_progress_whatsapp_cta_clicked: 'Contact',
+    whatsapp_popup_clicked: 'Contact',
 };
 
 /** Sin evento estándar: no contaminar optimización (modo prueba o eventos puramente internos). */
@@ -61,7 +75,6 @@ const CUSTOM_ONLY_EVENTS = new Set([
     'faq_opened',
     'whatsapp_popup_shown',
     'whatsapp_popup_dismissed',
-    'whatsapp_popup_clicked',
 ]);
 
 /** IDs alineados con Meta CAPI (MetaConversionsApiService). */
@@ -131,7 +144,7 @@ function trackBookingMetaEvent(event: string, payload: Record<string, unknown>):
 function shouldFireStandardMetaEvent(event: string, payload: Record<string, unknown>): boolean {
     // En modo prueba (sin pago real) no disparamos InitiateCheckout estándar
     // para no contaminar la optimización de campañas; el CAPI tampoco lo envía.
-    if (event === 'booking_checkout_started') {
+    if (event === 'booking_checkout_started' || event === 'booking_payment_info_added') {
         return !payload.skip_payment;
     }
 
@@ -168,7 +181,12 @@ function resolveMetaEventId(event: string, payload: Record<string, unknown>): st
 }
 
 function normalizeMetaPayload(event: string, payload: Record<string, unknown>): Record<string, unknown> {
-    if (event === 'Purchase' || event === 'InitiateCheckout' || event === 'AddToCart') {
+    if (
+        event === 'Purchase'
+        || event === 'InitiateCheckout'
+        || event === 'AddToCart'
+        || event === 'AddPaymentInfo'
+    ) {
         return {
             currency: payload.currency || 'MXN',
             value: payload.value ?? payload.amount,
@@ -177,6 +195,7 @@ function normalizeMetaPayload(event: string, payload: Record<string, unknown>): 
             content_name: payload.content_name ?? BOOKING_CONTENT.content_name,
             content_category: payload.content_category ?? BOOKING_CONTENT.content_category,
             customer_id: payload.customer_id,
+            payment_provider: payload.payment_provider,
         };
     }
 

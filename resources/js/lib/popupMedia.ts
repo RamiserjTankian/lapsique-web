@@ -1,7 +1,7 @@
 import type { TranslateFn } from '@/hooks/useTranslations';
 import type { HeroProofVideoData, PortfolioItemData, VideoItem } from '@/types';
 
-export type PopupVariant = 'home' | 'djset';
+export type PopupVariant = 'home' | 'djset' | 'drone' | 'construction';
 
 export type PopupMediaPurpose = 'booking' | 'newsletter' | 'whatsapp';
 
@@ -20,7 +20,9 @@ export interface ResolvedPopupImage {
 
 const FALLBACK_IMAGES: Record<PopupVariant, string> = {
     home: '/images/equipment/sony-a7iv.svg',
-    djset: '/images/equipment/sony-a6700.svg',
+    djset: '/images/portfolio/photos/082-proper-collective-cab1bed3f4.webp',
+    drone: '/images/drone-sessions/hero.jpg',
+    construction: '/images/drone-sessions/goba-construction.jpg',
 };
 
 function firstPortfolioImage(
@@ -74,19 +76,31 @@ export function resolvePopupImage(
     const posterFromProof = heroProofVideo?.poster_url ?? null;
     const djThumbnail = variant === 'djset' ? firstOriginalThumbnail(originals) : null;
 
-    const url =
-        featuredImage?.asset_url
-        ?? posterFromProof
-        ?? posterFromPortfolio
-        ?? djThumbnail
-        ?? FALLBACK_IMAGES[variant];
+    const url = variant === 'djset'
+        ? (
+            djThumbnail
+            ?? posterFromProof
+            ?? posterFromPortfolio
+            ?? featuredImage?.asset_url
+            ?? FALLBACK_IMAGES[variant]
+        )
+        : (
+            featuredImage?.asset_url
+            ?? posterFromProof
+            ?? posterFromPortfolio
+            ?? FALLBACK_IMAGES[variant]
+        );
 
     const alt =
-        featuredImage?.title
+        (variant === 'djset' ? null : featuredImage?.title)
         ?? heroProofVideo?.title
         ?? (variant === 'djset'
             ? t('funnel.popup.fallback_alt_djset')
-            : t('funnel.popup.fallback_alt_home'));
+            : variant === 'drone'
+              ? t('funnel.popup.fallback_alt_drone')
+              : variant === 'construction'
+                ? t('funnel.popup.fallback_alt_construction')
+              : t('funnel.popup.fallback_alt_home'));
 
     return { url, alt };
 }
@@ -97,19 +111,39 @@ export function getPopupVisualCopy(
     purpose: PopupMediaPurpose,
 ): { badge: string; title: string; description: string; caption?: string } {
     if (purpose === 'booking') {
-        return variant === 'djset'
-            ? {
-                  badge: t('funnel.popup.booking_djset_badge'),
-                  title: t('funnel.popup.booking_djset_title'),
-                  description: t('funnel.popup.booking_djset_description'),
-                  caption: t('funnel.popup.booking_djset_caption'),
-              }
-            : {
-                  badge: t('funnel.popup.booking_home_badge'),
-                  title: t('funnel.popup.booking_home_title'),
-                  description: t('funnel.popup.booking_home_description'),
-                  caption: t('funnel.popup.booking_home_caption'),
-              };
+        if (variant === 'djset') {
+            return {
+                badge: t('funnel.popup.booking_djset_badge'),
+                title: t('funnel.popup.booking_djset_title'),
+                description: t('funnel.popup.booking_djset_description'),
+                caption: t('funnel.popup.booking_djset_caption'),
+            };
+        }
+
+        if (variant === 'drone') {
+            return {
+                badge: t('funnel.popup.booking_drone_badge'),
+                title: t('funnel.popup.booking_drone_title'),
+                description: t('funnel.popup.booking_drone_description'),
+                caption: t('funnel.popup.booking_drone_caption'),
+            };
+        }
+
+        if (variant === 'construction') {
+            return {
+                badge: t('funnel.popup.booking_construction_badge'),
+                title: t('funnel.popup.booking_construction_title'),
+                description: t('funnel.popup.booking_construction_description'),
+                caption: t('funnel.popup.booking_construction_caption'),
+            };
+        }
+
+        return {
+            badge: t('funnel.popup.booking_home_badge'),
+            title: t('funnel.popup.booking_home_title'),
+            description: t('funnel.popup.booking_home_description'),
+            caption: t('funnel.popup.booking_home_caption'),
+        };
     }
 
     if (purpose === 'newsletter') {

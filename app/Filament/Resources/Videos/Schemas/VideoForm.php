@@ -113,7 +113,7 @@ class VideoForm
                 CheckboxList::make('tags')
                     ->label('Tags')
                     ->options([
-                        'psique-originals' => 'TRASCENDENTAL ORIGINALS (Producción propia)',
+                        'psique-originals' => 'LAPSIQUE ORIGINALS (Producción propia)',
                         'youtube' => 'YOUTUBE (Video de referencia del DJ)',
                     ])
                     ->columns(1)

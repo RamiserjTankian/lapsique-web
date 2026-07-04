@@ -2,8 +2,8 @@
 
 return [
     'site' => [
-        'brand' => 'TRASCENDENTAL.',
-        'brand_tagline' => 'Artists, events and culture.',
+        'brand' => 'Lapsique Media',
+        'brand_tagline' => 'Audiovisual content for music, events, and brands.',
         'nav' => [
             'home' => 'Home',
             'djs' => 'DJs',
@@ -42,7 +42,7 @@ return [
     ],
     'videos_page' => [
         'title' => 'Videos',
-        'subtitle' => 'All audiovisual content from Trascendental on YouTube.',
+        'subtitle' => 'All audiovisual content from Lapsique Media on YouTube.',
         'youtube' => 'YouTube channel',
         'instagram' => 'Instagram',
         'empty' => 'No videos synced yet. Run the seeder to fetch them from the channel.',

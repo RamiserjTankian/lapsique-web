@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode, type RefObject } from 'react';
 import { useForm, usePage } from '@inertiajs/react';
 import { format, parseISO, startOfDay } from 'date-fns';
 import { Alert, AlertDescription } from '@/components/ui/alert';
@@ -56,7 +56,6 @@ import type { BookingSlot, HeroProofVideoData, PageProps, PortfolioItemData, Vid
 import {
     CalendarRange,
     Check,
-    CalendarDays,
     ShieldCheck,
     X,
 } from 'lucide-react';
@@ -66,6 +65,7 @@ interface BookingWidgetProps {
     price: number;
     whatsapp?: string;
     errors?: Record<string, string>;
+    className?: string;
     checkoutRoute?: string;
     paymentProvider?: 'mercadopago' | 'stripe';
     product?: BookingWidgetProduct;
@@ -74,6 +74,7 @@ interface BookingWidgetProps {
     popupHeroProofVideo?: HeroProofVideoData | null;
     popupOriginals?: VideoItem[];
     highlight?: boolean;
+    analyticsPayload?: Record<string, unknown>;
 }
 
 export interface BookingWidgetProduct {
@@ -92,6 +93,7 @@ export interface BookingWidgetProduct {
 }
 
 const BOOKING_FORM_DRAFT_KEY = 'lapsique_booking_form_draft';
+const DEFAULT_ANALYTICS_PAYLOAD: Record<string, unknown> = {};
 
 function generateCheckoutEventId(): string {
     if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
@@ -106,6 +108,7 @@ export function BookingWidget({
     price,
     whatsapp,
     errors = {},
+    className,
     checkoutRoute = 'booking.checkout',
     paymentProvider = 'mercadopago',
     product: productProp,
@@ -114,6 +117,7 @@ export function BookingWidget({
     popupHeroProofVideo = null,
     popupOriginals = [],
     highlight = false,
+    analyticsPayload = DEFAULT_ANALYTICS_PAYLOAD,
 }: BookingWidgetProps) {
     const { t, locale } = useTranslations();
     const product = useMemo(
@@ -136,13 +140,13 @@ export function BookingWidget({
     );
     const submittedRef = useRef(false);
     const formStartedRef = useRef(false);
-    const skipSlotAutoSelectRef = useRef(false);
     const handledDeepLinkOpenRef = useRef(false);
     const selectedSlotRef = useRef<number | null>(null);
     const isTestModeRef = useRef(isTestMode);
     const dateSectionRef = useRef<HTMLElement>(null);
     const timeSectionRef = useRef<HTMLElement>(null);
     const formSectionRef = useRef<HTMLElement>(null);
+    const termsTriggerRef = useRef<HTMLButtonElement>(null);
     const pendingScrollStepRef = useRef<'horario' | 'datos' | null>(null);
     const userPickedSlotRef = useRef(false);
     const [selectedDateKey, setSelectedDateKey] = useState<string | undefined>();
@@ -243,7 +247,6 @@ export function BookingWidget({
 
     const resetBookingWizard = useCallback(() => {
         submittedRef.current = false;
-        skipSlotAutoSelectRef.current = true;
         setSelectedDateKey(undefined);
         setSelectedSlotId(null);
         setData('booking_slot_id', '');
@@ -291,9 +294,9 @@ export function BookingWidget({
         (source: string) => {
             resetBookingWizard();
             handleBookingModalOpenChange(true);
-            trackBookingEvent('booking_popup_shown', { source });
+            trackBookingEvent('booking_popup_shown', { ...analyticsPayload, source });
         },
-        [handleBookingModalOpenChange, resetBookingWizard],
+        [analyticsPayload, handleBookingModalOpenChange, resetBookingWizard],
     );
 
     useEffect(() => {
@@ -360,10 +363,11 @@ export function BookingWidget({
 
         formStartedRef.current = true;
         trackBookingEvent('booking_form_started', {
+            ...analyticsPayload,
             slot_id: selectedSlot.id,
             skip_payment: isTestMode,
         });
-    }, [isTestMode, selectedSlot, showForm]);
+    }, [analyticsPayload, isTestMode, selectedSlot, showForm]);
 
     useEffect(() => {
         if (!showForm) {
@@ -425,6 +429,7 @@ export function BookingWidget({
 
             if (activeSlotId !== null) {
                 trackBookingEvent('booking_abandoned', {
+                    ...analyticsPayload,
                     stage: 'form_open',
                     skip_payment: isTestModeRef.current,
                 });
@@ -437,6 +442,7 @@ export function BookingWidget({
         setSelectedSlotId(slot.id);
         setData('booking_slot_id', slot.id);
         trackBookingEvent('booking_slot_selected', {
+            ...analyticsPayload,
             slot_id: slot.id,
             value: price,
             currency: 'MXN',
@@ -445,23 +451,16 @@ export function BookingWidget({
     };
 
     const handleSlotSelect = (slot: BookingSlot) => {
-        skipSlotAutoSelectRef.current = false;
         userPickedSlotRef.current = true;
         applySlotSelection(slot);
     };
 
     const applyDateSelection = (dateKey: string) => {
-        const slotsForDay = slotsByDate.get(dateKey) ?? [];
-        skipSlotAutoSelectRef.current = false;
         setSelectedDateKey(dateKey);
         submittedRef.current = false;
-        if (slotsForDay.length > 0) {
-            applySlotSelection(slotsForDay[0]);
-        } else {
-            setSelectedSlotId(null);
-            setData('booking_slot_id', '');
-        }
-        trackBookingEvent('booking_date_selected', { date: dateKey });
+        setSelectedSlotId(null);
+        setData('booking_slot_id', '');
+        trackBookingEvent('booking_date_selected', { ...analyticsPayload, date: dateKey });
     };
 
     const handleInlineDateSelect = (dateKey: string) => {
@@ -477,34 +476,13 @@ export function BookingWidget({
 
     const clearSelection = () => {
         submittedRef.current = false;
-        skipSlotAutoSelectRef.current = true;
         setSelectedSlotId(null);
         setData('booking_slot_id', '');
-        trackBookingEvent('booking_slot_cleared');
+        trackBookingEvent('booking_slot_cleared', analyticsPayload);
         if (isBookingModalOpen && selectedDateKey) {
             requestAnimationFrame(() => scrollToBookingStep('horario'));
         }
     };
-
-    useEffect(() => {
-        if (!selectedDateKey || daySlots.length === 0) {
-            return;
-        }
-
-        if (skipSlotAutoSelectRef.current) {
-            skipSlotAutoSelectRef.current = false;
-            return;
-        }
-
-        const hasValidSelection =
-            selectedSlotId !== null && daySlots.some((slot) => slot.id === selectedSlotId);
-
-        if (hasValidSelection) {
-            return;
-        }
-
-        applySlotSelection(daySlots[0]);
-    }, [selectedDateKey, daySlots, selectedSlotId]);
 
     useEffect(() => {
         if (!isBookingModalOpen || !pendingScrollStepRef.current) {
@@ -538,10 +516,12 @@ export function BookingWidget({
         e.preventDefault();
         submittedRef.current = true;
         const trackingContext = window.SiteTracker?.getContext?.() ?? {};
-        // event_id compartido entre el pixel (browser) y el CAPI (servidor) para deduplicar InitiateCheckout.
+        // event_id compartido entre el pixel (browser) y CAPI (servidor) para deduplicar checkout.
         const checkoutEventId = generateCheckoutEventId();
+        const paymentInfoEventId = `${checkoutEventId}_payment_info`;
 
         trackBookingEvent('booking_form_submitted', {
+            ...analyticsPayload,
             skip_payment: isTestMode,
             value: price,
             currency: 'MXN',
@@ -549,7 +529,19 @@ export function BookingWidget({
             client_phone: data.client_phone,
             client_name: data.client_name,
         });
+        trackBookingEvent('booking_payment_info_added', {
+            ...analyticsPayload,
+            skip_payment: isTestMode,
+            payment_provider: isTestMode ? 'none' : data.payment_provider,
+            event_id: paymentInfoEventId,
+            value: price,
+            currency: 'MXN',
+            client_email: data.client_email,
+            client_phone: data.client_phone,
+            client_name: data.client_name,
+        });
         trackBookingEvent('booking_checkout_started', {
+            ...analyticsPayload,
             skip_payment: isTestMode,
             payment_provider: isTestMode ? 'none' : data.payment_provider,
             event_id: checkoutEventId,
@@ -562,6 +554,7 @@ export function BookingWidget({
         transform((current) => ({
             ...current,
             checkout_event_id: checkoutEventId,
+            payment_info_event_id: paymentInfoEventId,
             analytics_visitor_id: trackingContext.visitor_id,
             analytics_session_id: trackingContext.session_id,
             utm_source: trackingContext.utm_source,
@@ -583,6 +576,7 @@ export function BookingWidget({
                 id="agenda"
                 ref={sectionRef}
                 data-analytics-section="booking_widget"
+                className={className}
                 surfaceClassName={sectionSurfaceClassName}
                 innerClassName={sectionInnerClassName}
             >
@@ -620,6 +614,7 @@ export function BookingWidget({
             id="agenda"
             ref={sectionRef}
             data-analytics-section="booking_widget"
+            className={className}
             surfaceClassName={sectionSurfaceClassName}
             innerClassName={sectionInnerClassName}
         >
@@ -630,53 +625,37 @@ export function BookingWidget({
                     ref={calendarRef}
                     className="space-y-5 p-5 md:p-6"
                 >
-                    <div>
-                        <p className="text-[10px] font-semibold uppercase tracking-[0.24em] text-primary/80">
-                            {t('booking.calendar.intro_badge')}
-                        </p>
-                        <p className="mt-1 max-w-2xl text-base font-medium text-foreground md:text-lg">
-                            {t('booking.calendar.intro')}
-                        </p>
-                    </div>
-
                     <div className="space-y-4">
-                            <div className="flex flex-wrap items-end justify-between gap-3">
-                                <div>
-                                    <p className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">
-                                        {t('booking.step.date_label')}
-                                    </p>
-                                    <h3 className="mt-1 text-xl font-bold md:text-2xl">
-                                        {t('booking.step.date_title')}
-                                    </h3>
-                                    <p className="mt-2 max-w-xl text-sm text-muted-foreground">
-                                        {t('booking.step.date_hint')}
-                                    </p>
-                                </div>
-                                <span className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/10 px-3 py-1 text-xs font-medium text-primary">
-                                    <CalendarDays className="h-4 w-4" />
-                                    {t('booking.step.upcoming_dates')}
-                                </span>
-                            </div>
-
-                            <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 xl:grid-cols-4">
-                                {availableDateKeys.slice(0, 12).map((dateKey) => {
-                                    const date = parseSlotDate(dateKey);
-                                    const isSelected = selectedDateKey === dateKey;
-                                    const isSuggested =
-                                        !selectedDateKey && suggestedDateKey === dateKey;
-
-                                    return (
-                                        <DateOption
-                                            key={dateKey}
-                                            date={date}
-                                            selected={isSelected}
-                                            suggested={isSuggested}
-                                            onClick={() => handleInlineDateSelect(dateKey)}
-                                        />
-                                    );
-                                })}
+                        <div className="flex flex-wrap items-end justify-between gap-3">
+                            <div>
+                                <h3 className="mt-1 text-xl font-bold md:text-2xl">
+                                    {t('booking.step.date_title')}
+                                </h3>
+                                <p className="mt-2 max-w-xl text-sm text-muted-foreground">
+                                    {t('booking.step.date_hint')}
+                                </p>
                             </div>
                         </div>
+
+                        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 xl:grid-cols-4">
+                            {availableDateKeys.slice(0, 12).map((dateKey) => {
+                                const date = parseSlotDate(dateKey);
+                                const isSelected = selectedDateKey === dateKey;
+                                const isSuggested =
+                                    !selectedDateKey && suggestedDateKey === dateKey;
+
+                                return (
+                                    <DateOption
+                                        key={dateKey}
+                                        date={date}
+                                        selected={isSelected}
+                                        suggested={isSuggested}
+                                        onClick={() => handleInlineDateSelect(dateKey)}
+                                    />
+                                );
+                            })}
+                        </div>
+                    </div>
                 </div>
             </div>
 
@@ -686,7 +665,6 @@ export function BookingWidget({
                 layout="form"
                 imageUrl={bookingPopupImage.url}
                 imageAlt={bookingPopupImage.alt}
-                badge={bookingPopupVisual.badge}
                 title={bookingPopupVisual.title}
                 description={bookingPopupVisual.description}
                 caption={bookingPopupVisual.caption}
@@ -846,9 +824,6 @@ export function BookingWidget({
                                                 : 'border-border/70',
                                         )}
                                     >
-                                        <p className="mb-4 text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">
-                                            {t('booking.step.form_label')}
-                                        </p>
                                         <BookingForm
                                             data={data}
                                             errors={errors}
@@ -861,6 +836,7 @@ export function BookingWidget({
                                             clearSelection={clearSelection}
                                             submitCheckout={submitCheckout}
                                             openTerms={() => setIsTermsModalOpen(true)}
+                                            termsTriggerRef={termsTriggerRef}
                                             product={product}
                                             stripeConfigured={payments?.stripeConfigured ?? true}
                                             mercadopagoConfigured={payments?.mercadopagoConfigured ?? true}
@@ -880,6 +856,7 @@ export function BookingWidget({
                 onOpenChange={setIsTermsModalOpen}
                 product={product}
                 isTestMode={isTestMode}
+                returnFocusRef={termsTriggerRef}
                 usesStripeCheckout={
                     !isTestMode
                     && (paymentProvider === 'stripe' || data.payment_provider === 'stripe')
@@ -902,6 +879,7 @@ function BookingForm({
     clearSelection,
     submitCheckout,
     openTerms,
+    termsTriggerRef,
     product,
     stripeConfigured,
     mercadopagoConfigured,
@@ -928,6 +906,7 @@ function BookingForm({
     clearSelection: () => void;
     submitCheckout: (e: React.FormEvent) => void;
     openTerms: () => void;
+    termsTriggerRef: RefObject<HTMLButtonElement | null>;
     product: BookingWidgetProduct;
     stripeConfigured: boolean;
     mercadopagoConfigured: boolean;
@@ -1055,7 +1034,10 @@ function BookingForm({
                                 <span className="text-muted-foreground">
                                     {t('booking.terms.accept_lead')}{' '}
                                     <button
+                                        ref={termsTriggerRef}
                                         type="button"
+                                        aria-haspopup="dialog"
+                                        data-booking-terms-trigger
                                         className={bookingCheckoutLinkClasses}
                                         onClick={openTerms}
                                     >
@@ -1104,15 +1086,12 @@ function BookingHeader({ isTestMode, product }: { isTestMode: boolean; product: 
 
     return (
         <div className="space-y-3 text-center">
-            <span className="inline-block rounded-full border border-primary/30 bg-primary/10 px-4 py-1 text-xs font-semibold uppercase tracking-widest text-primary">
-                {t('booking.header.badge')}
-            </span>
             <h2 className="font-display text-3xl font-bold md:text-5xl">
                 {product.headerTitle}
             </h2>
             <p className="mx-auto max-w-2xl text-sm text-muted-foreground md:text-base">
-                {product.headerDescription}{' '}
-                {isTestMode ? t('booking.header.test_suffix') : t('booking.header.live_suffix')}
+                {product.headerDescription}
+                {isTestMode ? ` ${t('booking.header.test_suffix')}` : ''}
             </p>
         </div>
     );
@@ -1275,15 +1254,18 @@ function TermsModal({
     onOpenChange,
     product,
     isTestMode,
+    returnFocusRef,
     usesStripeCheckout = false,
 }: {
     open: boolean;
     onOpenChange: (open: boolean) => void;
     product: BookingWidgetProduct;
     isTestMode: boolean;
+    returnFocusRef?: RefObject<HTMLElement | null>;
     usesStripeCheckout?: boolean;
 }) {
     const { t } = useTranslations();
+    const titleRef = useRef<HTMLHeadingElement>(null);
     const showStripeProtection = usesStripeCheckout;
     const stripeTrust = getPaymentTrustContent(t, 'stripe');
 
@@ -1292,13 +1274,22 @@ function TermsModal({
             <DialogContent
                 layer="stacked"
                 className={modalShellDocument}
+                onOpenAutoFocus={(event) => {
+                    event.preventDefault();
+                    titleRef.current?.focus({ preventScroll: true });
+                }}
+                onCloseAutoFocus={(event) => {
+                    event.preventDefault();
+                    returnFocusRef?.current?.focus({ preventScroll: true });
+                }}
             >
                 <div className="space-y-5 p-5 md:p-7">
                     <div className="space-y-2">
-                        <span className="inline-flex rounded-full border border-primary/25 bg-primary/10 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.24em] text-primary">
-                            {t('booking.terms.modal_badge')}
-                        </span>
-                        <DialogTitle className="font-display text-2xl md:text-3xl">
+                        <DialogTitle
+                            ref={titleRef}
+                            tabIndex={-1}
+                            className="font-display text-2xl outline-none md:text-3xl"
+                        >
                             {t('booking.terms.modal_title')}
                         </DialogTitle>
                         <DialogDescription className="text-sm leading-relaxed text-muted-foreground">

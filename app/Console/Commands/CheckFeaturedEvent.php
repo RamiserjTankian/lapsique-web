@@ -139,7 +139,7 @@ class CheckFeaturedEvent extends Command
 
         // Generar meta tags de ejemplo
         $this->info('📋 Meta tags que se generarán:');
-        $this->line("   og:title: {$featuredEvent->title} | Trascendental");
+        $this->line("   og:title: {$featuredEvent->title} | Lapsique Media");
         $this->line("   og:description: " . ($featuredEvent->headline ?: $featuredEvent->title));
         $this->line("   og:image: {$coverUrl}");
         $this->line("   og:type: event");
