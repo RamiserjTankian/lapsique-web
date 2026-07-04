@@ -177,7 +177,7 @@ class PageMeta
         $description = self::truncate(
             __('seo.construction_progress.description', ['price' => number_format($price, 0, '.', ',')]),
         );
-        $ogImage = self::absoluteImageUrl('/images/drone-sessions/goba-construction.jpg');
+        $ogImage = self::absoluteImageUrl('/images/drone-sessions/construction-goba-aerial.jpg');
 
         $jsonLd = [
             '@context' => 'https://schema.org',

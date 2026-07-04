@@ -22,7 +22,7 @@ const FALLBACK_IMAGES: Record<PopupVariant, string> = {
     home: '/images/equipment/sony-a7iv.svg',
     djset: '/images/portfolio/photos/082-proper-collective-cab1bed3f4.webp',
     drone: '/images/drone-sessions/hero.jpg',
-    construction: '/images/drone-sessions/goba-construction.jpg',
+    construction: '/images/drone-sessions/construction-goba-aerial.jpg',
 };
 
 function firstPortfolioImage(

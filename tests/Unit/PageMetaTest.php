@@ -187,7 +187,7 @@ class PageMetaTest extends TestCase
         $this->assertStringContainsString('DJI Air 3', $meta->description);
         $this->assertStringContainsString('5,000', $meta->description);
         $this->assertStringContainsString('Cancún', $meta->description);
-        $this->assertStringContainsString('/images/drone-sessions/goba-construction.jpg', (string) $meta->ogImage);
+        $this->assertStringContainsString('/images/drone-sessions/construction-goba-aerial.jpg', (string) $meta->ogImage);
         $this->assertSame('Avance de obra con dron DJI Air 3', $meta->jsonLd['serviceType']);
         $this->assertSame(5000, $meta->jsonLd['offers']['price']);
         $this->assertSame('https://lapsique.media/avances-de-obra#agenda', $meta->jsonLd['offers']['url']);
