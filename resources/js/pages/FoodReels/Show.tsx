@@ -174,10 +174,10 @@ const ACTIVATION_PHOTOS: FoodPhoto[] = [
         orientation: 'portrait',
     },
     {
-        id: 'tanuki-family-table',
-        title: 'Mesa de restaurante',
-        caption: 'Personas, comida y ambiente para reforzar experiencia.',
-        src: '/images/food-reels/food-tanuki-family-table.webp',
+        id: 'roof-guacamole-models',
+        title: 'Modelos en mesa',
+        caption: 'Personas, drinks y comida compartida para reforzar experiencia.',
+        src: '/images/food-reels/food-roof-guacamole-models.webp',
         orientation: 'portrait',
     },
 ];
@@ -473,14 +473,14 @@ export default function FoodReelsShow({ price, slots, errors }: FoodReelsShowPro
                 </div>
             </section>
 
-            <section className="mx-auto grid max-w-6xl gap-6 px-4 py-12 sm:px-6 lg:grid-cols-[0.42fr_1fr] lg:items-start">
+            <section className="mx-auto flex max-w-6xl flex-col gap-6 px-4 py-12 sm:px-6">
                 <SectionHeader
                     icon={<Images className="size-5" />}
                     title={copy.photoSectionTitle}
                     description={copy.photoSectionDescription}
-                    className="lg:sticky lg:top-24"
+                    className="max-w-3xl"
                 />
-                <div className="grid gap-3 sm:grid-cols-2">
+                <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
                     {PRODUCT_PHOTOS.map((photo) => (
                         <MediaPhoto key={photo.id} photo={photo} />
                     ))}
