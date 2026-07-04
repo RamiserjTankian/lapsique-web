@@ -87,48 +87,62 @@ const FOOD_REELS: FoodReel[] = [
 
 const PRODUCT_PHOTOS: FoodPhoto[] = [
     {
-        id: 'sushiclub-table',
-        title: 'SushiClub en mesa',
-        caption: 'Producto + manos: el plato se entiende y la escena se siente viva.',
-        src: '/images/food-reels/sushiclub-table-reels.webp',
+        id: 'tanuki-shrimp-rice',
+        title: 'Arroz con camarón',
+        caption: 'Producto vertical con color y lectura inmediata para redes.',
+        src: '/images/food-reels/food-tanuki-shrimp-rice.webp',
         orientation: 'portrait',
     },
     {
-        id: 'sushiclub-salmon',
-        title: 'Plato principal',
-        caption: 'Foto de producto con luz cálida para menú y pauta.',
-        src: '/images/food-reels/sushiclub-salmon-plate.webp',
-        orientation: 'square',
+        id: 'roof-sauce-pour',
+        title: 'Salsa en acción',
+        caption: 'Close-up de comida con movimiento para piezas verticales.',
+        src: '/images/food-reels/food-roof-sauce-pour.webp',
+        orientation: 'portrait',
+    },
+    {
+        id: 'tanuki-octopus-rice',
+        title: 'Arroz con pulpo',
+        caption: 'Close-up de producto para menú, pauta e historias.',
+        src: '/images/food-reels/food-tanuki-octopus-rice.webp',
+        orientation: 'portrait',
+    },
+    {
+        id: 'roof-fork-action',
+        title: 'Mesa en movimiento',
+        caption: 'Manos, cubiertos y comida en una escena activa.',
+        src: '/images/food-reels/food-roof-fork-action.webp',
+        orientation: 'portrait',
+    },
+    {
+        id: 'tanuki-grill-rice',
+        title: 'Arroz con proteína',
+        caption: 'Foto de producto cálida y directa para menú digital.',
+        src: '/images/food-reels/food-tanuki-grill-rice.webp',
+        orientation: 'portrait',
     },
     {
         id: 'sushiclub-drinks',
-        title: 'Cócteles',
+        title: 'Cócteles en mesa',
         caption: 'Bebidas con atmósfera para elevar ticket promedio.',
         src: '/images/food-reels/sushiclub-drinks.webp',
-        orientation: 'portrait',
-    },
-    {
-        id: 'roof-product',
-        title: 'The Roof',
-        caption: 'Close-up de comida para activaciones y menú digital.',
-        src: '/images/food-reels/roof-product-closeup.webp',
         orientation: 'portrait',
     },
 ];
 
 const ACTIVATION_PHOTOS: FoodPhoto[] = [
     {
-        id: 'roof-toast',
-        title: 'Activación con modelos',
+        id: 'roof-models-toast',
+        title: 'Mesa con modelos',
         caption: 'Comida, drinks y personas: contenido con contexto social.',
-        src: '/images/food-reels/roof-activation-toast.webp',
+        src: '/images/food-reels/food-roof-models-toast-clean.webp',
         orientation: 'portrait',
     },
     {
-        id: 'sushiclub-venue',
-        title: 'SushiClub',
-        caption: 'Fachada y marca para cerrar la historia del restaurante.',
-        src: '/images/food-reels/sushiclub-venue.webp',
+        id: 'tanuki-family-table',
+        title: 'Mesa de restaurante',
+        caption: 'Personas, comida y ambiente para reforzar experiencia.',
+        src: '/images/food-reels/food-tanuki-family-table.webp',
         orientation: 'portrait',
     },
 ];
@@ -140,8 +154,8 @@ const FOOD_PAGE_COPY = {
         heroDescription: 'Producción de reels, fotos y activaciones para restaurantes que necesitan verse irresistibles en Instagram, anuncios y menú digital.',
         heroPrimary: 'Agendar sesión',
         heroSecondary: 'Ver prueba real',
-        proofClient: 'SushiClub',
-        proofLines: ['comida + drinks', 'fotos editadas', 'reels verticales'],
+        proofClient: 'Sesiones reales',
+        proofLines: ['comida + drinks', 'menú + redes', 'reels verticales'],
         featureItems: ['Reels 9:16', 'Fotos editadas', 'Activaciones'],
         whatsappCta: 'Cotizar por WhatsApp',
         reelSectionTitle: 'Reels gastronómicos',
@@ -194,8 +208,8 @@ const FOOD_PAGE_COPY = {
         heroDescription: 'Reel production, food photography, and lifestyle activations for restaurants that need to look irresistible on Instagram, ads, and digital menus.',
         heroPrimary: 'Book session',
         heroSecondary: 'View real proof',
-        proofClient: 'SushiClub',
-        proofLines: ['food + drinks', 'edited photos', 'vertical reels'],
+        proofClient: 'Real shoots',
+        proofLines: ['food + drinks', 'menus + social', 'vertical reels'],
         featureItems: ['9:16 reels', 'Edited photos', 'Activations'],
         whatsappCta: 'Quote on WhatsApp',
         reelSectionTitle: 'Food reels',
@@ -395,12 +409,6 @@ export default function FoodReelsShow({ price, slots, errors }: FoodReelsShowPro
                                 pauseWhenOffscreen={false}
                                 className="aspect-[9/16] rounded-[1.45rem]"
                             />
-                            <div className="pointer-events-none absolute inset-x-6 bottom-6 rounded-full border border-white/16 bg-black/48 px-4 py-3 text-xs text-white/84 shadow-2xl backdrop-blur-md">
-                                <div className="flex items-center justify-between gap-3">
-                                    <span className="font-semibold">{activeReel.title}</span>
-                                    <span>{activeReel.duration}</span>
-                                </div>
-                            </div>
                         </div>
                     </div>
 
@@ -609,13 +617,18 @@ function ReelSelector({
                     : 'border-border/70 hover:border-primary/60',
             )}
             aria-pressed={selected}
+            aria-label={reel.title}
         >
             <div className="relative aspect-[9/14] overflow-hidden bg-black">
-                <img
-                    src={reel.poster}
-                    alt={reel.title}
-                    className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
-                    loading="lazy"
+                <AutoplayVideo
+                    src={reel.src}
+                    poster={reel.poster}
+                    title={reel.title}
+                    eager
+                    pauseWhenOffscreen={false}
+                    className="h-full w-full"
+                    videoClassName="transition duration-500 group-hover:scale-105"
+                    preload="metadata"
                 />
                 <div className="absolute inset-0 bg-[linear-gradient(180deg,transparent_46%,rgb(0_0_0/0.72)_100%)]" />
                 <div className="absolute bottom-3 left-3 right-3 flex items-center justify-between gap-2 text-xs font-semibold text-white">
@@ -625,14 +638,6 @@ function ReelSelector({
                     </span>
                     {selected ? <span className="text-[#ff6b55]">Live</span> : null}
                 </div>
-            </div>
-            <div className="flex flex-col gap-1 p-3">
-                <p className="font-display text-lg font-bold leading-tight text-foreground">
-                    {reel.title}
-                </p>
-                <p className="text-xs leading-relaxed text-muted-foreground">
-                    {reel.caption}
-                </p>
             </div>
         </button>
     );
@@ -648,7 +653,9 @@ function MediaPhoto({
     dark?: boolean;
 }) {
     const aspectClass = compact
-        ? 'aspect-[4/3]'
+        ? photo.orientation === 'landscape'
+          ? 'aspect-[4/3]'
+          : 'aspect-[3/4]'
         : photo.orientation === 'landscape'
           ? 'aspect-[16/10]'
           : photo.orientation === 'square'
@@ -668,22 +675,6 @@ function MediaPhoto({
                     loading={compact ? 'eager' : 'lazy'}
                 />
             </div>
-            {!compact ? (
-                <figcaption className="flex flex-col gap-1 p-4">
-                    <span className={cn(
-                        'font-display text-xl font-bold',
-                        dark ? 'text-white' : 'text-foreground',
-                    )}>
-                        {photo.title}
-                    </span>
-                    <span className={cn(
-                        'text-sm leading-relaxed',
-                        dark ? 'text-white/68' : 'text-muted-foreground',
-                    )}>
-                        {photo.caption}
-                    </span>
-                </figcaption>
-            ) : null}
         </figure>
     );
 }
