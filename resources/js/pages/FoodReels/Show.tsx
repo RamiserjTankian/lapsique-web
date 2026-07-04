@@ -94,6 +94,27 @@ const PRODUCT_PHOTOS: FoodPhoto[] = [
         orientation: 'portrait',
     },
     {
+        id: 'roof-pizza-model',
+        title: 'Pizza en mesa',
+        caption: 'Pizza con modelo para piezas sociales y menu de restaurante.',
+        src: '/images/food-reels/food-roof-pizza-model.webp',
+        orientation: 'portrait',
+    },
+    {
+        id: 'burger-sauce',
+        title: 'Hamburguesa con salsa',
+        caption: 'Hamburguesa vertical con accion y lectura clara del producto.',
+        src: '/images/food-reels/food-burger-sauce.webp',
+        orientation: 'portrait',
+    },
+    {
+        id: 'roof-loaded-potatoes-hands',
+        title: 'Platillo en manos',
+        caption: 'Producto servido con manos para mostrar escala y antojo.',
+        src: '/images/food-reels/food-roof-loaded-potatoes-hands.webp',
+        orientation: 'portrait',
+    },
+    {
         id: 'roof-sauce-pour',
         title: 'Salsa en acción',
         caption: 'Close-up de comida con movimiento para piezas verticales.',
@@ -112,6 +133,20 @@ const PRODUCT_PHOTOS: FoodPhoto[] = [
         title: 'Mesa en movimiento',
         caption: 'Manos, cubiertos y comida en una escena activa.',
         src: '/images/food-reels/food-roof-fork-action.webp',
+        orientation: 'portrait',
+    },
+    {
+        id: 'roof-loaded-potatoes-close',
+        title: 'Platillo de menu',
+        caption: 'Close-up limpio de comida para menu digital y pauta.',
+        src: '/images/food-reels/food-roof-loaded-potatoes-close.webp',
+        orientation: 'portrait',
+    },
+    {
+        id: 'roof-caesar',
+        title: 'Ensalada de menu',
+        caption: 'Foto limpia de platillo para menu y redes.',
+        src: '/images/food-reels/food-roof-caesar.webp',
         orientation: 'portrait',
     },
     {
