@@ -375,12 +375,7 @@ class ContentBookingController extends Controller
         ]);
 
         $settings = SiteSetting::current();
-        $price = match ($serviceType) {
-            ContentBooking::SERVICE_DJ_SET => (int) config('booking.dj_set_price', 10000),
-            ContentBooking::SERVICE_DRONE_SESSION => (int) config('booking.drone_session_price', 3000),
-            ContentBooking::SERVICE_CONSTRUCTION_PROGRESS => (int) config('booking.construction_progress_price', 5000),
-            default => $settings?->booking_price ?: (int) config('booking.content_price', 3000),
-        };
+        $price = ContentBooking::amountForService($serviceType);
         $paymentProvider = 'stripe';
 
         $booking = null;

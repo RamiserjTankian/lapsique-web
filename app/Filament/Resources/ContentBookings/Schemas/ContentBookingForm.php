@@ -2,6 +2,8 @@
 
 namespace App\Filament\Resources\ContentBookings\Schemas;
 
+use App\Models\BookingSlot;
+use App\Models\ContentBooking;
 use Filament\Forms\Components\DateTimePicker;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
@@ -25,24 +27,23 @@ class ContentBookingForm
                             ->preload(),
                         TextInput::make('client_name')
                             ->label('Nombre')
-                            ->disabled()
-                            ->dehydrated(false),
+                            ->required()
+                            ->maxLength(255),
                         TextInput::make('client_email')
                             ->label('Email')
-                            ->disabled()
-                            ->dehydrated(false),
+                            ->email()
+                            ->required()
+                            ->maxLength(255),
                         TextInput::make('client_phone')
                             ->label('WhatsApp')
-                            ->disabled()
-                            ->dehydrated(false),
+                            ->tel()
+                            ->required()
+                            ->maxLength(30),
                         TextInput::make('client_instagram')
                             ->label('Instagram')
-                            ->disabled()
-                            ->dehydrated(false),
+                            ->maxLength(255),
                         Textarea::make('notes')
                             ->label('Brief del cliente')
-                            ->disabled()
-                            ->dehydrated(false)
                             ->rows(3)
                             ->columnSpanFull(),
                     ])
@@ -52,20 +53,30 @@ class ContentBookingForm
                     ->schema([
                         Select::make('service_type')
                             ->label('Servicio')
-                            ->options([
-                                'content_session' => 'Sesión de contenido',
-                                'dj_set' => 'DJ Set',
-                                'drone_session' => 'Vuelo con dron',
-                                'construction_progress' => 'Avance de obra',
-                            ])
-                            ->disabled()
-                            ->dehydrated(false),
+                            ->options(ContentBooking::serviceOptions())
+                            ->default(ContentBooking::SERVICE_CONTENT_SESSION)
+                            ->required()
+                            ->live(),
                         Select::make('booking_slot_id')
                             ->label('Horario')
-                            ->relationship('slot', 'time_label')
-                            ->getOptionLabelFromRecordUsing(fn ($record) => $record->date->format('d/m/Y').' · '.$record->time_label)
+                            ->options(function (?ContentBooking $record = null): array {
+                                return BookingSlot::query()
+                                    ->where(function ($query) use ($record): void {
+                                        $query->available();
+
+                                        if ($record?->booking_slot_id) {
+                                            $query->orWhereKey($record->booking_slot_id);
+                                        }
+                                    })
+                                    ->orderBy('date')
+                                    ->orderBy('time_value')
+                                    ->get()
+                                    ->mapWithKeys(fn (BookingSlot $slot): array => [
+                                        $slot->id => $slot->date->format('d/m/Y').' · '.$slot->time_label.' · '.$slot->remaining.' cupo(s)',
+                                    ])
+                                    ->all();
+                            })
                             ->searchable()
-                            ->preload()
                             ->required(),
                         Select::make('status')
                             ->label('Estado')
@@ -76,9 +87,28 @@ class ContentBookingForm
                                 'failed' => 'Pago fallido',
                                 'cancelled' => 'Cancelada',
                             ])
-                            ->disabled()
-                            ->dehydrated(false)
-                            ->helperText('Para confirmar o cancelar, usa los botones en la vista de la reserva (no en Editar).'),
+                            ->default('pending_payment')
+                            ->required()
+                            ->helperText('Para enviar confirmación, usa el botón en la vista de la reserva.'),
+                        Select::make('payment_provider')
+                            ->label('Proveedor de pago')
+                            ->options([
+                                'internal' => 'Manual / interno',
+                                'stripe' => 'Stripe',
+                                'mercadopago' => 'Mercado Pago',
+                            ])
+                            ->default('internal')
+                            ->required(),
+                        TextInput::make('amount')
+                            ->label('Monto')
+                            ->numeric()
+                            ->prefix('$')
+                            ->suffix('MXN')
+                            ->helperText('Si lo dejas vacío al crear, se usa el precio del servicio.'),
+                        TextInput::make('currency')
+                            ->label('Moneda')
+                            ->default('MXN')
+                            ->maxLength(3),
                         TextInput::make('shoot_location')
                             ->label('Locación / set'),
                         DateTimePicker::make('deliverables_ready_at')

@@ -17,3 +17,8 @@ Schedule::command('analytics:send-booking-abandoned-events --minutes=90 --limit=
     ->hourly()
     ->withoutOverlapping()
     ->onOneServer();
+
+Schedule::command('booking:ensure-slots')
+    ->dailyAt('05:30')
+    ->withoutOverlapping()
+    ->onOneServer();

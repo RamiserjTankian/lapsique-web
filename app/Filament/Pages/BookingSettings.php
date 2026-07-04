@@ -37,11 +37,6 @@ class BookingSettings extends Page implements HasSchemas
 
     protected static ?int $navigationSort = 5;
 
-    public static function shouldRegisterNavigation(): bool
-    {
-        return false;
-    }
-
     public ?array $data = [];
 
     protected function getHeaderActions(): array

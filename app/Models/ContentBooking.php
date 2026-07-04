@@ -25,6 +25,29 @@ class ContentBooking extends Model implements HasMedia
 
     public const SERVICE_CONSTRUCTION_PROGRESS = 'construction_progress';
 
+    /**
+     * @return array<string, string>
+     */
+    public static function serviceOptions(): array
+    {
+        return [
+            self::SERVICE_CONTENT_SESSION => 'Sesión de contenido',
+            self::SERVICE_DJ_SET => 'DJ Set',
+            self::SERVICE_DRONE_SESSION => 'Vuelo con dron',
+            self::SERVICE_CONSTRUCTION_PROGRESS => 'Avance de obra',
+        ];
+    }
+
+    public static function amountForService(string $serviceType): int
+    {
+        return match ($serviceType) {
+            self::SERVICE_DJ_SET => (int) config('booking.dj_set_price', 10000),
+            self::SERVICE_DRONE_SESSION => (int) config('booking.drone_session_price', 3000),
+            self::SERVICE_CONSTRUCTION_PROGRESS => (int) config('booking.construction_progress_price', 5000),
+            default => SiteSetting::current()?->booking_price ?: (int) config('booking.content_price', 3000),
+        };
+    }
+
     protected $fillable = [
         'public_id',
         'booking_slot_id',

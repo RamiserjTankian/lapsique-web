@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\ContentBookings;
 
 use App\Filament\Resources\ContentBookings\RelationManagers\DeliverableLinksRelationManager;
+use App\Filament\Resources\ContentBookings\Pages\CreateContentBooking;
 use App\Filament\Resources\ContentBookings\Pages\ListContentBookings;
 use App\Filament\Resources\ContentBookings\Pages\EditContentBooking;
 use App\Filament\Resources\ContentBookings\Pages\ViewContentBooking;
@@ -32,11 +33,6 @@ class ContentBookingResource extends Resource
 
     protected static ?int $navigationSort = 1;
 
-    public static function shouldRegisterNavigation(): bool
-    {
-        return false;
-    }
-
     public static function form(\Filament\Schemas\Schema $schema): \Filament\Schemas\Schema
     {
         return ContentBookingForm::configure($schema);
@@ -63,6 +59,7 @@ class ContentBookingResource extends Resource
     {
         return [
             'index' => ListContentBookings::route('/'),
+            'create' => CreateContentBooking::route('/create'),
             'view' => ViewContentBooking::route('/{record}'),
             'edit' => EditContentBooking::route('/{record}/edit'),
         ];

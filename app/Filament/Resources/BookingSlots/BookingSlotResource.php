@@ -30,11 +30,6 @@ class BookingSlotResource extends Resource
 
     protected static ?int $navigationSort = 0;
 
-    public static function shouldRegisterNavigation(): bool
-    {
-        return false;
-    }
-
     public static function form(\Filament\Schemas\Schema $schema): \Filament\Schemas\Schema
     {
         return BookingSlotForm::configure($schema);

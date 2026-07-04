@@ -30,11 +30,6 @@ class BookingAvailabilityRuleResource extends Resource
 
     protected static ?int $navigationSort = 2;
 
-    public static function shouldRegisterNavigation(): bool
-    {
-        return false;
-    }
-
     public static function form(\Filament\Schemas\Schema $schema): \Filament\Schemas\Schema
     {
         return BookingAvailabilityRuleForm::configure($schema);
