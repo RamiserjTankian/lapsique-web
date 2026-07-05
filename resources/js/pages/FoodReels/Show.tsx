@@ -823,7 +823,7 @@ function MediaPhoto({
                     src={photo.src}
                     alt={photo.title}
                     className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
-                    loading={compact ? 'eager' : 'lazy'}
+                    loading={compact || mosaic || dense ? 'eager' : 'lazy'}
                 />
             </div>
         </figure>
