@@ -262,6 +262,23 @@ const DRONE_PAGE_COPY = {
 
 const SPEC_ICONS = [Drone, Clock3, Video, Camera, Palette, Ruler] as const;
 
+type ClipCopy = {
+    title: string;
+    caption: string;
+    useCase: string;
+};
+
+function resolveClipCopy(
+    copy: typeof DRONE_PAGE_COPY.es.clips | typeof DRONE_PAGE_COPY.en.clips,
+    clip: DroneSessionClip,
+): ClipCopy {
+    return (copy as Partial<Record<string, ClipCopy>>)[clip.id] ?? {
+        title: clip.title,
+        caption: clip.caption,
+        useCase: clip.useCase,
+    };
+}
+
 export default function DroneSessionsShow({ price, slots, errors }: DroneSessionsShowProps) {
     const { site } = usePage<PageProps>().props;
     const { t, locale } = useTranslations();
@@ -425,7 +442,7 @@ export default function DroneSessionsShow({ price, slots, errors }: DroneSession
                                 key={heroPreviewClip.id}
                                 src={heroPreviewClip.src}
                                 poster={heroPreviewClip.poster}
-                                title={copy.clips[heroPreviewClip.id as keyof typeof copy.clips].title}
+                                title={resolveClipCopy(copy.clips, heroPreviewClip).title}
                                 eager
                                 className="aspect-video rounded-lg"
                             />
@@ -483,7 +500,7 @@ export default function DroneSessionsShow({ price, slots, errors }: DroneSession
                         <ClipCard
                             key={clip.id}
                             clip={clip}
-                            copy={copy.clips[clip.id as keyof typeof copy.clips]}
+                            copy={resolveClipCopy(copy.clips, clip)}
                         />
                     ))}
                 </div>
@@ -565,18 +582,18 @@ export default function DroneSessionsShow({ price, slots, errors }: DroneSession
                             <AutoplayVideo
                                 src={clip.src}
                                 poster={clip.poster}
-                                title={copy.clips[clip.id as keyof typeof copy.clips].title}
+                                title={resolveClipCopy(copy.clips, clip).title}
                                 className="aspect-video"
                             />
                             <div className="p-4">
                                 <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-primary">
-                                    {copy.clips[clip.id as keyof typeof copy.clips].useCase}
+                                    {resolveClipCopy(copy.clips, clip).useCase}
                                 </p>
                                 <h3 className="mt-2 text-base font-semibold text-white">
-                                    {copy.clips[clip.id as keyof typeof copy.clips].title}
+                                    {resolveClipCopy(copy.clips, clip).title}
                                 </h3>
                                 <p className="mt-2 text-sm leading-relaxed text-white/72">
-                                    {copy.clips[clip.id as keyof typeof copy.clips].caption}
+                                    {resolveClipCopy(copy.clips, clip).caption}
                                 </p>
                             </div>
                         </article>
@@ -641,7 +658,7 @@ function ClipCard({
     copy,
 }: {
     clip: DroneSessionClip;
-    copy: { title: string; caption: string; useCase: string };
+    copy: ClipCopy;
 }) {
     return (
         <article className="group overflow-hidden rounded-xl border border-border/75 bg-background/80 shadow-lg shadow-black/5">

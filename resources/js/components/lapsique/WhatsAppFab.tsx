@@ -39,7 +39,7 @@ export function WhatsAppFab() {
     }, [url]);
     const isHomePage = currentPath === '/';
     const isDjSetPage = currentPath === '/dj-set' || currentPath === '/djset';
-    const isDronePage = currentPath === '/sesiones-de-dron' || currentPath === '/drone-session';
+    const isDronePage = currentPath === '/sesiones-de-dron' || currentPath === '/drone-session' || currentPath === '/vuelos-con-dron';
     const isConstructionProgressPage = currentPath === '/avances-de-obra';
     const promptMessages = useMemo(
         () => (
