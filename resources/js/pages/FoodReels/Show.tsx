@@ -48,6 +48,7 @@ type FoodPhoto = {
     caption: string;
     src: string;
     orientation: 'portrait' | 'square' | 'landscape';
+    layout?: 'large' | 'wide' | 'tall';
 };
 
 const FOOD_REELS: FoodReel[] = [
@@ -87,99 +88,155 @@ const FOOD_REELS: FoodReel[] = [
 
 const PRODUCT_PHOTOS: FoodPhoto[] = [
     {
-        id: 'tanuki-shrimp-rice',
-        title: 'Arroz con camarón',
-        caption: 'Producto vertical con color y lectura inmediata para redes.',
-        src: '/images/food-reels/food-tanuki-shrimp-rice.webp',
+        id: 'santino-charcuterie-table',
+        title: 'Tabla de charcutería',
+        caption: 'Mesa abundante con quesos, carnes frias y platillos al fondo.',
+        src: '/images/food-reels/food-santino-charcuterie-table.webp',
+        orientation: 'portrait',
+        layout: 'large',
+    },
+    {
+        id: 'santino-charcuterie-overhead',
+        title: 'Mesa completa',
+        caption: 'Composición cenital para enseñar variedad y abundancia.',
+        src: '/images/food-reels/food-santino-charcuterie-overhead.webp',
+        orientation: 'landscape',
+        layout: 'wide',
+    },
+    {
+        id: 'santino-burger-fries',
+        title: 'Hamburguesa con papas',
+        caption: 'Burger nocturna con textura, salsa y antojo inmediato.',
+        src: '/images/food-reels/food-santino-burger-fries.webp',
+        orientation: 'portrait',
+        layout: 'tall',
+    },
+    {
+        id: 'santino-steak-close',
+        title: 'Steak close-up',
+        caption: 'Detalle de carne y vegetales con lectura fuerte de producto.',
+        src: '/images/food-reels/food-santino-steak-close.webp',
         orientation: 'portrait',
     },
     {
-        id: 'roof-pizza-model',
-        title: 'Pizza en mesa',
-        caption: 'Pizza con modelo para piezas sociales y menu de restaurante.',
-        src: '/images/food-reels/food-roof-pizza-model.webp',
+        id: 'santino-fried-fish',
+        title: 'Pescado en mesa',
+        caption: 'Plato principal con guarnición, luz cálida y contexto de mesa.',
+        src: '/images/food-reels/food-santino-fried-fish.webp',
+        orientation: 'portrait',
+        layout: 'tall',
+    },
+    {
+        id: 'santino-brunch-table',
+        title: 'Brunch completo',
+        caption: 'Mesa cenital con fruta, waffles, bowls y platos servidos.',
+        src: '/images/food-reels/food-santino-brunch-table.webp',
+        orientation: 'landscape',
+        layout: 'wide',
+    },
+    {
+        id: 'santino-shrimp-skewer',
+        title: 'Brocheta de camarón',
+        caption: 'Producto limpio con salsas, textura y color.',
+        src: '/images/food-reels/food-santino-shrimp-skewer.webp',
         orientation: 'portrait',
     },
     {
-        id: 'burger-sauce',
-        title: 'Hamburguesa con salsa',
-        caption: 'Hamburguesa vertical con accion y lectura clara del producto.',
-        src: '/images/food-reels/food-burger-sauce.webp',
+        id: 'santino-shrimp-overhead',
+        title: 'Camarón cenital',
+        caption: 'Foto superior para menú digital, pauta y carrusel.',
+        src: '/images/food-reels/food-santino-shrimp-overhead.webp',
+        orientation: 'landscape',
+        layout: 'wide',
+    },
+    {
+        id: 'santino-octopus-overhead',
+        title: 'Pulpo servido',
+        caption: 'Plato cenital con styling de mesa y detalles de servicio.',
+        src: '/images/food-reels/food-santino-octopus-overhead.webp',
+        orientation: 'landscape',
+        layout: 'wide',
+    },
+    {
+        id: 'santino-cocktail',
+        title: 'Cóctel de barra',
+        caption: 'Bebida con textura y luz nocturna para elevar ticket.',
+        src: '/images/food-reels/food-santino-cocktail.webp',
         orientation: 'portrait',
     },
     {
-        id: 'roof-loaded-potatoes-hands',
-        title: 'Platillo en manos',
-        caption: 'Producto servido con manos para mostrar escala y antojo.',
-        src: '/images/food-reels/food-roof-loaded-potatoes-hands.webp',
+        id: 'santino-ravioli-table',
+        title: 'Pasta en mesa',
+        caption: 'Plato caliente con ambiente, velas y mesa servida.',
+        src: '/images/food-reels/food-santino-ravioli-table.webp',
         orientation: 'portrait',
     },
     {
-        id: 'roof-sauce-pour',
-        title: 'Salsa en acción',
-        caption: 'Close-up de comida con movimiento para piezas verticales.',
-        src: '/images/food-reels/food-roof-sauce-pour.webp',
+        id: 'santino-steak-bowl',
+        title: 'Steak con guarnición',
+        caption: 'Plato de carne con luz de restaurante y contraste.',
+        src: '/images/food-reels/food-santino-steak-bowl.webp',
         orientation: 'portrait',
     },
     {
-        id: 'tanuki-octopus-rice',
-        title: 'Arroz con pulpo',
-        caption: 'Close-up de producto para menú, pauta e historias.',
-        src: '/images/food-reels/food-tanuki-octopus-rice.webp',
+        id: 'santino-pancakes',
+        title: 'Pancakes con berries',
+        caption: 'Desayuno dulce con syrup, color y fondo cálido.',
+        src: '/images/food-reels/food-santino-pancakes.webp',
         orientation: 'portrait',
     },
     {
-        id: 'roof-fork-action',
-        title: 'Mesa en movimiento',
-        caption: 'Manos, cubiertos y comida en una escena activa.',
-        src: '/images/food-reels/food-roof-fork-action.webp',
+        id: 'santino-ceviche-hand',
+        title: 'Ceviche en acción',
+        caption: 'Mano entrando al plato para dar escala y movimiento.',
+        src: '/images/food-reels/food-santino-ceviche-hand.webp',
         orientation: 'portrait',
     },
     {
-        id: 'roof-loaded-potatoes-close',
-        title: 'Platillo de menu',
-        caption: 'Close-up limpio de comida para menu digital y pauta.',
-        src: '/images/food-reels/food-roof-loaded-potatoes-close.webp',
+        id: 'santino-waffle-table',
+        title: 'Waffles en mesa',
+        caption: 'Mesa de brunch con fruta, bebida y profundidad.',
+        src: '/images/food-reels/food-santino-waffle-table.webp',
         orientation: 'portrait',
     },
     {
-        id: 'roof-caesar',
-        title: 'Ensalada de menu',
-        caption: 'Foto limpia de platillo para menu y redes.',
-        src: '/images/food-reels/food-roof-caesar.webp',
-        orientation: 'portrait',
-    },
-    {
-        id: 'tanuki-grill-rice',
-        title: 'Arroz con proteína',
-        caption: 'Foto de producto cálida y directa para menú digital.',
-        src: '/images/food-reels/food-tanuki-grill-rice.webp',
-        orientation: 'portrait',
-    },
-    {
-        id: 'sushiclub-drinks',
-        title: 'Cócteles en mesa',
-        caption: 'Bebidas con atmósfera para elevar ticket promedio.',
-        src: '/images/food-reels/sushiclub-drinks.webp',
+        id: 'santino-omelette-close',
+        title: 'Omelette close-up',
+        caption: 'Detalle de platillo con salsa y textura clara.',
+        src: '/images/food-reels/food-santino-omelette-close.webp',
         orientation: 'portrait',
     },
 ];
 
+const HERO_PHOTOS: FoodPhoto[] = [
+    PRODUCT_PHOTOS[1],
+    PRODUCT_PHOTOS[2],
+];
+
+const SESSION_PHOTOS: FoodPhoto[] = [
+    PRODUCT_PHOTOS[5],
+    PRODUCT_PHOTOS[0],
+    PRODUCT_PHOTOS[4],
+    PRODUCT_PHOTOS[8],
+    PRODUCT_PHOTOS[10],
+];
+
 const ACTIVATION_PHOTOS: FoodPhoto[] = [
     {
-        id: 'roof-models-toast',
-        title: 'Mesa con modelos',
-        caption: 'Comida, drinks y personas: contenido con contexto social.',
-        src: '/images/food-reels/food-roof-models-toast-clean.webp',
+        id: 'santino-couple-bar',
+        title: 'Cena con marca',
+        caption: 'Personas, plato, drinks y contexto de restaurante.',
+        src: '/images/food-reels/food-santino-couple-bar.webp',
         orientation: 'portrait',
     },
     {
-        id: 'roof-guacamole-models',
-        title: 'Modelos en mesa',
-        caption: 'Personas, drinks y comida compartida para reforzar experiencia.',
-        src: '/images/food-reels/food-roof-guacamole-models.webp',
+        id: 'santino-couple-burger',
+        title: 'Hamburguesa con modelos',
+        caption: 'Escena social con comida al centro y gesto natural.',
+        src: '/images/food-reels/food-santino-couple-burger.webp',
         orientation: 'portrait',
     },
+    PRODUCT_PHOTOS[13],
 ];
 
 const FOOD_PAGE_COPY = {
@@ -195,8 +252,10 @@ const FOOD_PAGE_COPY = {
         whatsappCta: 'Cotizar por WhatsApp',
         reelSectionTitle: 'Reels gastronómicos',
         reelSectionDescription: 'Piezas verticales listas para mostrar platos, bebidas, ambiente y manos en acción sin perder ritmo de redes.',
+        sessionSectionTitle: 'Contenido para vender una experiencia completa',
+        sessionSectionDescription: 'Combinamos mesa completa, platillos estrella, detalles de barra, modelos y escenas de consumo para que la landing se sienta como una producción real.',
         photoSectionTitle: 'Foto de producto',
-        photoSectionDescription: 'Fotos limpias para menú digital, pauta, historias y piezas de venta donde el producto necesita verse claro.',
+        photoSectionDescription: 'Una selección más amplia de platillos, drinks, mesa y detalles para mostrar variedad real de menú, no solo fotos aisladas.',
         activationTitle: 'Activaciones con modelos',
         activationDescription: 'Cuando el restaurante vende experiencia, sumamos personas, drinks, mesa y ambiente para crear contenido que convierte.',
         packageTitle: 'Paquete de producción gastronómica',
@@ -249,8 +308,10 @@ const FOOD_PAGE_COPY = {
         whatsappCta: 'Quote on WhatsApp',
         reelSectionTitle: 'Food reels',
         reelSectionDescription: 'Vertical pieces built to show plates, drinks, atmosphere, and hands in motion without losing social rhythm.',
+        sessionSectionTitle: 'Content that sells the full dining experience',
+        sessionSectionDescription: 'We combine full tables, hero dishes, bar details, models, and consumption scenes so the landing feels like a real production.',
         photoSectionTitle: 'Product photography',
-        photoSectionDescription: 'Clean photos for menus, ads, stories, and sales pieces where the product needs to be easy to read.',
+        photoSectionDescription: 'A wider selection of dishes, drinks, table scenes, and details to show real menu variety, not isolated photos.',
         activationTitle: 'Model activations',
         activationDescription: 'When the restaurant sells experience, we add people, drinks, table, and mood to create content that converts.',
         packageTitle: 'Food production package',
@@ -448,7 +509,7 @@ export default function FoodReelsShow({ price, slots, errors }: FoodReelsShowPro
                     </div>
 
                     <div className="hidden flex-col gap-3 lg:flex">
-                        {PRODUCT_PHOTOS.slice(1, 3).map((photo) => (
+                        {HERO_PHOTOS.map((photo) => (
                             <MediaPhoto key={photo.id} photo={photo} compact />
                         ))}
                     </div>
@@ -475,14 +536,28 @@ export default function FoodReelsShow({ price, slots, errors }: FoodReelsShowPro
 
             <section className="mx-auto flex max-w-6xl flex-col gap-6 px-4 py-12 sm:px-6">
                 <SectionHeader
+                    icon={<Sparkles className="size-5" />}
+                    title={copy.sessionSectionTitle}
+                    description={copy.sessionSectionDescription}
+                    className="max-w-3xl"
+                />
+                <div className="grid auto-rows-[210px] gap-3 sm:grid-cols-2 sm:auto-rows-[250px] lg:grid-cols-4 lg:auto-rows-[245px]">
+                    {SESSION_PHOTOS.map((photo) => (
+                        <MediaPhoto key={photo.id} photo={photo} mosaic />
+                    ))}
+                </div>
+            </section>
+
+            <section className="mx-auto flex max-w-6xl flex-col gap-6 px-4 py-12 sm:px-6">
+                <SectionHeader
                     icon={<Images className="size-5" />}
                     title={copy.photoSectionTitle}
                     description={copy.photoSectionDescription}
                     className="max-w-3xl"
                 />
-                <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
                     {PRODUCT_PHOTOS.map((photo) => (
-                        <MediaPhoto key={photo.id} photo={photo} />
+                        <MediaPhoto key={photo.id} photo={photo} dense />
                     ))}
                 </div>
             </section>
@@ -496,7 +571,7 @@ export default function FoodReelsShow({ price, slots, errors }: FoodReelsShowPro
                         description={copy.activationDescription}
                         inverted
                     />
-                    <div className="grid gap-3 md:grid-cols-[1.1fr_0.9fr]">
+                    <div className="grid gap-3 md:grid-cols-3">
                         {ACTIVATION_PHOTOS.map((photo) => (
                             <MediaPhoto key={photo.id} photo={photo} dark />
                         ))}
@@ -682,12 +757,20 @@ function MediaPhoto({
     photo,
     compact = false,
     dark = false,
+    mosaic = false,
+    dense = false,
 }: {
     photo: FoodPhoto;
     compact?: boolean;
     dark?: boolean;
+    mosaic?: boolean;
+    dense?: boolean;
 }) {
-    const aspectClass = compact
+    const aspectClass = mosaic
+        ? 'h-full'
+        : dense
+          ? 'aspect-[4/5]'
+        : compact
         ? photo.orientation === 'landscape'
           ? 'aspect-[4/3]'
           : 'aspect-[3/4]'
@@ -701,6 +784,10 @@ function MediaPhoto({
         <figure className={cn(
             'group overflow-hidden rounded-lg border shadow-sm',
             dark ? 'border-white/14 bg-white/6' : 'border-border/70 bg-card',
+            mosaic && 'min-h-0',
+            mosaic && photo.layout === 'large' && 'sm:col-span-2 sm:row-span-2',
+            mosaic && photo.layout === 'wide' && 'sm:col-span-2',
+            mosaic && photo.layout === 'tall' && 'sm:row-span-2',
         )}>
             <div className={cn('overflow-hidden bg-black', aspectClass)}>
                 <img
