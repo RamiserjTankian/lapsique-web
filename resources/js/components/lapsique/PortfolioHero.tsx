@@ -1,5 +1,6 @@
 import { Play } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { AutoplayVideo } from '@/components/lapsique/AutoplayVideo';
 import { Button } from '@/components/ui/button';
 import { PortfolioMediaViewer } from '@/components/lapsique/PortfolioMediaViewer';
 import { useTranslations } from '@/hooks/useTranslations';
@@ -33,15 +34,14 @@ export function PortfolioHero({ item, onExplore }: PortfolioHeroProps) {
                             className="h-full min-h-[280px] w-full border-0 lg:min-h-[360px]"
                         />
                     ) : isPlayable && item.playback_url ? (
-                        <video
+                        <AutoplayVideo
                             src={item.playback_url}
                             poster={item.poster_url ?? undefined}
-                            muted
-                            autoPlay
-                            loop
-                            playsInline
-                            preload="metadata"
+                            title={item.title ?? undefined}
+                            eager
+                            pauseWhenOffscreen={false}
                             className="absolute inset-0 h-full w-full object-cover"
+                            videoClassName="object-cover"
                         />
                     ) : previewUrl ? (
                         <img

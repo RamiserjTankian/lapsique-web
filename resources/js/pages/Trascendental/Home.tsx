@@ -1,6 +1,7 @@
 import { Link, usePage } from '@inertiajs/react';
 import { ArrowUpRight, Check, LoaderCircle, Mail, MessageCircle, Volume2, VolumeX, X } from 'lucide-react';
 import { useEffect, useRef, useState, type FormEvent, type ReactNode } from 'react';
+import { VideoLoadingCover } from '@/components/lapsique/VideoLoadingCover';
 import { TrascendentalLayout } from '@/layouts/TrascendentalLayout';
 import { useTranslations } from '@/hooks/useTranslations';
 import { route } from '@/lib/route';
@@ -114,6 +115,7 @@ export default function Home({ tours, producedEvents }: HomeProps) {
     ];
     const videoRef = useRef<HTMLVideoElement>(null);
     const [heroVideo] = useState(() => heroVideos[Math.floor(Math.random() * heroVideos.length)]);
+    const [heroVideoReady, setHeroVideoReady] = useState(false);
     const [soundEnabled, setSoundEnabled] = useState(false);
     const [joinOpen, setJoinOpen] = useState(false);
     const [heroCopyVisible, setHeroCopyVisible] = useState(true);
@@ -188,8 +190,19 @@ export default function Home({ tours, producedEvents }: HomeProps) {
                     loop
                     playsInline
                     preload="metadata"
+                    onLoadedData={() => setHeroVideoReady(true)}
+                    onCanPlay={() => setHeroVideoReady(true)}
+                    onPlaying={() => setHeroVideoReady(true)}
                     aria-hidden="true"
                 />
+                {!heroVideoReady ? (
+                    <VideoLoadingCover
+                        poster="/images/trascendental/traumer-shonky-poster.jpg"
+                        className="z-0"
+                        mediaClassName="h-full w-full object-cover"
+                        eager
+                    />
+                ) : null}
                 <div className="pointer-events-none absolute inset-x-0 bottom-0 h-[46%] bg-gradient-to-t from-black/80 via-black/40 to-transparent" />
                 <div className="relative px-4 pb-8 pt-7 sm:px-6 lg:px-8">
                     <div className="mx-auto grid min-h-[min(680px,calc(100svh-5rem))] max-w-[1500px] content-between gap-12">

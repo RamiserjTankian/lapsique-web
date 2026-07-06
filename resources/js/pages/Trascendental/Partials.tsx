@@ -1,6 +1,7 @@
 import { Link, usePage } from '@inertiajs/react';
 import { ArrowUpRight, Mail, MessageCircle } from 'lucide-react';
 import { useState, type ReactNode } from 'react';
+import { AutoplayVideo } from '@/components/lapsique/AutoplayVideo';
 import { useTranslations } from '@/hooks/useTranslations';
 import { route } from '@/lib/route';
 import type { PageProps } from '@/types';
@@ -228,16 +229,13 @@ function MediaItem({
 }) {
     if (item.type === 'video') {
         return (
-            <video
-                className={`${className} object-cover`}
+            <AutoplayVideo
                 src={item.src}
                 poster={item.poster}
-                autoPlay
-                muted
-                loop
-                playsInline
-                preload="metadata"
-                aria-label={item.alt}
+                title={item.alt}
+                className={className}
+                videoClassName="object-cover"
+                pauseWhenOffscreen
             />
         );
     }

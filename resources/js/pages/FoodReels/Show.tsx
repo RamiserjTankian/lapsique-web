@@ -22,6 +22,7 @@ import { PaymentTrustOrTestMode } from '@/components/lapsique/PaymentTrustPanel'
 import { SeoHead } from '@/components/lapsique/SeoHead';
 import { Button } from '@/components/ui/button';
 import { trackBookingEvent } from '@/hooks/useBookingAnalytics';
+import { useIsMobileViewport } from '@/hooks/useMediaQuery';
 import { useTranslations } from '@/hooks/useTranslations';
 import { openBookingModal } from '@/lib/openBookingModal';
 import { cn, formatMxn } from '@/lib/utils';
@@ -392,6 +393,7 @@ const FEATURE_ICONS = [
 export default function FoodReelsShow({ price, slots, errors }: FoodReelsShowProps) {
     const { site } = usePage<PageProps>().props;
     const { locale } = useTranslations();
+    const isMobileViewport = useIsMobileViewport();
     const copy = FOOD_PAGE_COPY[locale === 'en' ? 'en' : 'es'];
     const [activeReelId, setActiveReelId] = useState(FOOD_REELS[0].id);
     const activeReel = FOOD_REELS.find((reel) => reel.id === activeReelId) ?? FOOD_REELS[0];
@@ -530,8 +532,8 @@ export default function FoodReelsShow({ price, slots, errors }: FoodReelsShowPro
                                 src={activeReel.src}
                                 poster={activeReel.poster}
                                 title={activeReel.title}
-                                eager
-                                pauseWhenOffscreen={false}
+                                eager={!isMobileViewport}
+                                pauseWhenOffscreen={isMobileViewport}
                                 className="aspect-[9/16] rounded-[1.45rem]"
                             />
                         </div>
@@ -759,15 +761,12 @@ function ReelSelector({
             aria-label={reel.title}
         >
             <div className="relative aspect-[9/14] overflow-hidden bg-black">
-                <AutoplayVideo
-                    src={reel.src}
-                    poster={reel.poster}
-                    title={reel.title}
-                    eager
-                    pauseWhenOffscreen={false}
-                    className="h-full w-full"
-                    videoClassName="transition duration-500 group-hover:scale-105"
-                    preload="metadata"
+                <img
+                    src={reel.poster}
+                    alt={reel.title}
+                    className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
+                    loading="lazy"
+                    decoding="async"
                 />
                 <div className="absolute inset-0 bg-[linear-gradient(180deg,transparent_46%,rgb(0_0_0/0.72)_100%)]" />
                 <div className="absolute bottom-3 left-3 right-3 flex items-center justify-between gap-2 text-xs font-semibold text-white">

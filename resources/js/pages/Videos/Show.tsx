@@ -24,6 +24,7 @@ export default function VideosShow({ video, instagramUrl }: VideosShowProps) {
                             title={video.title}
                             src={`https://www.youtube.com/embed/${embedId}`}
                             className="h-full w-full"
+                            loading="lazy"
                             allowFullScreen
                         />
                     </div>

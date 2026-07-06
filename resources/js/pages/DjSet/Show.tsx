@@ -514,19 +514,18 @@ function NightRecordingSection() {
 function DjSetReelGrid({ clips }: { clips: ReelLibraryEntry[] }) {
     return (
         <div className="grid gap-3 rounded-xl border border-border/70 bg-black/45 p-3 sm:grid-cols-2 lg:grid-cols-4">
-            {clips.slice(0, 8).map((clip, index) => (
+            {clips.slice(0, 8).map((clip) => (
                 <ReelLoopCard
                     key={clip.id}
                     src={clip.src}
                     poster={clip.poster}
-                    title={clip.title}
-                    bookingSource="djset_reel_reference"
-                    eager={index < 2}
-                    pauseWhenOffscreen
-                    preload={index < 2 ? 'metadata' : 'none'}
-                    openPlayerOnClick={false}
-                    articleClassName="min-h-[360px]"
-                />
+                        title={clip.title}
+                        bookingSource="djset_reel_reference"
+                        pauseWhenOffscreen
+                        preload="none"
+                        openPlayerOnClick={false}
+                        articleClassName="min-h-[360px]"
+                    />
             ))}
         </div>
     );
@@ -767,6 +766,7 @@ function OriginalsShowcase({
                         src={`https://www.youtube.com/embed/${activeYoutubeId}?rel=0`}
                         title={activeVideo.title}
                         className="h-full w-full"
+                        loading="lazy"
                         allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
                         allowFullScreen
                     />

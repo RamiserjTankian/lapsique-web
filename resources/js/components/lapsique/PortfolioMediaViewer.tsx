@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
+import { VideoLoadingCover } from '@/components/lapsique/VideoLoadingCover';
 import { cn } from '@/lib/utils';
 import { useTranslations } from '@/hooks/useTranslations';
 import type { PortfolioItemData } from '@/types';
@@ -27,6 +28,7 @@ export function PortfolioMediaViewer({ item, className }: PortfolioMediaViewerPr
                         isLoaded ? 'opacity-100' : 'opacity-0',
                     )}
                     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                    loading="lazy"
                     allowFullScreen
                 />
             </div>
@@ -36,7 +38,14 @@ export function PortfolioMediaViewer({ item, className }: PortfolioMediaViewerPr
     if (item.media_type === 'video' && item.playback_url) {
         return (
             <div className="relative w-full overflow-hidden rounded-xl bg-black">
-                {!isLoaded && <MediaViewerSkeleton />}
+                {!isLoaded && (
+                    <VideoLoadingCover
+                        poster={item.poster_url}
+                        title={item.title}
+                        mediaClassName="h-full w-full object-cover"
+                        eager
+                    />
+                )}
                 <video
                     key={item.id}
                     src={item.playback_url}
@@ -48,6 +57,7 @@ export function PortfolioMediaViewer({ item, className }: PortfolioMediaViewerPr
                     preload="metadata"
                     onLoadedData={() => setIsLoaded(true)}
                     onCanPlay={() => setIsLoaded(true)}
+                    onPlaying={() => setIsLoaded(true)}
                     className={cn(
                         className ?? 'max-h-[75vh] w-full rounded-xl bg-black',
                         isLoaded ? 'opacity-100' : 'opacity-0',

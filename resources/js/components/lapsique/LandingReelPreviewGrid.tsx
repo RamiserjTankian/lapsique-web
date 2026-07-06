@@ -30,10 +30,10 @@ export function LandingReelPreviewGrid({
                 reelPreviews.length > 1 ? 'sm:grid-cols-2' : 'max-w-xs mx-auto',
                 className,
             )}
-        >
+            >
             {reelPreviews.map((video) => (
                 <ReelLoopCard
-                    key={video.id ?? video.src}
+                    key={video.src}
                     src={video.src}
                     poster={video.poster}
                     title={video.title ?? undefined}

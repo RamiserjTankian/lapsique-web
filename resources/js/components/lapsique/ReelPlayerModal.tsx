@@ -6,6 +6,7 @@ import {
     DialogTitle,
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
+import { VideoLoadingCover } from '@/components/lapsique/VideoLoadingCover';
 import { REEL_PLAYER_CTA_DELAY_SECONDS } from '@/data/contentOffer';
 import { useSaveDataConnection } from '@/hooks/useSaveDataConnection';
 import { useReelPlayerModal } from '@/hooks/useReelPlayerModal';
@@ -165,6 +166,11 @@ function ReelPlayerFrame({
     bookLabel: string;
 }) {
     const prefersReducedMotion = useReducedMotion();
+    const [isReady, setIsReady] = useState(false);
+
+    useEffect(() => {
+        setIsReady(false);
+    }, [src]);
 
     return (
         <motion.div
@@ -172,11 +178,12 @@ function ReelPlayerFrame({
             initial={false}
             animate={{ opacity: 1 }}
         >
-            {showPosterOnly && poster ? (
-                <img
-                    src={poster}
-                    alt=""
-                    className="absolute inset-0 h-full w-full object-cover"
+            {showPosterOnly ? (
+                <VideoLoadingCover
+                    poster={poster}
+                    className="z-0"
+                    mediaClassName="h-full w-full object-cover"
+                    eager
                 />
             ) : (
                 <video
@@ -189,8 +196,20 @@ function ReelPlayerFrame({
                     playsInline
                     loop
                     controls={false}
+                    preload="metadata"
+                    onLoadedData={() => setIsReady(true)}
+                    onCanPlay={() => setIsReady(true)}
+                    onPlaying={() => setIsReady(true)}
                 />
             )}
+
+            {!showPosterOnly && !isReady ? (
+                <VideoLoadingCover
+                    poster={poster}
+                    mediaClassName="h-full w-full object-cover"
+                    eager
+                />
+            ) : null}
 
             <AnimatePresence>
                 {showCta ? (

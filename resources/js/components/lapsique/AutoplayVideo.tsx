@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useReducedMotion } from 'framer-motion';
+import { VideoLoadingCover } from '@/components/lapsique/VideoLoadingCover';
 import { useSaveDataConnection } from '@/hooks/useSaveDataConnection';
 import { cn } from '@/lib/utils';
 import { registerMediaAutoplaySync } from '@/lib/mediaAutoplayRegistry';
@@ -51,20 +52,28 @@ export function AutoplayVideo({
     const videoRef = useRef<HTMLVideoElement>(null);
     const onLoopSegmentCompleteRef = useRef(onLoopSegmentComplete);
     const [isInView, setIsInView] = useState(eager);
+    const [isReady, setIsReady] = useState(false);
     const [isPlaying, setIsPlaying] = useState(false);
     const showPosterOnly = prefersReducedMotion || saveDataMode;
     const resolvedPreload = resolveVideoPreload(eager, preload);
     const mediaClassName = cn('h-full w-full object-cover object-center', videoClassName);
-    const shouldPlay = playbackEnabled && (isInView || !pauseWhenOffscreen);
-    const shouldAttachSource = eager || isInView || !pauseWhenOffscreen;
+    const shouldPlay = !showPosterOnly && playbackEnabled && (isInView || !pauseWhenOffscreen);
+    const shouldAttachSource = !showPosterOnly && (eager || isInView || !pauseWhenOffscreen);
     const posterLoading = eager || isInView ? 'eager' : 'lazy';
-    const showPosterOverlay =
-        Boolean(poster)
-        && ((pauseWhenOffscreen && !isInView) || (shouldPlay && !isPlaying));
+    const showLoadingCover =
+        showPosterOnly
+        || !shouldAttachSource
+        || !isReady
+        || (shouldPlay && !isPlaying);
 
     useEffect(() => {
         onLoopSegmentCompleteRef.current = onLoopSegmentComplete;
     }, [onLoopSegmentComplete]);
+
+    useEffect(() => {
+        setIsReady(false);
+        setIsPlaying(false);
+    }, [src]);
 
     useEffect(() => {
         if (eager || showPosterOnly || !pauseWhenOffscreen) {
@@ -126,10 +135,14 @@ export function AutoplayVideo({
         void syncPlayback();
 
         const onReady = () => {
+            setIsReady(true);
             void syncPlayback();
         };
 
-        const onPlaying = () => setIsPlaying(true);
+        const onPlaying = () => {
+            setIsReady(true);
+            setIsPlaying(true);
+        };
         const onPause = () => setIsPlaying(false);
 
         video.addEventListener('loadeddata', onReady);
@@ -203,14 +216,15 @@ export function AutoplayVideo({
         return () => video.removeEventListener('timeupdate', onTimeUpdate);
     }, [loopSegmentSeconds, showPosterOnly, src]);
 
-    if (showPosterOnly && poster) {
+    if (showPosterOnly) {
         return (
             <div ref={containerRef} className={cn('relative overflow-hidden bg-black', className)}>
-                <img
-                    src={poster}
-                    alt={title ?? ''}
-                    className={mediaClassName}
-                    loading={posterLoading}
+                <VideoLoadingCover
+                    poster={poster}
+                    title={title}
+                    className="relative z-0 h-full w-full"
+                    mediaClassName={mediaClassName}
+                    eager={posterLoading === 'eager'}
                 />
             </div>
         );
@@ -235,13 +249,12 @@ export function AutoplayVideo({
                 aria-hidden={title ? undefined : true}
                 title={title}
             />
-            {showPosterOverlay ? (
-                <img
-                    src={poster ?? undefined}
-                    alt={title ?? ''}
-                    className={cn('pointer-events-none absolute inset-0 z-[1]', mediaClassName)}
-                    loading={posterLoading}
-                    aria-hidden
+            {showLoadingCover ? (
+                <VideoLoadingCover
+                    poster={poster}
+                    title={title}
+                    mediaClassName={mediaClassName}
+                    eager={posterLoading === 'eager'}
                 />
             ) : null}
         </div>

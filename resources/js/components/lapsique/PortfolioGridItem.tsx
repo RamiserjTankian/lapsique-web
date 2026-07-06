@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
+import { AutoplayVideo } from '@/components/lapsique/AutoplayVideo';
 import { glassCardVariants } from '@/lib/variants';
 import { cn } from '@/lib/utils';
 import { fadeUp } from '@/lib/motion';
@@ -43,22 +44,14 @@ export function PortfolioGridItem({
                 className,
             )}
         >
-            {!isLoaded && <PortfolioTileSkeleton />}
+            {!canAutoplayPreview && !isLoaded && <PortfolioTileSkeleton />}
             {canAutoplayPreview ? (
-                <video
-                    src={item.playback_url ?? undefined}
+                <AutoplayVideo
+                    src={item.playback_url ?? ''}
                     poster={item.poster_url ?? undefined}
-                    muted
-                    autoPlay
-                    loop
-                    playsInline
-                    preload="metadata"
-                    onLoadedData={() => setIsLoaded(true)}
-                    onCanPlay={() => setIsLoaded(true)}
-                    className={cn(
-                        'absolute inset-0 h-full w-full object-cover transition duration-700 ease-out group-hover:scale-[1.04]',
-                        isLoaded ? 'opacity-100' : 'opacity-0',
-                    )}
+                    title={item.title ?? item.type}
+                    className="absolute inset-0 h-full w-full"
+                    videoClassName="object-cover transition duration-700 ease-out group-hover:scale-[1.04]"
                 />
             ) : previewUrl ? (
                 <img
