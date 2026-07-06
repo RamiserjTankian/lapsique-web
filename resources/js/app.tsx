@@ -30,7 +30,10 @@ router.on('navigate', () => {
         return;
     }
 
-    window.trackMetaPixel?.('PageView');
+    if (window.SitePixel?.trackPageView !== false) {
+        window.trackMetaPixel?.('PageView');
+    }
+
     window.SiteTracker?.pageview?.({ url: window.location.href });
 });
 

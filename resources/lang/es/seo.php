@@ -15,7 +15,7 @@ return [
     ],
     'drone_session' => [
         'title' => 'Sesiones de vuelo con dron',
-        'description' => 'Agenda una sesión de vuelo con DJI Air 3 por $:price MXN en Cancún, Playa del Carmen y Tulum: 10 tomas aéreas, hasta 10 fotos, Rec.709 + D-Log para real estate, yates, eventos y avances de obra.',
+        'description' => 'Agenda una sesión de vuelo con DJI Air 3 por $:price MXN en Cancún, Playa del Carmen y Tulum: 15 tomas aéreas de hasta 30 seg, hasta 10 fotos, Rec.709 + D-Log para real estate, yates, eventos y avances de obra.',
         'keywords' => 'sesiones de dron, vuelo con dron, DJI Air 3, dron Cancún, dron Playa del Carmen, dron Tulum, real estate, yates, Airbnb, avances de obra, lapsique.media',
         'service_type' => 'Vuelo con dron DJI Air 3',
         'og_alt' => 'Sesión de vuelo con dron DJI Air 3 — Lapsique Media',

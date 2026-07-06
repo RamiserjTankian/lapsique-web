@@ -1,0 +1,339 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Lapsique Media logo reveal</title>
+  <script src="./vendor/anime.min.js"></script>
+  <style>
+    @font-face {
+      font-family: 'Syne';
+      src: url('../fonts/Syne-ExtraBold.ttf') format('truetype');
+      font-weight: 800;
+      font-style: normal;
+      font-display: block;
+    }
+
+    @font-face {
+      font-family: 'IBM Plex Mono';
+      src: url('../fonts/IBMPlexMono-SemiBold.ttf') format('truetype');
+      font-weight: 600;
+      font-style: normal;
+      font-display: block;
+    }
+
+    html,
+    body {
+      width: 100%;
+      height: 100%;
+      margin: 0;
+      overflow: hidden;
+      background:
+        radial-gradient(circle at 50% 45%, rgba(242, 193, 95, .24), transparent 24%),
+        radial-gradient(circle at 16% 70%, rgba(119, 213, 223, .16), transparent 24%),
+        linear-gradient(155deg, #030306 0%, #08080d 42%, #15110a 100%);
+    }
+
+    body[data-bg="green"] {
+      background: #00ff00;
+    }
+
+    body[data-bg="black"] {
+      background: #06060a;
+    }
+
+    .stage {
+      width: 100vw;
+      height: 100vh;
+      display: grid;
+      place-items: center;
+      position: relative;
+      isolation: isolate;
+      background: transparent;
+    }
+
+    .stage::before,
+    .stage::after {
+      position: absolute;
+      inset: 50% auto auto 50%;
+      width: min(78vw, 1680px);
+      height: min(24vw, 520px);
+      content: "";
+      border-radius: 999px;
+      transform: translate(-50%, -42%);
+      pointer-events: none;
+    }
+
+    .stage::before {
+      background:
+        linear-gradient(100deg, rgba(255, 255, 255, .06), rgba(255, 255, 255, .02)),
+        radial-gradient(circle at 28% 30%, rgba(255, 255, 255, .22), transparent 18%),
+        radial-gradient(circle at 72% 56%, rgba(242, 193, 95, .24), transparent 30%);
+      border: 1px solid rgba(255, 255, 255, .18);
+      box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, .35),
+        inset 0 -42px 80px rgba(255, 255, 255, .035),
+        0 42px 120px rgba(242, 193, 95, .16);
+      filter: blur(.2px);
+      opacity: .7;
+      backdrop-filter: blur(30px) saturate(1.5);
+    }
+
+    .stage::after {
+      width: min(70vw, 1480px);
+      height: min(16vw, 360px);
+      background:
+        repeating-radial-gradient(ellipse at center, rgba(242, 193, 95, .2) 0 1px, transparent 2px 16px);
+      opacity: .42;
+      mix-blend-mode: screen;
+      filter: blur(.4px);
+    }
+
+    .logo {
+      position: relative;
+      z-index: 1;
+      width: min(72vw, 1560px);
+      height: auto;
+      overflow: visible;
+    }
+
+    .logo * {
+      transform-box: fill-box;
+      transform-origin: center;
+    }
+  </style>
+</head>
+<body>
+  <main class="stage" aria-label="Lapsique Media logo animation">
+    <svg class="logo" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 450 104" role="img" aria-labelledby="title desc">
+      <title id="title">Lapsique Media animated logo</title>
+      <desc id="desc">Premium compact Lapsique Media header logo reveal with gold glow, shimmer, and particles.</desc>
+      <defs>
+        <linearGradient id="goldSweep" x1="0" x2="1" y1="0" y2="0">
+          <stop offset="0" stop-color="#f2c15f" stop-opacity="0"/>
+          <stop offset=".45" stop-color="#fff4cc" stop-opacity=".95"/>
+          <stop offset="1" stop-color="#f2c15f" stop-opacity="0"/>
+        </linearGradient>
+        <linearGradient id="iconFill" x1="0" x2="1" y1="0" y2="1">
+          <stop offset="0" stop-color="#fffdf2" stop-opacity=".96"/>
+          <stop offset=".55" stop-color="#f7f5f0" stop-opacity=".9"/>
+          <stop offset="1" stop-color="#d8c7a2" stop-opacity=".28"/>
+        </linearGradient>
+        <radialGradient id="goldBloom" cx=".5" cy=".5" r=".5">
+          <stop offset="0" stop-color="#f2c15f" stop-opacity=".8"/>
+          <stop offset=".45" stop-color="#f2c15f" stop-opacity=".18"/>
+          <stop offset="1" stop-color="#f2c15f" stop-opacity="0"/>
+        </radialGradient>
+        <filter id="softGlow" x="-45%" y="-70%" width="190%" height="240%" color-interpolation-filters="sRGB">
+          <feGaussianBlur stdDeviation="3.2" result="blur"/>
+          <feColorMatrix in="blur" type="matrix" values="1 0 0 0 0.95 0 1 0 0 0.68 0 0 1 0 0.16 0 0 0 .55 0" result="goldBlur"/>
+          <feMerge>
+            <feMergeNode in="goldBlur"/>
+            <feMergeNode in="SourceGraphic"/>
+          </feMerge>
+        </filter>
+        <clipPath id="textClip">
+          <text x="104" y="50" font-family="Syne, Inter, Arial, sans-serif" font-size="36" font-weight="800">lapsique</text>
+          <text x="104" y="79" font-family="'IBM Plex Mono', 'SFMono-Regular', Consolas, monospace" font-size="21.8" font-weight="600" letter-spacing="7.8">media</text>
+        </clipPath>
+      </defs>
+
+      <g class="ambient" aria-hidden="true">
+        <ellipse class="halo halo-wide" cx="226" cy="55" rx="226" ry="64" fill="url(#goldBloom)"/>
+        <path class="gold-line line-top" d="M102 14C169 2 270 1 344 14" fill="none" stroke="#f2c15f" stroke-opacity=".45" stroke-width="1.4" stroke-linecap="round"/>
+        <path class="gold-line line-bottom" d="M105 91C172 105 273 106 346 92" fill="none" stroke="#f7f5f0" stroke-opacity=".22" stroke-width="1.2" stroke-linecap="round"/>
+      </g>
+
+      <g class="particles" aria-hidden="true">
+        <circle class="spark spark-1" cx="95" cy="25" r="1.2" fill="#f2c15f"/>
+        <circle class="spark spark-2" cx="150" cy="13" r="1" fill="#f7f5f0"/>
+        <circle class="spark spark-3" cx="316" cy="18" r="1.4" fill="#f2c15f"/>
+        <circle class="spark spark-4" cx="368" cy="42" r=".9" fill="#fff4cc"/>
+        <circle class="spark spark-5" cx="123" cy="88" r="1.1" fill="#f2c15f"/>
+        <circle class="spark spark-6" cx="402" cy="74" r="1" fill="#f7f5f0"/>
+      </g>
+
+      <g class="logo-core">
+        <g class="logo-icon" aria-hidden="true">
+          <rect class="icon-shadow" x="12" y="12" width="80" height="80" rx="19" fill="#f2c15f" fill-opacity=".18" filter="url(#softGlow)"/>
+          <rect class="icon-box" x="16" y="16" width="72" height="72" rx="16" fill="url(#iconFill)" stroke="#d8c7a2" stroke-opacity=".72" stroke-width="2"/>
+          <rect class="icon-glint" x="22" y="19" width="46" height="2.4" rx="1.2" fill="#ffffff" fill-opacity=".62"/>
+          <text class="icon-letter" x="52" y="53" text-anchor="middle" dominant-baseline="middle" font-family="Syne, Inter, Arial, sans-serif" font-size="36" font-weight="800" fill="#f2c15f">l</text>
+        </g>
+        <g class="logo-text">
+          <text class="word word-lapsique" x="104" y="50" font-family="Syne, Inter, Arial, sans-serif" font-size="36" font-weight="800" fill="#ffffff">lapsique</text>
+          <text class="word word-media" x="104" y="79" font-family="'IBM Plex Mono', 'SFMono-Regular', Consolas, monospace" font-size="21.8" font-weight="600" letter-spacing="7.8" fill="#f2c15f">media</text>
+          <g class="text-shimmer" clip-path="url(#textClip)">
+            <rect class="sweep sweep-main" x="64" y="4" width="64" height="92" fill="url(#goldSweep)" transform="skewX(-18)"/>
+          </g>
+        </g>
+      </g>
+    </svg>
+  </main>
+
+  <script>
+    const params = new URLSearchParams(window.location.search);
+    const bg = params.get('bg');
+    const manual = params.get('manual') === '1';
+    const duration = 5600;
+
+    if (bg) {
+      document.body.dataset.bg = bg;
+    }
+
+    const topLine = document.querySelector('.line-top');
+    const bottomLine = document.querySelector('.line-bottom');
+    const topLineLength = topLine.getTotalLength();
+    const bottomLineLength = bottomLine.getTotalLength();
+
+    anime.set('.logo', { opacity: 1, scale: 0.985 });
+    anime.set('.halo-wide', { opacity: 0, scaleX: 0.35, scaleY: 0.55 });
+    anime.set('.gold-line', {
+      opacity: 0,
+      strokeDasharray: (el) => el.getTotalLength(),
+      strokeDashoffset: (el) => el.getTotalLength(),
+    });
+    anime.set('.icon-shadow', { opacity: 0, scale: 0.6, rotate: -8 });
+    anime.set('.icon-box', { opacity: 0, scale: 0.66, rotate: -7 });
+    anime.set('.icon-glint', { opacity: 0, scaleX: 0.2, translateX: -14 });
+    anime.set('.icon-letter', { opacity: 0, scale: 0.42, translateY: 9, rotate: 5 });
+    anime.set('.word-lapsique', { opacity: 0, translateX: -28, scale: 0.965, filter: 'blur(8px)' });
+    anime.set('.word-media', { opacity: 0, translateX: -20, translateY: -5, filter: 'blur(5px)' });
+    anime.set('.sweep-main', { opacity: 0, translateX: -150 });
+    anime.set('.spark', { opacity: 0, scale: 0.15 });
+
+    const timeline = anime.timeline({
+      autoplay: false,
+      duration,
+      easing: 'easeOutExpo',
+    });
+
+    timeline
+      .add({
+        targets: '.halo-wide',
+        opacity: [0, 0.72, 0.32],
+        scaleX: [0.35, 1.08, 0.98],
+        scaleY: [0.55, 1, 0.9],
+        duration: 1400,
+      }, 0)
+      .add({
+        targets: '.line-top',
+        strokeDashoffset: [topLineLength, 0],
+        opacity: [0, 0.58, 0.36],
+        duration: 1150,
+      }, 180)
+      .add({
+        targets: '.line-bottom',
+        strokeDashoffset: [bottomLineLength, 0],
+        opacity: [0, 0.38, 0.22],
+        duration: 1220,
+      }, 320)
+      .add({
+        targets: '.icon-shadow',
+        opacity: [0, 0.82, 0.36],
+        scale: [0.6, 1.16, 1],
+        rotate: [-8, 2, 0],
+        duration: 980,
+      }, 280)
+      .add({
+        targets: '.icon-box',
+        opacity: [0, 1],
+        scale: [0.66, 1.08, 1],
+        rotate: [-7, 1.5, 0],
+        duration: 980,
+      }, 380)
+      .add({
+        targets: '.icon-letter',
+        opacity: [0, 1],
+        translateY: [9, 0],
+        scale: [0.42, 1.12, 1],
+        rotate: [5, -1, 0],
+        duration: 760,
+      }, 720)
+      .add({
+        targets: '.icon-glint',
+        opacity: [0, 0.84, 0],
+        translateX: [-14, 48],
+        scaleX: [0.2, 1.15],
+        duration: 720,
+      }, 820)
+      .add({
+        targets: '.word-lapsique',
+        opacity: [0, 1],
+        translateX: [-28, 0],
+        scale: [0.965, 1.012, 1],
+        filter: ['blur(8px)', 'blur(0px)'],
+        duration: 1050,
+      }, 980)
+      .add({
+        targets: '.word-media',
+        opacity: [0, 1],
+        translateX: [-20, 0],
+        translateY: [-5, 0],
+        filter: ['blur(5px)', 'blur(0px)'],
+        duration: 860,
+      }, 1360)
+      .add({
+        targets: '.spark',
+        opacity: [
+          { value: 0, duration: 0 },
+          { value: 0.92, duration: 280 },
+          { value: 0, duration: 840 },
+        ],
+        scale: [0.15, 1.3, 0.72],
+        translateY: (el, i) => [-8 - i * 1.6, -18 - i * 2.2],
+        translateX: (el, i) => [0, i % 2 === 0 ? 12 + i * 2 : -10 - i * 2],
+        delay: anime.stagger(85),
+        duration: 1120,
+      }, 1480)
+      .add({
+        targets: '.sweep-main',
+        opacity: [
+          { value: 0, duration: 0 },
+          { value: 0.9, duration: 240 },
+          { value: 0, duration: 500 },
+        ],
+        translateX: [-150, 410],
+        duration: 1220,
+        easing: 'easeInOutCubic',
+      }, 1980)
+      .add({
+        targets: '.halo-wide',
+        opacity: [0.32, 0.11],
+        scaleX: [0.98, 1.04],
+        duration: 1300,
+        easing: 'easeInOutSine',
+      }, 2860)
+      .add({
+        targets: '.logo',
+        scale: [0.985, 1.028, 1],
+        duration: 2300,
+        easing: 'easeInOutSine',
+      }, 3000)
+      .add({
+        targets: '.gold-line',
+        opacity: [0.36, 0.04],
+        duration: 1050,
+        easing: 'easeInOutSine',
+      }, 4380)
+      .add({
+        targets: '.halo-wide',
+        opacity: [0.11, 0],
+        scaleX: [1.04, 0.94],
+        duration: 920,
+        easing: 'easeInOutSine',
+      }, 4520);
+
+    window.logoReady = true;
+    window.logoDuration = duration;
+    window.logoAnimation = timeline;
+    window.renderAt = (timeMs) => {
+      timeline.seek(Math.max(0, Math.min(duration, timeMs)));
+    };
+
+    if (!manual) {
+      timeline.play();
+    }
+  </script>
+</body>
+</html>

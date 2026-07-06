@@ -104,31 +104,40 @@ export default function DjSetShow({
         () => buildWhatsAppHref(site.whatsapp, t('funnel.whatsapp.prefill_djset')),
         [site.whatsapp, t],
     );
-
-    useEffect(() => {
-        trackBookingEvent('booking_page_viewed', {
-            section: 'djset',
+    const analyticsPayload = useMemo(
+        () => ({
             content_name: t('pages.djset.hero_title'),
             content_category: 'dj_set_booking',
+            service_type: 'dj_set',
+            currency: 'MXN',
+            value: price,
+        }),
+        [price, t],
+    );
+
+    useEffect(() => {
+        trackBookingEvent('djset_page_viewed', {
+            ...analyticsPayload,
+            section: 'dj_set',
         });
-    }, [t]);
+    }, [analyticsPayload]);
 
     const openBooking = (source = 'djset') => {
         openBookingModal({
             source,
             analyticsEvent: 'djset_booking_cta_clicked',
             analyticsPayload: {
-                content_name: t('pages.djset.hero_title'),
-                content_category: 'dj_set_booking',
+                ...analyticsPayload,
+                source,
             },
         });
     };
 
     const trackWhatsApp = (source: string) => {
         trackBookingEvent('djset_whatsapp_cta_clicked', {
+            ...analyticsPayload,
             source,
             target: 'whatsapp',
-            content_category: 'dj_set_booking',
         });
     };
 

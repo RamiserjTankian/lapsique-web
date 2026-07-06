@@ -130,7 +130,7 @@ export interface ContentBookingData {
     formatted_amount?: string;
     currency: string;
     payment_provider: string | null;
-    service_type: 'content_session' | 'dj_set' | 'drone_session' | 'construction_progress';
+    service_type: 'content_session' | 'dj_set' | 'drone_session' | 'construction_progress' | 'food_reels';
     service_name: string;
     service_short_name: string;
     service_description: string;

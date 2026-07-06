@@ -20,6 +20,11 @@ declare global {
             data?: Record<string, unknown>,
             options?: { eventID?: string },
         ) => void;
+        SitePixel?: {
+            enabled?: boolean;
+            id?: string | null;
+            trackPageView?: boolean;
+        };
     }
 }
 
@@ -52,8 +57,12 @@ const STANDARD_EVENTS: Record<string, string> = {
     booking_payment_info_added: 'AddPaymentInfo',
     booking_checkout_started: 'InitiateCheckout',
     booking_confirmed: 'Purchase',
+    djset_page_viewed: 'ViewContent',
     djset_booking_cta_clicked: 'Lead',
     djset_whatsapp_cta_clicked: 'Contact',
+    food_reels_page_viewed: 'ViewContent',
+    food_reels_booking_cta_clicked: 'Lead',
+    food_reels_whatsapp_cta_clicked: 'Contact',
     drone_session_page_viewed: 'ViewContent',
     drone_session_booking_cta_clicked: 'Lead',
     drone_session_whatsapp_cta_clicked: 'Contact',

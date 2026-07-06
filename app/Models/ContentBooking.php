@@ -234,7 +234,7 @@ class ContentBooking extends Model implements HasMedia
     {
         return match ($this->service_type) {
             self::SERVICE_DJ_SET => '2 horas de grabación editadas al beat con 2 cámaras fijas, 1 cámara móvil Ronin, dron y audio 32-bit',
-            self::SERVICE_DRONE_SESSION => '1 hora de vuelo con DJI Air 3 para capturar 10 tomas aéreas y hasta 10 fotos en Rec.709 y D-Log',
+            self::SERVICE_DRONE_SESSION => '1 hora de vuelo con DJI Air 3 para capturar 15 tomas aéreas de hasta 30 seg y hasta 10 fotos en Rec.709 y D-Log',
             self::SERVICE_CONSTRUCTION_PROGRESS => '1 hora de vuelo con DJI Air 3 para documentar avances de obra, contexto, accesos y escala del desarrollo',
             default => ContentSessionOffer::description(),
         };
@@ -244,7 +244,7 @@ class ContentBooking extends Model implements HasMedia
     {
         return match ($this->service_type) {
             self::SERVICE_DJ_SET => 'Grabación de DJ Set — multicámara, Ronin, dron y audio 32-bit',
-            self::SERVICE_DRONE_SESSION => 'Sesión de vuelo con dron DJI Air 3 — 10 tomas aéreas + 10 fotos',
+            self::SERVICE_DRONE_SESSION => 'Sesión de vuelo con dron DJI Air 3 — 15 tomas de hasta 30 seg + 10 fotos',
             self::SERVICE_CONSTRUCTION_PROGRESS => 'Avance de obra con dron DJI Air 3 — reporte visual de progreso',
             default => ContentSessionOffer::stripeProductName(),
         };

@@ -49,15 +49,15 @@ const DRONE_PAGE_COPY = {
         analyticsName: 'Sesión de vuelo con dron DJI Air 3',
         heroTitle: 'Sesiones de vuelo con dron para vender desde el aire.',
         heroTagline: 'Lleva tu marca al siguiente nivel.',
-        heroDescription: 'DJI Air 3 por 1 hora: 10 tomas aéreas, hasta 10 fotos, captura en Rec.709 y D-Log para colorizar en DaVinci Resolve.',
+        heroDescription: 'DJI Air 3 por 1 hora: 15 tomas de hasta 30 seg, hasta 10 fotos, captura en Rec.709 y D-Log para colorizar en DaVinci Resolve.',
         priceLabel: 'Sesión completa',
         priceNote: '1 hora de vuelo · agenda online · pago seguro con tarjeta.',
         whatsappCta: 'Cotizar por WhatsApp',
         bookingCta: 'Agendar vuelo',
         metrics: [
-            { value: '10', label: 'tomas' },
+            { value: '15', label: 'tomas' },
+            { value: '30 s', label: 'máx.' },
             { value: '10', label: 'fotos max.' },
-            { value: '1 h', label: 'sesión' },
         ],
         rangeNote: '*Altura y distancia máximas de referencia. El vuelo real se ajusta a normativa, permisos, clima, señal, batería y seguridad.',
         materialEyebrow: 'Material real',
@@ -75,7 +75,7 @@ const DRONE_PAGE_COPY = {
             },
             {
                 label: 'Video',
-                detail: '10 tomas aéreas seleccionadas para reels, landings, anuncios, presentaciones y recap comercial.',
+                detail: '15 tomas aéreas de hasta 30 seg seleccionadas para reels, landings, anuncios, presentaciones y recap comercial.',
             },
             {
                 label: 'Fotografía',
@@ -97,7 +97,7 @@ const DRONE_PAGE_COPY = {
         technicalEyebrow: 'Técnico',
         technicalTitle: 'Captura pensada para edición y color',
         technicalDescription: 'Se entrega material con suficiente margen para usarlo en reels, videos comerciales, presentaciones o edición posterior.',
-        specs: ['DJI Air 3', '1 hora de vuelo', '10 tomas aéreas', 'Hasta 10 fotos', 'Rec.709 + D-Log', '500 m / 2 km*'],
+        specs: ['DJI Air 3', '1 hora de vuelo', '15 tomas de hasta 30 seg', 'Hasta 10 fotos', 'Rec.709 + D-Log', '500 m / 2 km*'],
         finalEyebrow: 'Listo para despegar',
         finalTitle: 'Aparta la fecha y definimos el plan de vuelo.',
         finalDescription: 'Al reservar revisamos ubicación, objetivo visual, permisos, clima y restricciones de vuelo para capturar el material más útil para tu proyecto.',
@@ -149,6 +149,48 @@ const DRONE_PAGE_COPY = {
                 caption: 'Avance reciente normalizado desde material D-Log para revisión de progreso.',
                 useCase: 'Obra reciente',
             },
+            'construction-goba-aerial': {
+                title: 'Goba',
+                caption: 'Plano superior con cuadrilla y estructura para mostrar progreso real, actividad y escala.',
+                useCase: 'Avance aéreo',
+                location: 'The Reserve · Riviera Maya',
+            },
+            'construction-goba-detail': {
+                title: 'Goba',
+                caption: 'Material editado de trabajo en sitio para reforzar que el reporte muestra avance tangible.',
+                useCase: 'Detalle de obra',
+                location: 'The Reserve · obra en sitio',
+            },
+            'construction-goba-wide': {
+                title: 'Goba',
+                caption: 'Vista amplia para explicar ubicación, accesos, entorno verde y dimensión del proyecto.',
+                useCase: 'Contexto de zona',
+                location: 'The Reserve · entorno',
+            },
+            'construction-okom-nov-aerial': {
+                title: 'OKOM',
+                caption: 'Vista superior de etapa inicial para documentar progreso y comparar visitas con precisión.',
+                useCase: 'Avance temprano',
+                location: 'Tulum · noviembre 2024',
+            },
+            'construction-okom-nov-site': {
+                title: 'OKOM',
+                caption: 'Recorrido de cuadrilla y estructura para dar contexto técnico al reporte de avance.',
+                useCase: 'Obra en sitio',
+                location: 'Tulum · noviembre 2024',
+            },
+            'construction-okom-jun-interior': {
+                title: 'OKOM',
+                caption: 'Material reciente para mostrar avances interiores, instalaciones y detalles terminados.',
+                useCase: 'Interiores e instalaciones',
+                location: 'Tulum · junio 2026',
+            },
+            'construction-okom-jun-context': {
+                title: 'OKOM',
+                caption: 'Plano de contexto para conectar avance, ubicación y dimensión actual del desarrollo.',
+                useCase: 'Contexto reciente',
+                location: 'Tulum · junio 2026',
+            },
         },
     },
     en: {
@@ -156,15 +198,15 @@ const DRONE_PAGE_COPY = {
         analyticsName: 'DJI Air 3 drone flight session',
         heroTitle: 'Drone flight sessions that sell from the air.',
         heroTagline: 'Take your brand to the next level.',
-        heroDescription: 'DJI Air 3 for 1 hour: 10 aerial shots, up to 10 photos, captured in Rec.709 and D-Log for DaVinci Resolve color.',
+        heroDescription: 'DJI Air 3 for 1 hour: 15 shots up to 30 sec each, up to 10 photos, captured in Rec.709 and D-Log for DaVinci Resolve color.',
         priceLabel: 'Complete session',
         priceNote: '1-hour flight · online booking · secure card payment.',
         whatsappCta: 'Quote on WhatsApp',
         bookingCta: 'Book flight',
         metrics: [
-            { value: '10', label: 'shots' },
+            { value: '15', label: 'shots' },
+            { value: '30 s', label: 'max.' },
             { value: '10', label: 'photos max.' },
-            { value: '1 h', label: 'session' },
         ],
         rangeNote: '*Reference maximum altitude and distance. Actual flight follows regulation, permits, weather, signal, battery, and safety.',
         materialEyebrow: 'Real material',
@@ -182,7 +224,7 @@ const DRONE_PAGE_COPY = {
             },
             {
                 label: 'Video',
-                detail: '10 selected aerial shots for reels, landing pages, ads, presentations, and commercial recaps.',
+                detail: '15 selected aerial shots up to 30 sec each for reels, landing pages, ads, presentations, and commercial recaps.',
             },
             {
                 label: 'Photography',
@@ -204,7 +246,7 @@ const DRONE_PAGE_COPY = {
         technicalEyebrow: 'Technical',
         technicalTitle: 'Captured for editing and color',
         technicalDescription: 'Material is captured with enough latitude to use in reels, commercial videos, presentations, or later editing.',
-        specs: ['DJI Air 3', '1-hour flight', '10 aerial shots', 'Up to 10 photos', 'Rec.709 + D-Log', '500 m / 2 km*'],
+        specs: ['DJI Air 3', '1-hour flight', '15 shots up to 30 sec', 'Up to 10 photos', 'Rec.709 + D-Log', '500 m / 2 km*'],
         finalEyebrow: 'Ready to fly',
         finalTitle: 'Reserve the date and we define the flight plan.',
         finalDescription: 'After booking, we review location, visual objective, permits, weather, and flight restrictions to capture the most useful material for your project.',
@@ -256,6 +298,48 @@ const DRONE_PAGE_COPY = {
                 caption: 'Recent progress material normalized from D-Log for stage review.',
                 useCase: 'Recent progress',
             },
+            'construction-goba-aerial': {
+                title: 'Goba',
+                caption: 'Top-down view with crew and structure to show real progress, activity, and scale.',
+                useCase: 'Aerial progress',
+                location: 'The Reserve · Riviera Maya',
+            },
+            'construction-goba-detail': {
+                title: 'Goba',
+                caption: 'Edited on-site work material to reinforce that the report shows tangible progress.',
+                useCase: 'Site detail',
+                location: 'The Reserve · active site',
+            },
+            'construction-goba-wide': {
+                title: 'Goba',
+                caption: 'Wide view to explain location, access, green surroundings, and project dimension.',
+                useCase: 'Area context',
+                location: 'The Reserve · surroundings',
+            },
+            'construction-okom-nov-aerial': {
+                title: 'OKOM',
+                caption: 'Top view of the initial stage to document progress and compare visits with precision.',
+                useCase: 'Early progress',
+                location: 'Tulum · November 2024',
+            },
+            'construction-okom-nov-site': {
+                title: 'OKOM',
+                caption: 'Crew and structure pass to give technical context to the progress report.',
+                useCase: 'Active site',
+                location: 'Tulum · November 2024',
+            },
+            'construction-okom-jun-interior': {
+                title: 'OKOM',
+                caption: 'Recent material to show interior progress, installations, and finished details.',
+                useCase: 'Interiors and installs',
+                location: 'Tulum · June 2026',
+            },
+            'construction-okom-jun-context': {
+                title: 'OKOM',
+                caption: 'Context shot to connect progress, location, and the current development scale.',
+                useCase: 'Recent context',
+                location: 'Tulum · June 2026',
+            },
         },
     },
 } as const;
@@ -266,6 +350,7 @@ type ClipCopy = {
     title: string;
     caption: string;
     useCase: string;
+    location?: string;
 };
 
 function resolveClipCopy(
@@ -297,6 +382,7 @@ export default function DroneSessionsShow({ price, slots, errors }: DroneSession
         [],
     );
     const [heroPreviewIndex, setHeroPreviewIndex] = useState(0);
+    const [heroMediaMounted, setHeroMediaMounted] = useState(false);
     const heroPreviewClip = heroPreviewClips[heroPreviewIndex] ?? heroPreviewClips[0] ?? DRONE_SESSION_HERO_CLIP;
     const analyticsPayload = useMemo(
         () => ({
@@ -320,6 +406,12 @@ export default function DroneSessionsShow({ price, slots, errors }: DroneSession
             locations: copy.locations,
         });
     }, [analyticsPayload, copy.locations]);
+
+    useEffect(() => {
+        const frameId = window.requestAnimationFrame(() => setHeroMediaMounted(true));
+
+        return () => window.cancelAnimationFrame(frameId);
+    }, []);
 
     useEffect(() => {
         if (heroPreviewClips.length < 2) {
@@ -358,15 +450,23 @@ export default function DroneSessionsShow({ price, slots, errors }: DroneSession
 
             <section className="relative left-1/2 w-screen -translate-x-1/2 overflow-hidden">
                 <div className="absolute inset-0 bg-black">
-                    <AutoplayVideo
-                        src={DRONE_SESSION_HERO_CLIP.src}
-                        poster={DRONE_SESSION_HERO_CLIP.poster}
-                        title={copy.clips.hero.title}
-                        eager
-                        pauseWhenOffscreen={false}
-                        className="h-full w-full"
-                        videoClassName="h-full w-full object-cover object-center"
+                    <img
+                        src={DRONE_SESSION_HERO_CLIP.poster}
+                        alt=""
+                        aria-hidden
+                        className="absolute inset-0 h-full w-full object-cover object-center"
                     />
+                    {heroMediaMounted ? (
+                        <AutoplayVideo
+                            src={DRONE_SESSION_HERO_CLIP.src}
+                            poster={DRONE_SESSION_HERO_CLIP.poster}
+                            title={copy.clips.hero.title}
+                            eager
+                            pauseWhenOffscreen={false}
+                            className="absolute inset-0 h-full w-full"
+                            videoClassName="h-full w-full object-cover object-center"
+                        />
+                    ) : null}
                     <div className="absolute inset-0 bg-[linear-gradient(90deg,oklch(0.09_0.02_260/0.94)_0%,oklch(0.10_0.02_250/0.78)_45%,oklch(0.10_0.02_250/0.34)_100%)]" />
                     <div className="absolute inset-0 bg-[linear-gradient(180deg,transparent_0%,oklch(0.08_0.01_250/0.25)_52%,var(--background)_100%)]" />
                 </div>
@@ -577,45 +677,61 @@ export default function DroneSessionsShow({ price, slots, errors }: DroneSession
                     />
                 </div>
                 <div className="grid gap-4 border-t border-white/10 bg-black/12 p-4 md:grid-cols-2 md:p-5">
-                    {DRONE_SESSION_CONSTRUCTION_CLIPS.map((clip) => (
-                        <article key={clip.id} className="overflow-hidden rounded-xl border border-white/15 bg-white/8 shadow-xl shadow-black/20">
-                            <AutoplayVideo
-                                src={clip.src}
-                                poster={clip.poster}
-                                title={resolveClipCopy(copy.clips, clip).title}
-                                className="aspect-video"
-                            />
-                            <div className="p-4">
-                                <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-primary">
-                                    {resolveClipCopy(copy.clips, clip).useCase}
-                                </p>
-                                <h3 className="mt-2 text-base font-semibold text-white">
-                                    {resolveClipCopy(copy.clips, clip).title}
-                                </h3>
-                                <p className="mt-2 text-sm leading-relaxed text-white/72">
-                                    {resolveClipCopy(copy.clips, clip).caption}
-                                </p>
-                            </div>
-                        </article>
-                    ))}
+                    {DRONE_SESSION_CONSTRUCTION_CLIPS.map((clip) => {
+                        const clipCopy = resolveClipCopy(copy.clips, clip);
+
+                        return (
+                            <article key={clip.id} className="overflow-hidden rounded-xl border border-white/15 bg-white/8 shadow-xl shadow-black/20">
+                                <AutoplayVideo
+                                    src={clip.src}
+                                    poster={clip.poster}
+                                    title={clipCopy.title}
+                                    className="aspect-video"
+                                />
+                                <div className="p-4">
+                                    <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-primary">
+                                        {clipCopy.useCase}
+                                    </p>
+                                    <h3 className="mt-2 text-lg font-semibold text-white">
+                                        {clipCopy.title}
+                                    </h3>
+                                    {clipCopy.location ? (
+                                        <p className="mt-2 inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.12em] text-white/64">
+                                            <MapPin className="h-3.5 w-3.5 text-primary" />
+                                            {clipCopy.location}
+                                        </p>
+                                    ) : null}
+                                    <p className="mt-2 text-sm leading-relaxed text-white/72">
+                                        {clipCopy.caption}
+                                    </p>
+                                </div>
+                            </article>
+                        );
+                    })}
                 </div>
             </section>
 
-            <GlassSection
-                eyebrow={copy.technicalEyebrow}
-                title={copy.technicalTitle}
-                description={copy.technicalDescription}
-                surface="solid"
-            >
+            <section className="my-12 overflow-hidden rounded-xl border border-white/10 bg-[linear-gradient(135deg,oklch(0.09_0.02_250),oklch(0.13_0.03_245))] p-6 text-white shadow-2xl shadow-black/20 md:p-8">
+                <div className="mb-7 max-w-3xl">
+                    <span className="inline-block rounded-full border border-primary/35 bg-primary/12 px-3 py-0.5 text-xs font-medium uppercase tracking-widest text-primary">
+                        {copy.technicalEyebrow}
+                    </span>
+                    <h2 className="mt-3 font-display text-2xl font-bold tracking-tight text-white md:text-3xl">
+                        {copy.technicalTitle}
+                    </h2>
+                    <p className="mt-2 max-w-2xl text-sm leading-relaxed text-white/68 md:text-base">
+                        {copy.technicalDescription}
+                    </p>
+                </div>
                 <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
                     {specs.map((spec) => (
-                        <div key={spec.label} className="rounded-xl border border-border/75 bg-background/80 p-5">
+                        <div key={spec.label} className="rounded-xl border border-white/10 bg-white/[0.055] p-5 shadow-inner shadow-white/5">
                             <spec.icon className="h-6 w-6 text-primary" />
-                            <p className="mt-3 font-semibold text-foreground">{spec.label}</p>
+                            <p className="mt-3 font-semibold text-white">{spec.label}</p>
                         </div>
                     ))}
                 </div>
-            </GlassSection>
+            </section>
 
             <section className="my-12 rounded-xl border border-border/80 bg-background/80 p-6 shadow-xl shadow-black/5 md:p-8">
                 <div className="grid gap-6 md:grid-cols-[1fr_auto] md:items-center">

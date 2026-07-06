@@ -2,13 +2,19 @@
 
 namespace App\Filament\Pages;
 
+use App\Filament\Resources\BookingLandingAnalytics\BookingLandingAnalyticsResource;
+use App\Filament\Resources\ContactLogs\ContactLogResource;
 use App\Filament\Resources\ContentBookings\ContentBookingResource;
+use App\Filament\Resources\Customers\CustomerResource;
 use App\Filament\Resources\SalesAnalytics\SalesAnalyticsResource;
-use App\Filament\Resources\SessionCustomers\SessionCustomerResource;
 use App\Filament\Resources\SalesAnalytics\Widgets\SalesOverviewWidget;
+use App\Filament\Resources\SessionCustomers\SessionCustomerResource;
+use App\Filament\Widgets\ContentBookingMenuServicesOverviewWidget;
+use App\Filament\Widgets\ContentBookingPipelineTableWidget;
 use App\Filament\Widgets\ContentBookingSalesOrdersTableWidget;
 use App\Filament\Widgets\ContentBookingSalesOverviewWidget;
 use App\Filament\Widgets\ContentBookingSalesTimelineWidget;
+use App\Filament\Widgets\LeadManagementStatsWidget;
 use BackedEnum;
 use Filament\Actions\Action;
 use Filament\Pages\Dashboard;
@@ -43,6 +49,18 @@ class SalesHub extends Dashboard
                 ->label('Ver clientes de sesiones')
                 ->icon('heroicon-o-user-group')
                 ->url(SessionCustomerResource::getUrl('index')),
+            Action::make('viewLeads')
+                ->label('Ver leads')
+                ->icon('heroicon-o-users')
+                ->url(CustomerResource::getUrl('index')),
+            Action::make('viewContactLogs')
+                ->label('Ver contactos')
+                ->icon('heroicon-o-chat-bubble-left-right')
+                ->url(ContactLogResource::getUrl('index')),
+            Action::make('viewLandingAnalytics')
+                ->label('Ver landing analytics')
+                ->icon('heroicon-o-chart-bar')
+                ->url(BookingLandingAnalyticsResource::getUrl('index')),
         ];
     }
 
@@ -50,8 +68,11 @@ class SalesHub extends Dashboard
     {
         return [
             SalesOverviewWidget::class,
+            LeadManagementStatsWidget::class,
+            ContentBookingMenuServicesOverviewWidget::class,
             ContentBookingSalesOverviewWidget::class,
             ContentBookingSalesTimelineWidget::class,
+            ContentBookingPipelineTableWidget::class,
             ContentBookingSalesOrdersTableWidget::class,
         ];
     }

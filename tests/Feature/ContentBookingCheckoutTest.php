@@ -100,6 +100,22 @@ class ContentBookingCheckoutTest extends TestCase
             ->assertSessionHasErrors('booking_slot_id');
     }
 
+    public function test_menu_booking_landings_expose_meta_service_type_context(): void
+    {
+        $this->createAvailableSlot();
+
+        foreach ([
+            'food-reels.show' => 'food_reels',
+            'djset.show' => 'dj_set',
+            'drone-sessions.show' => 'drone_session',
+            'construction-progress.show' => 'construction_progress',
+        ] as $route => $serviceType) {
+            $this->get(route($route))
+                ->assertOk()
+                ->assertSee('"serviceType":"'.$serviceType.'"', false);
+        }
+    }
+
     public function test_checkout_defaults_to_stripe_for_home_booking(): void
     {
         config([
@@ -389,7 +405,7 @@ class ContentBookingCheckoutTest extends TestCase
             $payload = $request->data();
 
             return $request->url() === 'https://api.stripe.com/v1/checkout/sessions'
-                && data_get($payload, 'line_items.0.price_data.product_data.name') === 'Sesión de vuelo con dron DJI Air 3 — 10 tomas aéreas + 10 fotos'
+                && data_get($payload, 'line_items.0.price_data.product_data.name') === 'Sesión de vuelo con dron DJI Air 3 — 15 tomas de hasta 30 seg + 10 fotos'
                 && data_get($payload, 'line_items.0.price_data.unit_amount') === 300000
                 && data_get($payload, 'metadata.content_booking_public_id') === $booking->public_id;
         });

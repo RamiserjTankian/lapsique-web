@@ -3,6 +3,7 @@ import { usePage } from '@inertiajs/react';
 import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
 import { MessageCircle, X } from 'lucide-react';
 import { REEL_PLAYER_STATE_EVENT } from '@/hooks/useReelPlayerModal';
+import { trackBookingEvent } from '@/hooks/useBookingAnalytics';
 import { FUNNEL_MODAL_STATE_EVENT, getActiveFunnelModal } from '@/lib/funnelModalEvents';
 import { useIsMobileViewport } from '@/hooks/useMediaQuery';
 import { useTypingCycle } from '@/hooks/useTypingCycle';
@@ -41,6 +42,30 @@ export function WhatsAppFab() {
     const isDjSetPage = currentPath === '/dj-set' || currentPath === '/djset';
     const isDronePage = currentPath === '/sesiones-de-dron' || currentPath === '/drone-session' || currentPath === '/vuelos-con-dron';
     const isConstructionProgressPage = currentPath === '/avances-de-obra';
+    const isFoodReelsPage = currentPath === '/reels-de-comida' || currentPath === '/comida-y-reels';
+    const whatsappServiceType = useMemo(() => {
+        if (isConstructionProgressPage) {
+            return 'construction_progress';
+        }
+
+        if (isDronePage) {
+            return 'drone_session';
+        }
+
+        if (isDjSetPage) {
+            return 'dj_set';
+        }
+
+        if (isFoodReelsPage) {
+            return 'food_reels';
+        }
+
+        if (isHomePage) {
+            return 'content_session';
+        }
+
+        return isTrascendental ? 'trascendental' : 'site';
+    }, [isConstructionProgressPage, isDjSetPage, isDronePage, isFoodReelsPage, isHomePage, isTrascendental]);
     const promptMessages = useMemo(
         () => (
             isConstructionProgressPage
@@ -57,6 +82,13 @@ export function WhatsAppFab() {
                     t('common.whatsapp.drone_prompt_3'),
                     t('common.whatsapp.drone_prompt_4'),
                 ]
+                : isFoodReelsPage
+                ? [
+                    t('common.whatsapp.food_prompt_1'),
+                    t('common.whatsapp.food_prompt_2'),
+                    t('common.whatsapp.food_prompt_3'),
+                    t('common.whatsapp.food_prompt_4'),
+                ]
                 : isTrascendental
                 ? [
                     t('trascendental.whatsapp.prompt_1'),
@@ -65,7 +97,7 @@ export function WhatsAppFab() {
                 ]
                 : PROMPT_MESSAGE_KEYS.map((key) => t(key))
         ),
-        [isConstructionProgressPage, isDronePage, isTrascendental, t],
+        [isConstructionProgressPage, isDronePage, isFoodReelsPage, isTrascendental, t],
     );
     const prefersReducedMotion = useReducedMotion();
     const [isPromptVisible, setIsPromptVisible] = useState(false);
@@ -88,12 +120,14 @@ export function WhatsAppFab() {
             ? t('funnel.whatsapp.prefill_drone')
             : isDjSetPage
             ? t('funnel.whatsapp.prefill_djset')
+            : isFoodReelsPage
+            ? t('funnel.whatsapp.prefill_food_reels')
             : isTrascendental
               ? t('trascendental.whatsapp.default_prefill')
             : t('common.whatsapp.default_prefill');
 
         return `https://wa.me/${number}?text=${encodeURIComponent(message)}`;
-    }, [isConstructionProgressPage, isDjSetPage, isDronePage, isTrascendental, number, t, trascendentalCommunityHref]);
+    }, [isConstructionProgressPage, isDjSetPage, isDronePage, isFoodReelsPage, isTrascendental, number, t, trascendentalCommunityHref]);
 
     const { displayed, showCursor } = useTypingCycle({
         texts: promptMessages,
@@ -167,6 +201,18 @@ export function WhatsAppFab() {
         }
     };
 
+    const trackWhatsAppClick = (source: string) => {
+        trackBookingEvent('whatsapp_popup_clicked', {
+            content_name: isTrascendental ? 'Trascendental WhatsApp community' : 'Lapsique Media WhatsApp',
+            content_category: whatsappServiceType === 'site' || whatsappServiceType === 'trascendental'
+                ? 'site_contact'
+                : `${whatsappServiceType}_booking`,
+            service_type: whatsappServiceType,
+            source,
+            target: 'whatsapp',
+        });
+    };
+
     if (!href || bookingModalOpen || reelPlayerOpen || (isMobile && isHomePage && !isTrascendental)) {
         return null;
     }
@@ -199,6 +245,7 @@ export function WhatsAppFab() {
                             target="_blank"
                             rel="noopener noreferrer"
                             onClick={() => {
+                                trackWhatsAppClick('floating_prompt');
                                 setIsPromptVisible(false);
                             }}
                             className="group block rounded-2xl border border-[#25D366]/35 bg-background/95 px-4 py-3.5 pr-5 shadow-[0_16px_48px_oklch(0_0_0/0.22)] backdrop-blur-xl transition hover:border-[#25D366]/55 hover:shadow-[0_20px_56px_oklch(0_0_0/0.28)]"
@@ -239,6 +286,7 @@ export function WhatsAppFab() {
                 href={href}
                 target="_blank"
                 rel="noopener noreferrer"
+                onClick={() => trackWhatsAppClick('floating_button')}
                 className="flex h-14 w-14 items-center justify-center rounded-full bg-[#25D366] text-white shadow-[0_12px_40px_oklch(0.55_0.18_145/0.45)] transition hover:scale-105 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#25D366] focus-visible:ring-offset-2 focus-visible:ring-offset-background motion-safe:animate-[whatsapp-fab-pulse_2.8s_ease-in-out_infinite] motion-reduce:animate-none"
                 aria-label={isTrascendental ? t('trascendental.whatsapp.community_open') : t('common.whatsapp.open')}
             >

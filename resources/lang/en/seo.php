@@ -15,7 +15,7 @@ return [
     ],
     'drone_session' => [
         'title' => 'Drone flight sessions',
-        'description' => 'Book a DJI Air 3 drone flight session for $:price MXN in Cancun, Playa del Carmen, and Tulum: 10 aerial shots, up to 10 photos, Rec.709 + D-Log for real estate, yachts, events, and construction progress.',
+        'description' => 'Book a DJI Air 3 drone flight session for $:price MXN in Cancun, Playa del Carmen, and Tulum: 15 aerial shots up to 30 sec each, up to 10 photos, Rec.709 + D-Log for real estate, yachts, events, and construction progress.',
         'keywords' => 'drone sessions, drone flight, DJI Air 3, drone Cancun, drone Playa del Carmen, drone Tulum, real estate, yachts, Airbnb, construction progress, lapsique.media',
         'service_type' => 'DJI Air 3 drone flight',
         'og_alt' => 'DJI Air 3 drone flight session — Lapsique Media',

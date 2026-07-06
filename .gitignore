@@ -17,6 +17,8 @@
 /public/build
 /public/hot
 /public/storage
+/public/brand/lapsique-logo/video/lapsique-logo-reveal-alpha.mov
+/public/brand/lapsique-logo/video/lapsique-logo-reveal-glass-bg-alpha.mov
 /storage/*.key
 /storage/backups
 /storage/pail

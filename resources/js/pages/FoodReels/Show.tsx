@@ -3,9 +3,7 @@ import { usePage } from '@inertiajs/react';
 import {
     ArrowRight,
     CalendarDays,
-    Camera,
     Check,
-    Clapperboard,
     Flame,
     Images,
     MessageCircle,
@@ -40,7 +38,6 @@ type FoodReel = {
     caption: string;
     src: string;
     poster: string;
-    duration: string;
 };
 
 type FoodPhoto = {
@@ -59,7 +56,6 @@ const FOOD_REELS: FoodReel[] = [
         caption: 'Mesa, rollos y manos en acción para promo vertical.',
         src: '/videos/food-reels/sushiclub-day-sushi-promo.mp4',
         poster: '/images/food-reels/sushiclub-day-sushi-promo-poster.jpg',
-        duration: '0:12',
     },
     {
         id: 'night-food',
@@ -67,7 +63,6 @@ const FOOD_REELS: FoodReel[] = [
         caption: 'Servicio nocturno, drinks y platos entrando a mesa.',
         src: '/videos/food-reels/sushiclub-night-food.mp4',
         poster: '/images/food-reels/sushiclub-night-food-poster.jpg',
-        duration: '0:12',
     },
     {
         id: 'day-plates',
@@ -75,7 +70,6 @@ const FOOD_REELS: FoodReel[] = [
         caption: 'Producto claro para menú, stories y anuncios.',
         src: '/videos/food-reels/sushiclub-day-plates.mp4',
         poster: '/images/food-reels/sushiclub-day-plates-poster.jpg',
-        duration: '0:12',
     },
     {
         id: 'destilados',
@@ -83,7 +77,6 @@ const FOOD_REELS: FoodReel[] = [
         caption: 'Movimiento de barra para consumo y nightlife.',
         src: '/videos/food-reels/sushiclub-destilados.mp4',
         poster: '/images/food-reels/sushiclub-destilados-poster.jpg',
-        duration: '0:12',
     },
 ];
 
@@ -206,11 +199,6 @@ const PRODUCT_PHOTOS: FoodPhoto[] = [
     },
 ];
 
-const HERO_PHOTOS: FoodPhoto[] = [
-    PRODUCT_PHOTOS[1],
-    PRODUCT_PHOTOS[6],
-];
-
 const SESSION_PHOTOS: FoodPhoto[] = [
     {
         id: 'santino-brunch-table',
@@ -220,14 +208,6 @@ const SESSION_PHOTOS: FoodPhoto[] = [
         orientation: 'landscape',
         layout: 'wide',
     },
-    PRODUCT_PHOTOS[0],
-    {
-        id: 'roof-guacamole-models',
-        title: 'Mesa con modelos',
-        caption: 'Comida, drinks y personas con contexto social.',
-        src: '/images/food-reels/food-roof-guacamole-models.webp',
-        orientation: 'portrait',
-    },
     {
         id: 'santino-charcuterie-table',
         title: 'Tabla de charcutería',
@@ -235,6 +215,15 @@ const SESSION_PHOTOS: FoodPhoto[] = [
         src: '/images/food-reels/food-santino-charcuterie-table.webp',
         orientation: 'portrait',
         layout: 'tall',
+    },
+    PRODUCT_PHOTOS[0],
+    {
+        id: 'santino-waffle-table',
+        title: 'Mesa con fruta',
+        caption: 'Tabla con fruta, pan y platos para comunicar abundancia.',
+        src: '/images/food-reels/food-santino-waffle-table.webp',
+        orientation: 'landscape',
+        layout: 'wide',
     },
     {
         id: 'roof-models-toast',
@@ -276,51 +265,45 @@ const FOOD_PAGE_COPY = {
         heroDescription: 'Producción de reels, fotos y activaciones para restaurantes que necesitan verse irresistibles en Instagram, anuncios y menú digital.',
         heroPrimary: 'Agendar sesión',
         heroSecondary: 'Ver prueba real',
-        proofClient: 'Sesiones reales',
-        proofLines: ['comida + drinks', 'menú + redes', 'reels verticales'],
-        featureItems: ['Reels 9:16', 'Fotos editadas', 'Activaciones'],
         whatsappCta: 'Cotizar por WhatsApp',
-        reelSectionTitle: 'Reels gastronómicos',
-        reelSectionDescription: 'Piezas verticales listas para mostrar platos, bebidas, ambiente y manos en acción sin perder ritmo de redes.',
-        sessionSectionTitle: 'Contenido para vender una experiencia completa',
-        sessionSectionDescription: 'Combinamos mesa completa, platillos estrella, detalles de barra, modelos y escenas de consumo para que la landing se sienta como una producción real.',
-        photoSectionTitle: 'Foto de producto',
-        photoSectionDescription: 'Una selección más amplia de platillos, drinks, mesa y detalles para mostrar variedad real de menú, no solo fotos aisladas.',
+        reelSectionTitle: 'Reels para restaurantes',
+        sessionSectionTitle: 'Vende la experiencia de estar en tu restaurante',
+        photoSectionTitle: 'Foto de producto para utilizar en tus menús o redes',
         activationTitle: 'Activaciones con modelos',
         activationDescription: 'Cuando el restaurante vende experiencia, sumamos personas, drinks, mesa y ambiente para crear contenido que convierte.',
         packageTitle: 'Paquete de producción gastronómica',
-        packageDescription: 'Una sesión enfocada en contenido de comida: reels verticales, fotos editadas y narrativa para restaurantes.',
+        packageDescription: 'Incluye 10 fotos de producto, 2 reels de activación sin modelos, máximo 5 platillos y 3 tomas de dron del espacio del restaurante con DJI Air 3 en vertical 4K.',
         packageCta: 'Reservar fecha',
         packageCards: [
             {
-                title: 'Reels',
-                copy: 'Piezas verticales para Instagram, anuncios y stories.',
-                items: ['Platos en movimiento', 'Drinks y servicio', 'Formato 9:16'],
+                title: '10 fotos',
+                copy: 'Producto limpio para menú, redes y anuncios.',
+                items: ['Máximo 5 platillos', 'Fotos editadas', 'Uso comercial'],
             },
             {
-                title: 'Fotos',
-                copy: 'Imágenes útiles para menú, pauta y redes.',
-                items: ['Producto limpio', 'Ambiente de mesa', 'Entrega editada'],
+                title: '2 reels',
+                copy: 'Activación de comida sin modelos, enfocada en producto.',
+                items: ['Movimiento de platos', 'Drinks y servicio', 'Formato vertical'],
             },
             {
-                title: 'Activación',
-                copy: 'Contenido lifestyle con modelos y experiencia real.',
-                items: ['Personas en escena', 'Mood de restaurante', 'Contexto social'],
+                title: '3 tomas de dron',
+                copy: 'Recursos del espacio para elevar la percepción del restaurante.',
+                items: ['DJI Air 3', 'Vertical 4K', 'Exterior o interior viable'],
             },
         ],
         bookingTitle: 'Agenda la sesión y armamos el shot list de comida.',
-        bookingDescription: 'Al reservar definimos platos prioritarios, horario, mood, modelos si aplica y piezas finales para que el contenido salga con objetivo comercial.',
+        bookingDescription: 'Al reservar definimos hasta 5 platillos prioritarios, horario, mood, tomas de dron y piezas finales para que el contenido salga con objetivo comercial.',
         finalWhatsApp: 'Preguntar por WhatsApp',
         bookingProduct: {
             checkoutLabel: 'Producción gastronómica',
             headerTitle: 'Agenda tu sesión de comida',
             headerDescription: 'Selecciona fecha, comparte el concepto del restaurante y confirma la producción.',
             summaryTitle: 'Sesión de contenido para restaurante',
-            summaryDescription: 'Reels, fotos editadas y activacion visual pensada para vender comida.',
-            lines: ['Shot list por platos prioritarios', 'Contenido vertical para redes y pauta', 'Entrega lista para publicar'],
+            summaryDescription: '10 fotos, 2 reels sin modelos y 3 tomas verticales de dron para vender comida.',
+            lines: ['Máximo 5 platillos prioritarios', 'Contenido vertical para redes y pauta', 'Entrega lista para publicar'],
             cartService: 'Reels y fotos de comida',
             cartDuration: 'Sesión dirigida en restaurante',
-            perks: ['Reels verticales', 'Fotos editadas', 'Dirección de comida y mesa', 'Uso para anuncios y menú digital', 'Pago seguro con tarjeta'],
+            perks: ['10 fotos de producto', '2 reels sin modelos', '3 tomas de dron DJI Air 3', 'Uso para anuncios y menú digital', 'Pago seguro con tarjeta'],
             terms: ['La fecha queda sujeta a disponibilidad.', 'El alcance final se confirma según platos, locación y modelo.', 'Puedes reprogramar con aviso previo según disponibilidad.', 'El material puede usarse en portafolio salvo acuerdo distinto.'],
             unavailableWhatsApp: 'Hola, quiero una sesión de reels de comida para mi restaurante.',
         },
@@ -332,63 +315,51 @@ const FOOD_PAGE_COPY = {
         heroDescription: 'Reel production, food photography, and lifestyle activations for restaurants that need to look irresistible on Instagram, ads, and digital menus.',
         heroPrimary: 'Book session',
         heroSecondary: 'View real proof',
-        proofClient: 'Real shoots',
-        proofLines: ['food + drinks', 'menus + social', 'vertical reels'],
-        featureItems: ['9:16 reels', 'Edited photos', 'Activations'],
         whatsappCta: 'Quote on WhatsApp',
-        reelSectionTitle: 'Food reels',
-        reelSectionDescription: 'Vertical pieces built to show plates, drinks, atmosphere, and hands in motion without losing social rhythm.',
-        sessionSectionTitle: 'Content that sells the full dining experience',
-        sessionSectionDescription: 'We combine full tables, hero dishes, bar details, models, and consumption scenes so the landing feels like a real production.',
-        photoSectionTitle: 'Product photography',
-        photoSectionDescription: 'A wider selection of dishes, drinks, table scenes, and details to show real menu variety, not isolated photos.',
+        reelSectionTitle: 'Restaurant reels',
+        sessionSectionTitle: 'Sell the experience of being in your restaurant',
+        photoSectionTitle: 'Product photography for your menus or social channels',
         activationTitle: 'Model activations',
         activationDescription: 'When the restaurant sells experience, we add people, drinks, table, and mood to create content that converts.',
         packageTitle: 'Food production package',
-        packageDescription: 'A session focused on restaurant content: vertical reels, edited photos, and a useful food story.',
+        packageDescription: 'Includes 10 product photos, 2 activation reels without models, up to 5 dishes, and 3 vertical 4K drone shots of the restaurant space with DJI Air 3.',
         packageCta: 'Reserve date',
         packageCards: [
             {
-                title: 'Reels',
-                copy: 'Vertical pieces for Instagram, ads, and stories.',
-                items: ['Plates in motion', 'Drinks and service', '9:16 format'],
+                title: '10 photos',
+                copy: 'Clean product imagery for menus, social, and ads.',
+                items: ['Up to 5 dishes', 'Edited photos', 'Commercial use'],
             },
             {
-                title: 'Photos',
-                copy: 'Images ready for menus, ads, and social.',
-                items: ['Clean product', 'Table atmosphere', 'Edited delivery'],
+                title: '2 reels',
+                copy: 'Food activation without models, focused on product.',
+                items: ['Plates in motion', 'Drinks and service', 'Vertical format'],
             },
             {
-                title: 'Activation',
-                copy: 'Lifestyle content with models and real experience.',
-                items: ['People in scene', 'Restaurant mood', 'Social context'],
+                title: '3 drone shots',
+                copy: 'Space footage that raises the perceived value of the restaurant.',
+                items: ['DJI Air 3', 'Vertical 4K', 'Viable exterior or interior'],
             },
         ],
         bookingTitle: 'Book the session and we build the food shot list.',
-        bookingDescription: 'After booking, we define priority dishes, timing, mood, models if needed, and final pieces so the content has a clear sales goal.',
+        bookingDescription: 'After booking, we define up to 5 priority dishes, timing, mood, drone shots, and final pieces so the content has a clear sales goal.',
         finalWhatsApp: 'Ask on WhatsApp',
         bookingProduct: {
             checkoutLabel: 'Food production',
             headerTitle: 'Book your food session',
             headerDescription: 'Choose a date, share the restaurant concept, and confirm production.',
             summaryTitle: 'Restaurant content session',
-            summaryDescription: 'Reels, edited photos, and visual activation built to sell food.',
-            lines: ['Shot list by priority dishes', 'Vertical content for social and ads', 'Delivery ready to publish'],
+            summaryDescription: '10 photos, 2 model-free reels, and 3 vertical drone shots built to sell food.',
+            lines: ['Up to 5 priority dishes', 'Vertical content for social and ads', 'Delivery ready to publish'],
             cartService: 'Food reels and photos',
             cartDuration: 'Directed restaurant session',
-            perks: ['Vertical reels', 'Edited photos', 'Food and table direction', 'Use for ads and digital menus', 'Secure card payment'],
+            perks: ['10 product photos', '2 model-free reels', '3 DJI Air 3 drone shots', 'Use for ads and digital menus', 'Secure card payment'],
             terms: ['Dates depend on availability.', 'Final scope is confirmed by dishes, location, and model needs.', 'You can reschedule with prior notice depending on availability.', 'Material may be used in portfolio unless agreed otherwise.'],
             unavailableWhatsApp: 'Hi, I want a food reels session for my restaurant.',
         },
         whatsappPrefill: 'Hi, I want to quote food reels and photos for my restaurant.',
     },
 } as const;
-
-const FEATURE_ICONS = [
-    Clapperboard,
-    Camera,
-    Sparkles,
-] as const;
 
 export default function FoodReelsShow({ price, slots, errors }: FoodReelsShowProps) {
     const { site } = usePage<PageProps>().props;
@@ -463,21 +434,21 @@ export default function FoodReelsShow({ price, slots, errors }: FoodReelsShowPro
 
             <section className="relative left-1/2 w-screen -translate-x-1/2 overflow-hidden bg-[#070706] text-white">
                 <div className="absolute inset-0 bg-[radial-gradient(circle_at_74%_20%,rgb(206_58_42/0.22),transparent_30%),linear-gradient(180deg,#070706_0%,#0d0b09_64%,var(--background)_100%)]" />
-                <div className="relative mx-auto grid min-h-[min(760px,82svh)] max-w-6xl gap-8 px-4 pb-10 pt-12 sm:px-6 lg:grid-cols-[minmax(0,1fr)_minmax(300px,0.62fr)_minmax(220px,0.42fr)] lg:items-center lg:gap-6 lg:pb-12">
+                <div className="relative mx-auto grid min-h-[min(760px,82svh)] max-w-6xl gap-8 px-4 pb-10 pt-12 sm:px-6 lg:grid-cols-[minmax(0,1fr)_minmax(320px,0.58fr)] lg:items-center lg:gap-10 lg:pb-12">
                     <div className="flex max-w-3xl flex-col gap-6">
                         <div className="flex flex-col gap-4">
-                            <h1 className="max-w-4xl font-display text-[2.6rem] font-bold leading-[0.96] tracking-tight text-white drop-shadow-[0_10px_34px_rgb(0_0_0/0.45)] sm:text-5xl lg:text-6xl xl:text-7xl">
+                            <h1 className="max-w-4xl text-wrap font-display text-[2.2rem] font-bold leading-[0.98] tracking-tight text-white drop-shadow-[0_10px_34px_rgb(0_0_0/0.45)] sm:text-5xl sm:leading-[0.96] lg:text-6xl xl:text-7xl">
                                 {copy.heroTitle}
                             </h1>
-                            <p className="max-w-2xl text-base leading-relaxed text-white/78 sm:text-lg">
+                            <p className="max-w-2xl text-wrap text-base leading-relaxed text-white/78 sm:text-lg">
                                 {copy.heroDescription}
                             </p>
                         </div>
 
-                        <div className="grid max-w-xl gap-3 sm:grid-cols-2">
+                        <div className="grid w-full max-w-xl gap-3 sm:grid-cols-2">
                             <BookingCtaButton
                                 type="button"
-                                className="min-h-12 rounded-lg px-6"
+                                className="min-h-12 w-full min-w-0 rounded-lg px-4 text-sm whitespace-normal sm:text-base"
                                 onClick={() => openBooking('hero')}
                             >
                                 <CalendarDays data-icon="inline-start" />
@@ -487,7 +458,7 @@ export default function FoodReelsShow({ price, slots, errors }: FoodReelsShowPro
                                 type="button"
                                 variant="outline"
                                 size="xl"
-                                className="min-h-12 rounded-lg border-white/22 bg-white/5 text-white hover:bg-white/12 hover:text-white"
+                                className="min-h-12 w-full min-w-0 rounded-lg border-white/22 bg-white/5 px-4 text-sm text-white whitespace-normal hover:bg-white/12 hover:text-white sm:text-base"
                                 asChild
                             >
                                 <a href="#prueba-real">
@@ -496,36 +467,9 @@ export default function FoodReelsShow({ price, slots, errors }: FoodReelsShowPro
                                 </a>
                             </Button>
                         </div>
-
-                        <div className="max-w-xs border-l-2 border-[#e43d30] pl-4">
-                            <p className="font-display text-xl font-bold text-white">
-                                {copy.proofClient}
-                            </p>
-                            <div className="mt-1 flex flex-col gap-0.5 text-sm text-white/70">
-                                {copy.proofLines.map((line) => (
-                                    <span key={line}>{line}</span>
-                                ))}
-                            </div>
-                        </div>
-
-                        <div className="grid max-w-xl gap-2 sm:grid-cols-3">
-                            {copy.featureItems.map((label, index) => {
-                                const Icon = FEATURE_ICONS[index];
-
-                                return (
-                                    <div
-                                        key={label}
-                                        className="flex min-h-12 items-center gap-2 rounded-lg border border-white/14 bg-white/7 px-3 text-sm font-semibold text-white/84 backdrop-blur-md"
-                                    >
-                                        <Icon className="size-4 shrink-0 text-[#ff6b55]" />
-                                        <span>{label}</span>
-                                    </div>
-                                );
-                            })}
-                        </div>
                     </div>
 
-                    <div className="relative mx-auto w-full max-w-[330px]">
+                    <div className="relative mx-auto w-full max-w-[370px]">
                         <div className="relative overflow-hidden rounded-[2rem] border border-white/18 bg-black p-2 shadow-[0_32px_90px_rgb(0_0_0/0.55)]">
                             <AutoplayVideo
                                 key={activeReel.id}
@@ -538,12 +482,6 @@ export default function FoodReelsShow({ price, slots, errors }: FoodReelsShowPro
                             />
                         </div>
                     </div>
-
-                    <div className="hidden flex-col gap-3 lg:flex">
-                        {HERO_PHOTOS.map((photo) => (
-                            <MediaPhoto key={photo.id} photo={photo} compact />
-                        ))}
-                    </div>
                 </div>
             </section>
 
@@ -551,7 +489,6 @@ export default function FoodReelsShow({ price, slots, errors }: FoodReelsShowPro
                 <SectionHeader
                     icon={<Video className="size-5" />}
                     title={copy.reelSectionTitle}
-                    description={copy.reelSectionDescription}
                 />
                 <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
                     {FOOD_REELS.map((reel) => (
@@ -561,34 +498,6 @@ export default function FoodReelsShow({ price, slots, errors }: FoodReelsShowPro
                             selected={reel.id === activeReel.id}
                             onSelect={() => setActiveReelId(reel.id)}
                         />
-                    ))}
-                </div>
-            </section>
-
-            <section className="mx-auto flex max-w-6xl flex-col gap-6 px-4 py-12 sm:px-6">
-                <SectionHeader
-                    icon={<Sparkles className="size-5" />}
-                    title={copy.sessionSectionTitle}
-                    description={copy.sessionSectionDescription}
-                    className="max-w-3xl"
-                />
-                <div className="grid auto-rows-[210px] gap-3 sm:grid-cols-2 sm:auto-rows-[250px] lg:grid-cols-4 lg:auto-rows-[245px]">
-                    {SESSION_PHOTOS.map((photo) => (
-                        <MediaPhoto key={photo.id} photo={photo} mosaic />
-                    ))}
-                </div>
-            </section>
-
-            <section className="mx-auto flex max-w-6xl flex-col gap-6 px-4 py-12 sm:px-6">
-                <SectionHeader
-                    icon={<Images className="size-5" />}
-                    title={copy.photoSectionTitle}
-                    description={copy.photoSectionDescription}
-                    className="max-w-3xl"
-                />
-                <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-                    {PRODUCT_PHOTOS.map((photo) => (
-                        <MediaPhoto key={photo.id} photo={photo} dense />
                     ))}
                 </div>
             </section>
@@ -610,12 +519,38 @@ export default function FoodReelsShow({ price, slots, errors }: FoodReelsShowPro
                 </div>
             </section>
 
+            <section className="mx-auto flex max-w-6xl flex-col gap-6 px-4 py-12 sm:px-6">
+                <SectionHeader
+                    icon={<Sparkles className="size-5" />}
+                    title={copy.sessionSectionTitle}
+                    className="max-w-3xl"
+                />
+                <div className="grid auto-rows-[210px] grid-flow-dense gap-3 sm:grid-cols-2 sm:auto-rows-[250px] lg:grid-cols-4 lg:auto-rows-[245px]">
+                    {SESSION_PHOTOS.map((photo) => (
+                        <MediaPhoto key={photo.id} photo={photo} mosaic />
+                    ))}
+                </div>
+            </section>
+
+            <section className="mx-auto flex max-w-6xl flex-col gap-6 px-4 py-12 sm:px-6">
+                <SectionHeader
+                    icon={<Images className="size-5" />}
+                    title={copy.photoSectionTitle}
+                    className="max-w-3xl"
+                />
+                <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+                    {PRODUCT_PHOTOS.map((photo) => (
+                        <MediaPhoto key={photo.id} photo={photo} dense />
+                    ))}
+                </div>
+            </section>
+
             <BookingWidget
                 slots={slots}
                 price={price}
                 whatsapp={site.whatsapp}
                 errors={errors}
-                className="mt-0"
+                className="mx-auto mt-4 w-full max-w-6xl"
                 checkoutRoute="booking.checkout"
                 paymentProvider="stripe"
                 product={product}
@@ -632,7 +567,7 @@ export default function FoodReelsShow({ price, slots, errors }: FoodReelsShowPro
             />
 
             <section className="mx-auto flex max-w-6xl flex-col gap-6 px-4 py-12 sm:px-6">
-                <div className="grid gap-6 lg:grid-cols-[0.46fr_1fr] lg:items-end">
+                <div className="grid gap-6 lg:grid-cols-[0.54fr_1fr] lg:items-end">
                     <SectionHeader
                         icon={<UtensilsCrossed className="size-5" />}
                         title={copy.packageTitle}
@@ -657,8 +592,8 @@ export default function FoodReelsShow({ price, slots, errors }: FoodReelsShowPro
                     ))}
                 </div>
 
-                <div className="flex flex-col gap-3 rounded-xl border border-border/70 bg-background/82 p-5 shadow-sm backdrop-blur-md md:flex-row md:items-center md:justify-between">
-                    <div className="max-w-2xl">
+                <div className="flex flex-col gap-4 rounded-xl border border-border/70 bg-background/82 p-5 shadow-sm backdrop-blur-md lg:flex-row lg:items-center lg:justify-between">
+                    <div className="max-w-2xl min-w-0">
                         <h2 className="font-display text-2xl font-bold text-foreground">
                             {copy.bookingTitle}
                         </h2>
@@ -666,10 +601,10 @@ export default function FoodReelsShow({ price, slots, errors }: FoodReelsShowPro
                             {copy.bookingDescription}
                         </p>
                     </div>
-                    <div className="flex shrink-0 flex-col gap-2 sm:flex-row">
+                    <div className="grid w-full min-w-0 gap-2 sm:grid-cols-2 lg:w-auto lg:min-w-[360px]">
                         <Button
                             variant="outline"
-                            className="rounded-lg"
+                            className="w-full rounded-lg"
                             asChild
                         >
                             <a
@@ -684,7 +619,7 @@ export default function FoodReelsShow({ price, slots, errors }: FoodReelsShowPro
                         </Button>
                         <BookingCtaButton
                             type="button"
-                            className="rounded-lg"
+                            className="w-full rounded-lg"
                             onClick={() => openBooking('package')}
                         >
                             {copy.packageCta}
@@ -706,7 +641,7 @@ function SectionHeader({
 }: {
     icon: ReactNode;
     title: string;
-    description: string;
+    description?: string;
     className?: string;
     inverted?: boolean;
 }) {
@@ -727,12 +662,14 @@ function SectionHeader({
                 )}>
                     {title}
                 </h2>
-                <p className={cn(
-                    'mt-3 text-sm leading-relaxed md:text-base',
-                    inverted ? 'text-white/72' : 'text-muted-foreground',
-                )}>
-                    {description}
-                </p>
+                {description ? (
+                    <p className={cn(
+                        'mt-3 text-sm leading-relaxed md:text-base',
+                        inverted ? 'text-white/72' : 'text-muted-foreground',
+                    )}>
+                        {description}
+                    </p>
+                ) : null}
             </div>
         </div>
     );
@@ -768,14 +705,7 @@ function ReelSelector({
                     loading="lazy"
                     decoding="async"
                 />
-                <div className="absolute inset-0 bg-[linear-gradient(180deg,transparent_46%,rgb(0_0_0/0.72)_100%)]" />
-                <div className="absolute bottom-3 left-3 right-3 flex items-center justify-between gap-2 text-xs font-semibold text-white">
-                    <span className="inline-flex items-center gap-1.5">
-                        <Play className="size-3.5 fill-current" />
-                        {reel.duration}
-                    </span>
-                    {selected ? <span className="text-[#ff6b55]">Live</span> : null}
-                </div>
+                <div className="absolute inset-0 bg-[linear-gradient(180deg,transparent_52%,rgb(0_0_0/0.45)_100%)]" />
             </div>
         </button>
     );

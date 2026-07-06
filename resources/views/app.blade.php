@@ -77,10 +77,13 @@
         $metaPixelConfig = \App\Support\Meta::pixelClientConfig();
         $metaPixelId = $metaPixelConfig['id'];
         $metaPixelEnabled = $metaPixelConfig['enabled'];
+        $metaPixelTrackPageView = $metaPixelConfig['trackPageView'] ?? true;
         $routeName = request()->route()?->getName();
         $serviceType = match ($routeName) {
             'djset.show' => 'dj_set',
             'drone-sessions.show' => 'drone_session',
+            'construction-progress.show' => 'construction_progress',
+            'food-reels.show' => 'food_reels',
             'home', 'booking.show' => 'content_session',
             default => null,
         };
@@ -153,11 +156,15 @@
             t.src=v;s=b.getElementsByTagName(e)[0];s.parentNode.insertBefore(t,s)}(window, document,'script',
             'https://connect.facebook.net/en_US/fbevents.js');
             fbq('init', '{{ $metaPixelId }}');
+            @if ($metaPixelTrackPageView)
             fbq('track', 'PageView');
+            @endif
         </script>
+        @if ($metaPixelTrackPageView)
         <noscript>
             <img height="1" width="1" style="display:none" src="https://www.facebook.com/tr?id={{ $metaPixelId }}&ev=PageView&noscript=1" />
         </noscript>
+        @endif
     @endif
     @inertiaHead
 </head>

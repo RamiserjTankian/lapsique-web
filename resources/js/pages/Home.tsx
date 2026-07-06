@@ -1,6 +1,6 @@
 import { Link, usePage } from '@inertiajs/react';
 import { ArrowRight, CalendarDays, Clapperboard, Disc3, Music2 } from 'lucide-react';
-import { useEffect, useRef, type RefObject } from 'react';
+import { useEffect, type RefObject } from 'react';
 import { SeoHead } from '@/components/lapsique/SeoHead';
 import SiteLayout from '@/layouts/SiteLayout';
 import { BookingWidget } from '@/components/lapsique/BookingWidget';
@@ -24,7 +24,6 @@ import { GuaranteeUrgencySection } from '@/components/lapsique/funnel/GuaranteeU
 import { PortfolioTrustSection } from '@/components/lapsique/funnel/PortfolioTrustSection';
 import { RecordingGearSection } from '@/components/lapsique/funnel/RecordingGearSection';
 import { WorkflowSection } from '@/components/lapsique/funnel/WorkflowSection';
-import { FunnelTeam } from '@/components/lapsique/funnel/FunnelTeam';
 import { MetaOfferReelShowcase } from '@/components/lapsique/funnel/MetaOfferReelShowcase';
 import { FunnelFAQ } from '@/components/lapsique/funnel/FunnelFAQ';
 import { FunnelPopups } from '@/components/lapsique/FunnelPopups';
@@ -287,9 +286,8 @@ export default function Home({
             {/* 13. FAQ — manejo de objeciones */}
             <FunnelFAQ variant="home" />
 
-            {/* 14. Quién está detrás + sobre el estudio */}
+            {/* 14. Sobre el estudio */}
             <AboutLapsique portfolioItems={portfolioItems} />
-            <FunnelTeam />
 
             <FunnelPopups
                 variant="home"

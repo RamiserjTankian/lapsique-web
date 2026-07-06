@@ -609,6 +609,8 @@ export function BookingWidget({
         );
     }
 
+    const isTimeStepAwaitingSelection = Boolean(selectedDateKey) && selectedSlotId === null;
+
     return (
         <LandingPageSection
             id="agenda"
@@ -747,9 +749,12 @@ export function BookingWidget({
                                         ref={timeSectionRef}
                                         id="booking-step-horario"
                                         className={cn(
-                                            'scroll-mt-4 space-y-4 rounded-2xl border bg-muted/40 p-4 transition-shadow',
-                                            Boolean(selectedDateKey) && !selectedSlotId
-                                                ? bookingStepActiveSectionClasses
+                                            'scroll-mt-4 space-y-4 rounded-2xl border bg-muted/40 p-4 transition-all',
+                                            isTimeStepAwaitingSelection
+                                                ? [
+                                                    bookingStepActiveSectionClasses,
+                                                    'border-primary/80 bg-[radial-gradient(circle_at_top_left,oklch(0.86_0.15_78/0.28),transparent_42%),linear-gradient(135deg,oklch(1_0_0/0.9),oklch(0.94_0.07_78/0.32))] shadow-[0_0_0_1px_oklch(0.78_0.14_75/0.24),0_22px_70px_oklch(0.78_0.14_75/0.26)] ring-primary/65',
+                                                ]
                                                 : selectedSlotId
                                                   ? bookingStepCompleteSectionClasses
                                                   : 'border-border/70',
@@ -790,7 +795,9 @@ export function BookingWidget({
                                                                 'h-12 justify-between rounded-xl px-4 text-base transition-all',
                                                                 isSelected
                                                                     ? bookingSlotSelectedClasses
-                                                                    : 'border-border/70 bg-secondary/80 text-foreground opacity-90 hover:border-primary/40 hover:bg-muted hover:opacity-100',
+                                                                    : isTimeStepAwaitingSelection
+                                                                      ? 'border-primary/45 bg-primary/10 text-foreground shadow-[0_12px_36px_oklch(0.78_0.14_75/0.18)] opacity-100 ring-1 ring-primary/20 hover:border-primary/75 hover:bg-primary/15 hover:shadow-[0_16px_46px_oklch(0.78_0.14_75/0.28)]'
+                                                                      : 'border-border/70 bg-secondary/80 text-foreground opacity-90 hover:border-primary/40 hover:bg-muted hover:opacity-100',
                                                             )}
                                                             onClick={() => handleSlotSelect(slot)}
                                                         >
@@ -855,7 +862,6 @@ export function BookingWidget({
                 open={isTermsModalOpen}
                 onOpenChange={setIsTermsModalOpen}
                 product={product}
-                isTestMode={isTestMode}
                 returnFocusRef={termsTriggerRef}
                 usesStripeCheckout={
                     !isTestMode
@@ -1253,14 +1259,12 @@ function TermsModal({
     open,
     onOpenChange,
     product,
-    isTestMode,
     returnFocusRef,
     usesStripeCheckout = false,
 }: {
     open: boolean;
     onOpenChange: (open: boolean) => void;
     product: BookingWidgetProduct;
-    isTestMode: boolean;
     returnFocusRef?: RefObject<HTMLElement | null>;
     usesStripeCheckout?: boolean;
 }) {

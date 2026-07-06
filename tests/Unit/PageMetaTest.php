@@ -171,6 +171,7 @@ class PageMetaTest extends TestCase
 
         $this->assertSame('Sesiones de vuelo con dron', $meta->title);
         $this->assertStringContainsString('DJI Air 3', $meta->description);
+        $this->assertStringContainsString('15 tomas', $meta->description);
         $this->assertStringContainsString('3,000', $meta->description);
         $this->assertStringContainsString('Cancún', $meta->description);
         $this->assertStringContainsString('/images/drone-sessions/hero.jpg', (string) $meta->ogImage);

@@ -2,11 +2,16 @@
 
 namespace App\Filament\Resources\Customers\Tables;
 
+use App\Models\Customer;
+use Filament\Actions\Action;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
 use Filament\Actions\ForceDeleteBulkAction;
 use Filament\Actions\RestoreBulkAction;
+use Filament\Actions\ViewAction;
+use Filament\Forms\Components\Textarea;
+use Filament\Notifications\Notification;
 use Filament\Tables\Columns\BadgeColumn;
 use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\TextColumn;
@@ -220,18 +225,86 @@ class CustomersTable
                     ]),
 
                 SelectFilter::make('source')
-                    ->label('Source')
+                    ->label('Origen')
                     ->options([
                         'popup' => 'Popup',
                         'guestlist' => 'Guest List',
                         'manual' => 'Manual',
                         'api' => 'API',
                         'referral' => 'Referral',
+                        'booking' => 'Booking',
+                        'food_reels' => 'Comida',
+                        'dj_set' => 'DJ Sets',
+                        'drone_session' => 'Vuelos con dron',
+                        'construction_progress' => 'Avances de obra',
                     ]),
 
                 TrashedFilter::make(),
             ])
             ->actions([
+                ViewAction::make(),
+                Action::make('whatsapp')
+                    ->label('WhatsApp')
+                    ->icon('heroicon-o-chat-bubble-left-right')
+                    ->color('success')
+                    ->url(fn (Customer $record): ?string => self::whatsappUrl($record))
+                    ->openUrlInNewTab()
+                    ->visible(fn (Customer $record): bool => self::whatsappUrl($record) !== null),
+                Action::make('email')
+                    ->label('Email')
+                    ->icon('heroicon-o-envelope')
+                    ->url(fn (Customer $record): string => 'mailto:'.$record->email)
+                    ->openUrlInNewTab()
+                    ->visible(fn (Customer $record): bool => filled($record->email)),
+                Action::make('mark_follow_up')
+                    ->label('Seguimiento')
+                    ->icon('heroicon-o-flag')
+                    ->color('warning')
+                    ->action(function (Customer $record): void {
+                        $metadata = is_array($record->metadata) ? $record->metadata : [];
+
+                        $record->forceFill([
+                            'metadata' => array_merge($metadata, [
+                                'follow_up_status' => 'pending_follow_up',
+                                'follow_up_marked_at' => now()->toIso8601String(),
+                            ]),
+                            'last_interaction_at' => now(),
+                        ])->save();
+
+                        Notification::make()
+                            ->title('Lead marcado para seguimiento')
+                            ->success()
+                            ->send();
+                    }),
+                Action::make('note')
+                    ->label('Nota')
+                    ->icon('heroicon-o-pencil-square')
+                    ->form([
+                        Textarea::make('note')
+                            ->label('Nota de seguimiento')
+                            ->rows(3)
+                            ->maxLength(500)
+                            ->required(),
+                    ])
+                    ->action(function (Customer $record, array $data): void {
+                        $metadata = is_array($record->metadata) ? $record->metadata : [];
+                        $notes = is_array($metadata['follow_up_notes'] ?? null) ? $metadata['follow_up_notes'] : [];
+                        $notes[] = [
+                            'note' => $data['note'],
+                            'created_at' => now()->toIso8601String(),
+                            'user_id' => auth()->id(),
+                        ];
+
+                        $record->forceFill([
+                            'metadata' => array_merge($metadata, ['follow_up_notes' => $notes]),
+                            'last_interaction_at' => now(),
+                        ])->save();
+
+                        Notification::make()
+                            ->title('Nota guardada')
+                            ->success()
+                            ->send();
+                    }),
                 EditAction::make(),
             ])
             ->bulkActions([
@@ -242,5 +315,12 @@ class CustomersTable
                 ]),
             ])
             ->defaultSort('created_at', 'desc');
+    }
+
+    protected static function whatsappUrl(Customer $record): ?string
+    {
+        $phone = preg_replace('/\D+/', '', (string) ($record->whatsapp ?: $record->phone));
+
+        return $phone ? 'https://wa.me/'.$phone : null;
     }
 }
