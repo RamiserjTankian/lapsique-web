@@ -22,6 +22,7 @@ import { BookingWidget } from '@/components/lapsique/BookingWidget';
 import { GlassSection } from '@/components/lapsique/GlassSection';
 import { PaymentTrustOrTestMode } from '@/components/lapsique/PaymentTrustPanel';
 import { SeoHead } from '@/components/lapsique/SeoHead';
+import { ServiceLandingSections } from '@/components/lapsique/ServiceLandingSections';
 import { Button } from '@/components/ui/button';
 import {
     DRONE_SESSION_CONSTRUCTION_LANDING_CLIPS,
@@ -43,12 +44,12 @@ interface ConstructionProgressShowProps {
 const CONSTRUCTION_COPY = {
     es: {
         analyticsName: 'Avance de obra con dron DJI Air 3',
-        heroTitle: 'Avances de obra con dron para constructoras y desarrollos',
-        heroDescription: 'Documentamos progreso, accesos, escala y contexto real para reportes, inversionistas, preventa y toma de decisiones.',
+        heroTitle: 'Avances de obra con dron, foto y video en Riviera Maya',
+        heroDescription: 'Documentamos el progreso de tu construcción con contenido visual profesional para inversionistas, clientes, reportes, redes y ventas.',
         priceLabel: 'Sesión de avance',
         priceNote: '1 hora de vuelo · agenda online · pago seguro con tarjeta.',
         whatsappCta: 'Cotizar por WhatsApp',
-        bookingCta: 'Agendar avance',
+        bookingCta: 'Cotizar plan mensual de obra',
         locations: ['Cancún', 'Playa del Carmen', 'Tulum'],
         heroSpecs: ['DJI Air 3', 'Edición profesional', 'Entrega para reportes', 'Pago seguro'],
         agendaLead: 'Capturamos los avances destacados de tu obra basados en tu lineamiento para comunicar lo mejor para tus clientes.',
@@ -82,12 +83,12 @@ const CONSTRUCTION_COPY = {
     },
     en: {
         analyticsName: 'DJI Air 3 construction progress flight',
-        heroTitle: 'Drone construction progress for builders and developments',
-        heroDescription: 'We document progress, access, scale, and real context for reports, investors, presales, and decision-making.',
+        heroTitle: 'Construction progress with drone, photo, and video in Riviera Maya',
+        heroDescription: 'We document construction progress with professional visual content for investors, clients, reports, social media, and sales.',
         priceLabel: 'Progress session',
         priceNote: '1-hour flight · online booking · secure card payment.',
         whatsappCta: 'Quote on WhatsApp',
-        bookingCta: 'Book progress',
+        bookingCta: 'Quote monthly construction plan',
         locations: ['Cancun', 'Playa del Carmen', 'Tulum'],
         heroSpecs: ['DJI Air 3', 'Professional edit', 'Report-ready delivery', 'Secure payment'],
         agendaLead: 'We capture the strongest progress highlights from your site based on your direction, so your clients see the best of the project.',
@@ -283,6 +284,12 @@ export default function ConstructionProgressShow({ price, slots, errors }: Const
                     </div>
                 </div>
             </section>
+
+            <ServiceLandingSections
+                serviceKey="avances_de_obra"
+                onBook={openBooking}
+                className="pt-8"
+            />
 
             <BookingWidget
                 slots={slots}

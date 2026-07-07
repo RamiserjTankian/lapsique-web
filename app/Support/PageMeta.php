@@ -123,156 +123,98 @@ class PageMeta
 
     public static function forDroneSession(string $canonicalUrl): PageMetaData
     {
-        $price = (int) config('booking.drone_session_price', 3000);
-        $title = __('seo.drone_session.title');
-        $description = self::truncate(
-            __('seo.drone_session.description', ['price' => number_format($price, 0, '.', ',')]),
-        );
+        $title = 'Sesiones de dron en Riviera Maya para hoteles y propiedades';
+        $description = 'Video y fotografía con dron para hoteles, villas, restaurantes, eventos, propiedades e inmobiliarias en Playa del Carmen, Tulum, Cancún y Riviera Maya.';
         $ogImage = self::absoluteImageUrl('/images/drone-sessions/hero.jpg');
-
-        $jsonLd = [
-            '@context' => 'https://schema.org',
-            '@type' => 'Service',
-            'name' => $title,
-            'description' => $description,
-            'image' => $ogImage,
-            'serviceType' => __('seo.drone_session.service_type'),
-            'areaServed' => [
-                ['@type' => 'City', 'name' => 'Cancún'],
-                ['@type' => 'City', 'name' => 'Playa del Carmen'],
-                ['@type' => 'City', 'name' => 'Tulum'],
-            ],
-            'provider' => [
-                '@type' => 'Organization',
-                'name' => self::siteName(),
-                'url' => config('app.url'),
-                'sameAs' => self::sameAsUrls(),
-            ],
-            'offers' => [
-                '@type' => 'Offer',
-                'price' => $price,
-                'priceCurrency' => 'MXN',
-                'availability' => 'https://schema.org/InStock',
-                'url' => rtrim($canonicalUrl, '/').'#agenda',
-            ],
-        ];
 
         return new PageMetaData(
             title: $title,
-            metaTitle: "{$title} · ".self::siteName(),
+            metaTitle: "{$title} | Lapsique",
             description: $description,
             canonicalUrl: $canonicalUrl,
             ogType: 'website',
             ogImage: $ogImage,
-            ogImageAlt: __('seo.drone_session.og_alt'),
-            keywords: __('seo.drone_session.keywords'),
-            jsonLd: $jsonLd,
+            ogImageAlt: 'Toma aérea con dron para hotel o propiedad en Riviera Maya',
+            keywords: 'sesiones de dron riviera maya, video con dron playa del carmen, dron para hoteles tulum, tomas aéreas cancún, video dron inmobiliario riviera maya',
+            jsonLd: self::serviceLandingJsonLd(
+                canonicalUrl: $canonicalUrl,
+                title: 'Sesiones de dron para hoteles, propiedades y negocios',
+                description: 'Tomas aéreas con dron para hoteles, villas, restaurantes, eventos, propiedades, inmobiliarias y proyectos comerciales en Riviera Maya.',
+                serviceType: 'Video y fotografía aérea con dron',
+                ogImage: $ogImage,
+                breadcrumbName: 'Sesiones de dron',
+                faq: [
+                    ['El dron depende del clima?', 'Sí. La sesión puede depender de viento, lluvia, ubicación y condiciones de seguridad. Antes de confirmar revisamos la viabilidad.'],
+                    ['Puedo pedir video vertical y horizontal?', 'Sí. Podemos entregar material vertical para redes y horizontal para web, YouTube, presentaciones o pantallas.'],
+                    ['Sirve para Airbnb o villas?', 'Sí. Las tomas de dron ayudan a mostrar ubicación, entorno, acceso y valor visual de propiedades y villas.'],
+                    ['Pueden combinar dron con cámara en tierra?', 'Sí. Para proyectos comerciales conviene combinar tomas aéreas con detalles en tierra para contar mejor la experiencia.'],
+                ],
+            ),
         );
     }
 
     public static function forConstructionProgress(string $canonicalUrl): PageMetaData
     {
-        $price = (int) config('booking.construction_progress_price', 5000);
-        $title = __('seo.construction_progress.title');
-        $description = self::truncate(
-            __('seo.construction_progress.description', ['price' => number_format($price, 0, '.', ',')]),
-        );
+        $title = 'Avances de obra con dron, foto y video en Riviera Maya';
+        $description = 'Documentación audiovisual de avances de obra para constructoras, arquitectos y desarrolladoras en Playa del Carmen, Tulum, Cancún y Riviera Maya.';
         $ogImage = self::absoluteImageUrl('/images/drone-sessions/construction-goba-aerial.jpg');
-
-        $jsonLd = [
-            '@context' => 'https://schema.org',
-            '@type' => 'Service',
-            'name' => $title,
-            'description' => $description,
-            'image' => $ogImage,
-            'serviceType' => __('seo.construction_progress.service_type'),
-            'areaServed' => [
-                ['@type' => 'City', 'name' => 'Cancún'],
-                ['@type' => 'City', 'name' => 'Playa del Carmen'],
-                ['@type' => 'City', 'name' => 'Tulum'],
-            ],
-            'provider' => [
-                '@type' => 'Organization',
-                'name' => self::siteName(),
-                'url' => config('app.url'),
-                'sameAs' => self::sameAsUrls(),
-            ],
-            'offers' => [
-                '@type' => 'Offer',
-                'price' => $price,
-                'priceCurrency' => 'MXN',
-                'availability' => 'https://schema.org/InStock',
-                'url' => rtrim($canonicalUrl, '/').'#agenda',
-            ],
-        ];
 
         return new PageMetaData(
             title: $title,
-            metaTitle: "{$title} · ".self::siteName(),
+            metaTitle: "{$title} | Lapsique",
             description: $description,
             canonicalUrl: $canonicalUrl,
             ogType: 'website',
             ogImage: $ogImage,
-            ogImageAlt: __('seo.construction_progress.og_alt'),
-            keywords: __('seo.construction_progress.keywords'),
-            jsonLd: $jsonLd,
+            ogImageAlt: 'Avance de obra con dron en Riviera Maya documentado por Lapsique Media',
+            keywords: 'avances de obra con dron riviera maya, seguimiento de obra playa del carmen, video de construcción tulum, fotografía de obra cancún, documentación audiovisual de obra',
+            jsonLd: self::serviceLandingJsonLd(
+                canonicalUrl: $canonicalUrl,
+                title: $title,
+                description: 'Documentación audiovisual de avances de obra con fotografía, video y dron para constructoras, arquitectos, desarrolladoras e inmobiliarias en Riviera Maya.',
+                serviceType: 'Documentación audiovisual de construcción',
+                ogImage: $ogImage,
+                breadcrumbName: 'Avances de obra',
+                faq: [
+                    ['Trabajan con planes mensuales?', 'Sí. Para avances de obra recomendamos planes mensuales porque el valor está en documentar la evolución del proyecto de forma constante.'],
+                    ['Incluye dron?', 'Puede incluir dron según ubicación, clima, seguridad y viabilidad de vuelo.'],
+                    ['Sirve para inversionistas?', 'Sí. El contenido puede usarse para mostrar progreso real a inversionistas, clientes, brokers y equipo comercial.'],
+                    ['Pueden hacer comparativos de avance?', 'Sí. Si el proyecto se documenta de forma recurrente, se pueden crear comparativos visuales por fecha, etapa o zona.'],
+                ],
+            ),
         );
     }
 
     public static function forFoodReels(?SiteSetting $settings, string $canonicalUrl): PageMetaData
     {
-        $price = (int) ($settings?->booking_price ?? config('booking.content_price', 4000));
-        $isEnglish = app()->getLocale() === 'en';
-        $title = $isEnglish
-            ? 'Food reels and restaurant content'
-            : 'Reels de comida y contenido para restaurantes';
-        $description = self::truncate($isEnglish
-            ? 'Food reels, product photos, and lifestyle activations for restaurants that need sharper Instagram, ads, and menu content.'
-            : 'Reels de comida, fotos de producto y activaciones para restaurantes que necesitan verse mejor en Instagram, anuncios y menú digital.');
+        $title = 'Reels de comida para restaurantes en Riviera Maya';
+        $description = 'Reels, fotos y contenido para restaurantes, sushi, cafés y bares en Playa del Carmen, Tulum, Cancún y Riviera Maya. Agenda una sesión con Lapsique Media.';
         $ogImage = self::staticPublicImageUrl('images/food-reels/sushiclub-day-sushi-promo-poster.jpg')
             ?? self::bookingOgImageUrl($settings);
 
-        $jsonLd = [
-            '@context' => 'https://schema.org',
-            '@type' => 'Service',
-            'name' => $title,
-            'description' => $description,
-            'image' => $ogImage,
-            'serviceType' => $isEnglish ? 'Food reel production' : 'Producción de reels gastronómicos',
-            'areaServed' => [
-                ['@type' => 'City', 'name' => 'Cancun'],
-                ['@type' => 'City', 'name' => 'Playa del Carmen'],
-                ['@type' => 'City', 'name' => 'Tulum'],
-            ],
-            'provider' => [
-                '@type' => 'Organization',
-                'name' => self::siteName(),
-                'url' => config('app.url'),
-                'sameAs' => self::sameAsUrls(),
-            ],
-            'offers' => [
-                '@type' => 'Offer',
-                'price' => $price,
-                'priceCurrency' => 'MXN',
-                'availability' => 'https://schema.org/InStock',
-                'url' => rtrim($canonicalUrl, '/').'#agenda',
-            ],
-        ];
-
         return new PageMetaData(
             title: $title,
-            metaTitle: "{$title} · ".self::siteName(),
+            metaTitle: "{$title} | Lapsique Media",
             description: $description,
             canonicalUrl: $canonicalUrl,
             ogType: 'website',
             ogImage: $ogImage,
-            ogImageAlt: $isEnglish
-                ? 'SushiClub food reel produced by Lapsique Media'
-                : 'Reel de comida de SushiClub producido por Lapsique Media',
-            keywords: $isEnglish
-                ? 'food reels, restaurant content, food photography, Cancun restaurants, Lapsique Media'
-                : 'reels de comida, contenido para restaurantes, fotografía gastronómica, restaurantes Cancún, Lapsique Media',
-            jsonLd: $jsonLd,
+            ogImageAlt: 'Reel de comida para restaurante en Riviera Maya creado por Lapsique Media',
+            keywords: 'reels de comida riviera maya, reels para restaurantes playa del carmen, videos para restaurantes tulum, fotografía gastronómica cancún, contenido para restaurantes riviera maya',
+            jsonLd: self::serviceLandingJsonLd(
+                canonicalUrl: $canonicalUrl,
+                title: $title,
+                description: 'Producción de reels, fotos y contenido audiovisual para restaurantes, sushi, cafés, bares y conceptos gastronómicos en Riviera Maya.',
+                serviceType: 'Producción audiovisual para restaurantes',
+                ogImage: $ogImage,
+                breadcrumbName: 'Reels de comida',
+                faq: [
+                    ['Cuánto dura una sesión de reels de comida?', 'Depende del paquete. Una sesión express puede durar alrededor de 1 hora, mientras que una producción más completa puede tomar 2 o más horas según platillos, ambiente y entregables.'],
+                    ['Trabajan en Playa del Carmen, Tulum y Cancún?', 'Sí. Atendemos Playa del Carmen, Tulum, Cancún, Puerto Morelos, Puerto Aventuras, Akumal, Mayakoba, Cozumel y zonas cercanas de Riviera Maya.'],
+                    ['Puedo usar los reels para anuncios?', 'Sí. Podemos entregar contenido pensado para publicaciones orgánicas y también para campañas de Meta Ads.'],
+                    ['Incluye fotos?', 'Puede incluir fotos según el paquete contratado. Recomendamos combinar reels y fotos para tener más material de publicación.'],
+                ],
+            ),
         );
     }
 
@@ -507,6 +449,96 @@ class PageMeta
             $canonicalUrl,
             __('seo.default.keywords'),
         );
+    }
+
+    /**
+     * @param array<int, array{0: string, 1: string}> $faq
+     */
+    private static function serviceLandingJsonLd(
+        string $canonicalUrl,
+        string $title,
+        string $description,
+        string $serviceType,
+        ?string $ogImage,
+        string $breadcrumbName,
+        array $faq,
+    ): array {
+        $areaServed = [
+            'Playa del Carmen',
+            'Tulum',
+            'Cancún',
+            'Puerto Morelos',
+            'Puerto Aventuras',
+            'Akumal',
+            'Mayakoba',
+            'Cozumel',
+            'Riviera Maya',
+        ];
+
+        return [
+            '@context' => 'https://schema.org',
+            '@graph' => [
+                [
+                    '@type' => 'Organization',
+                    '@id' => url('/#organization'),
+                    'name' => self::LAPSIQUE_SITE_NAME,
+                    'url' => url('/'),
+                    'logo' => self::staticPublicImageUrl('images/lapsique-media-logo-dark.png') ?? self::defaultOgImageUrl(),
+                    'sameAs' => self::sameAsUrls(),
+                ],
+                [
+                    '@type' => 'Service',
+                    '@id' => rtrim($canonicalUrl, '/').'#service',
+                    'name' => $title,
+                    'serviceType' => $serviceType,
+                    'provider' => [
+                        '@id' => url('/#organization'),
+                    ],
+                    'areaServed' => array_map(
+                        fn (string $area): array => [
+                            '@type' => 'Place',
+                            'name' => $area,
+                        ],
+                        $areaServed,
+                    ),
+                    'description' => $description,
+                    'image' => $ogImage,
+                ],
+                [
+                    '@type' => 'BreadcrumbList',
+                    '@id' => rtrim($canonicalUrl, '/').'#breadcrumb',
+                    'itemListElement' => [
+                        [
+                            '@type' => 'ListItem',
+                            'position' => 1,
+                            'name' => 'Inicio',
+                            'item' => url('/'),
+                        ],
+                        [
+                            '@type' => 'ListItem',
+                            'position' => 2,
+                            'name' => $breadcrumbName,
+                            'item' => $canonicalUrl,
+                        ],
+                    ],
+                ],
+                [
+                    '@type' => 'FAQPage',
+                    '@id' => rtrim($canonicalUrl, '/').'#faq',
+                    'mainEntity' => array_map(
+                        fn (array $item): array => [
+                            '@type' => 'Question',
+                            'name' => $item[0],
+                            'acceptedAnswer' => [
+                                '@type' => 'Answer',
+                                'text' => $item[1],
+                            ],
+                        ],
+                        $faq,
+                    ),
+                ],
+            ],
+        ];
     }
 
     private static function siteName(): string

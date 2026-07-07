@@ -22,6 +22,7 @@ import { BookingWidget } from '@/components/lapsique/BookingWidget';
 import { GlassSection } from '@/components/lapsique/GlassSection';
 import { PaymentTrustOrTestMode } from '@/components/lapsique/PaymentTrustPanel';
 import { SeoHead } from '@/components/lapsique/SeoHead';
+import { ServiceLandingSections } from '@/components/lapsique/ServiceLandingSections';
 import { Button } from '@/components/ui/button';
 import {
     DRONE_SESSION_BOOKING_CLIP,
@@ -47,13 +48,13 @@ const DRONE_PAGE_COPY = {
     es: {
         locations: ['Cancún', 'Playa del Carmen', 'Tulum'],
         analyticsName: 'Sesión de vuelo con dron DJI Air 3',
-        heroTitle: 'Sesiones de vuelo con dron para vender desde el aire.',
-        heroTagline: 'Lleva tu marca al siguiente nivel.',
-        heroDescription: 'DJI Air 3 por 1 hora: 15 tomas de hasta 30 seg, hasta 10 fotos, captura en Rec.709 y D-Log para colorizar en DaVinci Resolve.',
+        heroTitle: 'Sesiones de dron en Riviera Maya para hoteles, propiedades y negocios',
+        heroTagline: 'Muestra ubicación, arquitectura, escala y experiencia.',
+        heroDescription: 'Tomas aéreas profesionales para mostrar ubicación, arquitectura, escala, ambiente y experiencia con una imagen más premium para redes, web, anuncios y presentaciones comerciales.',
         priceLabel: 'Sesión completa',
         priceNote: '1 hora de vuelo · agenda online · pago seguro con tarjeta.',
         whatsappCta: 'Cotizar por WhatsApp',
-        bookingCta: 'Agendar vuelo',
+        bookingCta: 'Cotizar sesión de dron',
         metrics: [
             { value: '15', label: 'tomas' },
             { value: '30 s', label: 'máx.' },
@@ -196,13 +197,13 @@ const DRONE_PAGE_COPY = {
     en: {
         locations: ['Cancun', 'Playa del Carmen', 'Tulum'],
         analyticsName: 'DJI Air 3 drone flight session',
-        heroTitle: 'Drone flight sessions that sell from the air.',
-        heroTagline: 'Take your brand to the next level.',
-        heroDescription: 'DJI Air 3 for 1 hour: 15 shots up to 30 sec each, up to 10 photos, captured in Rec.709 and D-Log for DaVinci Resolve color.',
+        heroTitle: 'Drone sessions in Riviera Maya for hotels, properties, and businesses',
+        heroTagline: 'Show location, architecture, scale, and experience.',
+        heroDescription: 'Professional aerial shots to show location, architecture, scale, atmosphere, and experience with a more premium image for social, web, ads, and commercial presentations.',
         priceLabel: 'Complete session',
         priceNote: '1-hour flight · online booking · secure card payment.',
         whatsappCta: 'Quote on WhatsApp',
-        bookingCta: 'Book flight',
+        bookingCta: 'Quote drone session',
         metrics: [
             { value: '15', label: 'shots' },
             { value: '30 s', label: 'max.' },
@@ -567,6 +568,12 @@ export default function DroneSessionsShow({ price, slots, errors }: DroneSession
                     </div>
                 </div>
             </section>
+
+            <ServiceLandingSections
+                serviceKey="sesiones_de_dron"
+                onBook={openBooking}
+                className="pt-8"
+            />
 
             <BookingWidget
                 slots={slots}

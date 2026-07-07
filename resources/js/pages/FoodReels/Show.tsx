@@ -18,6 +18,7 @@ import { BookingCtaButton } from '@/components/lapsique/BookingCtaButton';
 import { BookingWidget, type BookingWidgetProduct } from '@/components/lapsique/BookingWidget';
 import { PaymentTrustOrTestMode } from '@/components/lapsique/PaymentTrustPanel';
 import { SeoHead } from '@/components/lapsique/SeoHead';
+import { ServiceLandingSections } from '@/components/lapsique/ServiceLandingSections';
 import { Button } from '@/components/ui/button';
 import { trackBookingEvent } from '@/hooks/useBookingAnalytics';
 import { useIsMobileViewport } from '@/hooks/useMediaQuery';
@@ -261,9 +262,9 @@ const ACTIVATION_PHOTOS: FoodPhoto[] = [
 const FOOD_PAGE_COPY = {
     es: {
         analyticsName: 'Landing de reels de comida',
-        heroTitle: 'Reels de comida que hacen que el antojo se vuelva reserva.',
-        heroDescription: 'Producción de reels, fotos y activaciones para restaurantes que necesitan verse irresistibles en Instagram, anuncios y menú digital.',
-        heroPrimary: 'Agendar sesión',
+        heroTitle: 'Reels de comida para restaurantes en Riviera Maya',
+        heroDescription: 'Grabamos reels, fotos y contenido visual para que tu comida, ambiente y experiencia se vean más profesionales en Instagram, TikTok, Google y campañas de Meta Ads.',
+        heroPrimary: 'Cotizar reels para mi restaurante',
         heroSecondary: 'Ver prueba real',
         whatsappCta: 'Cotizar por WhatsApp',
         reelSectionTitle: 'Reels para restaurantes',
@@ -311,9 +312,9 @@ const FOOD_PAGE_COPY = {
     },
     en: {
         analyticsName: 'Food reels landing page',
-        heroTitle: 'Food reels that turn craving into bookings.',
-        heroDescription: 'Reel production, food photography, and lifestyle activations for restaurants that need to look irresistible on Instagram, ads, and digital menus.',
-        heroPrimary: 'Book session',
+        heroTitle: 'Food reels for restaurants in Riviera Maya',
+        heroDescription: 'We produce reels, photos, and visual content so your food, atmosphere, and experience look stronger on Instagram, TikTok, Google, and Meta Ads campaigns.',
+        heroPrimary: 'Quote reels for my restaurant',
         heroSecondary: 'View real proof',
         whatsappCta: 'Quote on WhatsApp',
         reelSectionTitle: 'Restaurant reels',
@@ -443,6 +444,9 @@ export default function FoodReelsShow({ price, slots, errors }: FoodReelsShowPro
                             <p className="max-w-2xl text-wrap text-base leading-relaxed text-white/78 sm:text-lg">
                                 {copy.heroDescription}
                             </p>
+                            <p className="max-w-2xl text-sm font-semibold text-primary">
+                                Playa del Carmen · Tulum · Cancún · Riviera Maya
+                            </p>
                         </div>
 
                         <div className="grid w-full max-w-xl gap-3 sm:grid-cols-2">
@@ -544,6 +548,12 @@ export default function FoodReelsShow({ price, slots, errors }: FoodReelsShowPro
                     ))}
                 </div>
             </section>
+
+            <ServiceLandingSections
+                serviceKey="reels_de_comida"
+                onBook={openBooking}
+                className="pt-4"
+            />
 
             <BookingWidget
                 slots={slots}

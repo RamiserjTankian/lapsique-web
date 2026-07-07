@@ -25,6 +25,7 @@ declare global {
             id?: string | null;
             trackPageView?: boolean;
         };
+        gtag?: (...args: unknown[]) => void;
     }
 }
 
@@ -69,6 +70,8 @@ const STANDARD_EVENTS: Record<string, string> = {
     construction_progress_page_viewed: 'ViewContent',
     construction_progress_booking_cta_clicked: 'Lead',
     construction_progress_whatsapp_cta_clicked: 'Contact',
+    service_landing_whatsapp_clicked: 'Contact',
+    service_landing_lead_form_submitted: 'Lead',
     whatsapp_popup_clicked: 'Contact',
 };
 
@@ -124,6 +127,8 @@ function trackBookingInternalEvent(event: string, data: Record<string, unknown>)
             metadata: data,
         });
     }
+
+    trackGaEvent(event, data);
 }
 
 function trackBookingMetaEvent(event: string, payload: Record<string, unknown>): void {
@@ -147,6 +152,11 @@ function trackBookingMetaEvent(event: string, payload: Record<string, unknown>):
     if (typeof window.trackMetaPixelCustom === 'function') {
         const customPayload = eventId ? { ...payload, event_id: eventId } : payload;
         window.trackMetaPixelCustom(event, customPayload);
+
+        const alias = CUSTOM_META_EVENT_ALIASES[event];
+        if (alias) {
+            window.trackMetaPixelCustom(alias, customPayload);
+        }
     }
 }
 
@@ -226,3 +236,37 @@ function normalizeMetaPayload(event: string, payload: Record<string, unknown>): 
 
     return payload;
 }
+
+function trackGaEvent(event: string, payload: Record<string, unknown>): void {
+    if (typeof window.gtag !== 'function') {
+        return;
+    }
+
+    const gaName = GA_EVENT_NAMES[event] ?? event;
+    window.gtag('event', gaName, {
+        service_name: payload.service_name ?? payload.service ?? payload.service_type,
+        service_area: payload.service_area ?? 'riviera_maya',
+        landing_path: payload.landing ?? window.location.pathname,
+        form_name: payload.form_name,
+        source: payload.source,
+        lead_type: payload.lead_type,
+    });
+}
+
+const GA_EVENT_NAMES: Record<string, string> = {
+    food_reels_page_viewed: 'view_service_landing',
+    drone_session_page_viewed: 'view_service_landing',
+    construction_progress_page_viewed: 'view_service_landing',
+    food_reels_whatsapp_cta_clicked: 'whatsapp_click',
+    drone_session_whatsapp_cta_clicked: 'whatsapp_click',
+    construction_progress_whatsapp_cta_clicked: 'whatsapp_click',
+    service_landing_whatsapp_clicked: 'whatsapp_click',
+    service_landing_lead_form_submitted: 'generate_lead',
+};
+
+const CUSTOM_META_EVENT_ALIASES: Record<string, string> = {
+    food_reels_whatsapp_cta_clicked: 'WhatsAppClick',
+    drone_session_whatsapp_cta_clicked: 'WhatsAppClick',
+    construction_progress_whatsapp_cta_clicked: 'WhatsAppClick',
+    service_landing_whatsapp_clicked: 'WhatsAppClick',
+};

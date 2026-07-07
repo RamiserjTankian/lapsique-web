@@ -1,5 +1,5 @@
 import { Link, usePage } from '@inertiajs/react';
-import { ArrowRight, CalendarDays, Clapperboard, Disc3, Music2 } from 'lucide-react';
+import { ArrowRight, Building2, CalendarDays, Clapperboard, Disc3, Drone, Music2, UtensilsCrossed } from 'lucide-react';
 import { useEffect, type RefObject } from 'react';
 import { SeoHead } from '@/components/lapsique/SeoHead';
 import SiteLayout from '@/layouts/SiteLayout';
@@ -184,6 +184,8 @@ export default function Home({
                 onBook={openBooking}
             />
 
+            <ServiceLandingLinks />
+
             {/* 2. Problema/dolor — agita por qué el contenido genérico no vende */}
             <ProblemSection />
 
@@ -300,6 +302,73 @@ export default function Home({
             <ReelPlayerModal />
             </ReelPlayerProvider>
         </SiteLayout>
+    );
+}
+
+function ServiceLandingLinks() {
+    const services = [
+        {
+            href: '/reels-de-comida',
+            icon: UtensilsCrossed,
+            title: 'Reels de comida para restaurantes',
+            copy: 'Crea contenido visual para que tus platillos, bebidas y experiencia se vean más profesionales en redes y anuncios.',
+        },
+        {
+            href: '/sesiones-de-dron',
+            icon: Drone,
+            title: 'Sesiones de dron para hoteles y propiedades',
+            copy: 'Muestra ubicación, escala, arquitectura y entorno con tomas aéreas premium.',
+        },
+        {
+            href: '/avances-de-obra',
+            icon: Building2,
+            title: 'Avances de obra con foto, video y dron',
+            copy: 'Documenta el progreso de tu construcción con evidencia visual profesional para reportes, ventas e inversionistas.',
+        },
+    ];
+
+    return (
+        <section className="mx-auto w-full max-w-6xl px-4 sm:px-6">
+            <div className="rounded-xl border border-border/75 bg-card/85 p-5 shadow-sm backdrop-blur md:p-6">
+                <div className="grid gap-5 lg:grid-cols-[0.55fr_1fr] lg:items-start">
+                    <div>
+                        <h2 className="font-display text-3xl font-bold leading-tight text-foreground md:text-4xl">
+                            Servicios audiovisuales para negocios en Riviera Maya
+                        </h2>
+                        <p className="mt-3 text-sm leading-relaxed text-muted-foreground md:text-base">
+                            Creamos contenido para restaurantes, hoteles, propiedades, eventos, proyectos inmobiliarios y avances de obra.
+                        </p>
+                    </div>
+                    <div className="grid gap-3 md:grid-cols-3">
+                        {services.map((service) => {
+                            const Icon = service.icon;
+
+                            return (
+                                <Link
+                                    key={service.href}
+                                    href={service.href}
+                                    className="group flex min-h-[220px] flex-col rounded-lg border border-border/70 bg-background/70 p-4 shadow-sm transition hover:-translate-y-0.5 hover:border-primary/50 hover:shadow-lg"
+                                >
+                                    <span className="flex size-10 items-center justify-center rounded-lg border border-primary/25 bg-primary/10 text-primary">
+                                        <Icon className="size-5" />
+                                    </span>
+                                    <h3 className="mt-4 text-base font-bold leading-snug text-foreground">
+                                        {service.title}
+                                    </h3>
+                                    <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
+                                        {service.copy}
+                                    </p>
+                                    <span className="mt-auto inline-flex items-center gap-2 pt-4 text-sm font-semibold text-primary">
+                                        Cotizar servicio
+                                        <ArrowRight className="size-4 transition group-hover:translate-x-0.5" />
+                                    </span>
+                                </Link>
+                            );
+                        })}
+                    </div>
+                </div>
+            </div>
+        </section>
     );
 }
 

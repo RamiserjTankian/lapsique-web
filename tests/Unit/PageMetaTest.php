@@ -169,29 +169,42 @@ class PageMetaTest extends TestCase
     {
         $meta = PageMeta::forDroneSession('https://lapsique.media/sesiones-de-dron');
 
-        $this->assertSame('Sesiones de vuelo con dron', $meta->title);
-        $this->assertStringContainsString('DJI Air 3', $meta->description);
-        $this->assertStringContainsString('15 tomas', $meta->description);
-        $this->assertStringContainsString('3,000', $meta->description);
-        $this->assertStringContainsString('Cancún', $meta->description);
+        $this->assertSame('Sesiones de dron en Riviera Maya para hoteles y propiedades', $meta->title);
+        $this->assertStringContainsString('hoteles', $meta->description);
+        $this->assertStringContainsString('Riviera Maya', $meta->description);
         $this->assertStringContainsString('/images/drone-sessions/hero.jpg', (string) $meta->ogImage);
-        $this->assertSame('Vuelo con dron DJI Air 3', $meta->jsonLd['serviceType']);
-        $this->assertSame(3000, $meta->jsonLd['offers']['price']);
-        $this->assertSame('https://lapsique.media/sesiones-de-dron#agenda', $meta->jsonLd['offers']['url']);
+        $graph = collect($meta->jsonLd['@graph']);
+        $this->assertSame('Video y fotografía aérea con dron', $graph->firstWhere('@type', 'Service')['serviceType']);
+        $this->assertSame('Sesiones de dron', $graph->firstWhere('@type', 'BreadcrumbList')['itemListElement'][1]['name']);
+        $this->assertCount(4, $graph->firstWhere('@type', 'FAQPage')['mainEntity']);
     }
 
     public function test_construction_progress_meta_includes_offer_and_static_media(): void
     {
         $meta = PageMeta::forConstructionProgress('https://lapsique.media/avances-de-obra');
 
-        $this->assertSame('Avances de obra con dron', $meta->title);
-        $this->assertStringContainsString('DJI Air 3', $meta->description);
-        $this->assertStringContainsString('5,000', $meta->description);
-        $this->assertStringContainsString('Cancún', $meta->description);
+        $this->assertSame('Avances de obra con dron, foto y video en Riviera Maya', $meta->title);
+        $this->assertStringContainsString('constructoras', $meta->description);
+        $this->assertStringContainsString('Riviera Maya', $meta->description);
         $this->assertStringContainsString('/images/drone-sessions/construction-goba-aerial.jpg', (string) $meta->ogImage);
-        $this->assertSame('Avance de obra con dron DJI Air 3', $meta->jsonLd['serviceType']);
-        $this->assertSame(5000, $meta->jsonLd['offers']['price']);
-        $this->assertSame('https://lapsique.media/avances-de-obra#agenda', $meta->jsonLd['offers']['url']);
+        $graph = collect($meta->jsonLd['@graph']);
+        $this->assertSame('Documentación audiovisual de construcción', $graph->firstWhere('@type', 'Service')['serviceType']);
+        $this->assertSame('Avances de obra', $graph->firstWhere('@type', 'BreadcrumbList')['itemListElement'][1]['name']);
+        $this->assertCount(4, $graph->firstWhere('@type', 'FAQPage')['mainEntity']);
+    }
+
+    public function test_food_reels_meta_includes_local_seo_schema_and_static_media(): void
+    {
+        $meta = PageMeta::forFoodReels(null, 'https://lapsique.media/reels-de-comida');
+
+        $this->assertSame('Reels de comida para restaurantes en Riviera Maya', $meta->title);
+        $this->assertStringContainsString('restaurantes', $meta->description);
+        $this->assertStringContainsString('Cancún', $meta->description);
+        $this->assertStringContainsString('/images/food-reels/sushiclub-day-sushi-promo-poster.jpg', (string) $meta->ogImage);
+        $graph = collect($meta->jsonLd['@graph']);
+        $this->assertSame('Producción audiovisual para restaurantes', $graph->firstWhere('@type', 'Service')['serviceType']);
+        $this->assertSame('Reels de comida', $graph->firstWhere('@type', 'BreadcrumbList')['itemListElement'][1]['name']);
+        $this->assertCount(4, $graph->firstWhere('@type', 'FAQPage')['mainEntity']);
     }
 
     public function test_booking_status_meta_is_noindex(): void

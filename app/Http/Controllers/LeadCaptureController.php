@@ -22,6 +22,7 @@ class LeadCaptureController extends Controller
             'email' => ['required', 'email', 'max:255'],
             'phone' => ['nullable', 'string', 'max:30'],
             'instagram_handle' => ['nullable', 'string', 'max:255'],
+            'message' => ['nullable', 'string', 'max:1000'],
             'interests' => ['nullable', 'array'],
             'interests.*' => ['string'],
         ]);
@@ -49,6 +50,7 @@ class LeadCaptureController extends Controller
                     'landing_url' => $request->input('landing_url'),
                     'page_type' => $request->input('page_type'),
                     'page_name' => $request->input('page_name'),
+                    'message' => $validated['message'] ?? null,
                     'referrer' => $request->input('referrer'),
                     'analytics_visitor_id' => $request->input('analytics_visitor_id'),
                     'analytics_session_id' => $request->input('analytics_session_id'),
@@ -134,6 +136,7 @@ class LeadCaptureController extends Controller
                     'landing_url' => $request->input('landing_url'),
                     'page_type' => $request->input('page_type'),
                     'page_name' => $request->input('page_name'),
+                    'message' => $validated['message'] ?? null,
                     'referrer' => $request->input('referrer'),
                     'analytics_visitor_id' => $request->input('analytics_visitor_id'),
                     'analytics_session_id' => $request->input('analytics_session_id'),
