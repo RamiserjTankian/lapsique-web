@@ -1,16 +1,10 @@
-import { useEffect, useMemo, useState, type ReactNode } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { usePage } from '@inertiajs/react';
 import {
     ArrowRight,
     CalendarDays,
-    Check,
-    Flame,
-    Images,
     MessageCircle,
     Play,
-    Sparkles,
-    UtensilsCrossed,
-    Video,
 } from 'lucide-react';
 import SiteLayout from '@/layouts/SiteLayout';
 import { AutoplayVideo } from '@/components/lapsique/AutoplayVideo';
@@ -491,7 +485,6 @@ export default function FoodReelsShow({ price, slots, errors }: FoodReelsShowPro
 
             <section id="prueba-real" className="mx-auto flex max-w-6xl flex-col gap-5 px-4 pt-10 sm:px-6 lg:pt-12">
                 <SectionHeader
-                    icon={<Video className="size-5" />}
                     title={copy.reelSectionTitle}
                 />
                 <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
@@ -510,7 +503,6 @@ export default function FoodReelsShow({ price, slots, errors }: FoodReelsShowPro
                 <div className="absolute inset-0 bg-[linear-gradient(90deg,rgb(216_60_45/0.12),transparent_38%),radial-gradient(circle_at_78%_34%,rgb(119_146_76/0.18),transparent_30%)]" />
                 <div className="relative mx-auto grid max-w-6xl gap-8 px-4 sm:px-6 lg:grid-cols-[0.42fr_1fr] lg:items-center">
                     <SectionHeader
-                        icon={<Flame className="size-5" />}
                         title={copy.activationTitle}
                         description={copy.activationDescription}
                         inverted
@@ -525,7 +517,6 @@ export default function FoodReelsShow({ price, slots, errors }: FoodReelsShowPro
 
             <section className="mx-auto flex max-w-6xl flex-col gap-6 px-4 py-12 sm:px-6">
                 <SectionHeader
-                    icon={<Sparkles className="size-5" />}
                     title={copy.sessionSectionTitle}
                     className="max-w-3xl"
                 />
@@ -538,12 +529,11 @@ export default function FoodReelsShow({ price, slots, errors }: FoodReelsShowPro
 
             <section className="mx-auto flex max-w-6xl flex-col gap-6 px-4 py-12 sm:px-6">
                 <SectionHeader
-                    icon={<Images className="size-5" />}
                     title={copy.photoSectionTitle}
                     className="max-w-3xl"
                 />
                 <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-                    {PRODUCT_PHOTOS.map((photo) => (
+                    {PRODUCT_PHOTOS.slice(0, 10).map((photo) => (
                         <MediaPhoto key={photo.id} photo={photo} dense />
                     ))}
                 </div>
@@ -576,65 +566,65 @@ export default function FoodReelsShow({ price, slots, errors }: FoodReelsShowPro
                 analyticsPayload={analyticsPayload}
             />
 
-            <section className="mx-auto flex max-w-6xl flex-col gap-6 px-4 py-12 sm:px-6">
-                <div className="grid gap-6 lg:grid-cols-[0.54fr_1fr] lg:items-end">
+            <section className="mx-auto grid max-w-6xl gap-7 border-t border-border/70 px-4 py-12 sm:px-6 lg:grid-cols-[0.62fr_1fr]">
+                <div>
                     <SectionHeader
-                        icon={<UtensilsCrossed className="size-5" />}
                         title={copy.packageTitle}
                         description={copy.packageDescription}
                     />
-                    <div className="rounded-xl border border-primary/30 bg-[linear-gradient(135deg,rgb(255_255_255/0.78),rgb(244_239_232/0.72))] p-5 shadow-[0_24px_80px_rgb(42_23_12/0.10)] backdrop-blur-md dark:bg-[linear-gradient(135deg,rgb(15_12_10/0.86),rgb(24_18_14/0.82))] dark:shadow-black/30">
-                        <p className="text-sm font-semibold uppercase tracking-[0.18em] text-muted-foreground">
-                            {locale === 'en' ? 'From' : 'Desde'}
+                    <div className="mt-5 flex flex-wrap items-end gap-3">
+                        <p className="font-mono-tabular text-4xl font-bold text-primary">
+                            {formatMxn(price)}
                         </p>
-                        <div className="mt-2 flex flex-wrap items-end gap-3">
-                            <p className="font-mono-tabular text-4xl font-bold text-primary">
-                                {formatMxn(price)}
+                        <PaymentTrustOrTestMode variant="stripe" layout="compact" className="pb-1" />
+                    </div>
+                </div>
+
+                <div className="space-y-6">
+                    <div className="grid gap-4 sm:grid-cols-3">
+                        {copy.packageCards.map((card) => (
+                            <div key={card.title} className="border-t border-border/70 pt-4">
+                                <h3 className="font-display text-xl font-bold text-foreground">{card.title}</h3>
+                                <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{card.copy}</p>
+                                <p className="mt-3 text-sm text-foreground">{card.items.join(' · ')}</p>
+                            </div>
+                        ))}
+                    </div>
+
+                    <div className="flex flex-col gap-4 border-t border-border/70 pt-5 lg:flex-row lg:items-center lg:justify-between">
+                        <div className="max-w-2xl min-w-0">
+                            <h2 className="font-display text-2xl font-bold text-foreground">
+                                {copy.bookingTitle}
+                            </h2>
+                            <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
+                                {copy.bookingDescription}
                             </p>
-                            <PaymentTrustOrTestMode variant="stripe" layout="compact" className="pb-1" />
                         </div>
-                    </div>
-                </div>
-
-                <div className="grid gap-3 md:grid-cols-3">
-                    {copy.packageCards.map((card, index) => (
-                        <PackageCard key={card.title} card={card} featured={index === 1} />
-                    ))}
-                </div>
-
-                <div className="flex flex-col gap-4 rounded-xl border border-border/70 bg-background/82 p-5 shadow-sm backdrop-blur-md lg:flex-row lg:items-center lg:justify-between">
-                    <div className="max-w-2xl min-w-0">
-                        <h2 className="font-display text-2xl font-bold text-foreground">
-                            {copy.bookingTitle}
-                        </h2>
-                        <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
-                            {copy.bookingDescription}
-                        </p>
-                    </div>
-                    <div className="grid w-full min-w-0 gap-2 sm:grid-cols-2 lg:w-auto lg:min-w-[360px]">
-                        <Button
-                            variant="outline"
-                            className="w-full rounded-lg"
-                            asChild
-                        >
-                            <a
-                                href={whatsappHref}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                onClick={() => trackWhatsApp('package')}
+                        <div className="grid w-full min-w-0 gap-2 sm:grid-cols-2 lg:w-auto lg:min-w-[360px]">
+                            <Button
+                                variant="outline"
+                                className="w-full rounded-lg"
+                                asChild
                             >
-                                <MessageCircle data-icon="inline-start" />
-                                {copy.finalWhatsApp}
-                            </a>
-                        </Button>
-                        <BookingCtaButton
-                            type="button"
-                            className="w-full rounded-lg"
-                            onClick={() => openBooking('package')}
-                        >
-                            {copy.packageCta}
-                            <ArrowRight data-icon="inline-end" />
-                        </BookingCtaButton>
+                                <a
+                                    href={whatsappHref}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    onClick={() => trackWhatsApp('package')}
+                                >
+                                    <MessageCircle data-icon="inline-start" />
+                                    {copy.finalWhatsApp}
+                                </a>
+                            </Button>
+                            <BookingCtaButton
+                                type="button"
+                                className="w-full rounded-lg"
+                                onClick={() => openBooking('package')}
+                            >
+                                {copy.packageCta}
+                                <ArrowRight data-icon="inline-end" />
+                            </BookingCtaButton>
+                        </div>
                     </div>
                 </div>
             </section>
@@ -643,13 +633,11 @@ export default function FoodReelsShow({ price, slots, errors }: FoodReelsShowPro
 }
 
 function SectionHeader({
-    icon,
     title,
     description,
     className,
     inverted = false,
 }: {
-    icon: ReactNode;
     title: string;
     description?: string;
     className?: string;
@@ -657,14 +645,6 @@ function SectionHeader({
 }) {
     return (
         <div className={cn('flex flex-col gap-3', className)}>
-            <div className={cn(
-                'flex size-10 items-center justify-center rounded-lg border',
-                inverted
-                    ? 'border-white/18 bg-white/8 text-[#f05a44]'
-                    : 'border-primary/25 bg-primary/10 text-primary',
-            )}>
-                {icon}
-            </div>
             <div>
                 <h2 className={cn(
                     'font-display text-3xl font-bold leading-tight md:text-4xl',
@@ -766,42 +746,6 @@ function MediaPhoto({
                 />
             </div>
         </figure>
-    );
-}
-
-function PackageCard({
-    card,
-    featured,
-}: {
-    card: {
-        title: string;
-        copy: string;
-        items: readonly string[];
-    };
-    featured: boolean;
-}) {
-    return (
-        <article className={cn(
-            'flex min-h-[260px] flex-col gap-5 rounded-lg border bg-card p-5 shadow-sm',
-            featured && 'border-primary/60 shadow-[0_22px_70px_rgb(206_58_42/0.16)]',
-        )}>
-            <div className="flex flex-col gap-2">
-                <p className="font-display text-2xl font-bold text-foreground">
-                    {card.title}
-                </p>
-                <p className="text-sm leading-relaxed text-muted-foreground">
-                    {card.copy}
-                </p>
-            </div>
-            <ul className="mt-auto flex flex-col gap-3">
-                {card.items.map((item) => (
-                    <li key={item} className="flex items-start gap-2 text-sm text-foreground">
-                        <Check className="mt-0.5 size-4 shrink-0 text-primary" />
-                        <span>{item}</span>
-                    </li>
-                ))}
-            </ul>
-        </article>
     );
 }
 

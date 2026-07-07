@@ -1,43 +1,27 @@
 import { Link, usePage } from '@inertiajs/react';
-import { ArrowRight, Building2, CalendarDays, Clapperboard, Disc3, Drone, Music2, UtensilsCrossed } from 'lucide-react';
-import { useEffect, type RefObject } from 'react';
+import { ArrowRight, CalendarDays } from 'lucide-react';
+import { useEffect } from 'react';
 import { SeoHead } from '@/components/lapsique/SeoHead';
 import SiteLayout from '@/layouts/SiteLayout';
 import { BookingWidget } from '@/components/lapsique/BookingWidget';
-import { GlassSection } from '@/components/lapsique/GlassSection';
-import { PortfolioPhotoCarousel } from '@/components/lapsique/PortfolioPhotoCarousel';
 import { LandingPageSection } from '@/components/lapsique/LandingPageSection';
 import { ReelPlayerModal } from '@/components/lapsique/ReelPlayerModal';
 import { ReelLoopCard } from '@/components/lapsique/ReelLoopCard';
-import { useReelLibraryPlayback } from '@/hooks/useReelLibraryPlayback';
 import { ReelPlayerProvider } from '@/hooks/useReelPlayerModal';
 import { openBookingModal } from '@/lib/openBookingModal';
-import { videoSurfaceFrameClass } from '@/lib/videoSurface';
 import { HeroProofVideoCard } from '@/components/lapsique/HeroProofVideoCard';
 import {
     LoopingVideoBackground,
     PortfolioPhotoBackground,
 } from '@/components/lapsique/LoopingVideoBackground';
-import { ContentPackageSection } from '@/components/lapsique/funnel/ContentPackageSection';
-import { ProblemSection } from '@/components/lapsique/funnel/ProblemSection';
-import { GuaranteeUrgencySection } from '@/components/lapsique/funnel/GuaranteeUrgencySection';
-import { PortfolioTrustSection } from '@/components/lapsique/funnel/PortfolioTrustSection';
-import { RecordingGearSection } from '@/components/lapsique/funnel/RecordingGearSection';
-import { WorkflowSection } from '@/components/lapsique/funnel/WorkflowSection';
-import { MetaOfferReelShowcase } from '@/components/lapsique/funnel/MetaOfferReelShowcase';
 import { FunnelFAQ } from '@/components/lapsique/funnel/FunnelFAQ';
-import { FunnelPopups } from '@/components/lapsique/FunnelPopups';
 import { PaymentTrustOrTestMode } from '@/components/lapsique/PaymentTrustPanel';
 import { BookingCtaButton } from '@/components/lapsique/BookingCtaButton';
 import { BookingCtaSection } from '@/components/lapsique/BookingCtaSection';
-import { StickyBookingBar } from '@/components/lapsique/StickyBookingBar';
 import { useTranslations } from '@/hooks/useTranslations';
 import { trackBookingEvent } from '@/hooks/useBookingAnalytics';
-import { useSectionEvent } from '@/hooks/useSectionEvent';
 import { landingPageStackClass } from '@/lib/landingSection';
-import { route } from '@/lib/route';
 import { cn, formatMxn } from '@/lib/utils';
-import { glassCardVariants } from '@/lib/variants';
 import {
     CONTENT_DRONE_SHOTS,
     CONTENT_REEL_DURATION_SECONDS,
@@ -134,20 +118,10 @@ export default function Home({
     heroBackgroundImage,
     landingVideos,
     heroProofVideo,
-    reelLibraryPreview,
     errors,
 }: HomeProps) {
-    const { site, ziggy } = usePage<PageProps>().props;
+    const { site } = usePage<PageProps>().props;
     const { t } = useTranslations();
-    const adProofRef = useSectionEvent<HTMLDivElement>('proof_section_viewed', {
-        section: 'business_reel_formats',
-    });
-    const reelLibraryRef = useSectionEvent<HTMLDivElement>('proof_section_viewed', {
-        section: 'business_reel_library',
-    });
-    const portfolioImages = portfolioItems.filter((item) => (
-        item.media_type === 'image' && Boolean(item.asset_url || item.poster_url)
-    ));
     const featuredReelFallbackPool = buildFeaturedReelFallbackPool(landingVideos);
     useEffect(() => {
         trackBookingEvent('booking_page_viewed', {
@@ -186,38 +160,16 @@ export default function Home({
 
             <ServiceLandingLinks />
 
-            {/* 2. Problema/dolor — agita por qué el contenido genérico no vende */}
-            <ProblemSection />
-
-            {/* 3. Oferta/solución — bloque glass de conversión */}
-            <GlassSection
+            <HomeEditorialSection
                 title={t('pages.home.offer_title')}
                 description={t('pages.home.offer_description', {
                     seconds: CONTENT_REEL_DURATION_SECONDS,
                     drone_shots: CONTENT_DRONE_SHOTS,
                 })}
-                surfaceClassName="relative overflow-hidden border-emerald-500/25 shadow-[0_28px_80px_oklch(0.58_0.12_145/0.14)]"
-                surfaceStyle={{
-                    background: 'radial-gradient(circle at 12% 14%, oklch(0.82 0.13 145 / 0.22), transparent 33%), radial-gradient(circle at 88% 18%, oklch(0.84 0.15 78 / 0.2), transparent 30%), linear-gradient(135deg, oklch(0.995 0.01 96), oklch(0.94 0.04 140 / 0.9))',
-                }}
-            >
-                <div className="relative z-[1]">
-                    <PaymentTrustOrTestMode variant="stripe" layout="card" />
-                    <div className="mt-6">
-                        <MetaOfferReelShowcase
-                            price={price}
-                            images={portfolioImages}
-                            landingOffer={landingVideos?.offer ?? null}
-                            equipmentVideos={landingVideos?.equipment ?? []}
-                            onBook={openBooking}
-                        />
-                    </div>
-                </div>
-            </GlassSection>
+                price={price}
+                onBook={openBooking}
+            />
 
-            <DjSetHomeCta href={route('djset.show', undefined, false, ziggy)} />
-
-            {/* 4. Prueba en video consolidada (antes 3 FeaturedReel separados) */}
             <FeaturedReel
                 videos={[
                     landingVideos?.pauta ?? null,
@@ -228,52 +180,6 @@ export default function Home({
                 bookingSource="featured_reel_proof"
             />
 
-            {/* 5. Deseo — contenido que da seriedad a la marca */}
-            <GlassSection
-                title={t('pages.home.ads_title')}
-                description={t('pages.home.ads_description')}
-            >
-                <BookingCtaSection className="pt-0 pb-4">
-                    <BookingCtaButton type="button" onClick={openBooking}>
-                        {t('pages.home.ads_cta')}
-                        <CalendarDays className="h-5 w-5" />
-                    </BookingCtaButton>
-                </BookingCtaSection>
-                <BusinessCreativeBoard
-                    images={portfolioImages}
-                    landingCreative={landingVideos?.creative ?? []}
-                    sectionRef={adProofRef}
-                />
-            </GlassSection>
-
-            {/* 6. Qué incluye el paquete */}
-            <ContentPackageSection />
-
-            {/* 7. Prueba social + portafolio */}
-            <PortfolioTrustSection portfolioItems={portfolioItems} />
-
-            {/* 8. Cómo funciona */}
-            <WorkflowSection bookingSource="workflow_reel" />
-
-            {/* 9. Equipo (credibilidad) */}
-            <RecordingGearSection bookingSource="gear_reel" />
-
-            {/* 10. Prueba final en video — biblioteca de reels */}
-            <GlassSection
-                surface="solid"
-                title={t('pages.home.success_title')}
-                description={t('pages.home.success_description')}
-            >
-                <ReelLibraryShowcase
-                    sectionRef={reelLibraryRef}
-                    clips={reelLibraryPreview}
-                />
-            </GlassSection>
-
-            {/* 11. Garantía + urgencia (reversión de riesgo antes de reservar) */}
-            <GuaranteeUrgencySection onBook={openBooking} />
-
-            {/* 12. Reserva — conversión principal */}
             <BookingWidget
                 slots={slots}
                 price={price}
@@ -285,19 +191,9 @@ export default function Home({
                 popupHeroProofVideo={heroProofVideo}
             />
 
-            {/* 13. FAQ — manejo de objeciones */}
             <FunnelFAQ variant="home" />
 
-            {/* 14. Sobre el estudio */}
             <AboutLapsique portfolioItems={portfolioItems} />
-
-            <FunnelPopups
-                variant="home"
-                slotsCount={slots.length}
-                portfolioItems={portfolioItems}
-                heroProofVideo={heroProofVideo}
-            />
-            <StickyBookingBar whatsapp={site.whatsapp} />
             </div>
             <ReelPlayerModal />
             </ReelPlayerProvider>
@@ -306,204 +202,167 @@ export default function Home({
 }
 
 function ServiceLandingLinks() {
-    const services = [
-        {
-            href: '/reels-de-comida',
-            icon: UtensilsCrossed,
-            title: 'Reels de comida para restaurantes',
-            copy: 'Crea contenido visual para que tus platillos, bebidas y experiencia se vean más profesionales en redes y anuncios.',
-        },
-        {
-            href: '/sesiones-de-dron',
-            icon: Drone,
-            title: 'Sesiones de dron para hoteles y propiedades',
-            copy: 'Muestra ubicación, escala, arquitectura y entorno con tomas aéreas premium.',
-        },
-        {
-            href: '/avances-de-obra',
-            icon: Building2,
-            title: 'Avances de obra con foto, video y dron',
-            copy: 'Documenta el progreso de tu construcción con evidencia visual profesional para reportes, ventas e inversionistas.',
-        },
-    ];
+    const { locale } = useTranslations();
+    const isEnglish = locale === 'en';
+    const services = isEnglish
+        ? [
+            {
+                href: '/reels-de-comida',
+                title: 'Food reels for restaurants',
+                copy: 'Visual content for dishes, drinks, and restaurant experience without making every post feel improvised.',
+            },
+            {
+                href: '/sesiones-de-dron',
+                title: 'Drone sessions for hotels and properties',
+                copy: 'Aerial footage that explains location, scale, architecture, and surroundings.',
+            },
+            {
+                href: '/avances-de-obra',
+                title: 'Construction progress with photo, video, and drone',
+                copy: 'Professional progress evidence for reports, sales, investors, and project records.',
+            },
+        ]
+        : [
+            {
+                href: '/reels-de-comida',
+                title: 'Reels de comida para restaurantes',
+                copy: 'Contenido visual para platillos, bebidas y experiencia sin improvisar cada publicación.',
+            },
+            {
+                href: '/sesiones-de-dron',
+                title: 'Sesiones de dron para hoteles y propiedades',
+                copy: 'Tomas aéreas para explicar ubicación, escala, arquitectura y entorno.',
+            },
+            {
+                href: '/avances-de-obra',
+                title: 'Avances de obra con foto, video y dron',
+                copy: 'Evidencia profesional de progreso para reportes, ventas, inversionistas y archivo de obra.',
+            },
+        ];
 
     return (
         <section className="mx-auto w-full max-w-6xl px-4 sm:px-6">
-            <div className="rounded-xl border border-border/75 bg-card/85 p-5 shadow-sm backdrop-blur md:p-6">
-                <div className="grid gap-5 lg:grid-cols-[0.55fr_1fr] lg:items-start">
-                    <div>
-                        <h2 className="font-display text-3xl font-bold leading-tight text-foreground md:text-4xl">
-                            Servicios audiovisuales para negocios en Riviera Maya
-                        </h2>
-                        <p className="mt-3 text-sm leading-relaxed text-muted-foreground md:text-base">
-                            Creamos contenido para restaurantes, hoteles, propiedades, eventos, proyectos inmobiliarios y avances de obra.
-                        </p>
-                    </div>
-                    <div className="grid gap-3 md:grid-cols-3">
-                        {services.map((service) => {
-                            const Icon = service.icon;
-
-                            return (
-                                <Link
-                                    key={service.href}
-                                    href={service.href}
-                                    className="group flex min-h-[220px] flex-col rounded-lg border border-border/70 bg-background/70 p-4 shadow-sm transition hover:-translate-y-0.5 hover:border-primary/50 hover:shadow-lg"
-                                >
-                                    <span className="flex size-10 items-center justify-center rounded-lg border border-primary/25 bg-primary/10 text-primary">
-                                        <Icon className="size-5" />
-                                    </span>
-                                    <h3 className="mt-4 text-base font-bold leading-snug text-foreground">
-                                        {service.title}
-                                    </h3>
-                                    <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
-                                        {service.copy}
-                                    </p>
-                                    <span className="mt-auto inline-flex items-center gap-2 pt-4 text-sm font-semibold text-primary">
-                                        Cotizar servicio
-                                        <ArrowRight className="size-4 transition group-hover:translate-x-0.5" />
-                                    </span>
-                                </Link>
-                            );
-                        })}
-                    </div>
+            <div className="grid gap-8 border-y border-border/70 py-8 lg:grid-cols-[0.52fr_1fr] lg:items-start">
+                <div>
+                    <h2 className="font-display text-3xl font-bold leading-tight text-foreground md:text-4xl">
+                        {isEnglish ? 'Audiovisual services for businesses in Riviera Maya' : 'Servicios audiovisuales para negocios en Riviera Maya'}
+                    </h2>
+                    <p className="mt-3 text-sm leading-relaxed text-muted-foreground md:text-base">
+                        {isEnglish
+                            ? 'Content for restaurants, hotels, properties, events, real estate projects, and construction progress.'
+                            : 'Contenido para restaurantes, hoteles, propiedades, eventos, proyectos inmobiliarios y avances de obra.'}
+                    </p>
+                </div>
+                <div className="divide-y divide-border/70">
+                    {services.map((service) => (
+                        <Link
+                            key={service.href}
+                            href={service.href}
+                            className="group grid gap-2 py-4 transition first:pt-0 last:pb-0 md:grid-cols-[0.42fr_1fr_auto] md:items-start md:gap-5"
+                        >
+                            <h3 className="text-base font-bold leading-snug text-foreground group-hover:text-primary">
+                                {service.title}
+                            </h3>
+                            <p className="text-sm leading-relaxed text-muted-foreground">
+                                {service.copy}
+                            </p>
+                            <span className="inline-flex items-center gap-2 text-sm font-semibold text-primary">
+                                {isEnglish ? 'Quote' : 'Cotizar'}
+                                <ArrowRight className="size-4 transition group-hover:translate-x-0.5" />
+                            </span>
+                        </Link>
+                    ))}
                 </div>
             </div>
         </section>
     );
 }
 
-function DjSetHomeCta({ href }: { href: string }) {
-    const { t } = useTranslations();
+function HomeEditorialSection({
+    title,
+    description,
+    price,
+    onBook,
+}: {
+    title: string;
+    description: string;
+    price: number;
+    onBook: () => void;
+}) {
+    const { t, locale } = useTranslations();
 
     return (
-        <GlassSection
-            surface="solid"
-            title={t('pages.home.djset_cta_title')}
-            description={t('pages.home.djset_cta_description')}
-            action={(
-                <BookingCtaButton asChild className="w-full sm:w-auto">
-                    <Link href={href}>
-                        <Music2 className="h-5 w-5" />
-                        {t('pages.home.djset_cta_button')}
-                        <ArrowRight className="h-5 w-5" />
-                    </Link>
-                </BookingCtaButton>
-            )}
-        >
-            <div className="grid gap-3 sm:grid-cols-3">
-                <div className={cn(glassCardVariants(), 'border border-border/70 p-4')}>
-                    <p className="text-xs font-semibold uppercase tracking-[0.18em] text-primary">
-                        {t('pages.home.djset_cta_point_1_label')}
-                    </p>
-                    <p className="mt-2 text-sm font-medium text-foreground">
-                        {t('pages.home.djset_cta_point_1')}
-                    </p>
-                </div>
-                <div className={cn(glassCardVariants(), 'border border-border/70 p-4')}>
-                    <p className="text-xs font-semibold uppercase tracking-[0.18em] text-primary">
-                        {t('pages.home.djset_cta_point_2_label')}
-                    </p>
-                    <p className="mt-2 text-sm font-medium text-foreground">
-                        {t('pages.home.djset_cta_point_2')}
-                    </p>
-                </div>
-                <div className={cn(glassCardVariants(), 'border border-border/70 p-4')}>
-                    <p className="text-xs font-semibold uppercase tracking-[0.18em] text-primary">
-                        {t('pages.home.djset_cta_point_3_label')}
-                    </p>
-                    <p className="mt-2 text-sm font-medium text-foreground">
-                        {t('pages.home.djset_cta_point_3')}
-                    </p>
-                </div>
+        <section className="mx-auto grid max-w-6xl gap-7 border-y border-border/70 px-4 py-10 sm:px-6 lg:grid-cols-[0.68fr_0.32fr] lg:items-start">
+            <div>
+                <h2 className="font-display text-3xl font-bold leading-tight text-foreground md:text-4xl">
+                    {title}
+                </h2>
+                <p className="mt-4 max-w-3xl text-base leading-relaxed text-muted-foreground">
+                    {description}
+                </p>
+                <p className="mt-5 max-w-3xl text-base leading-relaxed text-foreground">
+                    {t('pages.home.ads_description')}
+                </p>
             </div>
-        </GlassSection>
+            <div className="border-t border-border/70 pt-5 lg:border-t-0 lg:pt-0">
+                <p className="text-sm font-semibold text-muted-foreground">
+                    {locale === 'en' ? 'From' : 'Desde'}
+                </p>
+                <p className="mt-2 font-mono-tabular text-4xl font-bold text-primary">
+                    {formatMxn(price)}
+                </p>
+                <PaymentTrustOrTestMode variant="stripe" layout="compact" className="mt-3" />
+                <BookingCtaButton type="button" className="mt-5 w-full" onClick={onBook}>
+                    {t('pages.home.ads_cta')}
+                    <CalendarDays className="h-5 w-5" />
+                </BookingCtaButton>
+            </div>
+        </section>
     );
 }
 
 function AboutLapsique({ portfolioItems }: { portfolioItems: PortfolioItemData[] }) {
     const { t } = useTranslations();
-    const pillars = [
-        {
-            icon: Clapperboard,
-            title: t('pages.home.about_film_title'),
-            copy: t('pages.home.about_film_copy'),
-        },
-        {
-            icon: Disc3,
-            title: t('pages.home.about_events_title'),
-            copy: t('pages.home.about_events_copy'),
-        },
-    ] as const;
+    const image = portfolioItems.find((item) => item.media_type === 'image' && Boolean(item.asset_url || item.poster_url));
 
     return (
-        <GlassSection
-            id="about"
-            title={t('pages.home.about_title')}
-            description={t('pages.home.about_description')}
-        >
-            <div className="space-y-6">
-                <PortfolioPhotoCarousel items={portfolioItems} />
-                <div className="grid gap-4 sm:grid-cols-2">
-                    {pillars.map(({ icon: Icon, title, copy }) => (
-                        <div
-                            key={title}
-                            className={cn(glassCardVariants(), 'glass-border-glow border p-5')}
-                        >
-                            <span className="inline-flex h-11 w-11 items-center justify-center rounded-full border border-accent/30 bg-accent/10 text-accent">
-                                <Icon className="h-5 w-5" />
-                            </span>
-                            <h3 className="font-display mt-4 text-lg font-semibold tracking-tight text-foreground">
-                                {title}
-                            </h3>
-                            <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
-                                {copy}
-                            </p>
-                        </div>
-                    ))}
+        <section id="about" className="mx-auto grid max-w-6xl gap-7 border-t border-border/70 px-4 py-10 sm:px-6 lg:grid-cols-[0.48fr_0.52fr] lg:items-center">
+            <div>
+                <h2 className="font-display text-3xl font-bold leading-tight text-foreground md:text-4xl">
+                    {t('pages.home.about_title')}
+                </h2>
+                <p className="mt-4 text-base leading-relaxed text-muted-foreground">
+                    {t('pages.home.about_description')}
+                </p>
+                <div className="mt-6 grid gap-5 sm:grid-cols-2">
+                    <div>
+                        <h3 className="font-display text-xl font-bold text-foreground">
+                            {t('pages.home.about_film_title')}
+                        </h3>
+                        <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
+                            {t('pages.home.about_film_copy')}
+                        </p>
+                    </div>
+                    <div>
+                        <h3 className="font-display text-xl font-bold text-foreground">
+                            {t('pages.home.about_events_title')}
+                        </h3>
+                        <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
+                            {t('pages.home.about_events_copy')}
+                        </p>
+                    </div>
                 </div>
             </div>
-        </GlassSection>
-    );
-}
-
-function ReelLibraryShowcase({
-    sectionRef,
-    clips,
-}: {
-    sectionRef: RefObject<HTMLDivElement | null>;
-    clips: ReelLibraryEntry[];
-}) {
-    const { activeIndex, showOverlay, handleLoopComplete, handleBook, reportInView } =
-        useReelLibraryPlayback(clips.length);
-
-    if (clips.length === 0) {
-        return null;
-    }
-
-    return (
-        <div ref={sectionRef}>
-            <div className="grid gap-3 rounded-xl border border-border/70 bg-black/40 p-3 sm:grid-cols-2 md:grid-cols-5">
-                {clips.map((clip, index) => (
-                    <ReelLoopCard
-                        key={clip.id}
-                        src={clip.src}
-                        poster={clip.poster}
-                        title={clip.title ?? undefined}
-                        bookingSource="reel_library"
-                        showBookingOverlay={index === activeIndex && showOverlay}
-                        overlayAutoHideMs={0}
-                        onInViewChange={(inView) => reportInView(index, inView)}
-                        onLoopSegmentComplete={
-                            index === activeIndex ? () => handleLoopComplete(index) : undefined
-                        }
-                        onBook={() => {
-                            handleBook();
-                            openBookingModal({ source: 'reel_library', skipAnalytics: true });
-                        }}
-                    />
-                ))}
-            </div>
-        </div>
+            {image ? (
+                <img
+                    src={image.asset_url ?? image.poster_url ?? ''}
+                    alt={image.title ?? ''}
+                    className="aspect-[16/10] w-full rounded-xl object-cover"
+                    loading="lazy"
+                    decoding="async"
+                />
+            ) : null}
+        </section>
     );
 }
 
@@ -665,99 +524,5 @@ function HeroProofPanel({ video, eager = false }: { video: HeroProofVideoData | 
                 className="w-full shadow-2xl lg:max-w-[360px]"
             />
         </aside>
-    );
-}
-
-function BusinessCreativeBoard({
-    images,
-    landingCreative,
-    sectionRef,
-}: {
-    images: PortfolioItemData[];
-    landingCreative: LandingVideoEntry[];
-    sectionRef: RefObject<HTMLDivElement | null>;
-}) {
-    const { t } = useTranslations();
-    const displayImages = [images[4], images[5], images[6]].filter(Boolean) as PortfolioItemData[];
-    const creativeImages = displayImages.length > 0 ? displayImages : images.slice(0, 3);
-    const creativeSlots = [
-        { label: t('pages.home.creative_label_hook'), title: t('pages.home.creative_hook') },
-        { label: 'Reel', title: t('pages.home.creative_reel') },
-        { label: 'CTA', title: t('pages.home.creative_conversion') },
-    ] as const;
-
-    return (
-        <div ref={sectionRef} className="mx-auto w-full max-w-5xl">
-            <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
-                {creativeSlots.map((slot, index) => {
-                    const video = landingCreative[index];
-                    const image = creativeImages[index];
-
-                    if (video) {
-                        return (
-                            <VerticalCreativeVideoFrame
-                                key={slot.label}
-                                video={video}
-                                label={slot.label}
-                                title={slot.title}
-                            />
-                        );
-                    }
-
-                    return (
-                        <VerticalCreativeFrame
-                            key={slot.label}
-                            image={image}
-                            label={slot.label}
-                            title={slot.title}
-                        />
-                    );
-                })}
-            </div>
-        </div>
-    );
-}
-
-function VerticalCreativeVideoFrame({
-    video,
-    title,
-}: {
-    video: LandingVideoEntry;
-    label: string;
-    title: string;
-}) {
-    return (
-        <figure className={`group relative aspect-[9/16] w-full ${videoSurfaceFrameClass}`}>
-            <ReelLoopCard
-                src={video.src}
-                poster={video.poster}
-                title={title}
-                bookingSource="creative_reel"
-                articleClassName="absolute inset-0 h-full w-full rounded-none border-0"
-                fillContainer
-                videoClassName="group-hover:scale-[1.03]"
-            />
-        </figure>
-    );
-}
-
-function VerticalCreativeFrame({
-    image,
-}: {
-    image?: PortfolioItemData;
-    label: string;
-    title: string;
-}) {
-    return (
-        <figure className="group relative aspect-[9/16] w-full overflow-hidden rounded-xl border border-border/70 bg-secondary">
-            {image && (
-                <img
-                    src={image.asset_url ?? image.poster_url ?? ''}
-                    alt={image.title ?? ''}
-                    className="absolute inset-0 h-full w-full object-cover transition duration-700 group-hover:scale-[1.03]"
-                    loading="lazy"
-                />
-            )}
-        </figure>
     );
 }
