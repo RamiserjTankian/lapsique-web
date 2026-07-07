@@ -1,34 +1,22 @@
-import { useEffect, useMemo, useState, type ReactNode } from 'react';
+import { useEffect, useMemo, type ReactNode } from 'react';
 import { usePage } from '@inertiajs/react';
 import {
     ArrowRight,
-    Aperture,
     CalendarDays,
     Camera,
-    CheckCircle2,
-    CircleCheckBig,
     Clock3,
-    CreditCard,
     Drone,
     Film,
     Headphones,
     MessageCircle,
-    Mic2,
-    Moon,
-    SlidersHorizontal,
-    Sparkles,
     Video,
-    Waves,
 } from 'lucide-react';
 import SiteLayout from '@/layouts/SiteLayout';
 import { SeoHead } from '@/components/lapsique/SeoHead';
 import { BookingWidget } from '@/components/lapsique/BookingWidget';
 import { BookingCtaButton } from '@/components/lapsique/BookingCtaButton';
-import { DjCard } from '@/components/lapsique/DjCard';
-import { FunnelPopups } from '@/components/lapsique/FunnelPopups';
 import { GlassSection } from '@/components/lapsique/GlassSection';
 import { PaymentTrustOrTestMode } from '@/components/lapsique/PaymentTrustPanel';
-import { ReelLoopCard } from '@/components/lapsique/ReelLoopCard';
 import { SpecBadge } from '@/components/lapsique/SpecBadge';
 import { Button } from '@/components/ui/button';
 import { useTranslations } from '@/hooks/useTranslations';
@@ -65,36 +53,11 @@ const HERO_IMAGE_KEYWORDS = [
     'umi',
 ];
 
-const GEAR_ITEMS = [
-    {
-        icon: Camera,
-        titleKey: 'pages.djset.gear_sony_title',
-        copyKey: 'pages.djset.gear_sony_copy',
-    },
-    {
-        icon: Drone,
-        titleKey: 'pages.djset.gear_drone_title',
-        copyKey: 'pages.djset.gear_drone_copy',
-    },
-    {
-        icon: Video,
-        titleKey: 'pages.djset.gear_ronin_title',
-        copyKey: 'pages.djset.gear_ronin_copy',
-    },
-    {
-        icon: Mic2,
-        titleKey: 'pages.djset.gear_audio_title',
-        copyKey: 'pages.djset.gear_audio_copy',
-    },
-] as const;
-
 export default function DjSetShow({
     price,
     slots,
     originals,
     portfolioItems,
-    djSetReels,
-    djs,
     errors,
 }: DjSetShowProps) {
     const { site } = usePage<PageProps>().props;
@@ -146,7 +109,6 @@ export default function DjSetShow({
     ));
     const heroImage = pickHeroImage(portfolioImages);
     const proofImages = portfolioImages.filter((item) => item.id !== heroImage?.id);
-    const galleryImages = proofImages.length > 0 ? proofImages : portfolioImages;
 
     return (
         <SiteLayout>
@@ -286,77 +248,6 @@ export default function DjSetShow({
                 />
             </GlassSection>
 
-            <GlassSection
-                eyebrow={t('pages.djset.production_eyebrow')}
-                title={t('pages.djset.production_title')}
-                description={t('pages.djset.production_description')}
-            >
-                <div className="grid gap-4 lg:grid-cols-[minmax(0,1.15fr)_minmax(360px,0.85fr)]">
-                    <PortfolioPreview images={galleryImages} />
-                    <div className="grid content-start gap-3">
-                        <OfferPoint icon={<Camera className="h-5 w-5" />} title={t('pages.djset.offer_camera_title')} copy={t('pages.djset.offer_camera_copy')} />
-                        <OfferPoint icon={<Drone className="h-5 w-5" />} title={t('pages.djset.offer_drone_title')} copy={t('pages.djset.offer_drone_copy')} />
-                        <OfferPoint icon={<Film className="h-5 w-5" />} title={t('pages.djset.offer_delivery_title')} copy={t('pages.djset.offer_delivery_copy')} />
-                        <OfferPoint icon={<Waves className="h-5 w-5" />} title={t('pages.djset.offer_audio_title')} copy={t('pages.djset.offer_audio_copy')} />
-                    </div>
-                </div>
-            </GlassSection>
-
-            <GlassSection
-                eyebrow={t('pages.djset.gear_eyebrow')}
-                title={t('pages.djset.gear_title')}
-                description={t('pages.djset.gear_description')}
-            >
-                <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-                    {GEAR_ITEMS.map(({ icon: Icon, titleKey, copyKey }) => (
-                        <OfferPoint
-                            key={titleKey}
-                            icon={<Icon className="h-5 w-5" />}
-                            title={t(titleKey)}
-                            copy={t(copyKey)}
-                        />
-                    ))}
-                </div>
-            </GlassSection>
-
-            <NightRecordingSection />
-
-            {djSetReels.length > 0 && (
-                <GlassSection
-                    eyebrow={t('pages.djset.reels_eyebrow')}
-                    title={t('pages.djset.reels_title')}
-                    description={t('pages.djset.reels_description')}
-                >
-                    <DjSetReelGrid clips={djSetReels} />
-                </GlassSection>
-            )}
-
-            {originals.length > 0 && (
-                <GlassSection
-                    eyebrow={t('pages.djset.originals_eyebrow')}
-                    title={t('pages.djset.originals_title')}
-                    description={t('pages.djset.originals_description')}
-                >
-                    <OriginalsShowcase
-                        videos={originals}
-                        whatsappHref={whatsappHref}
-                        onWhatsApp={() => trackWhatsApp('originals')}
-                        onBook={() => openBooking('originals')}
-                    />
-                </GlassSection>
-            )}
-
-            <GlassSection
-                eyebrow={t('pages.djset.scope_eyebrow')}
-                title={t('pages.djset.scope_title')}
-                description={t('pages.djset.scope_description')}
-            >
-                <div className="grid gap-3 md:grid-cols-2">
-                    <ScopePoint icon={<CheckCircle2 className="h-5 w-5" />} title={t('pages.djset.scope_included_title')} copy={t('pages.djset.scope_included_copy')} />
-                    <ScopePoint muted icon={<SlidersHorizontal className="h-5 w-5" />} title={t('pages.djset.scope_not_included_title')} copy={t('pages.djset.scope_not_included_copy')} />
-                </div>
-            </GlassSection>
-
             <BookingWidget
                 slots={slots}
                 price={price}
@@ -370,37 +261,6 @@ export default function DjSetShow({
                 popupOriginals={originals}
                 highlight
             />
-
-            <GlassSection
-                eyebrow={t('pages.djset.booking_eyebrow')}
-                title={t('pages.djset.booking_title')}
-                description={t('pages.djset.booking_description')}
-            >
-                <PaymentTrustOrTestMode variant="stripe" layout="card" className="mb-5" />
-                <div className="grid gap-3 md:grid-cols-3">
-                    <ProcessPoint icon={<MessageCircle className="h-5 w-5" />} title={t('pages.djset.process_step_1_title')} copy={t('pages.djset.process_step_1_copy')} />
-                    <ProcessPoint icon={<CreditCard className="h-5 w-5" />} title={t('pages.djset.process_step_2_title')} copy={t('pages.djset.process_step_2_copy')} />
-                    <ProcessPoint icon={<CircleCheckBig className="h-5 w-5" />} title={t('pages.djset.process_step_3_title')} copy={t('pages.djset.process_step_3_copy')} />
-                </div>
-            </GlassSection>
-
-            {djs.length > 0 && (
-                <GlassSection
-                    eyebrow={t('pages.djset.artists_eyebrow')}
-                    title={t('pages.djset.artists_title')}
-                    description={t('pages.djset.artists_description')}
-                    surfaceClassName="relative overflow-hidden border-primary/35 shadow-[0_26px_70px_oklch(0.24_0.04_250/0.16)]"
-                    surfaceStyle={{
-                        background: 'radial-gradient(circle at 12% 18%, oklch(0.84 0.15 78 / 0.24), transparent 34%), radial-gradient(circle at 88% 12%, oklch(0.76 0.12 205 / 0.18), transparent 34%), linear-gradient(135deg, oklch(0.99 0.01 93 / 0.96), oklch(0.91 0.05 245 / 0.78))',
-                    }}
-                >
-                    <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-                        {djs.slice(0, 6).map((dj, index) => (
-                            <DjCard key={dj.id} dj={dj} index={index} variant="spotlight" />
-                        ))}
-                    </div>
-                </GlassSection>
-            )}
 
             <GlassSection
                 eyebrow={t('pages.djset.faq_eyebrow')}
@@ -449,13 +309,6 @@ export default function DjSetShow({
                 </div>
             </GlassSection>
             </div>
-
-            <FunnelPopups
-                variant="djset"
-                slotsCount={slots.length}
-                portfolioItems={portfolioItems}
-                originals={originals}
-            />
         </SiteLayout>
     );
 }
@@ -466,107 +319,6 @@ function MiniSpec({ icon, text }: { icon: ReactNode; text: string }) {
             <span className="mt-0.5 text-primary">{icon}</span>
             <span>{text}</span>
         </div>
-    );
-}
-
-function OfferPoint({
-    icon,
-    title,
-    copy,
-}: {
-    icon: ReactNode;
-    title: string;
-    copy: string;
-}) {
-    return (
-        <div className="rounded-xl border border-border/70 bg-secondary p-5">
-            <span className="flex h-11 w-11 items-center justify-center rounded-xl border border-primary/25 bg-primary/10 text-primary">
-                {icon}
-            </span>
-            <h3 className="mt-4 font-display text-lg font-bold text-foreground">{title}</h3>
-            <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{copy}</p>
-        </div>
-    );
-}
-
-function NightRecordingSection() {
-    const { t } = useTranslations();
-
-    return (
-        <GlassSection
-            surface="solid"
-            eyebrow={t('pages.djset.night_gear_eyebrow')}
-            title={t('pages.djset.night_gear_title')}
-            description={t('pages.djset.night_gear_description')}
-        >
-            <div className="grid gap-3 md:grid-cols-3">
-                <OfferPoint
-                    icon={<Moon className="h-5 w-5" />}
-                    title={t('pages.djset.night_gear_lowlight_title')}
-                    copy={t('pages.djset.night_gear_lowlight_copy')}
-                />
-                <OfferPoint
-                    icon={<Aperture className="h-5 w-5" />}
-                    title={t('pages.djset.night_gear_dynamic_title')}
-                    copy={t('pages.djset.night_gear_dynamic_copy')}
-                />
-                <OfferPoint
-                    icon={<Sparkles className="h-5 w-5" />}
-                    title={t('pages.djset.night_gear_color_title')}
-                    copy={t('pages.djset.night_gear_color_copy')}
-                />
-            </div>
-        </GlassSection>
-    );
-}
-
-function DjSetReelGrid({ clips }: { clips: ReelLibraryEntry[] }) {
-    return (
-        <div className="grid gap-3 rounded-xl border border-border/70 bg-black/45 p-3 sm:grid-cols-2 lg:grid-cols-4">
-            {clips.slice(0, 8).map((clip) => (
-                <ReelLoopCard
-                    key={clip.id}
-                    src={clip.src}
-                    poster={clip.poster}
-                        title={clip.title}
-                        bookingSource="djset_reel_reference"
-                        pauseWhenOffscreen
-                        preload="none"
-                        openPlayerOnClick={false}
-                        articleClassName="min-h-[360px]"
-                    />
-            ))}
-        </div>
-    );
-}
-
-function ProcessPoint(props: { icon: ReactNode; title: string; copy: string }) {
-    return <OfferPoint {...props} />;
-}
-
-function ScopePoint({
-    icon,
-    title,
-    copy,
-    muted = false,
-}: {
-    icon: ReactNode;
-    title: string;
-    copy: string;
-    muted?: boolean;
-}) {
-    return (
-        <article className="rounded-xl border border-border/70 bg-secondary p-5">
-            <span className={`flex h-11 w-11 items-center justify-center rounded-xl border ${
-                muted
-                    ? 'border-border/70 bg-muted text-muted-foreground'
-                    : 'border-primary/25 bg-primary/10 text-primary'
-            }`}>
-                {icon}
-            </span>
-            <h3 className="mt-4 font-display text-xl font-bold text-foreground">{title}</h3>
-            <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{copy}</p>
-        </article>
     );
 }
 
@@ -703,23 +455,6 @@ function OriginalReferenceCard({ video }: { video: VideoItem }) {
     );
 }
 
-function PortfolioPreview({ images }: { images: PortfolioItemData[] }) {
-    const { t } = useTranslations();
-    const image = images[0];
-
-    if (!image) {
-        return (
-            <div className="grid min-h-[360px] place-items-center rounded-xl border border-border/70 bg-secondary p-8 text-center text-sm text-muted-foreground">
-                {t('pages.djset.portfolio_preview_empty')}
-            </div>
-        );
-    }
-
-    return (
-        <PortfolioFrame image={image} className="min-h-[520px]" priority />
-    );
-}
-
 function PortfolioFrame({
     image,
     className = '',
@@ -742,130 +477,6 @@ function PortfolioFrame({
                 />
             )}
         </figure>
-    );
-}
-
-function OriginalsShowcase({
-    videos,
-    whatsappHref,
-    onWhatsApp,
-    onBook,
-}: {
-    videos: VideoItem[];
-    whatsappHref: string;
-    onWhatsApp: () => void;
-    onBook: () => void;
-}) {
-    const { t } = useTranslations();
-    const playableVideos = videos.filter((video) => getYoutubeId(video));
-    const [activeVideoId, setActiveVideoId] = useState(playableVideos[0]?.id);
-    const activeVideo = playableVideos.find((video) => video.id === activeVideoId) ?? playableVideos[0];
-    const activeYoutubeId = activeVideo ? getYoutubeId(activeVideo) : null;
-
-    if (!activeVideo || !activeYoutubeId) {
-        return null;
-    }
-
-    return (
-        <div id="sets" className="scroll-mt-24 space-y-4">
-            <div className="overflow-hidden rounded-xl border border-border/70 bg-black shadow-[0_28px_90px_rgb(0_0_0/0.32)]">
-                <div className="aspect-video">
-                    <iframe
-                        key={activeYoutubeId}
-                        src={`https://www.youtube.com/embed/${activeYoutubeId}?rel=0`}
-                        title={activeVideo.title}
-                        className="h-full w-full"
-                        loading="lazy"
-                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                        allowFullScreen
-                    />
-                </div>
-                <div className="border-t border-white/10 bg-black px-4 py-4 text-white md:px-5">
-                    <p className="text-[10px] font-semibold uppercase tracking-[0.24em] text-primary">
-                        {t('pages.djset.originals_playing_badge')}
-                    </p>
-                    <h3 className="mt-2 font-display text-xl font-bold">{activeVideo.title}</h3>
-                    {activeVideo.djs && activeVideo.djs.length > 0 && (
-                        <p className="mt-1 text-sm text-white/60">
-                            {activeVideo.djs.map((dj) => dj.name).join(' · ')}
-                        </p>
-                    )}
-                </div>
-            </div>
-
-            <div className="mx-auto grid w-full max-w-2xl gap-3 sm:grid-cols-2">
-                <Button
-                    variant="default"
-                    className="h-12 w-full rounded-xl border border-[#25D366]/70 bg-[#25D366] px-4 text-sm font-bold text-white shadow-[0_14px_34px_oklch(0.66_0.18_145/0.28)] hover:bg-[#1EBE5D] hover:text-white focus-visible:ring-[#25D366]/45"
-                    asChild
-                >
-                    <a
-                        href={whatsappHref}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        onClick={onWhatsApp}
-                    >
-                        <WhatsAppIcon className="size-4 fill-current" />
-                        {t('pages.djset.cta_whatsapp_short')}
-                    </a>
-                </Button>
-                <BookingCtaButton
-                    type="button"
-                    variant="default"
-                    className="h-12 w-full rounded-xl border border-white/70 bg-white px-4 text-sm font-bold text-foreground shadow-[0_14px_34px_rgb(0_0_0/0.14)] hover:bg-white/90 hover:text-foreground"
-                    onClick={onBook}
-                >
-                    {t('pages.djset.cta_reserve_my_set')}
-                    <ArrowRight className="h-5 w-5" />
-                </BookingCtaButton>
-            </div>
-
-            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-                {playableVideos.slice(0, 4).map((video) => (
-                    <OriginalVideoCard
-                        key={video.id}
-                        video={video}
-                        selected={video.id === activeVideo.id}
-                        onSelect={() => setActiveVideoId(video.id)}
-                    />
-                ))}
-            </div>
-        </div>
-    );
-}
-
-function OriginalVideoCard({
-    video,
-    selected,
-    onSelect,
-}: {
-    video: VideoItem;
-    selected: boolean;
-    onSelect: () => void;
-}) {
-    return (
-        <button
-            type="button"
-            onClick={onSelect}
-            aria-pressed={selected}
-            className={`group overflow-hidden rounded-xl border text-left transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary ${
-                selected
-                    ? 'border-primary/60 bg-primary/10 shadow-[0_0_32px_oklch(0.78_0.14_75/0.12)]'
-                    : 'border-border/70 bg-secondary hover:border-primary/35'
-            }`}
-        >
-            <span className="relative block aspect-video overflow-hidden bg-black">
-                {video.thumbnail_url && (
-                    <img
-                        src={video.thumbnail_url}
-                        alt=""
-                        className="h-full w-full object-cover opacity-90 transition duration-500 group-hover:scale-[1.04]"
-                        loading="lazy"
-                    />
-                )}
-                <span className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/10 to-transparent" />
-            </span>
-        </button>
     );
 }
 
