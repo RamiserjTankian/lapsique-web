@@ -177,9 +177,9 @@ export default function DjSetShow({
 
                             <div className="space-y-3">
                                 <Button
-                                    variant="default"
+                                    variant="outline"
                                     size="xl"
-                                    className="h-auto min-h-14 w-full gap-2 rounded-xl border border-[#25D366]/70 bg-[#25D366] px-5 text-center text-sm font-bold leading-tight text-white shadow-[0_16px_42px_oklch(0.66_0.18_145/0.34)] hover:bg-[#1EBE5D] hover:text-white hover:shadow-[0_18px_52px_oklch(0.66_0.18_145/0.46)] focus-visible:ring-[#25D366]/45 sm:text-base"
+                                    className="h-auto min-h-14 w-full gap-2 rounded-none border border-primary bg-black/55 px-5 text-center text-sm font-bold leading-tight text-white shadow-none hover:bg-primary hover:text-white sm:text-base"
                                     asChild
                                 >
                                     <a
@@ -289,8 +289,8 @@ export default function DjSetShow({
                     <p className="text-sm leading-relaxed text-muted-foreground md:text-base">
                         {t('pages.djset.final_cta_description')}
                     </p>
-                    <div className="flex w-full flex-col gap-3 sm:w-auto sm:flex-row sm:justify-center">
-                        <Button variant="cinematic" size="xl" className="h-auto min-h-12 w-full whitespace-normal px-5 py-3 sm:w-auto" asChild>
+                    <div className="grid w-full gap-3 sm:max-w-2xl sm:grid-cols-2">
+                        <Button variant="outline" size="xl" className="h-auto min-h-12 w-full min-w-0 rounded-none border-primary bg-transparent px-4 py-3 text-center text-sm leading-tight text-foreground hover:bg-primary hover:text-white md:px-6 md:text-base" asChild>
                             <a
                                 href={whatsappHref}
                                 target="_blank"
@@ -301,7 +301,7 @@ export default function DjSetShow({
                                 {t('pages.djset.cta_whatsapp')}
                             </a>
                         </Button>
-                        <BookingCtaButton type="button" variant="outline" className="w-full sm:w-auto" onClick={() => openBooking('final')}>
+                        <BookingCtaButton type="button" className="w-full min-w-0 rounded-none px-4 text-sm leading-tight md:px-6 md:text-base" onClick={() => openBooking('final')}>
                             <CalendarDays className="h-5 w-5" />
                             {t('booking.djset.cta_open_calendar')}
                         </BookingCtaButton>
@@ -384,8 +384,8 @@ function MediaSalesBoard({
                         </p>
                         <div className="mt-5 grid gap-3 sm:grid-cols-2">
                             <Button
-                                variant="default"
-                                className="h-12 w-full rounded-xl border border-[#25D366]/70 bg-[#25D366] px-4 text-sm font-bold text-white shadow-[0_14px_34px_oklch(0.66_0.18_145/0.32)] hover:bg-[#1EBE5D] hover:text-white focus-visible:ring-[#25D366]/45"
+                                variant="outline"
+                                className="h-12 w-full rounded-none border-primary bg-black/45 px-4 text-sm font-bold text-white shadow-none hover:bg-primary hover:text-white"
                                 asChild
                             >
                                 <a

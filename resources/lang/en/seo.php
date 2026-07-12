@@ -2,10 +2,11 @@
 
 return [
     'home' => [
-        'title' => 'Reels for business ads',
-        'description' => 'Book a content session ready for Meta Ads: vertical reel, Sony camera, 3 DJI drone shots, and 10 edited photos from $:price MXN.',
-        'keywords' => 'business reels, reels for ads, Meta Ads, content session, professional photography, DJI drone, audiovisual production, Riviera Maya, lapsique.media',
+        'title' => 'Audiovisual production, DJ sets, and events in Riviera Maya',
+        'description' => 'Lapsique Media produces business reels, Psique Sessions, aftermovies, photography, and events with Sony Alpha cameras in Riviera Maya. Sessions from $:price MXN.',
+        'keywords' => 'audiovisual production Riviera Maya, DJ sets Tulum, Psique Sessions, aftermovies, events, business reels, Sony Alpha, Lapsique Media',
         'service_type' => 'Reel production for ads',
+        'scene_description' => 'Electronic music, visuals, DJ sets, events, and commercial audiovisual production in Riviera Maya.',
     ],
     'djset' => [
         'title' => 'DJ set recording',
@@ -36,6 +37,11 @@ return [
         'title' => 'Videos',
         'description' => 'Sets, aftermovies, and audiovisual pieces from the electronic scene in Riviera Maya.',
         'keywords' => 'videos, DJ sets, electronic music, lapsique.media',
+    ],
+    'events_index' => [
+        'title' => 'Events',
+        'description' => 'Shows, collaborations, residences, and events produced or documented by Lapsique Media in Riviera Maya.',
+        'keywords' => 'electronic music events Riviera Maya, events Tulum, aftermovies, event production, Lapsique Media',
     ],
     'portfolio_index' => [
         'title' => 'Portfolio',

@@ -2,6 +2,7 @@ import { useState, type FormEvent, type ReactNode } from 'react';
 import { usePage } from '@inertiajs/react';
 import {
     Loader2,
+    Plus,
     Send,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -24,6 +25,10 @@ interface ServiceLandingSectionsProps {
     serviceKey: LandingServiceKey;
     onBook: (source: string) => void;
     className?: string;
+    compact?: boolean;
+    showOutcomes?: boolean;
+    emphasizeForm?: boolean;
+    faqAccordion?: boolean;
 }
 
 type LeadState = 'idle' | 'submitting' | 'success' | 'error';
@@ -53,6 +58,10 @@ function trackingPayload(): Record<string, string | null> {
 export function ServiceLandingSections({
     serviceKey,
     className,
+    compact = false,
+    showOutcomes = true,
+    emphasizeForm = false,
+    faqAccordion = false,
 }: ServiceLandingSectionsProps) {
     const { locale, ziggy } = usePage<PageProps>().props;
     const config = SERVICE_LANDING_CONFIGS[serviceKey];
@@ -63,7 +72,7 @@ export function ServiceLandingSections({
         <div className={cn('mx-auto flex max-w-6xl flex-col gap-10 px-4 py-10 sm:px-6', className)}>
             <Breadcrumbs config={config} locale={locale} />
 
-            <section className="grid gap-8 border-y border-border/70 py-8 lg:grid-cols-[0.9fr_1.1fr] lg:gap-12">
+            {!compact ? <section className="grid gap-8 border-y border-border/70 py-8 lg:grid-cols-[0.9fr_1.1fr] lg:gap-12">
                 <div>
                     <p className="text-sm font-semibold text-primary">
                         {locale === 'en' ? 'Commercial context' : 'Contexto comercial'}
@@ -88,9 +97,9 @@ export function ServiceLandingSections({
                         ))}
                     </div>
                 </div>
-            </section>
+            </section> : null}
 
-            <section className="grid gap-8 lg:grid-cols-[0.72fr_1.28fr] lg:items-start">
+            {showOutcomes ? <section className="grid gap-8 lg:grid-cols-[0.72fr_1.28fr] lg:items-start">
                 <div>
                     <SectionTitle
                         title={localized(config.outcomesTitle, locale)}
@@ -107,9 +116,9 @@ export function ServiceLandingSections({
                         </p>
                     ))}
                 </div>
-            </section>
+            </section> : null}
 
-            <section className="grid gap-8 lg:grid-cols-3">
+            {!compact ? <section className="grid gap-8 lg:grid-cols-3">
                 <EditorialList
                     title={localized(config.audienceTitle, locale)}
                     items={primaryAudience}
@@ -122,15 +131,16 @@ export function ServiceLandingSections({
                     title={locale === 'en' ? 'Coverage' : 'Cobertura'}
                     items={SERVICE_AREAS.slice(0, 5)}
                 />
-            </section>
+            </section> : null}
 
             <section className="grid gap-6 lg:grid-cols-[0.88fr_1.12fr] lg:items-start">
                 <LandingLeadForm
                     config={config}
                     locale={locale}
                     postUrl={route('leads.capture', undefined, false, ziggy)}
+                    emphasized={emphasizeForm}
                 />
-                <FaqSection config={config} locale={locale} />
+                <FaqSection config={config} locale={locale} accordion={faqAccordion} />
             </section>
         </div>
     );
@@ -186,10 +196,12 @@ function LandingLeadForm({
     config,
     locale,
     postUrl,
+    emphasized = false,
 }: {
     config: LandingConfig;
     locale: string;
     postUrl: string;
+    emphasized?: boolean;
 }) {
     const [state, setState] = useState<LeadState>('idle');
     const [message, setMessage] = useState('');
@@ -269,13 +281,28 @@ function LandingLeadForm({
     const disabled = state === 'submitting' || state === 'success';
 
     return (
-        <section className="rounded-xl border border-border/75 bg-card p-5 shadow-sm md:p-6">
+        <section className={cn(
+            'border bg-card p-5 md:p-6',
+            emphasized
+                ? 'border-2 border-primary bg-[linear-gradient(145deg,oklch(1_0_0),oklch(0.97_0.035_75))] shadow-[0_24px_70px_oklch(0.78_0.14_75/0.18)]'
+                : 'rounded-xl border-border/75 shadow-sm',
+        )} data-lead-capture="true">
+            {emphasized ? (
+                <p className="mb-3 font-mono text-[10px] font-semibold uppercase tracking-[0.18em] text-primary">
+                    {locale === 'en' ? 'Personal recommendation · no commitment' : 'Recomendación personal · sin compromiso'}
+                </p>
+            ) : null}
             <h2 className="font-display text-3xl font-bold leading-tight text-foreground">
                 {localized(config.leadForm.title, locale)}
             </h2>
             <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
                 {localized(config.leadForm.description, locale)}
             </p>
+            {emphasized ? (
+                <p className="mt-3 border-l-2 border-primary pl-3 text-xs font-semibold text-foreground">
+                    {locale === 'en' ? 'We reply with the best package for your restaurant.' : 'Te respondemos con el paquete adecuado para tu restaurante.'}
+                </p>
+            ) : null}
 
             <form onSubmit={submit} className="mt-6 space-y-4" data-service-type={config.serviceKey}>
                 <div className="grid gap-4 sm:grid-cols-2">
@@ -345,21 +372,27 @@ function Field({ id, label, children }: { id: string; label: string; children: R
     );
 }
 
-function FaqSection({ config, locale }: { config: LandingConfig; locale: string }) {
+function FaqSection({ config, locale, accordion = false }: { config: LandingConfig; locale: string; accordion?: boolean }) {
     return (
-        <section className="rounded-xl border border-border/75 bg-card p-5 shadow-sm md:p-6">
+        <section className="border border-foreground/15 bg-secondary/40 p-5 md:p-6">
             <h2 className="font-display text-3xl font-bold leading-tight text-foreground">
                 {locale === 'en' ? 'FAQ' : 'Preguntas frecuentes'}
             </h2>
-            <div className="mt-5 divide-y divide-border/70">
-                {config.faqs.map((faq) => (
-                    <article key={localized(faq.question, locale)} className="py-4 first:pt-0 last:pb-0">
-                        <h3 className="text-base font-semibold text-foreground">
+            <div className={cn('mt-5', accordion ? 'space-y-2' : 'divide-y divide-border/70')}>
+                {config.faqs.map((faq, index) => accordion ? (
+                    <details key={localized(faq.question, locale)} className="group border border-foreground/15 bg-background open:border-primary/55" open={index === 0}>
+                        <summary className="flex cursor-pointer list-none items-center justify-between gap-4 px-4 py-4 font-display text-base font-bold text-foreground">
                             {localized(faq.question, locale)}
-                        </h3>
-                        <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
+                            <Plus className="size-4 shrink-0 text-primary transition group-open:rotate-45" />
+                        </summary>
+                        <p className="border-t border-foreground/10 px-4 py-4 text-sm leading-relaxed text-muted-foreground">
                             {localized(faq.answer, locale)}
                         </p>
+                    </details>
+                ) : (
+                    <article key={localized(faq.question, locale)} className="py-4 first:pt-0 last:pb-0">
+                        <h3 className="text-base font-semibold text-foreground">{localized(faq.question, locale)}</h3>
+                        <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{localized(faq.answer, locale)}</p>
                     </article>
                 ))}
             </div>

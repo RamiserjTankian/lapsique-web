@@ -17,7 +17,7 @@
 <meta name="author" content="{{ $siteName }}">
 <meta name="application-name" content="{{ $siteName }}">
 <meta name="thumbnail" content="{{ $ogImage }}">
-<meta name="robots" content="{{ $meta->noindex ? 'noindex, nofollow' : 'index, follow' }}">
+<meta name="robots" content="{{ $meta->noindex ? 'noindex, nofollow' : 'index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1' }}">
 
 <link rel="canonical" href="{{ $meta->canonicalUrl }}">
 <link rel="image_src" href="{{ $ogImage }}">
@@ -34,7 +34,8 @@
 <meta property="og:image:type" content="image/jpeg">
 <meta property="og:image:alt" content="{{ $ogImageAlt }}">
 <meta property="og:site_name" content="{{ $siteName }}">
-<meta property="og:locale" content="es_MX">
+<meta property="og:locale" content="{{ app()->getLocale() === 'en' ? 'en_US' : 'es_MX' }}">
+<meta property="og:locale:alternate" content="{{ app()->getLocale() === 'en' ? 'es_MX' : 'en_US' }}">
 @if (filled($metaAppId))
     <meta property="fb:app_id" content="{{ $metaAppId }}">
 @endif

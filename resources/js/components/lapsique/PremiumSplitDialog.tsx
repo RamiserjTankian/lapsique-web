@@ -1,4 +1,4 @@
-import type { ReactNode } from 'react';
+import { useEffect, useRef, type ReactNode } from 'react';
 import {
     Dialog,
     DialogContent,
@@ -47,6 +47,17 @@ export function PremiumSplitDialog({
     layout = 'form',
 }: PremiumSplitDialogProps) {
     const isPromo = layout === 'promo';
+    const scrollContainerRef = useRef<HTMLDivElement>(null);
+
+    useEffect(() => {
+        if (!open) return;
+
+        const frame = window.requestAnimationFrame(() => {
+            if (scrollContainerRef.current) scrollContainerRef.current.scrollTop = 0;
+        });
+
+        return () => window.cancelAnimationFrame(frame);
+    }, [open]);
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
@@ -61,16 +72,16 @@ export function PremiumSplitDialog({
                     className={cn(
                         'flex min-h-0 flex-1 flex-col',
                         isPromo
-                            ? 'lg:grid lg:max-h-[min(90dvh,44rem)] lg:grid-cols-[minmax(11rem,0.36fr)_minmax(0,1fr)]'
-                            : 'lg:grid lg:max-h-[min(92dvh,920px)] lg:grid-cols-[minmax(16.25rem,0.42fr)_minmax(0,1fr)]',
+                            ? 'lg:grid lg:max-h-[min(90dvh,44rem)] lg:grid-cols-[minmax(15rem,0.42fr)_minmax(0,0.58fr)]'
+                            : 'lg:grid lg:max-h-[min(92dvh,900px)] lg:grid-cols-[minmax(15rem,0.32fr)_minmax(0,0.68fr)]',
                     )}
                 >
                     <aside
                         className={cn(
                             'relative shrink-0 overflow-hidden border-border/60',
                             isPromo
-                                ? 'h-[5.5rem] border-b sm:h-[6.5rem] lg:h-auto lg:min-h-0 lg:border-b-0 lg:border-r'
-                                : 'h-[6rem] border-b max-lg:h-[6rem] lg:h-auto lg:min-h-0 lg:border-b-0 lg:border-r',
+                                ? 'h-[8rem] border-b sm:h-[9rem] lg:h-auto lg:min-h-0 lg:border-b-0 lg:border-r'
+                                : 'h-[7rem] border-b max-lg:h-[7rem] lg:h-auto lg:min-h-0 lg:border-b-0 lg:border-r',
                         )}
                         aria-hidden={isPromo ? undefined : true}
                     >
@@ -134,6 +145,7 @@ export function PremiumSplitDialog({
                     </aside>
 
                     <div
+                        ref={scrollContainerRef}
                         className={cn(
                             'theme-scrollbar flex min-h-0 flex-1 flex-col overflow-y-auto overscroll-contain',
                             'pb-[max(0.75rem,env(safe-area-inset-bottom))]',

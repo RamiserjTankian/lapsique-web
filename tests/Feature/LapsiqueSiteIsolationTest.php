@@ -20,7 +20,7 @@ class LapsiqueSiteIsolationTest extends TestCase
             ->assertSee('<meta property="og:site_name" content="Lapsique Media">', false);
     }
 
-    public function test_lapsique_public_site_does_not_expose_registered_djs(): void
+    public function test_lapsique_public_site_exposes_only_lapsique_djs(): void
     {
         config()->set('trascendental.enabled_as_primary', false);
 
@@ -28,10 +28,23 @@ class LapsiqueSiteIsolationTest extends TestCase
             'name' => 'Roster Artist',
             'slug' => 'roster-artist',
             'is_featured' => true,
+            'trascendental_roster' => false,
         ]);
 
-        $this->get(route('djs.index'))->assertNotFound();
-        $this->get(route('djs.show', ['dj' => 'roster-artist']))->assertNotFound();
+        Dj::query()->create([
+            'name' => 'Trascendental Artist',
+            'slug' => 'trascendental-artist',
+            'trascendental_roster' => true,
+        ]);
+
+        $this->get(route('djs.index'))
+            ->assertOk()
+            ->assertInertia(fn ($page) => $page
+                ->component('Djs/Index')
+                ->has('djs', 1)
+                ->where('djs.0.name', 'Roster Artist'));
+        $this->get(route('djs.show', ['dj' => 'roster-artist']))->assertOk();
+        $this->get(route('djs.show', ['dj' => 'trascendental-artist']))->assertNotFound();
     }
 
     public function test_trascendental_primary_site_can_still_render_registered_djs(): void
@@ -42,6 +55,13 @@ class LapsiqueSiteIsolationTest extends TestCase
             'name' => 'Roster Artist',
             'slug' => 'roster-artist',
             'is_featured' => true,
+            'trascendental_roster' => true,
+        ]);
+
+        Dj::query()->create([
+            'name' => 'Lapsique Artist',
+            'slug' => 'lapsique-artist',
+            'trascendental_roster' => false,
         ]);
 
         $this->get(route('djs.index'))
@@ -50,5 +70,6 @@ class LapsiqueSiteIsolationTest extends TestCase
                 ->component('Djs/Index')
                 ->has('djs', 1)
                 ->where('djs.0.name', 'Roster Artist'));
+        $this->get(route('djs.show', ['dj' => 'lapsique-artist']))->assertNotFound();
     }
 }

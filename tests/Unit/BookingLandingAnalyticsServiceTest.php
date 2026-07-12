@@ -21,6 +21,10 @@ class BookingLandingAnalyticsServiceTest extends TestCase
         $this->assertContains('package_includes_viewed', $events);
         $this->assertContains('header_cta_clicked', $events);
         $this->assertContains('booking_cta_clicked', $events);
+        $this->assertContains('video_play', $events);
+        $this->assertContains('video_progress', $events);
+        $this->assertContains('video_complete', $events);
+        $this->assertContains('form_started', $events);
     }
 
     public function test_stage_definitions_include_reel_funnel_stages(): void
@@ -31,5 +35,18 @@ class BookingLandingAnalyticsServiceTest extends TestCase
         $this->assertTrue($stages->contains('reel_watch'));
         $this->assertTrue($stages->contains('reel_overlay_cta'));
         $this->assertTrue($stages->contains('reel_modal_cta'));
+    }
+
+    public function test_all_public_campaign_landings_are_included_in_reporting_scope(): void
+    {
+        $this->assertSame([
+            '/',
+            '/reels-de-comida',
+            '/dj-set',
+            '/sesiones-de-dron',
+            '/avances-de-obra',
+            '/portafolio',
+            '/trabajos-en-video',
+        ], BookingLandingAnalyticsService::LANDING_PATHS);
     }
 }

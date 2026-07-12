@@ -26,7 +26,7 @@ export function FunnelPopups({
     const { customer, site } = usePage<PageProps>().props;
     const skipNewsletter = Boolean(customer?.email);
 
-    const { open, setOpen } = useNewsletterPopupTrigger({
+    const { open, setOpen, source: newsletterSource } = useNewsletterPopupTrigger({
         enabled: true,
         skipIfLoggedIn: skipNewsletter,
     });
@@ -59,6 +59,7 @@ export function FunnelPopups({
                 portfolioItems={portfolioItems}
                 heroProofVideo={heroProofVideo}
                 originals={originals}
+                source={newsletterSource}
             />
             <WhatsAppCaptureModal
                 open={whatsappOpen}

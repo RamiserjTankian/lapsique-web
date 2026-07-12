@@ -20,6 +20,9 @@ export function SeoHead({ seo: override }: SeoHeadProps) {
     return (
         <Head title={seo.title}>
             <meta name="description" content={seo.description} />
+            <meta name="robots" content={seo.noindex ? 'noindex, nofollow' : 'index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1'} />
+            <meta name="author" content="Lapsique Media" />
+            <meta name="theme-color" content="#11100e" />
             {seo.keywords ? <meta name="keywords" content={seo.keywords} /> : null}
             {ogImage ? <meta name="thumbnail" content={ogImage} /> : null}
             <meta property="og:type" content={seo.ogType} />
@@ -34,6 +37,7 @@ export function SeoHead({ seo: override }: SeoHeadProps) {
             {seo.ogImageAlt ? <meta property="og:image:alt" content={seo.ogImageAlt} /> : null}
             <meta property="og:site_name" content={siteName} />
             <meta property="og:locale" content={ogLocale} />
+            <meta property="og:locale:alternate" content={locale === 'en' ? 'es_MX' : 'en_US'} />
             <meta name="twitter:card" content="summary_large_image" />
             <meta name="twitter:url" content={seo.canonicalUrl} />
             <meta name="twitter:title" content={seo.metaTitle} />

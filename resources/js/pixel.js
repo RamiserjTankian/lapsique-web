@@ -4,6 +4,7 @@ const pixelQueue = [
     ...(Array.isArray(window.__lapsiquePixelQueue) ? window.__lapsiquePixelQueue : []),
 ];
 let advancedMatchingApplied = false;
+let lastTrackedStandardEvent = null;
 
 function trackMetaPixel(event, payload, options) {
     if (!pixelConfig.enabled || typeof window.fbq !== 'function') {
@@ -23,6 +24,10 @@ function trackMetaPixel(event, payload, options) {
     const trackOptions = options || (event_id || eventID ? { eventID: event_id || eventID } : undefined);
 
     window.fbq('track', event, rest, trackOptions);
+    lastTrackedStandardEvent = {
+        name: event,
+        trackedAt: performance.now(),
+    };
 }
 
 window.trackMetaPixel = trackMetaPixel;
@@ -62,12 +67,16 @@ flushQueuedPixelCalls();
 
 if (pixelConfig.autoTrack) {
     document.addEventListener('click', (event) => {
-        const target = event.target?.closest?.('[data-meta-event]');
+        const target = event.target?.closest?.('[data-meta-event], a[href]');
         if (!target) {
             return;
         }
 
-        const eventName = target.getAttribute('data-meta-event');
+        let eventName = target.getAttribute('data-meta-event');
+        const href = target.getAttribute('href') || '';
+        if (!eventName && (/^https:\/\/wa\.me\//i.test(href) || /^mailto:/i.test(href) || /^tel:/i.test(href))) {
+            eventName = 'Contact';
+        }
         if (!eventName) {
             return;
         }
@@ -82,7 +91,19 @@ if (pixelConfig.autoTrack) {
             }
         }
 
-        trackMetaPixel(eventName, params);
+        const isDuplicateManagedEvent = lastTrackedStandardEvent?.name === eventName
+            && performance.now() - lastTrackedStandardEvent.trackedAt < 250;
+
+        if (isDuplicateManagedEvent) {
+            return;
+        }
+
+        trackMetaPixel(eventName, {
+            content_name: target.getAttribute('data-analytics-label') || target.textContent?.trim().slice(0, 120) || undefined,
+            content_category: target.getAttribute('data-analytics-category') || (eventName === 'Contact' ? 'contact' : undefined),
+            page_path: window.location.pathname,
+            ...params,
+        });
     });
 }
 

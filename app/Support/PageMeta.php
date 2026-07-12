@@ -56,6 +56,12 @@ class PageMeta
                 $canonicalUrl,
                 __('seo.videos_index.keywords'),
             ),
+            'events.index' => self::forSection(
+                __('pages.events.title'),
+                __('seo.events_index.description'),
+                $canonicalUrl,
+                __('seo.events_index.keywords'),
+            ),
             'portfolio.index' => self::forSection(
                 __('pages.portfolio.title'),
                 __('seo.portfolio_index.description'),
@@ -118,6 +124,19 @@ class PageMeta
             ogImage: $ogImage,
             ogImageAlt: $ogImageAlt,
             keywords: __('seo.djset.keywords'),
+            jsonLd: self::serviceLandingJsonLd(
+                canonicalUrl: $canonicalUrl,
+                title: $title,
+                description: $description,
+                serviceType: 'Producción y grabación audiovisual de DJ set',
+                ogImage: $ogImage,
+                breadcrumbName: 'Grabación de DJ set',
+                faq: [
+                    ['Cuánto dura la grabación?', 'La producción contempla hasta cuatro horas de set y una edición principal de hasta dos horas, según la propuesta acordada.'],
+                    ['Incluye audio del mixer?', 'Sí. Capturamos la señal del mixer y audio ambiente para construir una mezcla con energía de cabina.'],
+                    ['Incluye dron?', 'Puede incluir tomas de dron cuando la ubicación, el clima y las condiciones de seguridad permiten volar.'],
+                ],
+            ),
         );
     }
 
@@ -267,27 +286,39 @@ class PageMeta
 
         $jsonLd = [
             '@context' => 'https://schema.org',
-            '@type' => 'Service',
-            'name' => $bookingTitle,
-            'description' => $description,
-            'image' => $ogImage,
-            'serviceType' => __('seo.home.service_type'),
-            'areaServed' => [
-                '@type' => 'AdministrativeArea',
-                'name' => 'Riviera Maya',
-            ],
-            'provider' => [
-                '@type' => 'Organization',
-                'name' => self::siteName(),
-                'url' => config('app.url'),
-                'sameAs' => self::sameAsUrls(),
-            ],
-            'offers' => [
-                '@type' => 'Offer',
-                'price' => $price,
-                'priceCurrency' => 'MXN',
-                'availability' => 'https://schema.org/InStock',
-                'url' => Str::finish($canonicalUrl, '/').'#agenda',
+            '@graph' => [
+                [
+                    '@type' => 'Organization',
+                    '@id' => url('/#organization'),
+                    'name' => self::siteName(),
+                    'url' => url('/'),
+                    'sameAs' => self::sameAsUrls(),
+                ],
+                [
+                    '@type' => 'WebSite',
+                    '@id' => url('/#website'),
+                    'url' => url('/'),
+                    'name' => self::siteName(),
+                    'description' => __('seo.home.scene_description'),
+                    'publisher' => ['@id' => url('/#organization')],
+                ],
+                [
+                    '@type' => 'Service',
+                    '@id' => rtrim($canonicalUrl, '/').'#service',
+                    'name' => $bookingTitle,
+                    'description' => $description,
+                    'image' => $ogImage,
+                    'serviceType' => __('seo.home.service_type'),
+                    'areaServed' => ['@type' => 'AdministrativeArea', 'name' => 'Riviera Maya'],
+                    'provider' => ['@id' => url('/#organization')],
+                    'offers' => [
+                        '@type' => 'Offer',
+                        'price' => $price,
+                        'priceCurrency' => 'MXN',
+                        'availability' => 'https://schema.org/InStock',
+                        'url' => Str::finish($canonicalUrl, '/').'#agenda',
+                    ],
+                ],
             ],
         ];
 
@@ -329,6 +360,21 @@ class PageMeta
             ogImage: $ogImage ?: self::defaultOgImageUrl(),
             ogImageAlt: "{$dj->name} — ".self::siteName(),
             keywords: "{$dj->name}, DJ, música electrónica, ".self::siteName(),
+            jsonLd: [
+                '@context' => 'https://schema.org',
+                '@type' => 'Person',
+                'name' => $dj->name,
+                'description' => $description,
+                'image' => $ogImage,
+                'url' => $canonicalUrl,
+                'sameAs' => array_values(array_filter([
+                    $dj->instagram_url,
+                    $dj->youtube_url,
+                    $dj->soundcloud_url,
+                    $dj->website_url,
+                ])),
+                'knowsAbout' => array_values(array_filter($dj->tags ?? [])),
+            ],
         );
     }
 
@@ -355,6 +401,18 @@ class PageMeta
             ogImage: $ogImage ?: self::defaultOgImageUrl(),
             ogImageAlt: "{$video->title} — ".self::siteName(),
             keywords: "{$video->title}, video, DJ set, ".self::siteName(),
+            jsonLd: array_filter([
+                '@context' => 'https://schema.org',
+                '@type' => 'VideoObject',
+                'name' => $video->title,
+                'description' => $description,
+                'thumbnailUrl' => $ogImage ? [$ogImage] : null,
+                'uploadDate' => $video->published_at?->toIso8601String(),
+                'embedUrl' => $video->youtube_id ? 'https://www.youtube-nocookie.com/embed/'.$video->youtube_id : null,
+                'contentUrl' => $video->youtube_url,
+                'url' => $canonicalUrl,
+                'publisher' => ['@id' => url('/#organization')],
+            ], fn ($value) => $value !== null && $value !== ''),
         );
     }
 
@@ -374,7 +432,10 @@ class PageMeta
                 ->implode(' · ')
                 ?: __('seo.event_fallback', ['title' => $event->title]),
         );
-        $ogImage = self::absoluteImageUrl($event->getFirstMediaUrl('cover', 'large'));
+        $ogImage = self::absoluteImageUrl(
+            $event->getFirstMediaUrl('cover', 'cover_large')
+                ?: $event->getFirstMediaUrl('cover'),
+        );
 
         return new PageMetaData(
             title: $title,
@@ -385,6 +446,32 @@ class PageMeta
             ogImage: $ogImage ?: self::defaultOgImageUrl(),
             ogImageAlt: "{$event->title} — ".self::siteName(),
             keywords: "{$event->title}, evento, música electrónica, ".self::siteName(),
+            jsonLd: array_filter([
+                '@context' => 'https://schema.org',
+                '@type' => 'Event',
+                'name' => $event->title,
+                'description' => $description,
+                'image' => $ogImage ? [$ogImage] : null,
+                'startDate' => $event->starts_at?->toIso8601String(),
+                'eventStatus' => $event->starts_at?->isPast()
+                    ? 'https://schema.org/EventCompleted'
+                    : 'https://schema.org/EventScheduled',
+                'eventAttendanceMode' => 'https://schema.org/OfflineEventAttendanceMode',
+                'location' => [
+                    '@type' => 'Place',
+                    'name' => $location ?: $event->venue ?: $event->city ?: 'Riviera Maya',
+                    'address' => array_filter([
+                        '@type' => 'PostalAddress',
+                        'addressLocality' => $event->city,
+                        'addressCountry' => 'MX',
+                    ]),
+                ],
+                'url' => $canonicalUrl,
+                'organizer' => ['@id' => url('/#organization')],
+                'performer' => $event->relationLoaded('djs')
+                    ? $event->djs->map(fn (Dj $dj) => ['@type' => 'Person', 'name' => $dj->name])->values()->all()
+                    : null,
+            ], fn ($value) => $value !== null && $value !== ''),
         );
     }
 
@@ -429,6 +516,36 @@ class PageMeta
             ogImageAlt: "{$title} — ".self::siteName(),
             keywords: $keywords,
             noindex: $noindex,
+            jsonLd: $noindex ? null : [
+                '@context' => 'https://schema.org',
+                '@graph' => [
+                    [
+                        '@type' => 'Organization',
+                        '@id' => url('/#organization'),
+                        'name' => self::siteName(),
+                        'url' => url('/'),
+                        'logo' => self::staticPublicImageUrl('images/lapsique-media-logo-dark.png') ?? self::defaultOgImageUrl(),
+                        'sameAs' => self::sameAsUrls(),
+                    ],
+                    [
+                        '@type' => 'CollectionPage',
+                        '@id' => rtrim($canonicalUrl, '/').'#webpage',
+                        'url' => $canonicalUrl,
+                        'name' => $metaTitle,
+                        'description' => self::truncate($description),
+                        'isPartOf' => ['@id' => url('/#website')],
+                        'about' => ['@id' => url('/#organization')],
+                        'inLanguage' => app()->getLocale() === 'en' ? 'en-US' : 'es-MX',
+                    ],
+                    [
+                        '@type' => 'WebSite',
+                        '@id' => url('/#website'),
+                        'url' => url('/'),
+                        'name' => self::siteName(),
+                        'publisher' => ['@id' => url('/#organization')],
+                    ],
+                ],
+            ],
         );
     }
 

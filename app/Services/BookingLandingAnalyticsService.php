@@ -11,10 +11,34 @@ class BookingLandingAnalyticsService
 {
     public const LANDING_PATH = '/';
 
+    public const LANDING_PATHS = [
+        '/',
+        '/reels-de-comida',
+        '/dj-set',
+        '/sesiones-de-dron',
+        '/avances-de-obra',
+        '/portafolio',
+        '/trabajos-en-video',
+    ];
+
     public static function trackedEventNames(): array
     {
         return [
             'booking_page_viewed',
+            'food_reels_page_viewed',
+            'djset_page_viewed',
+            'drone_session_page_viewed',
+            'construction_progress_page_viewed',
+            'video_play',
+            'video_progress',
+            'video_complete',
+            'form_started',
+            'click',
+            'submit',
+            'section_view',
+            'scroll_depth',
+            'engaged',
+            'page_exit',
             'hero_cta_clicked',
             'header_cta_clicked',
             'sticky_cta_clicked',
@@ -58,7 +82,7 @@ class BookingLandingAnalyticsService
     {
         return [
             ['key' => 'landing_view', 'label' => 'Visita landing', 'color' => 'gray', 'events' => []],
-            ['key' => 'reel_engaged', 'label' => 'Reel interactuado', 'color' => 'info', 'events' => ['reel_card_clicked', 'reel_player_opened']],
+            ['key' => 'reel_engaged', 'label' => 'Video interactuado', 'color' => 'info', 'events' => ['reel_card_clicked', 'reel_player_opened', 'video_play']],
             ['key' => 'reel_watch', 'label' => 'Reel >25% visto', 'color' => 'info', 'events' => ['reel_watch_milestone']],
             ['key' => 'reel_overlay_cta', 'label' => 'CTA overlay reel', 'color' => 'info', 'events' => ['reel_overlay_cta_clicked']],
             ['key' => 'reel_modal_cta', 'label' => 'Agendar desde modal', 'color' => 'primary', 'events' => ['reel_player_agendar_clicked']],
@@ -78,29 +102,43 @@ class BookingLandingAnalyticsService
 
     public function baseQuery(): Builder
     {
-        $path = self::LANDING_PATH;
-        $operator = $path === '/' ? '=' : 'like';
-        $value = $path === '/' ? $path : $path.'%';
+        $paths = self::LANDING_PATHS;
 
         return AnalyticsSession::query()
-            ->where(function (Builder $query) use ($operator, $value): void {
+            ->where(function (Builder $query) use ($paths): void {
                 $query
-                    ->where('landing_path', $operator, $value)
-                    ->orWhereHas('pageviews', function (Builder $pageviews) use ($operator, $value): void {
-                        $pageviews->where('path', $operator, $value);
+                    ->whereIn('landing_path', $paths)
+                    ->orWhereHas('pageviews', function (Builder $pageviews) use ($paths): void {
+                        $pageviews->whereIn('path', $paths);
                     });
             })
             ->withCount([
-                'pageviews as booking_pageviews_count' => function (Builder $query) use ($operator, $value): void {
-                    $query->where('path', $operator, $value);
+                'pageviews as booking_pageviews_count' => function (Builder $query) use ($paths): void {
+                    $query->whereIn('path', $paths);
                 },
                 'events as booking_events_count' => function (Builder $query): void {
                     $query->whereIn('name', self::trackedEventNames());
                 },
+                'events as video_plays_count' => fn (Builder $query) => $query->where('name', 'video_play'),
+                'events as contact_events_count' => fn (Builder $query) => $query
+                    ->where(function (Builder $events): void {
+                        $events->whereIn('name', [
+                            'food_reels_whatsapp_cta_clicked',
+                            'djset_whatsapp_cta_clicked',
+                            'drone_session_whatsapp_cta_clicked',
+                            'construction_progress_whatsapp_cta_clicked',
+                            'service_landing_whatsapp_clicked',
+                            'whatsapp_popup_clicked',
+                        ])->orWhere(function (Builder $clicks): void {
+                            $clicks->where('name', 'click')->where('element_href', 'like', 'https://wa.me/%');
+                        });
+                    }),
+                'events as form_starts_count' => fn (Builder $query) => $query
+                    ->whereIn('name', ['form_started', 'booking_form_started']),
             ])
             ->with([
-                'pageviews' => function ($query) use ($operator, $value): void {
-                    $query->where('path', $operator, $value)->orderBy('created_at');
+                'pageviews' => function ($query) use ($paths): void {
+                    $query->whereIn('path', $paths)->orderBy('created_at');
                 },
                 'events' => function ($query): void {
                     $query->whereIn('name', self::trackedEventNames())->orderBy('created_at');
@@ -134,6 +172,12 @@ class BookingLandingAnalyticsService
         $reelWatchSessions = $sessions->filter(fn (AnalyticsSession $session) => $this->hasEvent($session, ['reel_watch_milestone']))->count();
         $dateSelectedSessions = $sessions->filter(fn (AnalyticsSession $session) => $this->hasEvent($session, ['booking_date_selected']))->count();
         $formSubmittedSessions = $sessions->filter(fn (AnalyticsSession $session) => $this->hasEvent($session, ['booking_form_submitted']))->count();
+        $videoPlaySessions = $sessions->filter(fn (AnalyticsSession $session) => $this->hasEvent($session, ['video_play', 'reel_player_opened']))->count();
+        $videoCompleteSessions = $sessions->filter(fn (AnalyticsSession $session) => $this->hasEvent($session, ['video_complete']))->count();
+        $contactSessions = $sessions->filter(fn (AnalyticsSession $session) => $this->hasEvent($session, [
+            'food_reels_whatsapp_cta_clicked', 'djset_whatsapp_cta_clicked', 'drone_session_whatsapp_cta_clicked',
+            'construction_progress_whatsapp_cta_clicked', 'service_landing_whatsapp_clicked', 'whatsapp_popup_clicked',
+        ]))->count();
 
         $sources = $sessions
             ->groupBy(fn (AnalyticsSession $session) => $this->sourceLabel($session))
@@ -198,6 +242,9 @@ class BookingLandingAnalyticsService
                 'popup_cta' => $popupCtaSessions,
                 'date_selected' => $dateSelectedSessions,
                 'submitted' => $formSubmittedSessions,
+                'video_play' => $videoPlaySessions,
+                'video_complete' => $videoCompleteSessions,
+                'contact' => $contactSessions,
                 'confirmed' => $convertedSessions,
                 'pending' => $pendingSessions,
                 'failed' => $failedSessions,

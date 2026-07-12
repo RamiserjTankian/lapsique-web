@@ -5,7 +5,7 @@ import { Slot } from "radix-ui"
 import { cn } from "@/lib/utils"
 
 const buttonVariants = cva(
-  "inline-flex shrink-0 items-center justify-center gap-2 rounded-md text-sm font-medium whitespace-nowrap transition-all outline-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
+  "inline-flex shrink-0 items-center justify-center gap-2 rounded-sm text-sm font-semibold uppercase tracking-[0.08em] whitespace-nowrap transition-all outline-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
   {
     variants: {
       variant: {
@@ -22,7 +22,7 @@ const buttonVariants = cva(
         glass:
           "glass-panel glass-border-glow border text-foreground hover:bg-foreground/10",
         cinematic:
-          "bg-primary text-primary-foreground font-bold shadow-[0_0_32px_oklch(0.78_0.14_75/0.35)] hover:bg-primary/90 hover:shadow-[0_0_48px_oklch(0.78_0.14_75/0.5)]",
+          "border border-foreground bg-foreground text-background font-bold shadow-none hover:border-primary hover:bg-primary hover:text-white",
       },
       size: {
         default: "h-9 px-4 py-2 has-[>svg]:px-3",

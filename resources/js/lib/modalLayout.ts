@@ -6,16 +6,16 @@ export type PremiumDialogLayout = 'form' | 'promo';
  * Promo popups (newsletter, WhatsApp): centered card, never edge-to-edge on mobile.
  */
 export const modalShellPromo = cn(
-    'flex w-full max-w-[min(calc(100vw-1.5rem),34rem)] flex-col overflow-hidden p-0',
+    'flex w-full max-w-[min(calc(100vw-1.5rem),42rem)] flex-col overflow-hidden rounded-none p-0 sm:rounded-xl',
     'max-h-[min(90dvh,44rem)]',
-    'border-primary/25 shadow-[0_24px_80px_oklch(0_0_0/0.45)]',
+    'border-foreground/20 bg-background shadow-[0_28px_100px_oklch(0_0_0/0.52)]',
 );
 
 /**
  * Booking wizard: full viewport on mobile for multi-step forms; split panel on desktop.
  */
 export const modalShellForm = cn(
-    'flex max-h-[min(92dvh,920px)] w-full max-w-[min(96vw,71.25rem)] flex-col overflow-hidden border-primary/25 p-0',
+    'flex max-h-[min(92dvh,900px)] w-full max-w-[min(96vw,67.5rem)] flex-col overflow-hidden rounded-none border-foreground/20 bg-background p-0 sm:rounded-xl',
     'max-lg:fixed max-lg:inset-0 max-lg:top-0 max-lg:left-0 max-lg:h-[100dvh] max-lg:max-h-[100dvh] max-lg:max-w-none max-lg:translate-x-0 max-lg:translate-y-0 max-lg:rounded-none',
 );
 

@@ -1,7 +1,7 @@
 import { cn } from '@/lib/utils';
 
 /** Vertical rhythm between stacked landing blocks inside `main`. */
-export const landingPageStackClass = 'flex flex-col gap-6 md:gap-8';
+export const landingPageStackClass = 'flex flex-col';
 
 /** Anchor offset + optional outer spacing (gap comes from the page stack). */
 export const landingSectionShellClass = 'scroll-mt-20';
@@ -11,8 +11,7 @@ export const landingSectionShellClass = 'scroll-mt-20';
  * so light/dark shadows stay consistent.
  */
 export const landingSectionSurfaceClass = cn(
-    'glass-panel rounded-2xl',
-    'shadow-[0_20px_50px_var(--glass-panel-shadow)]',
+    'editorial-rule bg-transparent',
 );
 
 /**
@@ -21,8 +20,7 @@ export const landingSectionSurfaceClass = cn(
  * conversion-focused glass blocks stand out.
  */
 export const landingSectionSolidSurfaceClass = cn(
-    'rounded-2xl border border-border/60 bg-card',
-    'shadow-[0_8px_24px_oklch(0.2_0.02_260/0.06)]',
+    'editorial-rule bg-transparent',
 );
 
-export const landingSectionInnerPaddingClass = 'p-5 sm:p-6 md:p-8';
+export const landingSectionInnerPaddingClass = 'px-1 py-14 sm:px-2 sm:py-18 md:px-4 md:py-24';

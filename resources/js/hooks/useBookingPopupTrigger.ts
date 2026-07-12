@@ -8,9 +8,9 @@ import {
 } from '@/lib/funnelModalEvents';
 import { attachScrollDepthTrigger } from '@/lib/funnelScrollTrigger';
 
-const BOOKING_AUTO_DELAY_MS = 38_000;
-const BOOKING_SCROLL_THRESHOLD_PERCENT = 72;
-const BOOKING_MIN_TIME_ON_PAGE_MS = 35_000;
+const BOOKING_AUTO_DELAY_MS = 25_000;
+const BOOKING_SCROLL_THRESHOLD_PERCENT = 58;
+const BOOKING_MIN_TIME_ON_PAGE_MS = 18_000;
 
 export function useBookingPopupTrigger(enabled: boolean): void {
     const triggeredRef = useRef(false);
@@ -21,7 +21,7 @@ export function useBookingPopupTrigger(enabled: boolean): void {
             return;
         }
 
-        const tryOpen = () => {
+        const tryOpen = (source: string) => {
             if (triggeredRef.current) {
                 return;
             }
@@ -46,16 +46,16 @@ export function useBookingPopupTrigger(enabled: boolean): void {
             }
 
             triggeredRef.current = true;
-            requestBookingAutoOpen();
+            requestBookingAutoOpen(source);
         };
 
-        const detachScroll = attachScrollDepthTrigger(() => tryOpen(), {
+        const detachScroll = attachScrollDepthTrigger(() => tryOpen('scroll_depth_58'), {
             mountTime: mountTimeRef.current,
             thresholdPercent: BOOKING_SCROLL_THRESHOLD_PERCENT,
             minTimeOnPageMs: BOOKING_MIN_TIME_ON_PAGE_MS,
         });
 
-        const timer = window.setTimeout(tryOpen, BOOKING_AUTO_DELAY_MS);
+        const timer = window.setTimeout(() => tryOpen('engaged_timer_25s'), BOOKING_AUTO_DELAY_MS);
 
         return () => {
             window.clearTimeout(timer);
@@ -66,7 +66,9 @@ export function useBookingPopupTrigger(enabled: boolean): void {
 
 export function useBookingAutoOpenListener(onOpen: (source: string) => void): void {
     useEffect(() => {
-        const handler = () => onOpen('auto_trigger');
+        const handler = (event: Event) => onOpen(
+            (event as CustomEvent<{ source?: string }>).detail?.source ?? 'auto_trigger',
+        );
 
         window.addEventListener(BOOKING_AUTO_OPEN_EVENT, handler);
 

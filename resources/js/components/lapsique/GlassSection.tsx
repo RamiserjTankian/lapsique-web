@@ -59,11 +59,11 @@ export function GlassSection({
                     <div className="relative z-10 mb-6 flex flex-wrap items-end justify-between gap-4 md:mb-8">
                         <div>
                             {eyebrow && (
-                                <span className="inline-block rounded-full border border-accent/30 bg-accent/10 px-3 py-0.5 text-xs font-medium uppercase tracking-widest text-accent">
+                                <span className="font-ui-display inline-block border-l border-primary pl-3 text-[0.68rem] font-medium uppercase tracking-[0.2em] text-primary">
                                     {eyebrow}
                                 </span>
                             )}
-                            <h2 className={cn('font-display text-2xl font-bold tracking-tight text-foreground md:text-3xl', eyebrow && 'mt-3')}>
+                            <h2 className={cn('font-display max-w-3xl text-4xl font-medium leading-[0.95] text-foreground md:text-6xl', eyebrow && 'mt-4')}>
                                 {title}
                             </h2>
                             {description && (

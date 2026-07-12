@@ -3,6 +3,7 @@
 namespace App\Http\Resources;
 
 use App\Models\Dj;
+use App\Support\BrowserUrl;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
@@ -77,7 +78,7 @@ class DjResource extends JsonResource
 
         $path = ltrim($path, '/');
 
-        return is_readable(public_path($path)) ? asset($path) : null;
+        return is_readable(public_path($path)) ? $this->browserReadableUrl(asset($path)) : null;
     }
 
     private function fallbackPublicImagePath(): ?string
@@ -98,24 +99,6 @@ class DjResource extends JsonResource
 
     private function browserReadableUrl(string $url): string
     {
-        $request = request();
-        $requestHost = $request->getHost();
-        $urlHost = parse_url($url, PHP_URL_HOST);
-
-        if (! $urlHost || strcasecmp($urlHost, $requestHost) !== 0 || ! $this->isLocalRequestHost($requestHost)) {
-            return $url;
-        }
-
-        $path = parse_url($url, PHP_URL_PATH) ?: '';
-        $query = parse_url($url, PHP_URL_QUERY);
-
-        return $request->getSchemeAndHttpHost().$path.($query ? '?'.$query : '');
-    }
-
-    private function isLocalRequestHost(string $host): bool
-    {
-        return $host === 'localhost'
-            || $host === '127.0.0.1'
-            || str_ends_with($host, '.test');
+        return BrowserUrl::normalize($url) ?? $url;
     }
 }

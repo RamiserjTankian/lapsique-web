@@ -195,8 +195,8 @@ export default function ConstructionProgressShow({ price, slots, errors }: Const
                         className="h-full w-full"
                         videoClassName="h-full w-full object-cover object-center"
                     />
-                    <div className="absolute inset-0 bg-[linear-gradient(90deg,oklch(0.08_0.02_250/0.96)_0%,oklch(0.09_0.02_245/0.76)_40%,oklch(0.10_0.02_240/0.28)_78%,oklch(0.08_0.02_250/0.10)_100%)]" />
-                    <div className="absolute inset-0 bg-[linear-gradient(180deg,oklch(0.04_0.01_250/0.18)_0%,transparent_42%,oklch(0.06_0.02_250/0.92)_100%)]" />
+                    <div className="absolute inset-0 bg-[linear-gradient(90deg,oklch(0.08_0.02_250/0.72)_0%,oklch(0.09_0.02_245/0.46)_44%,oklch(0.10_0.02_240/0.12)_80%,transparent_100%)]" />
+                    <div className="absolute inset-0 bg-[linear-gradient(180deg,oklch(0.04_0.01_250/0.08)_0%,transparent_55%,oklch(0.06_0.02_250/0.55)_100%)]" />
                 </div>
 
                 <div className="relative mx-auto grid min-h-[min(760px,78svh)] max-w-6xl content-end px-4 pb-10 pt-16 sm:px-6 lg:grid-cols-[minmax(0,0.78fr)_minmax(320px,0.36fr)] lg:items-end lg:gap-10 lg:pb-14 lg:pt-24">
@@ -208,7 +208,7 @@ export default function ConstructionProgressShow({ price, slots, errors }: Const
                             {copy.heroDescription}
                         </p>
 
-                        <div className="mt-7 grid max-w-xl gap-4 xl:max-w-none xl:grid-cols-[minmax(260px,0.48fr)_minmax(280px,0.38fr)] xl:items-end">
+                        <div className="mt-7 grid max-w-2xl gap-5 lg:grid-cols-[190px_minmax(340px,1fr)] lg:items-end">
                             <div>
                                 <p className="text-sm font-semibold uppercase tracking-[0.18em] text-primary">
                                     {copy.priceLabel}
@@ -223,7 +223,7 @@ export default function ConstructionProgressShow({ price, slots, errors }: Const
                             <div className="space-y-3">
                                 <BookingCtaButton
                                     type="button"
-                                    className="w-full transition hover:-translate-y-0.5 motion-safe:animate-[drone-booking-cta_3s_ease-in-out_infinite]"
+                                    className="min-h-14 w-full rounded-none px-4 text-xs shadow-none sm:text-sm"
                                     onClick={() => openBooking('hero_agenda')}
                                 >
                                     <CalendarDays className="h-5 w-5" />
@@ -233,7 +233,7 @@ export default function ConstructionProgressShow({ price, slots, errors }: Const
                                 <Button
                                     variant="default"
                                     size="xl"
-                                    className="h-auto min-h-14 w-full gap-2 rounded-xl border border-[#25D366]/65 bg-[#25D366] px-5 text-sm font-bold text-white shadow-[0_16px_42px_oklch(0.66_0.18_145/0.34)] transition hover:-translate-y-0.5 hover:bg-[#1EBE5D] hover:text-white motion-safe:animate-[drone-whatsapp-cta_3.2s_ease-in-out_infinite] sm:text-base"
+                                    className="h-auto min-h-14 w-full gap-2 rounded-none border border-primary bg-transparent px-5 text-sm font-bold text-white shadow-none hover:bg-primary hover:text-white sm:text-base"
                                     asChild
                                 >
                                     <a

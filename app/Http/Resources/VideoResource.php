@@ -3,6 +3,7 @@
 namespace App\Http\Resources;
 
 use App\Models\Video;
+use App\Support\BrowserUrl;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
@@ -15,7 +16,7 @@ class VideoResource extends JsonResource
             'id' => $this->id,
             'title' => $this->title,
             'slug' => $this->slug,
-            'thumbnail_url' => $this->thumbnail_url,
+            'thumbnail_url' => BrowserUrl::normalize($this->thumbnail_url),
             'youtube_url' => $this->youtube_url,
             'youtube_id' => $this->youtube_id,
             'tags' => $this->tags ?? [],

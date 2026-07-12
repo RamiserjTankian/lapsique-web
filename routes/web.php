@@ -19,6 +19,7 @@ use App\Http\Controllers\MercadoPagoWebhookController;
 use App\Http\Controllers\PortfolioController;
 use App\Http\Controllers\PostController;
 use App\Http\Controllers\StripeWebhookController;
+use App\Http\Controllers\SitemapController;
 use App\Http\Controllers\TicketAttendeeController;
 use App\Http\Controllers\TicketCheckInController;
 use App\Http\Controllers\TicketCheckoutController;
@@ -49,6 +50,7 @@ if (config('trascendental.enabled_as_primary')) {
 }
 
 Route::view('/terminos-y-condiciones', 'legal.terms')->name('legal.terms');
+Route::get('/sitemap.xml', SitemapController::class)->name('sitemap');
 
 // Content Booking Landing Page
 Route::get('/sesion-de-contenido', function () {
@@ -76,7 +78,7 @@ Route::get('/djs', [DjController::class, 'index'])->name('djs.index');
 Route::get('/djs/{dj:slug}', [DjController::class, 'show'])->name('djs.show');
 
 if (! config('trascendental.enabled_as_primary')) {
-    Route::get('/eventos', fn () => abort(404))->name('events.index');
+    Route::get('/eventos', [EventController::class, 'index'])->name('events.index');
     Route::get('/eventos/{event:slug}', [EventController::class, 'show'])->name('events.show');
     Route::get('/eventos/{event:slug}/tickets', [TicketCheckoutController::class, 'show'])->name('tickets.checkout.show');
     Route::post('/eventos/{event:slug}/tickets', [TicketCheckoutController::class, 'checkout'])->name('tickets.checkout.store');
@@ -101,8 +103,10 @@ Route::get('/tickets/check-in/{token}/qr', [TicketCheckInController::class, 'qr'
     ->name('tickets.checkin.qr');
 Route::get('/tickets/check-in/{token}/pdf', [TicketCheckInController::class, 'pdf'])->name('tickets.checkin.pdf');
 
-Route::get('/videos', [VideoController::class, 'index'])->name('videos.index');
-Route::get('/videos/{video:slug}', [VideoController::class, 'show'])->name('videos.show');
+// `/videos` is a real public asset directory and can be intercepted by Nginx.
+// Keep editorial video pages on a URL that always reaches Laravel.
+Route::get('/trabajos-en-video', [VideoController::class, 'index'])->name('videos.index');
+Route::get('/trabajos-en-video/{video:slug}', [VideoController::class, 'show'])->name('videos.show');
 
 Route::get('/portafolio', [PortfolioController::class, 'index'])->name('portfolio.index');
 

@@ -13,6 +13,7 @@ import {
     DialogTitle,
 } from '@/components/ui/dialog';
 import { PremiumSplitDialog } from '@/components/lapsique/PremiumSplitDialog';
+import { FunnelPopups } from '@/components/lapsique/FunnelPopups';
 import { getPaymentTrustContent, type PaymentTrustVariant } from '@/lib/paymentTrustCopy';
 import { setActiveFunnelModal, BOOKING_MODAL_CLOSED_EVENT } from '@/lib/funnelModalEvents';
 import {
@@ -671,7 +672,7 @@ export function BookingWidget({
                 description={bookingPopupVisual.description}
                 caption={bookingPopupVisual.caption}
                 imageOverlay={
-                    <div className="mt-5 space-y-2 rounded-2xl border border-white/15 bg-black/35 p-4 backdrop-blur-md">
+                    <div className="mt-5 space-y-2 border border-white/20 bg-black/60 p-4 backdrop-blur-md">
                         <p className="font-mono-tabular text-2xl font-bold text-white">{formatMxn(price)}</p>
                         {showStripePopupOverlay && (
                             <p className="text-xs font-medium text-primary">
@@ -691,10 +692,18 @@ export function BookingWidget({
                 contentClassName="px-4 py-4 sm:px-5 sm:py-5 md:px-7 md:py-7"
             >
                 <div className="space-y-4 sm:space-y-5">
-                    <div className="lg:hidden">
-                        <h2 className="font-display text-xl font-bold leading-tight sm:text-2xl">
-                            {t('booking.modal.title')}
-                        </h2>
+                    <div className="flex items-start justify-between gap-4 border-b border-foreground/15 pb-4">
+                        <div>
+                            <p className="font-mono text-[10px] font-semibold uppercase tracking-[0.18em] text-primary">
+                                {locale === 'en' ? 'Guided booking · 3 steps' : 'Reserva guiada · 3 pasos'}
+                            </p>
+                            <h2 className="mt-1 font-display text-xl font-bold leading-tight sm:text-2xl">
+                                {t('booking.modal.title')}
+                            </h2>
+                        </div>
+                        <p className="hidden max-w-[14rem] text-right text-xs leading-relaxed text-muted-foreground sm:block">
+                            {locale === 'en' ? 'Your progress is saved while you choose.' : 'Tu avance se guarda mientras eliges.'}
+                        </p>
                     </div>
 
                             <div className="space-y-4">
@@ -702,7 +711,7 @@ export function BookingWidget({
                                     ref={dateSectionRef}
                                     id="booking-step-fecha"
                                     className={cn(
-                                        'scroll-mt-4 space-y-3 rounded-2xl border bg-muted/40 p-3 transition-shadow sm:space-y-4 sm:p-4',
+                                        'scroll-mt-4 space-y-3 border bg-muted/40 p-3 transition-shadow sm:space-y-4 sm:p-4',
                                         !selectedDateKey
                                             ? bookingStepActiveSectionClasses
                                             : bookingStepCompleteSectionClasses,
@@ -749,7 +758,7 @@ export function BookingWidget({
                                         ref={timeSectionRef}
                                         id="booking-step-horario"
                                         className={cn(
-                                            'scroll-mt-4 space-y-4 rounded-2xl border bg-muted/40 p-4 transition-all',
+                                            'scroll-mt-4 space-y-4 border bg-muted/40 p-4 transition-all',
                                             isTimeStepAwaitingSelection
                                                 ? [
                                                     bookingStepActiveSectionClasses,
@@ -825,7 +834,7 @@ export function BookingWidget({
                                         ref={formSectionRef}
                                         id="booking-step-datos"
                                         className={cn(
-                                            'scroll-mt-4 rounded-2xl border bg-muted/40 p-4 transition-shadow',
+                                            'scroll-mt-4 border bg-muted/40 p-4 transition-shadow',
                                             showForm
                                                 ? bookingStepActiveSectionClasses
                                                 : 'border-border/70',
@@ -867,6 +876,14 @@ export function BookingWidget({
                     !isTestMode
                     && (paymentProvider === 'stripe' || data.payment_provider === 'stripe')
                 }
+            />
+
+            <FunnelPopups
+                variant={popupVariant}
+                slotsCount={slots.length}
+                portfolioItems={popupPortfolioItems}
+                heroProofVideo={popupHeroProofVideo}
+                originals={popupOriginals}
             />
 
         </LandingPageSection>
@@ -958,18 +975,30 @@ function BookingForm({
                         </Alert>
                     )}
 
-                    <form onSubmit={submitCheckout} className="space-y-5">
+                    <form
+                        onSubmit={submitCheckout}
+                        className="space-y-5"
+                        data-analytics-label="booking_form"
+                        data-service-type="content_booking"
+                        data-checkout-stage="customer_details"
+                    >
                         <div className="grid gap-4 sm:grid-cols-2">
-                            <Field label={t('booking.form.full_name')}>
+                            <Field label={t('booking.form.full_name')} htmlFor="booking-client-name">
                                 <Input
+                                    id="booking-client-name"
+                                    name="client_name"
+                                    autoComplete="name"
                                     value={data.client_name}
                                     onChange={(e) => setData('client_name', e.target.value)}
                                     required
                                     className="bg-input/50"
                                 />
                             </Field>
-                            <Field label={`${t('common.form.email')} *`}>
+                            <Field label={`${t('common.form.email')} *`} htmlFor="booking-client-email">
                                 <Input
+                                    id="booking-client-email"
+                                    name="client_email"
+                                    autoComplete="email"
                                     type="email"
                                     value={data.client_email}
                                     onChange={(e) => setData('client_email', e.target.value)}
@@ -977,8 +1006,11 @@ function BookingForm({
                                     className="bg-input/50"
                                 />
                             </Field>
-                            <Field label={t('booking.form.whatsapp')}>
+                            <Field label={t('booking.form.whatsapp')} htmlFor="booking-client-phone">
                                 <Input
+                                    id="booking-client-phone"
+                                    name="client_phone"
+                                    autoComplete="tel"
                                     type="tel"
                                     value={data.client_phone}
                                     onChange={(e) => setData('client_phone', e.target.value)}
@@ -986,8 +1018,10 @@ function BookingForm({
                                     className="bg-input/50"
                                 />
                             </Field>
-                            <Field label={t('booking.form.instagram')}>
+                            <Field label={t('booking.form.instagram')} htmlFor="booking-client-instagram">
                                 <Input
+                                    id="booking-client-instagram"
+                                    name="client_instagram"
                                     value={data.client_instagram}
                                     onChange={(e) => setData('client_instagram', e.target.value)}
                                     placeholder={t('common.form.placeholder_instagram_optional')}
@@ -996,8 +1030,10 @@ function BookingForm({
                             </Field>
                         </div>
 
-                        <Field label={t('booking.form.notes')}>
+                        <Field label={t('booking.form.notes')} htmlFor="booking-notes">
                             <Textarea
+                                id="booking-notes"
+                                name="notes"
                                 value={data.notes}
                                 onChange={(e) => setData('notes', e.target.value)}
                                 rows={3}
@@ -1125,7 +1161,7 @@ function DateOption({
             onClick={onClick}
             aria-pressed={selected}
             className={cn(
-                'flex w-full flex-col rounded-2xl border-2 text-left transition duration-200',
+                'flex w-full flex-col border-2 text-left transition duration-200',
                 compact ? 'min-h-[6.75rem] p-3 sm:min-h-[7.5rem] sm:p-4' : 'min-h-[7.5rem] p-3.5 sm:p-4',
                 'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background',
                 'active:scale-[0.98]',
@@ -1337,14 +1373,16 @@ function TermsModal({
 
 function Field({
     label,
+    htmlFor,
     children,
 }: {
     label: string;
+    htmlFor: string;
     children: ReactNode;
 }) {
     return (
         <div>
-            <Label className="mb-1.5 text-xs uppercase tracking-wider text-muted-foreground">
+            <Label htmlFor={htmlFor} className="mb-1.5 text-xs uppercase tracking-wider text-muted-foreground">
                 {label}
             </Label>
             {children}

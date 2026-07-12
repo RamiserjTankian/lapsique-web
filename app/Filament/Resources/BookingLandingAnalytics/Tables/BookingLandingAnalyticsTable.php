@@ -58,6 +58,24 @@ class BookingLandingAnalyticsTable
                     ->numeric()
                     ->alignCenter(),
 
+                TextColumn::make('video_plays_count')
+                    ->label('Plays')
+                    ->numeric()
+                    ->alignCenter()
+                    ->toggleable(),
+
+                TextColumn::make('contact_events_count')
+                    ->label('Contactos')
+                    ->numeric()
+                    ->color(fn ($state) => $state > 0 ? 'success' : 'gray')
+                    ->alignCenter(),
+
+                TextColumn::make('form_starts_count')
+                    ->label('Formularios')
+                    ->numeric()
+                    ->alignCenter()
+                    ->toggleable(),
+
                 TextColumn::make('last_seen_at')
                     ->label('Ultima actividad')
                     ->dateTime('d/m/Y H:i')

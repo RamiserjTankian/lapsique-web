@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use App\Http\Resources\VideoResource;
 use App\Models\Dj;
 use App\Models\Video;
+use App\Http\Resources\PortfolioItemResource;
+use App\Support\PortfolioCuration;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -21,6 +23,10 @@ class VideoController extends Controller
 
         $baseQuery = Video::query()
             ->with(['djs.media'])
+            ->whereHas('djs', fn ($query) => $query->where(
+                'trascendental_roster',
+                config('trascendental.enabled_as_primary'),
+            ))
             ->when($highlightedDjId, function ($query) use ($highlightedDjId) {
                 return $query->orderByRaw('EXISTS(
                     SELECT 1 FROM dj_video 
@@ -56,15 +62,35 @@ class VideoController extends Controller
                 ],
             ],
             'highlightedDjName' => $highlightedDj?->name,
+            'aftermovies' => PortfolioItemResource::collection(PortfolioCuration::forAftermovies(9))->resolve(),
         ]);
     }
 
     public function show(Video $video): Response
     {
         $video->load('djs.media');
+        abort_unless(
+            $video->djs->contains(
+                fn (Dj $dj) => (bool) $dj->trascendental_roster === (bool) config('trascendental.enabled_as_primary'),
+            ),
+            404,
+        );
+
+        $related = Video::query()
+            ->with('djs.media')
+            ->whereKeyNot($video->getKey())
+            ->whereHas('djs', fn ($query) => $query->where(
+                'trascendental_roster',
+                config('trascendental.enabled_as_primary'),
+            ))
+            ->orderByDesc('is_featured')
+            ->orderBy('priority')
+            ->limit(3)
+            ->get();
 
         return Inertia::render('Videos/Show', [
             'video' => (new VideoResource($video))->resolve(),
+            'relatedVideos' => VideoResource::collection($related)->resolve(),
             'instagramUrl' => config('lapsique.instagram_url'),
         ]);
     }

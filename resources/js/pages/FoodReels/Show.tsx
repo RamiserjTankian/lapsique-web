@@ -443,7 +443,8 @@ export default function FoodReelsShow({ price, slots, errors }: FoodReelsShowPro
                             </p>
                         </div>
 
-                        <div className="grid w-full max-w-xl gap-3 sm:grid-cols-2">
+                        <div className="w-full max-w-xl">
+                            <div className="grid gap-3 sm:grid-cols-2">
                             <BookingCtaButton
                                 type="button"
                                 className="min-h-12 w-full min-w-0 rounded-lg px-4 text-sm whitespace-normal sm:text-base"
@@ -453,17 +454,21 @@ export default function FoodReelsShow({ price, slots, errors }: FoodReelsShowPro
                                 {copy.heroPrimary}
                             </BookingCtaButton>
                             <Button
-                                type="button"
-                                variant="outline"
+                                variant="default"
                                 size="xl"
-                                className="min-h-12 w-full min-w-0 rounded-lg border-white/22 bg-white/5 px-4 text-sm text-white whitespace-normal hover:bg-white/12 hover:text-white sm:text-base"
+                                className="min-h-12 w-full min-w-0 rounded-none border border-[#25D366] bg-[#25D366] px-4 text-sm text-white whitespace-normal hover:bg-[#1ebe5d] hover:text-white sm:text-base"
                                 asChild
                             >
-                                <a href="#prueba-real">
-                                    <Play data-icon="inline-start" />
-                                    {copy.heroSecondary}
+                                <a href={whatsappHref} target="_blank" rel="noopener noreferrer" onClick={() => trackWhatsApp('hero')}>
+                                    <MessageCircle data-icon="inline-start" />
+                                    {copy.whatsappCta}
                                 </a>
                             </Button>
+                            </div>
+                            <a href="#prueba-real" className="mt-4 inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.16em] text-white/70 transition hover:text-primary">
+                                <Play className="size-4" />
+                                {copy.heroSecondary}
+                            </a>
                         </div>
                     </div>
 
@@ -483,18 +488,20 @@ export default function FoodReelsShow({ price, slots, errors }: FoodReelsShowPro
                 </div>
             </section>
 
-            <section id="prueba-real" className="mx-auto flex max-w-6xl flex-col gap-5 px-4 pt-10 sm:px-6 lg:pt-12">
+            <section id="prueba-real" className="mx-auto flex max-w-6xl flex-col gap-5 px-4 pt-16 sm:px-6 lg:pt-20">
                 <SectionHeader
                     title={copy.reelSectionTitle}
                 />
                 <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-                    {FOOD_REELS.map((reel) => (
+                    {FOOD_REELS.map((reel, index) => (
+                        <div key={reel.id} className={cn(index > 1 && 'max-sm:hidden')}>
                         <ReelSelector
                             key={reel.id}
                             reel={reel}
                             selected={reel.id === activeReel.id}
                             onSelect={() => setActiveReelId(reel.id)}
                         />
+                        </div>
                     ))}
                 </div>
             </section>
@@ -508,8 +515,8 @@ export default function FoodReelsShow({ price, slots, errors }: FoodReelsShowPro
                         inverted
                     />
                     <div className="grid gap-3 md:grid-cols-3">
-                        {ACTIVATION_PHOTOS.map((photo) => (
-                            <MediaPhoto key={photo.id} photo={photo} dark />
+                        {ACTIVATION_PHOTOS.map((photo, index) => (
+                            <MediaPhoto key={photo.id} photo={photo} dark className={cn(index > 1 && 'max-sm:hidden')} />
                         ))}
                     </div>
                 </div>
@@ -521,8 +528,8 @@ export default function FoodReelsShow({ price, slots, errors }: FoodReelsShowPro
                     className="max-w-3xl"
                 />
                 <div className="grid auto-rows-[210px] grid-flow-dense gap-3 sm:grid-cols-2 sm:auto-rows-[250px] lg:grid-cols-4 lg:auto-rows-[245px]">
-                    {SESSION_PHOTOS.map((photo) => (
-                        <MediaPhoto key={photo.id} photo={photo} mosaic />
+                    {SESSION_PHOTOS.map((photo, index) => (
+                        <MediaPhoto key={photo.id} photo={photo} mosaic className={cn(index > 5 && 'max-sm:hidden')} />
                     ))}
                 </div>
             </section>
@@ -533,8 +540,8 @@ export default function FoodReelsShow({ price, slots, errors }: FoodReelsShowPro
                     className="max-w-3xl"
                 />
                 <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-                    {PRODUCT_PHOTOS.slice(0, 10).map((photo) => (
-                        <MediaPhoto key={photo.id} photo={photo} dense />
+                    {PRODUCT_PHOTOS.slice(0, 10).map((photo, index) => (
+                        <MediaPhoto key={photo.id} photo={photo} dense className={cn(index > 5 && 'max-sm:hidden')} />
                     ))}
                 </div>
             </section>
@@ -543,6 +550,9 @@ export default function FoodReelsShow({ price, slots, errors }: FoodReelsShowPro
                 serviceKey="reels_de_comida"
                 onBook={openBooking}
                 className="pt-4"
+                showOutcomes={false}
+                emphasizeForm
+                faqAccordion
             />
 
             <BookingWidget
@@ -600,10 +610,11 @@ export default function FoodReelsShow({ price, slots, errors }: FoodReelsShowPro
                                 {copy.bookingDescription}
                             </p>
                         </div>
-                        <div className="grid w-full min-w-0 gap-2 sm:grid-cols-2 lg:w-auto lg:min-w-[360px]">
+                        <div className="grid w-full min-w-0 gap-3 sm:grid-cols-2 lg:w-auto lg:min-w-[430px]">
                             <Button
-                                variant="outline"
-                                className="w-full rounded-lg"
+                                variant="default"
+                                size="xl"
+                                className="min-h-13 w-full rounded-none bg-[#25D366] px-5 text-white hover:bg-[#1ebe5d] hover:text-white"
                                 asChild
                             >
                                 <a
@@ -618,7 +629,7 @@ export default function FoodReelsShow({ price, slots, errors }: FoodReelsShowPro
                             </Button>
                             <BookingCtaButton
                                 type="button"
-                                className="w-full rounded-lg"
+                                className="min-h-13 w-full rounded-none px-5"
                                 onClick={() => openBooking('package')}
                             >
                                 {copy.packageCta}
@@ -703,12 +714,14 @@ function ReelSelector({
 
 function MediaPhoto({
     photo,
+    className,
     compact = false,
     dark = false,
     mosaic = false,
     dense = false,
 }: {
     photo: FoodPhoto;
+    className?: string;
     compact?: boolean;
     dark?: boolean;
     mosaic?: boolean;
@@ -736,6 +749,7 @@ function MediaPhoto({
             mosaic && photo.layout === 'large' && 'sm:col-span-2 sm:row-span-2',
             mosaic && photo.layout === 'wide' && 'sm:col-span-2',
             mosaic && photo.layout === 'tall' && 'sm:row-span-2',
+            className,
         )}>
             <div className={cn('overflow-hidden bg-black', aspectClass)}>
                 <img

@@ -3,6 +3,8 @@
 namespace Tests\Unit;
 
 use App\Models\PortfolioItem;
+use App\Models\Dj;
+use App\Models\Event;
 use App\Models\SiteSetting;
 use App\Models\Video;
 use App\Support\PageMeta;
@@ -31,16 +33,17 @@ class PageMetaTest extends TestCase
 
         $meta = PageMeta::forBookingFunnel($settings, 'https://lapsique.media/');
 
-        $this->assertSame('Reels para anuncios de tu negocio', $meta->title);
+        $this->assertSame('Producción audiovisual, DJ sets y eventos en Riviera Maya', $meta->title);
         $this->assertStringContainsString('Lapsique Media', $meta->metaTitle);
-        $this->assertStringContainsString('Meta Ads', $meta->description);
-        $this->assertStringContainsString('dron DJI', $meta->description);
+        $this->assertStringContainsString('Psique Sessions', $meta->description);
+        $this->assertStringContainsString('Sony Alpha', $meta->description);
         $this->assertStringContainsString('4,000', $meta->description);
         $this->assertNotNull($meta->jsonLd);
-        $this->assertSame('Producción de reels para anuncios', $meta->jsonLd['serviceType']);
-        $this->assertSame('Riviera Maya', $meta->jsonLd['areaServed']['name']);
-        $this->assertSame(4000, $meta->jsonLd['offers']['price']);
-        $this->assertSame('https://lapsique.media/#agenda', $meta->jsonLd['offers']['url']);
+        $service = collect($meta->jsonLd['@graph'])->firstWhere('@type', 'Service');
+        $this->assertSame('Producción de reels para anuncios', $service['serviceType']);
+        $this->assertSame('Riviera Maya', $service['areaServed']['name']);
+        $this->assertSame(4000, $service['offers']['price']);
+        $this->assertSame('https://lapsique.media/#agenda', $service['offers']['url']);
         $this->assertStringContainsString('booking-og.jpg', (string) $meta->ogImage);
     }
 
@@ -57,6 +60,36 @@ class PageMetaTest extends TestCase
         $meta = PageMeta::forBookingFunnel($settings, 'https://lapsique.media/');
 
         $this->assertStringContainsString('images/og/custom.jpg', (string) $meta->ogImage);
+    }
+
+    public function test_editorial_entities_publish_specific_schema_types(): void
+    {
+        $dj = Dj::create([
+            'name' => 'Schema Artist',
+            'slug' => 'schema-artist',
+            'bio' => 'Electronic artist documented by Lapsique Media.',
+            'trascendental_roster' => false,
+        ]);
+        $video = Video::create([
+            'title' => 'Schema Session',
+            'slug' => 'schema-session',
+            'youtube_id' => 'abcdefghijk',
+            'youtube_url' => 'https://www.youtube.com/watch?v=abcdefghijk',
+            'thumbnail_url' => 'https://img.youtube.com/vi/abcdefghijk/maxresdefault.jpg',
+            'published_at' => now(),
+        ]);
+        $event = Event::create([
+            'title' => 'Schema Event',
+            'slug' => 'schema-event',
+            'starts_at' => now()->addMonth(),
+            'venue' => 'Test Venue',
+            'city' => 'Tulum',
+            'trascendental_visible' => false,
+        ]);
+
+        $this->assertSame('Person', PageMeta::forDj($dj, 'https://lapsique.media/djs/schema-artist')->jsonLd['@type']);
+        $this->assertSame('VideoObject', PageMeta::forVideo($video, 'https://lapsique.media/trabajos-en-video/schema-session')->jsonLd['@type']);
+        $this->assertSame('Event', PageMeta::forEvent($event, 'https://lapsique.media/eventos/schema-event')->jsonLd['@type']);
     }
 
     public function test_booking_og_image_uses_static_campaign_image_before_portfolio_photo(): void

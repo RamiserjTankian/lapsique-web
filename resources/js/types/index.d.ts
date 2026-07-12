@@ -109,6 +109,18 @@ export interface EventItem {
     starts_at: string | null;
     cover_url: string | null;
     location_name: string | null;
+    venue?: string | null;
+    city?: string | null;
+    headline?: string | null;
+    description?: string | null;
+    youtube_url?: string | null;
+    ticket_url?: string | null;
+    is_upcoming?: boolean;
+    has_tickets?: boolean;
+    guest_list_url?: string | null;
+    lineup?: DjItem[];
+    gallery?: Array<{ id: number; url: string; thumb_url: string }>;
+    venue_gallery?: Array<{ id: number; url: string; thumb_url: string }>;
 }
 
 export interface ContentBookingDeliverableLink {

@@ -242,6 +242,7 @@ export function WhatsAppFab() {
 
                         <a
                             href={href}
+                            data-whatsapp-prompt="true"
                             target="_blank"
                             rel="noopener noreferrer"
                             onClick={() => {

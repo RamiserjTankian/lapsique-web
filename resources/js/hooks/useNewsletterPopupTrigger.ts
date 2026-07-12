@@ -12,10 +12,10 @@ import {
     supportsExitIntent,
 } from '@/lib/funnelScrollTrigger';
 
-const NEWSLETTER_DELAY_MS = 90_000;
-const NEWSLETTER_SCROLL_THRESHOLD_PERCENT = 84;
-const NEWSLETTER_MIN_TIME_ON_PAGE_MS = 70_000;
-const NEWSLETTER_EXIT_MIN_TIME_MS = 45_000;
+const NEWSLETTER_DELAY_MS = 55_000;
+const NEWSLETTER_SCROLL_THRESHOLD_PERCENT = 70;
+const NEWSLETTER_MIN_TIME_ON_PAGE_MS = 35_000;
+const NEWSLETTER_EXIT_MIN_TIME_MS = 25_000;
 
 export function useNewsletterPopupTrigger({
     enabled,
@@ -28,8 +28,10 @@ export function useNewsletterPopupTrigger({
     setOpen: (open: boolean) => void;
     openManually: (source?: string) => void;
     dismiss: () => void;
+    source: string;
 } {
     const [open, setOpenState] = useState(false);
+    const [source, setSource] = useState('auto');
     const triggeredRef = useRef(false);
     const exitTriggeredRef = useRef(false);
     const mountTimeRef = useRef(Date.now());
@@ -85,7 +87,7 @@ export function useNewsletterPopupTrigger({
     );
 
     const tryOpen = useCallback(
-        (source: string) => {
+        (triggerSource: string) => {
             if (!canShow()) {
                 return;
             }
@@ -99,6 +101,7 @@ export function useNewsletterPopupTrigger({
                 }
 
                 triggeredRef.current = true;
+                setSource(triggerSource);
                 setOpen(true);
             }, 0);
         },
@@ -113,6 +116,7 @@ export function useNewsletterPopupTrigger({
 
             clearPendingOpen();
             triggeredRef.current = true;
+            setSource(source);
             setOpen(true);
         },
         [clearPendingOpen, setOpen, skipIfLoggedIn],
@@ -167,7 +171,7 @@ export function useNewsletterPopupTrigger({
             }
         };
 
-        const timer = window.setTimeout(() => tryOpen('timer_90s'), NEWSLETTER_DELAY_MS);
+        const timer = window.setTimeout(() => tryOpen('engaged_timer_55s'), NEWSLETTER_DELAY_MS);
 
         const exitIntentEnabled = supportsExitIntent();
 
@@ -186,5 +190,5 @@ export function useNewsletterPopupTrigger({
         };
     }, [clearPendingOpen, enabled, skipIfLoggedIn, tryOpen]);
 
-    return { open, setOpen, openManually, dismiss };
+    return { open, setOpen, openManually, dismiss, source };
 }

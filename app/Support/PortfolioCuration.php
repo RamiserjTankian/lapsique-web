@@ -65,6 +65,22 @@ class PortfolioCuration
         'tanuki',
     ];
 
+    private const SCENE_PATTERNS = [
+        'traumer-shonky',
+        'rebolledo',
+        'proper-collective',
+        'satoshi',
+        'vatos-locos',
+        'sudbeat',
+        'sasha',
+        'victor-ruiz',
+        'basement',
+        'pergola',
+        'umi',
+        'on-heaven',
+        'santino',
+    ];
+
     /**
      * @return Collection<int, PortfolioItem>
      */
@@ -87,6 +103,32 @@ class PortfolioCuration
             self::basePhotoQuery()->get(),
             self::DJ_SET_PATTERNS,
             self::DJ_SET_EXCLUDED_PATTERNS,
+            $limit,
+        );
+    }
+
+    /**
+     * @return Collection<int, PortfolioItem>
+     */
+    public static function forScene(int $limit = 12): Collection
+    {
+        return self::curate(
+            self::basePublicQuery()->whereIn('type', ['photo', 'reel', 'aftermovie', 'video'])->get(),
+            self::SCENE_PATTERNS,
+            self::DJ_SET_EXCLUDED_PATTERNS,
+            $limit,
+        );
+    }
+
+    /**
+     * @return Collection<int, PortfolioItem>
+     */
+    public static function forAftermovies(int $limit = 12): Collection
+    {
+        return self::curate(
+            self::basePublicQuery()->where('type', 'aftermovie')->get(),
+            self::SCENE_PATTERNS,
+            [],
             $limit,
         );
     }
@@ -128,9 +170,14 @@ class PortfolioCuration
 
     protected static function basePhotoQuery()
     {
+        return self::basePublicQuery()
+            ->where('type', 'photo');
+    }
+
+    protected static function basePublicQuery()
+    {
         return PortfolioItem::query()
             ->where('is_active', true)
-            ->where('type', 'photo')
             ->with('media')
             ->orderByDesc('is_featured')
             ->orderBy('priority')

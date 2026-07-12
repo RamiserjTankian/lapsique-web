@@ -42,7 +42,8 @@
 
 @theme inline {
     --font-sans: 'DM Sans', ui-sans-serif, system-ui, sans-serif;
-    --font-display: 'Syne', ui-sans-serif, system-ui, sans-serif;
+    --font-display: 'Barlow Condensed', 'Arial Narrow', ui-sans-serif, system-ui, sans-serif;
+    --font-ui-display: 'DM Sans', ui-sans-serif, system-ui, sans-serif;
     --font-mono: 'IBM Plex Mono', ui-monospace, monospace;
 
     --radius-sm: calc(var(--radius) - 4px);
@@ -79,25 +80,25 @@
 :root {
     color-scheme: light;
 
-    --radius: 0.75rem;
-    --background: oklch(0.98 0.01 90);
-    --foreground: oklch(0.18 0.02 260);
-    --card: oklch(1 0 0);
-    --card-foreground: oklch(0.18 0.02 260);
-    --popover: oklch(1 0 0);
-    --popover-foreground: oklch(0.18 0.02 260);
-    --primary: oklch(0.72 0.14 75);
-    --primary-foreground: oklch(0.15 0.02 75);
-    --secondary: oklch(0.94 0.01 90);
-    --secondary-foreground: oklch(0.25 0.02 260);
-    --muted: oklch(0.94 0.01 90);
-    --muted-foreground: oklch(0.48 0.02 260);
-    --accent: oklch(0.65 0.1 200);
-    --accent-foreground: oklch(0.12 0.02 200);
+    --radius: 0.25rem;
+    --background: oklch(0.965 0.004 85);
+    --foreground: oklch(0.14 0.008 255);
+    --card: oklch(0.985 0.002 85);
+    --card-foreground: oklch(0.14 0.008 255);
+    --popover: oklch(0.985 0.002 85);
+    --popover-foreground: oklch(0.14 0.008 255);
+    --primary: oklch(0.64 0.17 48);
+    --primary-foreground: oklch(0.985 0.002 85);
+    --secondary: oklch(0.91 0.004 85);
+    --secondary-foreground: oklch(0.18 0.008 255);
+    --muted: oklch(0.92 0.004 85);
+    --muted-foreground: oklch(0.43 0.01 255);
+    --accent: oklch(0.22 0.012 255);
+    --accent-foreground: oklch(0.985 0.002 85);
     --destructive: oklch(0.55 0.2 25);
     --border: oklch(0.2 0.02 260 / 0.12);
     --input: oklch(0.2 0.02 260 / 0.1);
-    --ring: oklch(0.72 0.14 75 / 0.45);
+    --ring: oklch(0.64 0.17 48 / 0.48);
     --selection: oklch(0.52 0.16 150);
     --selection-foreground: oklch(0.99 0.01 150);
     --selection-glow: oklch(0.52 0.16 150 / 0.35);
@@ -108,8 +109,8 @@
     --overlay-scrim: oklch(0.15 0.02 260 / 0.55);
     --surface-glass: oklch(1 0 0 / 0.72);
     --surface-glass-border: oklch(0.2 0.02 260 / 0.12);
-    --body-glow-primary: oklch(0.78 0.14 75 / 0.12);
-    --body-glow-accent: oklch(0.72 0.1 200 / 0.08);
+    --body-glow-primary: transparent;
+    --body-glow-accent: transparent;
 
     --glass-nav-bg: oklch(0.98 0.01 90 / 0.92);
     --glass-nav-shadow: oklch(0 0 0 / 0.08);
@@ -128,7 +129,7 @@
     --glass-glow-accent: oklch(0.65 0.1 200 / 0.3);
     --glass-glow-fade: oklch(0.2 0.02 260 / 0.06);
     --vignette-color: oklch(0.92 0.01 90 / 0.5);
-    --hero-radial-glow: rgba(255, 210, 120, 0.35);
+    --hero-radial-glow: rgb(198 83 32 / 0.16);
     --sticky-bar-bg: oklch(0.98 0.01 90 / 0.92);
     --sticky-bar-shadow: oklch(0 0 0 / 0.12);
 }
@@ -143,18 +144,18 @@
     --card-foreground: oklch(0.97 0.01 90);
     --popover: oklch(0.12 0.02 260);
     --popover-foreground: oklch(0.97 0.01 90);
-    --primary: oklch(0.78 0.14 75);
-    --primary-foreground: oklch(0.15 0.02 75);
+    --primary: oklch(0.68 0.18 48);
+    --primary-foreground: oklch(0.98 0.002 85);
     --secondary: oklch(1 0 0 / 0.08);
     --secondary-foreground: oklch(0.92 0.01 90);
     --muted: oklch(0.18 0.02 260);
     --muted-foreground: oklch(0.72 0.02 260);
-    --accent: oklch(0.72 0.1 200);
-    --accent-foreground: oklch(0.12 0.02 200);
+    --accent: oklch(0.9 0.005 85);
+    --accent-foreground: oklch(0.12 0.008 255);
     --destructive: oklch(0.55 0.2 25);
     --border: oklch(1 0 0 / 0.12);
     --input: oklch(1 0 0 / 0.1);
-    --ring: oklch(0.78 0.14 75 / 0.4);
+    --ring: oklch(0.68 0.18 48 / 0.5);
     --selection: oklch(0.58 0.17 150);
     --selection-foreground: oklch(0.98 0.01 150);
     --selection-glow: oklch(0.58 0.17 150 / 0.38);
@@ -165,8 +166,8 @@
     --overlay-scrim: oklch(0.04 0.02 260 / 0.86);
     --surface-glass: oklch(1 0 0 / 0.06);
     --surface-glass-border: oklch(1 0 0 / 0.12);
-    --body-glow-primary: oklch(0.78 0.14 75 / 0.08);
-    --body-glow-accent: oklch(0.72 0.1 200 / 0.06);
+    --body-glow-primary: transparent;
+    --body-glow-accent: transparent;
 
     --glass-nav-bg: oklch(0.07 0.02 260 / 0.92);
     --glass-nav-shadow: oklch(0 0 0 / 0.45);
@@ -233,20 +234,78 @@
 
     body {
         @apply bg-background text-foreground font-sans antialiased;
-        background-image:
-            radial-gradient(ellipse 120% 80% at 50% -20%, var(--body-glow-primary), transparent 50%),
-            radial-gradient(ellipse 60% 40% at 100% 0%, var(--body-glow-accent), transparent 40%);
+        background-image: none;
     }
 
     h1,
     h2,
     h3 {
         font-family: var(--font-display);
+        text-wrap: balance;
+        text-transform: uppercase;
     }
+
+    h1 { letter-spacing: -0.025em; }
+    h2 { letter-spacing: -0.015em; }
+
+    p { text-wrap: pretty; }
 }
 
 .font-display {
     font-family: var(--font-display);
+}
+
+.font-ui-display {
+    font-family: var(--font-ui-display);
+}
+
+.editorial-rule {
+    border-top: 1px solid color-mix(in oklab, var(--foreground) 18%, transparent);
+}
+
+.alpha-kicker {
+    font-family: var(--font-mono);
+    font-size: 0.68rem;
+    font-weight: 500;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+}
+
+.alpha-frame {
+    border: 1px solid color-mix(in oklab, var(--foreground) 18%, transparent);
+    border-radius: 0;
+    box-shadow: none;
+}
+
+.lapsique-site h1,
+.lapsique-site h2,
+.lapsique-site h3 {
+    max-width: 100%;
+    overflow-wrap: break-word;
+    hyphens: none;
+}
+
+.lapsique-site main img:not([aria-hidden="true"]):not([data-no-lightbox="true"]) {
+    cursor: zoom-in;
+}
+
+.lapsique-site main a img,
+.lapsique-site main button img {
+    cursor: pointer;
+}
+
+/* WhatsApp is a single recognizable action across every public landing. */
+.lapsique-site a[href*="wa.me"]:not([data-whatsapp-prompt="true"]) {
+    border-color: #25d366 !important;
+    background-color: #25d366 !important;
+    color: #ffffff !important;
+    box-shadow: none !important;
+}
+
+.lapsique-site a[href*="wa.me"]:not([data-whatsapp-prompt="true"]):hover {
+    border-color: #1ebe5d !important;
+    background-color: #1ebe5d !important;
+    color: #ffffff !important;
 }
 
 .font-mono-tabular {
@@ -463,45 +522,33 @@
 
 .booking-cta {
     width: 100%;
-    border-radius: 0.75rem;
+    border-radius: 0;
+    border: 1px solid var(--foreground);
     font-weight: 700;
-    letter-spacing: 0.03em;
-    background-image: linear-gradient(
-        135deg,
-        oklch(0.84 0.16 78) 0%,
-        oklch(0.74 0.14 75) 48%,
-        oklch(0.68 0.13 72) 100%
-    );
-    color: oklch(0.12 0.02 75);
-    box-shadow:
-        0 0 32px oklch(0.78 0.14 75 / 0.42),
-        0 0 0 1px oklch(0.78 0.14 75 / 0.4);
+    letter-spacing: 0.08em;
+    background: var(--foreground);
+    color: var(--background);
+    box-shadow: none;
 }
 
 .booking-cta:hover {
-    background-image: linear-gradient(
-        135deg,
-        oklch(0.86 0.17 78) 0%,
-        oklch(0.76 0.15 75) 48%,
-        oklch(0.7 0.14 72) 100%
-    );
+    border-color: var(--primary);
+    background: var(--primary);
+    color: white;
 }
 
 .booking-cta--hero {
     min-height: 3.5rem;
     padding-inline: 2rem;
     font-size: 1.0625rem;
-    outline: 2px solid oklch(0.78 0.14 75 / 0.55);
-    outline-offset: 3px;
+    outline: none;
 }
 
 @media (min-width: 1024px) {
     .booking-cta--hero {
         min-height: 4rem;
         font-size: 1.125rem;
-        box-shadow:
-            0 0 64px oklch(0.82 0.16 75 / 0.62),
-            0 0 0 2px oklch(0.78 0.14 75 / 0.55);
+        box-shadow: none;
     }
 }
 
@@ -517,22 +564,7 @@
  * booking/reservation button). Intermediate CTAs keep the gold gradient but
  * stay static so the page reads less generic.
  */
-@media (prefers-reduced-motion: no-preference) {
-    .booking-cta--hero,
-    .booking-cta--primary {
-        animation: var(--animate-booking-cta-glow);
-    }
-
-    .booking-cta:not(.booking-cta--compact):hover {
-        transform: scale(1.02);
-    }
-}
-
-@media (prefers-reduced-motion: reduce) {
-    .booking-cta:not(.booking-cta--compact):hover {
-        transform: none;
-    }
-}
+.booking-cta:not(.booking-cta--compact):hover { transform: translateY(-1px); }
 
 .theme-scrollbar,
 .cinematic-scroll {

@@ -1,4 +1,5 @@
 import { ArrowUpRight, AtSign, Camera, Sparkles, Video } from 'lucide-react';
+import { usePage } from '@inertiajs/react';
 import { CREATOR_PROFILE } from '@/data/creatorProfile';
 import { useTranslations } from '@/hooks/useTranslations';
 
@@ -21,12 +22,31 @@ const CREATOR_COPY = {
 
 const CHIP_ICONS = [Video, Camera, Sparkles] as const;
 
+const DJ_SET_COPY = {
+    es: {
+        eyebrow: 'Dirección de DJ sets',
+        title: 'Ramiro produce DJ sets que se ven y suenan como una pieza en vivo.',
+        body: 'Dirección multicámara, señal limpia del mixer y edición al beat para entregar un set completo, clips verticales y material de promoción.',
+        cta: 'Ver sets en Instagram',
+        chips: ['Dirección multicámara', 'Audio del mixer', 'Edición al beat'],
+    },
+    en: {
+        eyebrow: 'DJ set direction',
+        title: 'Ramiro produces DJ sets that look and sound like a live piece.',
+        body: 'Multi-camera direction, clean mixer audio, and beat-matched editing for a full set, vertical clips, and promotional assets.',
+        cta: 'View sets on Instagram',
+        chips: ['Multi-camera direction', 'Mixer audio', 'Beat-matched edit'],
+    },
+} as const;
+
 export function CreatorTrustSection() {
     const { locale } = useTranslations();
-    const copy = CREATOR_COPY[locale === 'en' ? 'en' : 'es'];
+    const { url } = usePage();
+    const language = locale === 'en' ? 'en' : 'es';
+    const copy = url.split('?')[0] === '/dj-set' ? DJ_SET_COPY[language] : CREATOR_COPY[language];
 
     return (
-        <section data-creator-trust-section="true" className="mx-auto mt-16 w-full max-w-6xl px-4 sm:px-6">
+        <section data-creator-trust-section="true" className="mx-auto mb-10 mt-6 w-full max-w-6xl px-4 sm:px-6">
             <div className="relative overflow-hidden rounded-2xl border border-border/70 bg-[linear-gradient(135deg,rgb(255_255_255/0.88),rgb(244_239_232/0.76))] p-5 shadow-[0_24px_80px_rgb(42_23_12/0.10)] backdrop-blur-md dark:bg-[linear-gradient(135deg,rgb(15_12_10/0.9),rgb(24_18_14/0.86))] dark:shadow-black/30 sm:p-6 md:p-8">
                 <div className="absolute inset-y-0 right-0 hidden w-1/3 bg-[radial-gradient(circle_at_center,rgb(206_58_42/0.22),transparent_62%)] lg:block" />
                 <div className="relative grid gap-8 lg:grid-cols-[1fr_0.46fr] lg:items-center">

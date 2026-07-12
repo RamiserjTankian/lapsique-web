@@ -16,22 +16,22 @@ import {
 import { attachScrollDepthTrigger } from '@/lib/funnelScrollTrigger';
 
 const OPEN_COOLDOWN_MS = 5_000;
-const BOOKING_CLOSE_DELAY_MS = 90_000;
+const BOOKING_CLOSE_DELAY_MS = 45_000;
 
 const DESKTOP = {
-    settledDelayMinMs: 150_000,
-    settledDelayRangeMs: 60_000,
-    engagementMinSections: 4,
-    engagementMinTimeMs: 90_000,
-    scrollThresholdPercent: 82,
+    settledDelayMinMs: 75_000,
+    settledDelayRangeMs: 30_000,
+    engagementMinSections: 3,
+    engagementMinTimeMs: 45_000,
+    scrollThresholdPercent: 72,
 } as const;
 
 const MOBILE = {
-    settledDelayMinMs: 120_000,
-    settledDelayRangeMs: 45_000,
-    engagementMinSections: 3,
-    engagementMinTimeMs: 70_000,
-    scrollThresholdPercent: 76,
+    settledDelayMinMs: 65_000,
+    settledDelayRangeMs: 25_000,
+    engagementMinSections: 2,
+    engagementMinTimeMs: 40_000,
+    scrollThresholdPercent: 68,
 } as const;
 
 function isMobileViewport(): boolean {

@@ -66,7 +66,7 @@ export function NewsletterCaptureModal({
     source = 'auto',
 }: NewsletterCaptureModalProps) {
     const { ziggy } = usePage<PageProps>().props;
-    const { t } = useTranslations();
+    const { t, locale } = useTranslations();
     const visual = useMemo(() => getPopupVisualCopy(t, variant, 'newsletter'), [t, variant]);
     const image = useMemo(
         () =>
@@ -209,6 +209,16 @@ export function NewsletterCaptureModal({
                 </div>
             ) : (
                 <form onSubmit={submit} className="space-y-4">
+                    <div className="border-l-2 border-primary bg-primary/8 px-3 py-2">
+                        <p className="font-display text-base font-bold text-foreground">
+                            {source === 'exit_intent'
+                                ? (locale === 'en' ? 'Before you go, save a tailored recommendation.' : 'Antes de irte, guarda una recomendación para tu negocio.')
+                                : (locale === 'en' ? 'Tell us what you need and receive a useful proposal.' : 'Dinos qué necesitas y recibe una propuesta útil.')}
+                        </p>
+                        <p className="mt-1 text-xs text-muted-foreground">
+                            {locale === 'en' ? 'No generic newsletter. We use this to understand your project.' : 'No es un newsletter genérico. Usamos estos datos para entender tu proyecto.'}
+                        </p>
+                    </div>
                     <div className="space-y-2">
                         <Label htmlFor="newsletter-name">{t('common.form.name')}</Label>
                         <Input
@@ -264,7 +274,7 @@ export function NewsletterCaptureModal({
                             {INTEREST_OPTION_KEYS.map((option) => (
                                 <label
                                     key={option.id}
-                                    className="flex cursor-pointer items-center gap-2 rounded-xl border border-border/70 bg-secondary/60 px-3 py-2.5 text-sm transition hover:border-primary/30"
+                                    className="flex cursor-pointer items-center gap-2 border border-border/70 bg-secondary/60 px-3 py-2.5 text-sm transition hover:border-primary/50"
                                 >
                                     <Checkbox
                                         checked={interests.includes(option.id)}
@@ -282,7 +292,7 @@ export function NewsletterCaptureModal({
                         </p>
                     )}
 
-                    <Button type="submit" variant="cinematic" className="w-full" disabled={loading}>
+                    <Button type="submit" variant="cinematic" className="min-h-12 w-full rounded-none" disabled={loading}>
                         {loading ? (
                             <>
                                 <Loader2 className="h-4 w-4 animate-spin" />

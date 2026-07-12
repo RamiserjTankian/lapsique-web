@@ -34,15 +34,16 @@ export function DjGallery({ images, djName }: DjGalleryProps) {
     };
 
     return (
-        <section className="pb-16">
-            <h2 className="font-display mb-6 text-xl font-semibold">{t('pages.djs.gallery')}</h2>
-            <div className="columns-2 gap-3 sm:columns-3 md:gap-4">
+        <section className="border-b border-foreground/20 py-14 md:py-20">
+            <p className="alpha-kicker text-primary">Gallery / Photography</p>
+            <h2 className="mt-4 mb-8 text-4xl font-semibold md:text-6xl">{t('pages.djs.gallery')}</h2>
+            <div className="columns-2 gap-2 sm:columns-3">
                 {images.map((image, index) => (
                     <button
                         key={image.id}
                         type="button"
                         onClick={() => setActiveIndex(index)}
-                        className="group mb-3 block w-full break-inside-avoid overflow-hidden rounded-xl border border-border/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                        className="group mb-2 block w-full break-inside-avoid overflow-hidden border border-border/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                     >
                         <img
                             src={image.thumb_url}
@@ -57,12 +58,12 @@ export function DjGallery({ images, djName }: DjGalleryProps) {
             <Dialog open={activeIndex !== null} onOpenChange={(open) => !open && setActiveIndex(null)}>
                 <DialogContent showCloseButton={false} className={cn(modalShellGallery, 'w-[min(calc(100vw-1.5rem),62.5rem)]')}>
                     <DialogTitle className="sr-only">{t('pages.djs.gallery_of', { name: djName })}</DialogTitle>
-                    <div className="relative flex min-h-[50vh] items-center justify-center bg-muted/30">
+                    <div className="relative flex min-h-[50vh] items-center justify-center bg-black">
                         <Button
                             type="button"
                             variant="ghost"
                             size="icon"
-                            className="absolute top-3 right-3 z-20 rounded-full bg-background/70"
+                            className="absolute top-3 right-3 z-20 rounded-none bg-background/90"
                             onClick={() => setActiveIndex(null)}
                             aria-label={t('common.actions.close')}
                         >
@@ -74,7 +75,7 @@ export function DjGallery({ images, djName }: DjGalleryProps) {
                                     type="button"
                                     variant="ghost"
                                     size="icon"
-                                    className="absolute left-3 z-20 hidden h-11 w-11 rounded-full bg-background/60 sm:flex"
+                                    className="absolute left-3 z-20 hidden h-11 w-11 rounded-none bg-background/90 sm:flex"
                                     onClick={goPrev}
                                     aria-label={t('common.actions.previous')}
                                 >
@@ -84,7 +85,7 @@ export function DjGallery({ images, djName }: DjGalleryProps) {
                                     type="button"
                                     variant="ghost"
                                     size="icon"
-                                    className="absolute right-3 z-20 hidden h-11 w-11 rounded-full bg-background/60 sm:flex"
+                                    className="absolute right-3 z-20 hidden h-11 w-11 rounded-none bg-background/90 sm:flex"
                                     onClick={goNext}
                                     aria-label={t('common.actions.next')}
                                 >

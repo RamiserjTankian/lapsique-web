@@ -14,6 +14,8 @@ import {
     Ruler,
     ShieldCheck,
     Video,
+    ChevronLeft,
+    ChevronRight,
 } from 'lucide-react';
 import SiteLayout from '@/layouts/SiteLayout';
 import { AutoplayVideo } from '@/components/lapsique/AutoplayVideo';
@@ -22,7 +24,6 @@ import { BookingWidget } from '@/components/lapsique/BookingWidget';
 import { GlassSection } from '@/components/lapsique/GlassSection';
 import { PaymentTrustOrTestMode } from '@/components/lapsique/PaymentTrustPanel';
 import { SeoHead } from '@/components/lapsique/SeoHead';
-import { ServiceLandingSections } from '@/components/lapsique/ServiceLandingSections';
 import { Button } from '@/components/ui/button';
 import {
     DRONE_SESSION_BOOKING_CLIP,
@@ -48,9 +49,9 @@ const DRONE_PAGE_COPY = {
     es: {
         locations: ['Cancún', 'Playa del Carmen', 'Tulum'],
         analyticsName: 'Sesión de vuelo con dron DJI Air 3',
-        heroTitle: 'Sesiones de dron en Riviera Maya para hoteles, propiedades y negocios',
-        heroTagline: 'Muestra ubicación, arquitectura, escala y experiencia.',
-        heroDescription: 'Tomas aéreas profesionales para mostrar ubicación, arquitectura, escala, ambiente y experiencia con una imagen más premium para redes, web, anuncios y presentaciones comerciales.',
+        heroTitle: 'Video y foto con dron en Riviera Maya',
+        heroTagline: 'Ubicación, escala y arquitectura desde el aire.',
+        heroDescription: '15 clips y hasta 10 fotos aéreas listos para anuncios, redes, web y presentaciones.',
         priceLabel: 'Sesión completa',
         priceNote: '1 hora de vuelo · agenda online · pago seguro con tarjeta.',
         whatsappCta: 'Cotizar por WhatsApp',
@@ -63,7 +64,7 @@ const DRONE_PAGE_COPY = {
         rangeNote: '*Altura y distancia máximas de referencia. El vuelo real se ajusta a normativa, permisos, clima, señal, batería y seguridad.',
         materialEyebrow: 'Material real',
         materialTitle: 'Clips seleccionados desde vuelos de dron',
-        materialDescription: 'La landing usa tomas reales del archivo de dron: yates, obra, terrenos, eventos, condominios, hotelería, Airbnb y DJ sets.',
+        materialDescription: 'Vuelos reales para propiedades, obra, eventos, yates y hospitalidad.',
         packageEyebrow: 'Paquete',
         packageTitle: 'Qué incluye la sesión de $3,000 MXN',
         packageDescription: 'Un paquete directo para vender propiedades, experiencias y avances con material aéreo limpio.',
@@ -93,7 +94,7 @@ const DRONE_PAGE_COPY = {
         ],
         constructionEyebrow: 'Avances de obra',
         constructionTitle: 'Avances de obra con dron para vender progreso real.',
-        constructionDescription: 'Goba editado queda como muestra principal: se ve avance, contexto de zona y escala del desarrollo sin depender de renders. También sumamos material reciente de OKOM normalizado desde D-Log para mostrar cómo se puede documentar obra por etapas.',
+        constructionDescription: 'Cada obra reúne sus clips en un solo carrusel para revisar avance, detalle y contexto sin repetir tarjetas.',
         constructionPills: ['Reportes para inversionistas', 'Preventas y avances', 'Comparables por etapa'],
         technicalEyebrow: 'Técnico',
         technicalTitle: 'Captura pensada para edición y color',
@@ -197,9 +198,9 @@ const DRONE_PAGE_COPY = {
     en: {
         locations: ['Cancun', 'Playa del Carmen', 'Tulum'],
         analyticsName: 'DJI Air 3 drone flight session',
-        heroTitle: 'Drone sessions in Riviera Maya for hotels, properties, and businesses',
-        heroTagline: 'Show location, architecture, scale, and experience.',
-        heroDescription: 'Professional aerial shots to show location, architecture, scale, atmosphere, and experience with a more premium image for social, web, ads, and commercial presentations.',
+        heroTitle: 'Drone video and photography in Riviera Maya',
+        heroTagline: 'Location, scale, and architecture from the air.',
+        heroDescription: '15 clips and up to 10 aerial photos ready for ads, social, web, and presentations.',
         priceLabel: 'Complete session',
         priceNote: '1-hour flight · online booking · secure card payment.',
         whatsappCta: 'Quote on WhatsApp',
@@ -212,7 +213,7 @@ const DRONE_PAGE_COPY = {
         rangeNote: '*Reference maximum altitude and distance. Actual flight follows regulation, permits, weather, signal, battery, and safety.',
         materialEyebrow: 'Real material',
         materialTitle: 'Selected clips from drone flights',
-        materialDescription: 'This landing uses real drone footage: yachts, construction, lots, events, condos, hospitality, Airbnb, and DJ sets.',
+        materialDescription: 'Real flights for properties, construction, events, yachts, and hospitality.',
         packageEyebrow: 'Package',
         packageTitle: 'What the $3,000 MXN session includes',
         packageDescription: 'A direct package to sell properties, experiences, and progress with clean aerial material.',
@@ -242,7 +243,7 @@ const DRONE_PAGE_COPY = {
         ],
         constructionEyebrow: 'Construction progress',
         constructionTitle: 'Drone construction progress that sells real progress.',
-        constructionDescription: 'The edited Goba clip is the main proof: it shows progress, area context, and development scale without relying on renders. We also include recent OKOM material normalized from D-Log to show how work can be documented by stage.',
+        constructionDescription: 'Each project keeps its clips in one carousel to review progress, details, and context without repeated cards.',
         constructionPills: ['Investor reports', 'Presales and updates', 'Stage comparisons'],
         technicalEyebrow: 'Technical',
         technicalTitle: 'Captured for editing and color',
@@ -383,7 +384,6 @@ export default function DroneSessionsShow({ price, slots, errors }: DroneSession
         [],
     );
     const [heroPreviewIndex, setHeroPreviewIndex] = useState(0);
-    const [heroMediaMounted, setHeroMediaMounted] = useState(false);
     const heroPreviewClip = heroPreviewClips[heroPreviewIndex] ?? heroPreviewClips[0] ?? DRONE_SESSION_HERO_CLIP;
     const analyticsPayload = useMemo(
         () => ({
@@ -407,12 +407,6 @@ export default function DroneSessionsShow({ price, slots, errors }: DroneSession
             locations: copy.locations,
         });
     }, [analyticsPayload, copy.locations]);
-
-    useEffect(() => {
-        const frameId = window.requestAnimationFrame(() => setHeroMediaMounted(true));
-
-        return () => window.cancelAnimationFrame(frameId);
-    }, []);
 
     useEffect(() => {
         if (heroPreviewClips.length < 2) {
@@ -457,17 +451,17 @@ export default function DroneSessionsShow({ price, slots, errors }: DroneSession
                         aria-hidden
                         className="absolute inset-0 h-full w-full object-cover object-center"
                     />
-                    {heroMediaMounted ? (
-                        <AutoplayVideo
-                            src={DRONE_SESSION_HERO_CLIP.src}
-                            poster={DRONE_SESSION_HERO_CLIP.poster}
-                            title={copy.clips.hero.title}
-                            eager
-                            pauseWhenOffscreen={false}
-                            className="absolute inset-0 h-full w-full"
-                            videoClassName="h-full w-full object-cover object-center"
-                        />
-                    ) : null}
+                    <video
+                        src={DRONE_SESSION_HERO_CLIP.src}
+                        poster={DRONE_SESSION_HERO_CLIP.poster}
+                        className="absolute inset-0 h-full w-full object-cover object-center"
+                        autoPlay
+                        muted
+                        loop
+                        playsInline
+                        preload="auto"
+                        aria-label={copy.clips.hero.title}
+                    />
                     <div className="absolute inset-0 bg-[linear-gradient(90deg,oklch(0.09_0.02_260/0.94)_0%,oklch(0.10_0.02_250/0.78)_45%,oklch(0.10_0.02_250/0.34)_100%)]" />
                     <div className="absolute inset-0 bg-[linear-gradient(180deg,transparent_0%,oklch(0.08_0.01_250/0.25)_52%,var(--background)_100%)]" />
                 </div>
@@ -568,12 +562,6 @@ export default function DroneSessionsShow({ price, slots, errors }: DroneSession
                     </div>
                 </div>
             </section>
-
-            <ServiceLandingSections
-                serviceKey="sesiones_de_dron"
-                onBook={openBooking}
-                className="pt-8"
-            />
 
             <BookingWidget
                 slots={slots}
@@ -684,37 +672,16 @@ export default function DroneSessionsShow({ price, slots, errors }: DroneSession
                     />
                 </div>
                 <div className="grid gap-4 border-t border-white/10 bg-black/12 p-4 md:grid-cols-2 md:p-5">
-                    {DRONE_SESSION_CONSTRUCTION_CLIPS.map((clip) => {
-                        const clipCopy = resolveClipCopy(copy.clips, clip);
-
-                        return (
-                            <article key={clip.id} className="overflow-hidden rounded-xl border border-white/15 bg-white/8 shadow-xl shadow-black/20">
-                                <AutoplayVideo
-                                    src={clip.src}
-                                    poster={clip.poster}
-                                    title={clipCopy.title}
-                                    className="aspect-video"
-                                />
-                                <div className="p-4">
-                                    <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-primary">
-                                        {clipCopy.useCase}
-                                    </p>
-                                    <h3 className="mt-2 text-lg font-semibold text-white">
-                                        {clipCopy.title}
-                                    </h3>
-                                    {clipCopy.location ? (
-                                        <p className="mt-2 inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.12em] text-white/64">
-                                            <MapPin className="h-3.5 w-3.5 text-primary" />
-                                            {clipCopy.location}
-                                        </p>
-                                    ) : null}
-                                    <p className="mt-2 text-sm leading-relaxed text-white/72">
-                                        {clipCopy.caption}
-                                    </p>
-                                </div>
-                            </article>
-                        );
-                    })}
+                    <ProjectClipCarousel
+                        project="GOBA · THE RESERVE"
+                        clips={DRONE_SESSION_CONSTRUCTION_CLIPS.filter((clip) => clip.id.includes('goba'))}
+                        copy={copy.clips}
+                    />
+                    <ProjectClipCarousel
+                        project="OKOM · TULUM"
+                        clips={DRONE_SESSION_CONSTRUCTION_CLIPS.filter((clip) => clip.id.includes('okom'))}
+                        copy={copy.clips}
+                    />
                 </div>
             </section>
 
@@ -797,6 +764,62 @@ function ClipCard({
                 </p>
                 <h3 className="mt-2 text-base font-semibold text-foreground">{copy.title}</h3>
                 <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{copy.caption}</p>
+            </div>
+        </article>
+    );
+}
+
+function ProjectClipCarousel({
+    project,
+    clips,
+    copy,
+}: {
+    project: string;
+    clips: DroneSessionClip[];
+    copy: typeof DRONE_PAGE_COPY.es.clips | typeof DRONE_PAGE_COPY.en.clips;
+}) {
+    const [index, setIndex] = useState(0);
+    const clip = clips[index] ?? clips[0];
+    if (!clip) return null;
+
+    const clipCopy = resolveClipCopy(copy, clip);
+    const navigate = (direction: number) => setIndex((current) => (current + direction + clips.length) % clips.length);
+
+    return (
+        <article className="overflow-hidden border border-white/15 bg-white/8 shadow-xl shadow-black/20">
+            <AutoplayVideo
+                key={clip.id}
+                src={clip.src}
+                poster={clip.poster}
+                title={clipCopy.title}
+                className="aspect-video rounded-none"
+            />
+            <div className="p-4">
+                <div className="flex items-center justify-between gap-4">
+                    <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-primary">{project}</p>
+                    <div className="flex items-center gap-1">
+                        <span className="mr-2 font-mono text-[10px] text-white/55">{index + 1} / {clips.length}</span>
+                        <Button type="button" size="icon" variant="outline" className="size-8 rounded-none border-white/20 bg-transparent text-white hover:bg-white hover:text-black" onClick={() => navigate(-1)} aria-label="Clip anterior">
+                            <ChevronLeft className="size-4" />
+                        </Button>
+                        <Button type="button" size="icon" variant="outline" className="size-8 rounded-none border-white/20 bg-transparent text-white hover:bg-white hover:text-black" onClick={() => navigate(1)} aria-label="Clip siguiente">
+                            <ChevronRight className="size-4" />
+                        </Button>
+                    </div>
+                </div>
+                <h3 className="mt-3 text-lg font-semibold text-white">{clipCopy.useCase}</h3>
+                <p className="mt-2 text-sm leading-relaxed text-white/72">{clipCopy.caption}</p>
+                <div className="mt-4 flex gap-1">
+                    {clips.map((item, itemIndex) => (
+                        <button
+                            key={item.id}
+                            type="button"
+                            className={itemIndex === index ? 'h-1.5 flex-1 bg-primary' : 'h-1.5 flex-1 bg-white/20 hover:bg-white/45'}
+                            onClick={() => setIndex(itemIndex)}
+                            aria-label={`Ver clip ${itemIndex + 1} de ${project}`}
+                        />
+                    ))}
+                </div>
             </div>
         </article>
     );

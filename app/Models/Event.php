@@ -147,6 +147,11 @@ class Event extends Model implements HasMedia
         return $this->hasMany(TicketProduct::class);
     }
 
+    public function guestListInviteLinks(): HasMany
+    {
+        return $this->hasMany(GuestListInviteLink::class);
+    }
+
     public function ticketOrders(): HasMany
     {
         return $this->hasMany(TicketOrder::class);

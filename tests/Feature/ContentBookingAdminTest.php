@@ -6,6 +6,7 @@ use App\Filament\Pages\AdminDashboard;
 use App\Filament\Pages\ContentBookingSalesDashboard;
 use App\Filament\Pages\SalesHub;
 use App\Filament\Resources\BookingSlots\BookingSlotResource;
+use App\Filament\Resources\BookingLandingAnalytics\BookingLandingAnalyticsResource;
 use App\Filament\Resources\ContentBookings\ContentBookingResource;
 use App\Filament\Resources\ContentBookings\Pages\CreateContentBooking;
 use App\Filament\Resources\Customers\CustomerResource;
@@ -134,6 +135,13 @@ class ContentBookingAdminTest extends TestCase
             ->assertOk()
             ->assertSee('Lead score')
             ->assertSee('Acepta WhatsApp');
+
+        $this->actingAs($user)
+            ->get(BookingLandingAnalyticsResource::getUrl('index'))
+            ->assertOk()
+            ->assertSee('Plays')
+            ->assertSee('Contactos')
+            ->assertSee('Formularios');
 
         $this->actingAs($user)
             ->get(AdminDashboard::getUrl())

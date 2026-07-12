@@ -45,6 +45,8 @@ if (sampledVisitor) {
     initEngagementTracking();
     initSectionTracking();
     initPresenceTracking();
+    initMediaTracking();
+    initFieldIntentTracking();
 }
 
 function getContext() {
@@ -314,6 +316,119 @@ function initSectionTracking() {
     );
 
     sections.forEach((section) => observer.observe(section));
+}
+
+function initMediaTracking() {
+    const playedVideos = new WeakSet();
+    const progressByVideo = new WeakMap();
+
+    document.addEventListener('play', (event) => {
+        const video = event.target;
+        if (!(video instanceof HTMLVideoElement) || playedVideos.has(video)) {
+            return;
+        }
+
+        playedVideos.add(video);
+        progressByVideo.set(video, new Set());
+        const label = getMediaLabel(video);
+        track('video_play', {
+            category: 'media',
+            label,
+            metadata: { media_src: sanitizeMediaSrc(video.currentSrc || video.src), autoplay: video.autoplay },
+        });
+        window.trackMetaPixelCustom?.('VideoPlay', {
+            content_name: label,
+            content_category: 'video',
+            page_path: window.location.pathname,
+        });
+    }, true);
+
+    document.addEventListener('timeupdate', (event) => {
+        const video = event.target;
+        if (!(video instanceof HTMLVideoElement) || !Number.isFinite(video.duration) || video.duration <= 0) {
+            return;
+        }
+
+        const reached = progressByVideo.get(video) || new Set();
+        const percent = Math.round((video.currentTime / video.duration) * 100);
+        [25, 50, 75].forEach((milestone) => {
+            if (percent < milestone || reached.has(milestone)) {
+                return;
+            }
+            reached.add(milestone);
+            progressByVideo.set(video, reached);
+            track('video_progress', {
+                category: 'media',
+                label: getMediaLabel(video),
+                value: milestone,
+                metadata: { progress_percent: milestone, media_src: sanitizeMediaSrc(video.currentSrc || video.src) },
+            });
+        });
+    }, true);
+
+    document.addEventListener('ended', (event) => {
+        const video = event.target;
+        if (!(video instanceof HTMLVideoElement)) {
+            return;
+        }
+        const label = getMediaLabel(video);
+        track('video_complete', {
+            category: 'media',
+            label,
+            value: 100,
+            metadata: { progress_percent: 100, media_src: sanitizeMediaSrc(video.currentSrc || video.src) },
+        });
+        window.trackMetaPixelCustom?.('VideoComplete', {
+            content_name: label,
+            content_category: 'video',
+            page_path: window.location.pathname,
+        });
+    }, true);
+}
+
+function initFieldIntentTracking() {
+    const startedForms = new WeakSet();
+    document.addEventListener('focusin', (event) => {
+        const field = event.target;
+        if (!(field instanceof HTMLInputElement || field instanceof HTMLSelectElement || field instanceof HTMLTextAreaElement)) {
+            return;
+        }
+        const form = field.form;
+        if (!form || startedForms.has(form) || field.type === 'hidden') {
+            return;
+        }
+
+        startedForms.add(form);
+        const formName = form.getAttribute('data-analytics-label') || form.id || form.getAttribute('name') || 'form';
+        track('form_started', {
+            category: 'form',
+            label: formName,
+            metadata: {
+                form_id: form.id || null,
+                service_type: form.getAttribute('data-service-type') || getPageMetadata().service_type,
+            },
+        });
+        window.trackMetaPixelCustom?.('FormStarted', {
+            content_name: formName,
+            content_category: 'lead_form',
+            page_path: window.location.pathname,
+        });
+    });
+}
+
+function getMediaLabel(video) {
+    return video.getAttribute('aria-label')
+        || video.getAttribute('title')
+        || video.closest('figure, article, section')?.querySelector('h1, h2, h3, figcaption')?.textContent?.trim()
+        || 'video';
+}
+
+function sanitizeMediaSrc(src) {
+    try {
+        return new URL(src, window.location.origin).pathname.slice(0, 255);
+    } catch {
+        return String(src || '').slice(0, 255);
+    }
 }
 
 function initPresenceTracking() {

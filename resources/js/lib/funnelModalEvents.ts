@@ -146,12 +146,12 @@ export function openNewsletterModal(source = 'manual'): void {
     );
 }
 
-export function requestBookingAutoOpen(): void {
+export function requestBookingAutoOpen(source = 'auto_trigger'): void {
     if (typeof window === 'undefined') {
         return;
     }
 
-    window.dispatchEvent(new CustomEvent(BOOKING_AUTO_OPEN_EVENT));
+    window.dispatchEvent(new CustomEvent(BOOKING_AUTO_OPEN_EVENT, { detail: { source } }));
 }
 
 export function markBookingAutoShown(): boolean {

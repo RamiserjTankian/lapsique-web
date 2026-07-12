@@ -1,4 +1,3 @@
-import { Head } from '@inertiajs/react';
 import { useMemo, useState } from 'react';
 import { motion } from 'framer-motion';
 import SiteLayout from '@/layouts/SiteLayout';
@@ -6,6 +5,7 @@ import { PortfolioGridItem } from '@/components/lapsique/PortfolioGridItem';
 import { PortfolioLightbox } from '@/components/lapsique/PortfolioLightbox';
 import { GlassSection } from '@/components/lapsique/GlassSection';
 import { PaginationLinks } from '@/components/lapsique/PaginationLinks';
+import { SeoHead } from '@/components/lapsique/SeoHead';
 import { useTranslations } from '@/hooks/useTranslations';
 import { staggerContainer } from '@/lib/motion';
 import type { Paginated, PortfolioItemData } from '@/types';
@@ -29,11 +29,16 @@ export default function PortfolioIndex({ items }: PortfolioIndexProps) {
 
     return (
         <SiteLayout>
-            <Head title={t('pages.portfolio.title')} />
+            <SeoHead />
+            <header className="border-b border-foreground/15 pb-10 pt-12 md:pb-16 md:pt-20">
+                <p className="font-ui-display text-xs uppercase tracking-[0.2em] text-primary">Selección de trabajo</p>
+                <h1 className="mt-4 max-w-4xl text-6xl font-medium leading-[0.88] md:text-8xl">Fotografía y video con intención cinematográfica.</h1>
+                <p className="mt-6 max-w-2xl text-base leading-relaxed text-muted-foreground md:text-lg">Una selección de campañas, producto, hospitalidad, música y espacios producidos en Riviera Maya.</p>
+            </header>
             <GlassSection
-                title={t('pages.portfolio.title')}
-                description={t('pages.portfolio.description')}
-                className="mt-6 md:mt-8"
+                eyebrow={t('pages.portfolio.title')}
+                title="Archivo seleccionado"
+                className="mt-0"
             >
                 <motion.div
                     variants={staggerContainer}

@@ -4,6 +4,12 @@ namespace App\Http\Controllers;
 
 use App\Http\Resources\BookingSlotResource;
 use App\Http\Resources\PortfolioItemResource;
+use App\Http\Resources\DjResource;
+use App\Http\Resources\EventResource;
+use App\Http\Resources\VideoResource;
+use App\Models\Dj;
+use App\Models\Event;
+use App\Models\Video;
 use App\Support\LocalizedBookingCopy;
 use App\Support\HomeHeroBackground;
 use App\Support\HomeHeroProofVideos;
@@ -21,6 +27,28 @@ class HomeController extends Controller
         $bookingData = ContentBookingController::bookingPageData();
 
         $portfolioItems = PortfolioCuration::forHome(12);
+        $sceneDjs = Dj::query()
+            ->where('trascendental_roster', false)
+            ->with('media')
+            ->orderByDesc('is_highlighted')
+            ->orderByDesc('is_featured')
+            ->orderBy('priority')
+            ->limit(6)
+            ->get();
+        $sceneVideos = Video::query()
+            ->with('djs.media')
+            ->whereHas('djs', fn ($query) => $query->where('trascendental_roster', false))
+            ->orderByDesc('is_featured')
+            ->orderBy('priority')
+            ->limit(3)
+            ->get();
+        $sceneEvents = Event::query()
+            ->where('trascendental_visible', false)
+            ->with(['media', 'djs.media', 'location.media', 'ticketProducts', 'guestListInviteLinks'])
+            ->orderByRaw('starts_at IS NULL')
+            ->orderByDesc('starts_at')
+            ->limit(3)
+            ->get();
 
         $settings = $bookingData['settings'];
         $reelDistribution = HomeReelDistribution::forHome(
@@ -39,6 +67,10 @@ class HomeController extends Controller
             'price' => $bookingData['price'],
             'slots' => BookingSlotResource::collection($bookingData['slots'])->resolve(),
             'portfolioItems' => PortfolioItemResource::collection($portfolioItems)->resolve(),
+            'sceneDjs' => DjResource::collection($sceneDjs)->resolve(),
+            'sceneVideos' => VideoResource::collection($sceneVideos)->resolve(),
+            'sceneEvents' => EventResource::collection($sceneEvents)->resolve(),
+            'sceneMedia' => PortfolioItemResource::collection(PortfolioCuration::forScene(10))->resolve(),
             'heroBackgroundImage' => HomeHeroBackground::resolve($portfolioItems),
             'landingVideos' => $reelDistribution['landingVideos'] ?? LandingPageVideos::forHome(),
             'heroProofVideo' => $reelDistribution['heroProofVideo']
