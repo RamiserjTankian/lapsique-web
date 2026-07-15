@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\Customers\Tables;
 
+use App\Models\Customer;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
@@ -100,9 +101,10 @@ class CustomersTable
 
                 BadgeColumn::make('source')
                     ->label('Origen')
+                    ->formatStateUsing(fn (?string $state): string => Customer::sourceOptions($state)[$state] ?? 'Sin origen')
                     ->colors([
                         'primary' => 'popup',
-                        'success' => 'guestlist',
+                        'success' => ['guestlist', 'trascendental_join_list', 'trascendental_contact'],
                         'warning' => 'manual',
                         'info' => ['api', 'referral'],
                     ])
@@ -220,14 +222,8 @@ class CustomersTable
                     ]),
 
                 SelectFilter::make('source')
-                    ->label('Source')
-                    ->options([
-                        'popup' => 'Popup',
-                        'guestlist' => 'Guest List',
-                        'manual' => 'Manual',
-                        'api' => 'API',
-                        'referral' => 'Referral',
-                    ]),
+                    ->label('Origen')
+                    ->options(Customer::sourceOptions()),
 
                 TrashedFilter::make(),
             ])

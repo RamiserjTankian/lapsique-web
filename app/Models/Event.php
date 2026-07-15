@@ -5,10 +5,10 @@ namespace App\Models;
 use App\Support\EventLineup;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\SoftDeletes;
-use Illuminate\Database\Eloquent\Relations\HasMany;
-use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Facades\Schema;
 use Spatie\Image\Enums\Fit;
 use Spatie\MediaLibrary\HasMedia;
@@ -90,7 +90,7 @@ class Event extends Model implements HasMedia
             ->acceptsMimeTypes(['image/jpeg', 'image/png', 'image/webp', 'image/jpg']);
     }
 
-    public function registerMediaConversions(Media $media = null): void
+    public function registerMediaConversions(?Media $media = null): void
     {
         $this->addMediaConversion('thumb')
             ->fit(Fit::Crop, 600, 600)
@@ -192,14 +192,14 @@ class Event extends Model implements HasMedia
     public function getGuestListStatsByRp(): array
     {
         $stats = [];
-        
+
         foreach ($this->rps as $rp) {
             $stats[$rp->id] = [
                 'rp' => $rp,
                 'stats' => $rp->getGuestListStatsForEvent($this->id),
             ];
         }
-        
+
         return $stats;
     }
 

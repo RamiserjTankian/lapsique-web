@@ -90,6 +90,7 @@ class SiteSettings extends Page implements HasSchemas
     public function schema(Schema $schema): Schema
     {
         return $schema
+            ->statePath('data')
             ->columns(1)
             ->components([
                 Section::make('Logo del Sitio')
@@ -109,10 +110,13 @@ class SiteSettings extends Page implements HasSchemas
                             ->downloadable()
                             ->previewable()
                             ->openable(),
-                    ]),
+                    ])
+                    ->visible(fn (): bool => ! config('trascendental.enabled_as_primary')),
 
                 Section::make('Meta Pixel')
-                    ->description('ID del pixel para el sitio público (Inertia). Si está vacío, se usa META_PIXEL_ID del .env. La API de campañas y CAPI se configuran en .env y en Configuración Meta Ads.')
+                    ->description(config('trascendental.enabled_as_primary')
+                        ? 'ID del pixel usado por trascendentalby.mx. Si está vacío, se usa META_PIXEL_ID del entorno.'
+                        : 'ID del pixel para el sitio público (Inertia). Si está vacío, se usa META_PIXEL_ID del .env. La API de campañas y CAPI se configuran en .env y en Configuración Meta Ads.')
                     ->schema([
                         TextInput::make('meta_pixel_id')
                             ->label('Pixel ID')
@@ -163,7 +167,8 @@ class SiteSettings extends Page implements HasSchemas
                             ->placeholder('Ej: 5219841234567')
                             ->helperText('Número con código de país, sin + ni espacios. Usado para el botón de contacto.')
                             ->maxLength(30),
-                    ]),
+                    ])
+                    ->visible(fn (): bool => ! config('trascendental.enabled_as_primary')),
 
                 Section::make('Open Graph alterno')
                     ->description('Open Graph para enlaces públicos de Trascendental en WhatsApp, Facebook, etc.')
@@ -182,11 +187,13 @@ class SiteSettings extends Page implements HasSchemas
                             ->downloadable()
                             ->previewable()
                             ->openable(),
-                    ]),
+                    ])
+                    ->visible(fn (): bool => ! config('trascendental.enabled_as_primary')),
 
                 Section::make('Video del hero (landing negocios)')
                     ->description('Un video en el panel lateral del home. Se reproduce en silencio en loop. Si dejas el origen vacío, se usa el primer video del portafolio.')
-                    ->schema(self::homeHeroProofSlotFields()),
+                    ->schema(self::homeHeroProofSlotFields())
+                    ->visible(fn (): bool => ! config('trascendental.enabled_as_primary')),
             ]);
     }
 
@@ -333,8 +340,9 @@ class SiteSettings extends Page implements HasSchemas
     public function save(): void
     {
         $data = $this->schema->getState();
+        $isTrascendental = (bool) config('trascendental.enabled_as_primary');
 
-        if (isset($data['logo_watermark']) && $data['logo_watermark']) {
+        if (! $isTrascendental && isset($data['logo_watermark']) && $data['logo_watermark']) {
             $uploadedPath = is_array($data['logo_watermark'])
                 ? ($data['logo_watermark'][0] ?? null)
                 : $data['logo_watermark'];
@@ -344,24 +352,29 @@ class SiteSettings extends Page implements HasSchemas
             }
         }
 
-        SiteSetting::query()->firstOrCreate([])->update([
+        $settings = SiteSetting::query()->firstOrNew();
+        $updates = [
             'meta_pixel_id' => filled($data['meta_pixel_id'] ?? null) ? $data['meta_pixel_id'] : null,
-            'booking_title' => $data['booking_title'] ?? null,
-            'booking_subtitle' => $data['booking_subtitle'] ?? null,
-            'booking_og_image' => self::normalizeUploadPath($data['booking_og_image'] ?? null),
-            'djset_og_image' => self::normalizeUploadPath($data['djset_og_image'] ?? null),
-            'booking_price' => (int) ($data['booking_price'] ?? config('booking.content_price', 3000)),
-            'booking_whatsapp' => $data['booking_whatsapp'] ?? null,
-            'home_hero_proof_1_title' => filled($data['home_hero_proof_1_title'] ?? null) ? $data['home_hero_proof_1_title'] : null,
-            'home_hero_proof_1_source' => filled($data['home_hero_proof_1_source'] ?? null) ? $data['home_hero_proof_1_source'] : null,
-            'home_hero_proof_1_reference' => filled($data['home_hero_proof_1_reference'] ?? null) ? (string) $data['home_hero_proof_1_reference'] : null,
-        ]);
+        ];
+
+        if (! $isTrascendental) {
+            $updates += [
+                'booking_title' => $data['booking_title'] ?? null,
+                'booking_subtitle' => $data['booking_subtitle'] ?? null,
+                'booking_og_image' => self::normalizeUploadPath($data['booking_og_image'] ?? null),
+                'djset_og_image' => self::normalizeUploadPath($data['djset_og_image'] ?? null),
+                'booking_price' => (int) ($data['booking_price'] ?? config('booking.content_price', 3000)),
+                'booking_whatsapp' => $data['booking_whatsapp'] ?? null,
+                'home_hero_proof_1_title' => filled($data['home_hero_proof_1_title'] ?? null) ? $data['home_hero_proof_1_title'] : null,
+                'home_hero_proof_1_source' => filled($data['home_hero_proof_1_source'] ?? null) ? $data['home_hero_proof_1_source'] : null,
+                'home_hero_proof_1_reference' => filled($data['home_hero_proof_1_reference'] ?? null) ? (string) $data['home_hero_proof_1_reference'] : null,
+            ];
+        }
+
+        $settings->fill($updates)->save();
 
         $this->logo_watermark = $this->getLogoPath() ? 'images/logo-watermark.png' : null;
-
-        $this->schema->fill([
-            'logo_watermark' => $this->logo_watermark,
-        ]);
+        $this->data['logo_watermark'] = $this->logo_watermark;
 
         Notification::make()
             ->title('Configuración guardada correctamente')

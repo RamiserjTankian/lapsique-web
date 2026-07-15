@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\Customers\Schemas;
 
+use App\Models\Customer;
 use Filament\Forms\Components\DateTimePicker;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
@@ -36,13 +37,8 @@ class CustomerForm
                     ->maxLength(255),
                 Select::make('source')
                     ->label('Origen')
-                    ->options([
-                        'popup' => 'Popup del sitio',
-                        'guestlist' => 'Guest List',
-                        'manual' => 'Manual',
-                        'event' => 'Evento',
-                        'other' => 'Otro',
-                    ])
+                    ->options(fn (?Customer $record): array => Customer::sourceOptions($record?->source))
+                    ->searchable()
                     ->default('manual'),
                 Toggle::make('subscribed_newsletter')
                     ->label('Suscrito al newsletter')
@@ -58,4 +54,3 @@ class CustomerForm
             ]);
     }
 }
-

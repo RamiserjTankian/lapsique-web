@@ -86,7 +86,7 @@
                         Abrir Business Manager
                     </a>
                     ·
-                    <a href="{{ route('filament.admin.pages.meta-ads-performance') }}" class="text-primary-600 underline">
+                    <a href="{{ \App\Filament\Pages\MetaAdsPerformanceDashboard::getUrl() }}" class="text-primary-600 underline">
                         Ir al dashboard Meta Ads KPI
                     </a>
                     ·

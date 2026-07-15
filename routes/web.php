@@ -59,13 +59,21 @@ Route::get('/sesion-de-contenido/{publicId}/confirm', [ContentBookingController:
 Route::get('/sesion-de-contenido/{publicId}/pending', [ContentBookingController::class, 'pending'])->name('booking.pending');
 Route::get('/sesion-de-contenido/{publicId}/failure', [ContentBookingController::class, 'failure'])->name('booking.failure');
 Route::post('/sesion-de-contenido/{publicId}/retry', [ContentBookingController::class, 'retryPayment'])->name('booking.retry');
-Route::get('/dj-set', [ContentBookingController::class, 'showDjSet'])->name('djset.show');
-Route::get('/djset', fn () => redirect()->route('djset.show', status: 301))->name('djset.legacy');
 Route::post('/dj-set/checkout', [ContentBookingController::class, 'checkoutDjSet'])->name('djset.checkout');
 Route::post('/djset/checkout', [ContentBookingController::class, 'checkoutDjSet'])->name('djset.checkout.legacy');
 
-Route::get('/djs', [DjController::class, 'index'])->name('djs.index');
-Route::get('/djs/{dj:slug}', [DjController::class, 'show'])->name('djs.show');
+if (config('trascendental.enabled_as_primary')) {
+    Route::redirect('/dj-set', '/tours-routing', 301)->name('djset.show');
+    Route::redirect('/djset', '/tours-routing', 301)->name('djset.legacy');
+    Route::redirect('/djs', '/tours-routing', 301)->name('djs.index');
+    Route::get('/djs/{dj:slug}', fn () => redirect('/tours-routing', 301))->name('djs.show');
+    Route::redirect('/agenda', '/eventos', 301)->name('events.index');
+} else {
+    Route::get('/dj-set', [ContentBookingController::class, 'showDjSet'])->name('djset.show');
+    Route::get('/djset', fn () => redirect()->route('djset.show', status: 301))->name('djset.legacy');
+    Route::get('/djs', [DjController::class, 'index'])->name('djs.index');
+    Route::get('/djs/{dj:slug}', [DjController::class, 'show'])->name('djs.show');
+}
 
 if (! config('trascendental.enabled_as_primary')) {
     Route::get('/eventos', fn () => abort(404))->name('events.index');
@@ -93,13 +101,19 @@ Route::get('/tickets/check-in/{token}/qr', [TicketCheckInController::class, 'qr'
     ->name('tickets.checkin.qr');
 Route::get('/tickets/check-in/{token}/pdf', [TicketCheckInController::class, 'pdf'])->name('tickets.checkin.pdf');
 
-Route::get('/videos', [VideoController::class, 'index'])->name('videos.index');
-Route::get('/videos/{video:slug}', [VideoController::class, 'show'])->name('videos.show');
-
-Route::get('/portafolio', [PortfolioController::class, 'index'])->name('portfolio.index');
-
-Route::get('/blog', [PostController::class, 'index'])->name('posts.index');
-Route::get('/blog/{post:slug}', [PostController::class, 'show'])->name('posts.show');
+if (config('trascendental.enabled_as_primary')) {
+    Route::redirect('/videos', '/casos', 301)->name('videos.index');
+    Route::get('/videos/{video:slug}', fn () => redirect('/casos', 301))->name('videos.show');
+    Route::redirect('/portafolio', '/casos', 301)->name('portfolio.index');
+    Route::redirect('/blog', '/casos', 301)->name('posts.index');
+    Route::get('/blog/{post:slug}', fn () => redirect('/casos', 301))->name('posts.show');
+} else {
+    Route::get('/videos', [VideoController::class, 'index'])->name('videos.index');
+    Route::get('/videos/{video:slug}', [VideoController::class, 'show'])->name('videos.show');
+    Route::get('/portafolio', [PortfolioController::class, 'index'])->name('portfolio.index');
+    Route::get('/blog', [PostController::class, 'index'])->name('posts.index');
+    Route::get('/blog/{post:slug}', [PostController::class, 'show'])->name('posts.show');
+}
 
 Route::post('/guest-list', [GuestListController::class, 'store'])->name('guestlist.store');
 

@@ -21,8 +21,10 @@ use App\Filament\Widgets\HotLeadsTableWidget;
 use App\Filament\Widgets\RecentContactLogsWidget;
 use App\Filament\Widgets\RecentCustomersWidget;
 use App\Filament\Widgets\RecentGuestListEntriesWidget;
+use App\Filament\Widgets\TrascendentalContentCoverageWidget;
 use BackedEnum;
 use Filament\Pages\Dashboard;
+use Illuminate\Contracts\Support\Htmlable;
 use UnitEnum;
 
 class AdminDashboard extends Dashboard
@@ -46,8 +48,39 @@ class AdminDashboard extends Dashboard
         return 2;
     }
 
+    public function getTitle(): string|Htmlable
+    {
+        return config('trascendental.enabled_as_primary')
+            ? 'Operación Trascendental'
+            : parent::getTitle();
+    }
+
     public function getWidgets(): array
     {
+        if (config('trascendental.enabled_as_primary')) {
+            return [
+                TrascendentalContentCoverageWidget::class,
+                CustomerJourneyStatsWidget::class,
+                CustomerJourneyFunnelChartWidget::class,
+                CustomerJourneySourcesWidget::class,
+                HotLeadsTableWidget::class,
+                CrmPeopleStatsWidget::class,
+                CrmEventsStatsWidget::class,
+                CrmMarketingStatsWidget::class,
+                AnalyticsStatsWidget::class,
+                AnalyticsTrafficChartWidget::class,
+                ContactLogStatusChartWidget::class,
+                GuestListStatusChartWidget::class,
+                AnalyticsTopPagesChartWidget::class,
+                AnalyticsTopReferrersChartWidget::class,
+                AnalyticsDeviceChartWidget::class,
+                AnalyticsTopClicksChartWidget::class,
+                RecentCustomersWidget::class,
+                RecentContactLogsWidget::class,
+                RecentGuestListEntriesWidget::class,
+            ];
+        }
+
         return [
             CustomerJourneyStatsWidget::class,
             CustomerJourneyFunnelChartWidget::class,

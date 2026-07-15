@@ -77,6 +77,33 @@ class Customer extends Authenticatable implements CanResetPasswordContract
         'remember_token',
     ];
 
+    /**
+     * @return array<string, string>
+     */
+    public static function sourceOptions(?string $current = null): array
+    {
+        $options = [
+            'trascendental_join_list' => 'Trascendental · Join The List',
+            'trascendental_contact' => 'Trascendental · Contacto',
+            'guestlist' => 'Guest List',
+            'ticketing' => 'Ticketing',
+            'content_booking' => 'Reserva de contenido',
+            'popup' => 'Popup del sitio',
+            'manual' => 'Manual',
+            'event' => 'Evento',
+            'api' => 'API',
+            'referral' => 'Referido',
+            'website' => 'Sitio web',
+            'other' => 'Otro',
+        ];
+
+        if (filled($current) && ! array_key_exists($current, $options)) {
+            $options[$current] = str($current)->replace('_', ' ')->title().' · origen heredado';
+        }
+
+        return $options;
+    }
+
     // Relaciones
     public function guestListEntries(): HasMany
     {
