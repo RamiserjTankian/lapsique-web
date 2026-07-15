@@ -193,6 +193,7 @@ export interface SeoMeta {
 
 export interface SiteProps {
     name: string;
+    isTrascendental: boolean;
     bookingPrice: number;
     bookingTitle: string | null;
     bookingSubtitle: string | null;

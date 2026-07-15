@@ -38,6 +38,7 @@ class HandleInertiaRequests extends Middleware
             ],
             'site' => fn () => [
                 'name' => 'Trascendentalby',
+                'isTrascendental' => $isTrascendental,
                 'bookingPrice' => $settings?->booking_price ?? (int) config('booking.content_price', 3000),
                 'bookingTitle' => $settings?->booking_title,
                 'bookingSubtitle' => $settings?->booking_subtitle,

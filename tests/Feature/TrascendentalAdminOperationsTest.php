@@ -117,6 +117,16 @@ class TrascendentalAdminOperationsTest extends TestCase
         $this->get('/videos')->assertRedirect('/casos');
     }
 
+    public function test_primary_site_marks_customer_portal_for_trascendental_layout(): void
+    {
+        $this->get(route('customers.login'))
+            ->assertOk()
+            ->assertInertia(fn ($page) => $page
+                ->component('Customer/Login')
+                ->where('site.isTrascendental', true)
+            );
+    }
+
     public function test_dashboard_exposes_only_the_content_that_reaches_trascendental_pages(): void
     {
         Event::query()->create([
