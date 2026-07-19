@@ -116,30 +116,19 @@ export function WhatsAppCaptureModal({
             layout="promo"
             imageUrl={image.url}
             imageAlt={image.alt}
-            badge={visual.badge}
             title={visual.title}
             description={visual.description}
-            caption={visual.caption}
             contentClassName="px-4 py-4 sm:px-5 sm:py-5"
         >
-            <div className="flex min-h-0 flex-col justify-center space-y-4">
-                <div className="border-l-2 border-[#25D366] bg-[#25D366]/8 px-3 py-2 text-sm font-semibold text-foreground">
+            <div className="flex min-h-0 flex-col justify-center space-y-5">
+                <div className="border-l-2 border-[#25D366] pl-3 text-sm font-semibold leading-relaxed text-foreground">
                     {intentMessage}
                 </div>
-                <ul className="space-y-2 text-sm text-muted-foreground">
-                    <li className="flex items-start gap-2">
-                        <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-[#25D366]" />
-                        {t('funnel.whatsapp.bullet_1')}
-                    </li>
-                    <li className="flex items-start gap-2">
-                        <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-[#25D366]" />
-                        {t('funnel.whatsapp.bullet_2')}
-                    </li>
-                    <li className="flex items-start gap-2">
-                        <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-[#25D366]" />
-                        {t('funnel.whatsapp.bullet_3')}
-                    </li>
-                </ul>
+                <p className="text-sm leading-relaxed text-muted-foreground">
+                    {locale === 'en'
+                        ? 'Send the location, tentative date, and type of content. We will reply with a concrete next step.'
+                        : 'Envía la ubicación, fecha tentativa y tipo de contenido. Te respondemos con el siguiente paso concreto.'}
+                </p>
 
                 <div className="space-y-3">
                     <Button

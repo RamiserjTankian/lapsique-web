@@ -28,7 +28,7 @@ class BookingSlotGeneratorService
         $advanceHours = $settings?->booking_advance_hours ?? config('booking.default_advance_hours', 24);
         $durationMinutes = $settings?->bookingDurationMinutes() ?? config('booking.default_duration_minutes', 120);
         $calendarId = $settings?->google_calendar_id ?? 'primary';
-        $timezone = config('app.timezone', 'America/Mexico_City');
+        $timezone = config('app.timezone', 'America/Cancun');
 
         $rules = BookingAvailabilityRule::active()
             ->orderBy('day_of_week')
@@ -39,7 +39,17 @@ class BookingSlotGeneratorService
             return ['created' => 0, 'skipped' => 0, 'blocked_by_calendar' => 0];
         }
 
-        $gcalConnected = $checkGoogleCalendar && $this->googleCalendar->isConnected();
+        $gcalConnected = false;
+
+        if ($checkGoogleCalendar) {
+            try {
+                $gcalConnected = $this->googleCalendar->isConnected();
+            } catch (\Throwable $e) {
+                Log::warning('BookingSlotGenerator: Google Calendar connection check failed, proceeding without it', [
+                    'error' => $e->getMessage(),
+                ]);
+            }
+        }
 
         $now = Carbon::now($timezone);
         $minAllowedDateTime = $now->copy()->addHours($advanceHours);
@@ -98,7 +108,7 @@ class BookingSlotGeneratorService
                 $dateStr = $slotDateTime->toDateString();
 
                 // Skip if slot already exists
-                $exists = BookingSlot::where('date', $dateStr)
+                $exists = BookingSlot::whereDate('date', $dateStr)
                     ->where('time_value', $ruleTime)
                     ->exists();
 

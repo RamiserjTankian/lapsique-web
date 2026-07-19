@@ -41,6 +41,7 @@ class LapsiqueEditorialArchiveTest extends TestCase
             'name' => 'Trascendental Artist',
             'slug' => 'trascendental-artist',
             'trascendental_roster' => true,
+            'is_highlighted' => true,
         ]);
 
         $lapsiqueVideo = Video::create([
@@ -59,6 +60,14 @@ class LapsiqueEditorialArchiveTest extends TestCase
         ]);
         $lapsiqueDj->videos()->attach($lapsiqueVideo);
         $trascendentalDj->videos()->attach($otherVideo);
+        $mixedVideo = Video::create([
+            'title' => 'Mixed Collection Session',
+            'slug' => 'mixed-collection-session',
+            'youtube_id' => 'mixed123456',
+            'youtube_url' => 'https://www.youtube.com/watch?v=mixed123456',
+            'is_featured' => true,
+        ]);
+        $mixedVideo->djs()->attach([$lapsiqueDj->id, $trascendentalDj->id]);
 
         $lapsiqueEvent = Event::create([
             'title' => 'Lapsique Night',
@@ -96,9 +105,11 @@ class LapsiqueEditorialArchiveTest extends TestCase
             ->assertOk()
             ->assertInertia(fn ($page) => $page
                 ->component('Videos/Index')
-                ->where('featuredVideo.id', $lapsiqueVideo->id));
+                ->where('featuredVideo.id', $lapsiqueVideo->id)
+                ->where('highlightedDjName', null));
 
         $this->get(route('videos.show', $otherVideo))->assertNotFound();
+        $this->get(route('videos.show', $mixedVideo))->assertNotFound();
     }
 
     public function test_event_conversion_actions_are_only_exposed_when_valid(): void
@@ -179,5 +190,34 @@ class LapsiqueEditorialArchiveTest extends TestCase
             ->assertSee(route('djs.show', $dj), false)
             ->assertSee(route('events.show', $event), false)
             ->assertSee(route('videos.show', $video), false);
+    }
+
+    public function test_sitemap_lastmod_is_stable_and_excludes_mixed_roster_videos(): void
+    {
+        $lapsiqueDj = Dj::create([
+            'name' => 'Lapsique Sitemap Artist',
+            'slug' => 'lapsique-sitemap-artist',
+            'trascendental_roster' => false,
+        ]);
+        $trascendentalDj = Dj::create([
+            'name' => 'Trascendental Sitemap Artist',
+            'slug' => 'trascendental-sitemap-artist',
+            'trascendental_roster' => true,
+        ]);
+        $mixedVideo = Video::create([
+            'title' => 'Mixed Sitemap Session',
+            'slug' => 'mixed-sitemap-session',
+            'youtube_id' => 'mixed123456',
+            'youtube_url' => 'https://www.youtube.com/watch?v=mixed123456',
+        ]);
+        $mixedVideo->djs()->attach([$lapsiqueDj->id, $trascendentalDj->id]);
+
+        $first = $this->get(route('sitemap'))->assertOk()->getContent();
+
+        Carbon::setTestNow('2026-08-11 12:00:00');
+        $second = $this->get(route('sitemap'))->assertOk()->getContent();
+
+        $this->assertSame($first, $second);
+        $this->assertStringNotContainsString(route('videos.show', $mixedVideo), $first);
     }
 }

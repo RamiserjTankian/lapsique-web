@@ -3,7 +3,6 @@ import { motion } from 'framer-motion';
 import SiteLayout from '@/layouts/SiteLayout';
 import { PortfolioGridItem } from '@/components/lapsique/PortfolioGridItem';
 import { PortfolioLightbox } from '@/components/lapsique/PortfolioLightbox';
-import { GlassSection } from '@/components/lapsique/GlassSection';
 import { PaginationLinks } from '@/components/lapsique/PaginationLinks';
 import { SeoHead } from '@/components/lapsique/SeoHead';
 import { useTranslations } from '@/hooks/useTranslations';
@@ -16,7 +15,7 @@ interface PortfolioIndexProps {
 }
 
 export default function PortfolioIndex({ items }: PortfolioIndexProps) {
-    const { t } = useTranslations();
+    const { t, locale } = useTranslations();
     const [activeIndex, setActiveIndex] = useState<number | null>(null);
 
     const pageItems = items?.data ?? [];
@@ -31,15 +30,16 @@ export default function PortfolioIndex({ items }: PortfolioIndexProps) {
         <SiteLayout>
             <SeoHead />
             <header className="border-b border-foreground/15 pb-10 pt-12 md:pb-16 md:pt-20">
-                <p className="font-ui-display text-xs uppercase tracking-[0.2em] text-primary">Selección de trabajo</p>
-                <h1 className="mt-4 max-w-4xl text-6xl font-medium leading-[0.88] md:text-8xl">Fotografía y video con intención cinematográfica.</h1>
-                <p className="mt-6 max-w-2xl text-base leading-relaxed text-muted-foreground md:text-lg">Una selección de campañas, producto, hospitalidad, música y espacios producidos en Riviera Maya.</p>
+                <h1 className="max-w-4xl text-6xl font-medium leading-[0.88] md:text-8xl">
+                    {locale === 'en' ? 'Photography and video produced by Lapsique.' : 'Fotografía y video producidos por Lapsique.'}
+                </h1>
+                <p className="mt-6 max-w-2xl text-base leading-relaxed text-muted-foreground md:text-lg">
+                    {locale === 'en'
+                        ? 'Campaigns, restaurants, hospitality, music, and spaces across Riviera Maya.'
+                        : 'Campañas, restaurantes, hospitalidad, música y espacios en Riviera Maya.'}
+                </p>
             </header>
-            <GlassSection
-                eyebrow={t('pages.portfolio.title')}
-                title="Archivo seleccionado"
-                className="mt-0"
-            >
+            <section aria-label={t('pages.portfolio.title')} className="py-12 md:py-16">
                 <motion.div
                     variants={staggerContainer}
                     initial="hidden"
@@ -65,7 +65,7 @@ export default function PortfolioIndex({ items }: PortfolioIndexProps) {
                 {gridItems.length > 0 && (
                     <PaginationLinks links={items?.links ?? []} />
                 )}
-            </GlassSection>
+            </section>
 
             <PortfolioLightbox
                 items={gridItems}

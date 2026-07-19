@@ -27,7 +27,7 @@ export function FunnelPopups({
     const skipNewsletter = Boolean(customer?.email);
 
     const { open, setOpen, source: newsletterSource } = useNewsletterPopupTrigger({
-        enabled: true,
+        enabled: false,
         skipIfLoggedIn: skipNewsletter,
     });
 
@@ -36,7 +36,7 @@ export function FunnelPopups({
         setOpen: setWhatsappOpen,
         source: whatsappSource,
     } = useWhatsAppPopupTrigger({
-        enabled: Boolean(site.whatsapp),
+        enabled: Boolean(site.whatsapp) && slotsCount === 0,
         whatsapp: site.whatsapp,
     });
 

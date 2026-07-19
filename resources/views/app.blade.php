@@ -84,6 +84,7 @@
             'drone-sessions.show' => 'drone_session',
             'construction-progress.show' => 'construction_progress',
             'food-reels.show' => 'food_reels',
+            'content-creation.show' => 'content_session',
             'home', 'booking.show' => 'content_session',
             default => null,
         };

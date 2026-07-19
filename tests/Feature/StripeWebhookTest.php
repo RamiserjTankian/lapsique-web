@@ -16,11 +16,13 @@ class StripeWebhookTest extends TestCase
 {
     use RefreshDatabase;
 
+    protected string $webhookSecret = 'whsec_test_secret';
+
     protected function setUp(): void
     {
         parent::setUp();
 
-        config(['stripe.webhook_secret' => '']);
+        config(['stripe.webhook_secret' => $this->webhookSecret]);
     }
 
     /**
@@ -28,14 +30,19 @@ class StripeWebhookTest extends TestCase
      */
     protected function postStripeWebhook(array $payload): \Illuminate\Testing\TestResponse
     {
+        $body = json_encode($payload);
+
         return $this->call(
             'POST',
             route('webhooks.stripe'),
             [],
             [],
             [],
-            ['CONTENT_TYPE' => 'application/json'],
-            json_encode($payload),
+            [
+                'CONTENT_TYPE' => 'application/json',
+                'HTTP_STRIPE_SIGNATURE' => $this->stripeSignatureHeader($body, $this->webhookSecret),
+            ],
+            $body,
         );
     }
 
@@ -404,6 +411,33 @@ class StripeWebhookTest extends TestCase
         );
 
         $response->assertStatus(401);
+    }
+
+    public function test_webhook_without_configured_secret_returns_401(): void
+    {
+        config(['stripe.webhook_secret' => '']);
+
+        $payload = json_encode([
+            'id' => 'evt_missing_secret',
+            'type' => 'checkout.session.completed',
+            'data' => ['object' => []],
+        ]);
+
+        $response = $this->call(
+            'POST',
+            route('webhooks.stripe'),
+            [],
+            [],
+            [],
+            [
+                'CONTENT_TYPE' => 'application/json',
+                'HTTP_STRIPE_SIGNATURE' => $this->stripeSignatureHeader($payload, 'whsec_unconfigured'),
+            ],
+            $payload,
+        );
+
+        $response->assertStatus(401);
+        $this->assertDatabaseMissing('stripe_webhook_events', ['event_id' => 'evt_missing_secret']);
     }
 
     public function test_valid_webhook_signature_is_accepted(): void

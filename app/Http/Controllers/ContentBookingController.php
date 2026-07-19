@@ -553,6 +553,7 @@ class ContentBookingController extends Controller
         if ($sessionId && $booking->payment_provider === 'stripe') {
             try {
                 $session = $stripe->fetchSession((string) $sessionId);
+                $stripe->assertCheckoutSessionMatchesBooking($booking, $session);
                 $bookingPayment->syncStripeSession($booking, $session);
                 $booking = $booking->fresh(['slot', 'customer']);
             } catch (\Throwable $e) {

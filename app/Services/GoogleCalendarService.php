@@ -172,7 +172,7 @@ class GoogleCalendarService
         $response = $this->httpClient()->post(self::API_BASE.'/freeBusy', [
             'timeMin' => (new \DateTime)->setTimestamp($start->getTimestamp())->format(\DateTime::RFC3339),
             'timeMax' => (new \DateTime)->setTimestamp($end->getTimestamp())->format(\DateTime::RFC3339),
-            'timeZone' => config('app.timezone', 'America/Mexico_City'),
+            'timeZone' => config('app.timezone', 'America/Cancun'),
             'items' => [['id' => $calendarId]],
         ]);
 
@@ -231,7 +231,7 @@ class GoogleCalendarService
 
         $slot = $booking->slot;
         $startTime = $slot
-            ? \Carbon\Carbon::parse($slot->date->format('Y-m-d').' '.$slot->time_value.':00', config('app.timezone', 'America/Mexico_City'))
+            ? \Carbon\Carbon::parse($slot->date->format('Y-m-d').' '.$slot->time_value.':00', config('app.timezone', 'America/Cancun'))
             : now();
         $endTime = $startTime->copy()->addMinutes($durationMinutes);
 
@@ -250,11 +250,11 @@ class GoogleCalendarService
             'description' => "Cliente: {$booking->client_name}{$instagramStr}\nEmail: {$booking->client_email}\nWhatsApp: {$booking->client_phone}\n\nServicio: {$booking->service_name}\nIncluye: {$booking->service_description}\nMonto: {$booking->formatted_amount}{$notesStr}\n\nReserva ID: {$booking->public_id}",
             'start' => [
                 'dateTime' => $startTime->toRfc3339String(),
-                'timeZone' => config('app.timezone', 'America/Mexico_City'),
+                'timeZone' => config('app.timezone', 'America/Cancun'),
             ],
             'end' => [
                 'dateTime' => $endTime->toRfc3339String(),
-                'timeZone' => config('app.timezone', 'America/Mexico_City'),
+                'timeZone' => config('app.timezone', 'America/Cancun'),
             ],
             'colorId' => '2',
             'reminders' => [

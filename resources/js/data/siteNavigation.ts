@@ -69,6 +69,12 @@ export function buildSiteNavigation(
                 label: en ? 'Services' : 'Servicios',
                 links: [
                     {
+                        id: 'content-creation',
+                        label: en ? 'Social media content' : 'Contenido para redes',
+                        description: en ? 'Reels and photography for Instagram, TikTok, and ads.' : 'Reels y fotografía para Instagram, TikTok y anuncios.',
+                        href: route('content-creation.show', undefined, false, ziggy),
+                    },
+                    {
                         id: 'business-reels',
                         label: en ? 'Reels for business' : 'Reels para negocios',
                         description: en ? 'Commercial content built for ads.' : 'Contenido comercial pensado para anuncios.',

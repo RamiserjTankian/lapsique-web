@@ -25,6 +25,15 @@ class BookingLandingAnalyticsServiceTest extends TestCase
         $this->assertContains('video_progress', $events);
         $this->assertContains('video_complete', $events);
         $this->assertContains('form_started', $events);
+        $this->assertContains('service_landing_lead_form_submitted', $events);
+        $this->assertContains('newsletter_form_submitted', $events);
+        $this->assertContains('booking_payment_info_added', $events);
+        $this->assertContains('content_creation_booking_cta_clicked', $events);
+        $this->assertContains('content_creation_whatsapp_cta_clicked', $events);
+
+        foreach (BookingLandingAnalyticsService::contactEventNames() as $contactEvent) {
+            $this->assertContains($contactEvent, $events);
+        }
     }
 
     public function test_stage_definitions_include_reel_funnel_stages(): void
@@ -41,6 +50,7 @@ class BookingLandingAnalyticsServiceTest extends TestCase
     {
         $this->assertSame([
             '/',
+            '/creacion-de-contenido-riviera-maya',
             '/reels-de-comida',
             '/dj-set',
             '/sesiones-de-dron',

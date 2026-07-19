@@ -8,6 +8,8 @@ use Illuminate\Support\Collection;
 class PortfolioCuration
 {
     private const HOME_PATTERNS = [
+        'mtrx',
+        'karen-echev',
         'traumer-shonky',
         'rebolledo',
         'proper-collective',
@@ -37,6 +39,8 @@ class PortfolioCuration
     ];
 
     private const DJ_SET_PATTERNS = [
+        'mtrx',
+        'karen-echev',
         'traumer-shonky',
         'rebolledo',
         'santino-on-heaven',
@@ -66,6 +70,8 @@ class PortfolioCuration
     ];
 
     private const SCENE_PATTERNS = [
+        'mtrx',
+        'karen-echev',
         'traumer-shonky',
         'rebolledo',
         'proper-collective',

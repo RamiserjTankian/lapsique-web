@@ -66,33 +66,30 @@ export function ServiceLandingSections({
     const { locale, ziggy } = usePage<PageProps>().props;
     const config = SERVICE_LANDING_CONFIGS[serviceKey];
     const primaryAudience = config.audience.slice(0, 4).map((item) => localized(item, locale));
-    const primaryDeliverables = config.deliverables.slice(0, 5).map((item) => localized(item, locale));
+    const primaryDeliverables = config.deliverables.slice(0, 4).map((item) => localized(item, locale));
 
     return (
-        <div className={cn('mx-auto flex max-w-6xl flex-col gap-10 px-4 py-10 sm:px-6', className)}>
+        <div className={cn('mx-auto flex max-w-6xl flex-col gap-12 px-4 py-12 sm:px-6', className)}>
             <Breadcrumbs config={config} locale={locale} />
 
-            {!compact ? <section className="grid gap-8 border-y border-border/70 py-8 lg:grid-cols-[0.9fr_1.1fr] lg:gap-12">
+            {!compact ? <section className="grid gap-8 border-y border-border/70 py-8 lg:grid-cols-2 lg:gap-14">
                 <div>
-                    <p className="text-sm font-semibold text-primary">
-                        {locale === 'en' ? 'Commercial context' : 'Contexto comercial'}
-                    </p>
-                    <h2 className="mt-3 max-w-2xl font-display text-3xl font-bold leading-tight text-foreground md:text-4xl">
+                    <h2 className="max-w-2xl font-display text-3xl font-bold leading-tight text-foreground md:text-4xl">
                         {localized(config.problemTitle, locale)}
                     </h2>
-                    <div className="mt-5 space-y-4 text-base leading-relaxed text-muted-foreground">
-                        {config.problem.map((item) => (
+                    <div className="mt-5 text-base leading-relaxed text-muted-foreground">
+                        {config.problem.slice(0, 1).map((item) => (
                             <p key={localized(item, locale)}>{localized(item, locale)}</p>
                         ))}
                     </div>
                 </div>
 
-                <div className="lg:pt-9">
+                <div>
                     <h3 className="font-display text-2xl font-bold leading-tight text-foreground">
                         {localized(config.solutionTitle, locale)}
                     </h3>
-                    <div className="mt-4 space-y-4 text-base leading-relaxed text-muted-foreground">
-                        {config.solution.map((item) => (
+                    <div className="mt-4 text-base leading-relaxed text-muted-foreground">
+                        {config.solution.slice(0, 1).map((item) => (
                             <p key={localized(item, locale)}>{localized(item, locale)}</p>
                         ))}
                     </div>
@@ -103,11 +100,10 @@ export function ServiceLandingSections({
                 <div>
                     <SectionTitle
                         title={localized(config.outcomesTitle, locale)}
-                        description={localized(config.intro, locale)}
                     />
                 </div>
                 <div className="grid gap-x-8 gap-y-4 sm:grid-cols-2">
-                    {config.outcomes.map((item) => (
+                    {config.outcomes.slice(0, 3).map((item) => (
                         <p
                             key={localized(item, locale)}
                             className="border-t border-border/70 pt-3 text-base font-medium leading-relaxed text-foreground"
@@ -129,7 +125,7 @@ export function ServiceLandingSections({
                 />
                 <EditorialList
                     title={locale === 'en' ? 'Coverage' : 'Cobertura'}
-                    items={SERVICE_AREAS.slice(0, 5)}
+                    items={SERVICE_AREAS.slice(0, 4)}
                 />
             </section> : null}
 
@@ -140,7 +136,7 @@ export function ServiceLandingSections({
                     postUrl={route('leads.capture', undefined, false, ziggy)}
                     emphasized={emphasizeForm}
                 />
-                <FaqSection config={config} locale={locale} accordion={faqAccordion} />
+                <FaqSection config={config} locale={locale} defaultOpen={faqAccordion} />
             </section>
         </div>
     );
@@ -282,16 +278,11 @@ function LandingLeadForm({
 
     return (
         <section className={cn(
-            'border bg-card p-5 md:p-6',
+            'border bg-card p-5 md:p-7',
             emphasized
-                ? 'border-2 border-primary bg-[linear-gradient(145deg,oklch(1_0_0),oklch(0.97_0.035_75))] shadow-[0_24px_70px_oklch(0.78_0.14_75/0.18)]'
-                : 'rounded-xl border-border/75 shadow-sm',
+                ? 'border-primary border-l-4'
+                : 'border-border/75',
         )} data-lead-capture="true">
-            {emphasized ? (
-                <p className="mb-3 font-mono text-[10px] font-semibold uppercase tracking-[0.18em] text-primary">
-                    {locale === 'en' ? 'Personal recommendation · no commitment' : 'Recomendación personal · sin compromiso'}
-                </p>
-            ) : null}
             <h2 className="font-display text-3xl font-bold leading-tight text-foreground">
                 {localized(config.leadForm.title, locale)}
             </h2>
@@ -300,7 +291,7 @@ function LandingLeadForm({
             </p>
             {emphasized ? (
                 <p className="mt-3 border-l-2 border-primary pl-3 text-xs font-semibold text-foreground">
-                    {locale === 'en' ? 'We reply with the best package for your restaurant.' : 'Te respondemos con el paquete adecuado para tu restaurante.'}
+                    {locale === 'en' ? 'We reply with the right scope and next available date.' : 'Te respondemos con el alcance adecuado y la siguiente fecha disponible.'}
                 </p>
             ) : null}
 
@@ -352,7 +343,7 @@ function LandingLeadForm({
                     </p>
                 ) : null}
 
-                <Button type="submit" className="h-12 w-full rounded-lg" disabled={disabled}>
+                <Button type="submit" className="h-12 w-full rounded-none" disabled={disabled}>
                     {state === 'submitting' ? <Loader2 className="size-4 animate-spin" /> : <Send className="size-4" />}
                     {state === 'success'
                         ? (locale === 'en' ? 'Request sent' : 'Solicitud enviada')
@@ -372,15 +363,15 @@ function Field({ id, label, children }: { id: string; label: string; children: R
     );
 }
 
-function FaqSection({ config, locale, accordion = false }: { config: LandingConfig; locale: string; accordion?: boolean }) {
+function FaqSection({ config, locale, defaultOpen = false }: { config: LandingConfig; locale: string; defaultOpen?: boolean }) {
     return (
         <section className="border border-foreground/15 bg-secondary/40 p-5 md:p-6">
             <h2 className="font-display text-3xl font-bold leading-tight text-foreground">
                 {locale === 'en' ? 'FAQ' : 'Preguntas frecuentes'}
             </h2>
-            <div className={cn('mt-5', accordion ? 'space-y-2' : 'divide-y divide-border/70')}>
-                {config.faqs.map((faq, index) => accordion ? (
-                    <details key={localized(faq.question, locale)} className="group border border-foreground/15 bg-background open:border-primary/55" open={index === 0}>
+            <div className="mt-5 space-y-2">
+                {config.faqs.map((faq, index) => (
+                    <details key={localized(faq.question, locale)} className="group border border-foreground/15 bg-background open:border-primary/55" open={defaultOpen && index === 0}>
                         <summary className="flex cursor-pointer list-none items-center justify-between gap-4 px-4 py-4 font-display text-base font-bold text-foreground">
                             {localized(faq.question, locale)}
                             <Plus className="size-4 shrink-0 text-primary transition group-open:rotate-45" />
@@ -389,11 +380,6 @@ function FaqSection({ config, locale, accordion = false }: { config: LandingConf
                             {localized(faq.answer, locale)}
                         </p>
                     </details>
-                ) : (
-                    <article key={localized(faq.question, locale)} className="py-4 first:pt-0 last:pb-0">
-                        <h3 className="text-base font-semibold text-foreground">{localized(faq.question, locale)}</h3>
-                        <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{localized(faq.answer, locale)}</p>
-                    </article>
                 ))}
             </div>
         </section>

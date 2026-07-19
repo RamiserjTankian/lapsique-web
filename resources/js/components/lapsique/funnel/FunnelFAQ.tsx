@@ -39,19 +39,9 @@ export function FunnelFAQ({ variant = 'default' }: { variant?: 'home' | 'default
                 answer: t('funnel.faq.session_duration_a', { duration: sessionDuration }),
             },
             {
-                value: 'que-llevar',
-                question: t('funnel.faq.prepare_q'),
-                answer: t('funnel.faq.prepare_a'),
-            },
-            {
                 value: 'anuncios',
                 question: t('funnel.faq.ads_q'),
                 answer: t('funnel.faq.ads_a'),
-            },
-            {
-                value: 'aftermovie',
-                question: t('funnel.faq.aftermovie_q'),
-                answer: t('funnel.faq.aftermovie_a'),
             },
             {
                 value: 'reagendar',
@@ -83,11 +73,9 @@ export function FunnelFAQ({ variant = 'default' }: { variant?: 'home' | 'default
     return (
         <GlassSection
             surface="solid"
-            eyebrow={t('funnel.faq.section_eyebrow')}
             title={t('funnel.faq.section_title')}
-            description={t('funnel.faq.section_description')}
         >
-            <div className="rounded-[2rem] border border-border/70 bg-secondary px-5 py-3 md:px-8 md:py-4">
+            <div className="border-y border-border/70 px-1 py-2 md:px-3">
                 <Accordion
                     type="single"
                     collapsible

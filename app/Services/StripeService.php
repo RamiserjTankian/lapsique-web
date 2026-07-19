@@ -156,6 +156,46 @@ class StripeService
         return (array) $response->json();
     }
 
+    /**
+     * @param  array<string, mixed>  $session
+     */
+    public function assertCheckoutSessionMatchesBooking(ContentBooking $booking, array $session): void
+    {
+        $sessionId = (string) data_get($session, 'id', '');
+        $expectedSessionId = (string) ($booking->stripe_checkout_session_id ?? '');
+
+        if ($sessionId === '' || $expectedSessionId === '' || ! hash_equals($expectedSessionId, $sessionId)) {
+            throw new RuntimeException('La sesion de Stripe no corresponde a esta reserva.');
+        }
+
+        $expectedReference = 'bkg_'.$booking->public_id;
+        $reference = (string) data_get($session, 'client_reference_id', '');
+        $metadataId = (string) data_get($session, 'metadata.content_booking_id', '');
+        $metadataPublicId = (string) data_get($session, 'metadata.content_booking_public_id', '');
+
+        if (
+            ! hash_equals($expectedReference, $reference)
+            || ! hash_equals((string) $booking->id, $metadataId)
+            || ! hash_equals((string) $booking->public_id, $metadataPublicId)
+        ) {
+            throw new RuntimeException('La sesion de Stripe pertenece a otra reserva.');
+        }
+
+        $amountTotal = data_get($session, 'amount_total');
+        $expectedAmountTotal = (int) $booking->amount * 100;
+
+        if (! is_numeric($amountTotal) || (int) $amountTotal !== $expectedAmountTotal) {
+            throw new RuntimeException('El importe de la sesion de Stripe no coincide con la reserva.');
+        }
+
+        $currency = strtoupper(trim((string) data_get($session, 'currency', '')));
+        $expectedCurrency = strtoupper(trim((string) $booking->currency));
+
+        if ($currency === '' || ! hash_equals($expectedCurrency, $currency)) {
+            throw new RuntimeException('La moneda de la sesion de Stripe no coincide con la reserva.');
+        }
+    }
+
     public function fetchPaymentIntent(string $paymentIntentId): array
     {
         $secret = $this->requireSecretKey();
@@ -182,7 +222,9 @@ class StripeService
         $secret = (string) ($this->integration->resolveWebhookSecret() ?? '');
 
         if ($secret === '') {
-            return true;
+            Log::error('Stripe webhook rejected because no signing secret is configured.');
+
+            return false;
         }
 
         $signature = (string) $request->header('stripe-signature', '');

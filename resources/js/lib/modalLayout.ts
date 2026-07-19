@@ -6,7 +6,7 @@ export type PremiumDialogLayout = 'form' | 'promo';
  * Promo popups (newsletter, WhatsApp): centered card, never edge-to-edge on mobile.
  */
 export const modalShellPromo = cn(
-    'flex w-full max-w-[min(calc(100vw-1.5rem),42rem)] flex-col overflow-hidden rounded-none p-0 sm:rounded-xl',
+    'flex w-full max-w-[min(calc(100vw-1.5rem),42rem)] flex-col overflow-hidden rounded-none p-0',
     'max-h-[min(90dvh,44rem)]',
     'border-foreground/20 bg-background shadow-[0_28px_100px_oklch(0_0_0/0.52)]',
 );

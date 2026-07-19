@@ -194,41 +194,6 @@ const PRODUCT_PHOTOS: FoodPhoto[] = [
     },
 ];
 
-const SESSION_PHOTOS: FoodPhoto[] = [
-    {
-        id: 'santino-brunch-table',
-        title: 'Brunch completo',
-        caption: 'Mesa cenital con fruta, waffles, bowls y platos servidos.',
-        src: '/images/food-reels/food-santino-brunch-table.webp',
-        orientation: 'landscape',
-        layout: 'wide',
-    },
-    {
-        id: 'santino-charcuterie-table',
-        title: 'Tabla de charcutería',
-        caption: 'Mesa abundante con quesos, carnes frias y platillos al fondo.',
-        src: '/images/food-reels/food-santino-charcuterie-table.webp',
-        orientation: 'portrait',
-        layout: 'tall',
-    },
-    PRODUCT_PHOTOS[0],
-    {
-        id: 'santino-waffle-table',
-        title: 'Mesa con fruta',
-        caption: 'Tabla con fruta, pan y platos para comunicar abundancia.',
-        src: '/images/food-reels/food-santino-waffle-table.webp',
-        orientation: 'landscape',
-        layout: 'wide',
-    },
-    {
-        id: 'roof-models-toast',
-        title: 'Activación en mesa',
-        caption: 'Personas, drinks y comida para reforzar la experiencia.',
-        src: '/images/food-reels/food-roof-models-toast-clean.webp',
-        orientation: 'portrait',
-    },
-];
-
 const ACTIVATION_PHOTOS: FoodPhoto[] = [
     {
         id: 'roof-models-toast',
@@ -257,17 +222,16 @@ const FOOD_PAGE_COPY = {
     es: {
         analyticsName: 'Landing de reels de comida',
         heroTitle: 'Reels de comida para restaurantes en Riviera Maya',
-        heroDescription: 'Grabamos reels, fotos y contenido visual para que tu comida, ambiente y experiencia se vean más profesionales en Instagram, TikTok, Google y campañas de Meta Ads.',
+        heroDescription: 'Reels y fotos de platillos, barra y ambiente para redes, Google y campañas de Meta Ads.',
         heroPrimary: 'Cotizar reels para mi restaurante',
         heroSecondary: 'Ver prueba real',
         whatsappCta: 'Cotizar por WhatsApp',
         reelSectionTitle: 'Reels para restaurantes',
-        sessionSectionTitle: 'Vende la experiencia de estar en tu restaurante',
-        photoSectionTitle: 'Foto de producto para utilizar en tus menús o redes',
+        photoSectionTitle: 'Fotografía de producto',
         activationTitle: 'Activaciones con modelos',
-        activationDescription: 'Cuando el restaurante vende experiencia, sumamos personas, drinks, mesa y ambiente para crear contenido que convierte.',
+        activationDescription: 'Personas, mesa y ambiente para mostrar cómo se vive el restaurante.',
         packageTitle: 'Paquete de producción gastronómica',
-        packageDescription: 'Incluye 10 fotos de producto, 2 reels de activación sin modelos, máximo 5 platillos y 3 tomas de dron del espacio del restaurante con DJI Air 3 en vertical 4K.',
+        packageDescription: '10 fotos, 2 reels y 3 tomas de dron para hasta 5 platillos.',
         packageCta: 'Reservar fecha',
         packageCards: [
             {
@@ -286,8 +250,8 @@ const FOOD_PAGE_COPY = {
                 items: ['DJI Air 3', 'Vertical 4K', 'Exterior o interior viable'],
             },
         ],
-        bookingTitle: 'Agenda la sesión y armamos el shot list de comida.',
-        bookingDescription: 'Al reservar definimos hasta 5 platillos prioritarios, horario, mood, tomas de dron y piezas finales para que el contenido salga con objetivo comercial.',
+        bookingTitle: 'Agenda la sesión y definimos el shot list.',
+        bookingDescription: 'Antes de grabar confirmamos platillos, horario, tomas de dron y piezas finales.',
         finalWhatsApp: 'Preguntar por WhatsApp',
         bookingProduct: {
             checkoutLabel: 'Producción gastronómica',
@@ -307,17 +271,16 @@ const FOOD_PAGE_COPY = {
     en: {
         analyticsName: 'Food reels landing page',
         heroTitle: 'Food reels for restaurants in Riviera Maya',
-        heroDescription: 'We produce reels, photos, and visual content so your food, atmosphere, and experience look stronger on Instagram, TikTok, Google, and Meta Ads campaigns.',
+        heroDescription: 'Reels and photos of dishes, bar service, and atmosphere for social media, Google, and Meta Ads.',
         heroPrimary: 'Quote reels for my restaurant',
         heroSecondary: 'View real proof',
         whatsappCta: 'Quote on WhatsApp',
         reelSectionTitle: 'Restaurant reels',
-        sessionSectionTitle: 'Sell the experience of being in your restaurant',
-        photoSectionTitle: 'Product photography for your menus or social channels',
+        photoSectionTitle: 'Product photography',
         activationTitle: 'Model activations',
-        activationDescription: 'When the restaurant sells experience, we add people, drinks, table, and mood to create content that converts.',
+        activationDescription: 'People, table, and atmosphere to show what the restaurant feels like.',
         packageTitle: 'Food production package',
-        packageDescription: 'Includes 10 product photos, 2 activation reels without models, up to 5 dishes, and 3 vertical 4K drone shots of the restaurant space with DJI Air 3.',
+        packageDescription: '10 photos, 2 reels, and 3 drone shots for up to 5 dishes.',
         packageCta: 'Reserve date',
         packageCards: [
             {
@@ -336,8 +299,8 @@ const FOOD_PAGE_COPY = {
                 items: ['DJI Air 3', 'Vertical 4K', 'Viable exterior or interior'],
             },
         ],
-        bookingTitle: 'Book the session and we build the food shot list.',
-        bookingDescription: 'After booking, we define up to 5 priority dishes, timing, mood, drone shots, and final pieces so the content has a clear sales goal.',
+        bookingTitle: 'Book the session and define the shot list.',
+        bookingDescription: 'Before production, we confirm dishes, timing, drone shots, and final pieces.',
         finalWhatsApp: 'Ask on WhatsApp',
         bookingProduct: {
             checkoutLabel: 'Food production',
@@ -447,7 +410,7 @@ export default function FoodReelsShow({ price, slots, errors }: FoodReelsShowPro
                             <div className="grid gap-3 sm:grid-cols-2">
                             <BookingCtaButton
                                 type="button"
-                                className="min-h-12 w-full min-w-0 rounded-lg px-4 text-sm whitespace-normal sm:text-base"
+                                className="min-h-12 w-full min-w-0 rounded-none px-4 text-sm whitespace-normal sm:text-base"
                                 onClick={() => openBooking('hero')}
                             >
                                 <CalendarDays data-icon="inline-start" />
@@ -473,7 +436,7 @@ export default function FoodReelsShow({ price, slots, errors }: FoodReelsShowPro
                     </div>
 
                     <div className="relative mx-auto w-full max-w-[370px]">
-                        <div className="relative overflow-hidden rounded-[2rem] border border-white/18 bg-black p-2 shadow-[0_32px_90px_rgb(0_0_0/0.55)]">
+                        <div className="relative overflow-hidden border border-white/18 bg-black p-2">
                             <AutoplayVideo
                                 key={activeReel.id}
                                 src={activeReel.src}
@@ -481,7 +444,7 @@ export default function FoodReelsShow({ price, slots, errors }: FoodReelsShowPro
                                 title={activeReel.title}
                                 eager={!isMobileViewport}
                                 pauseWhenOffscreen={isMobileViewport}
-                                className="aspect-[9/16] rounded-[1.45rem]"
+                                className="aspect-[9/16] rounded-none"
                             />
                         </div>
                     </div>
@@ -524,23 +487,11 @@ export default function FoodReelsShow({ price, slots, errors }: FoodReelsShowPro
 
             <section className="mx-auto flex max-w-6xl flex-col gap-6 px-4 py-12 sm:px-6">
                 <SectionHeader
-                    title={copy.sessionSectionTitle}
-                    className="max-w-3xl"
-                />
-                <div className="grid auto-rows-[210px] grid-flow-dense gap-3 sm:grid-cols-2 sm:auto-rows-[250px] lg:grid-cols-4 lg:auto-rows-[245px]">
-                    {SESSION_PHOTOS.map((photo, index) => (
-                        <MediaPhoto key={photo.id} photo={photo} mosaic className={cn(index > 5 && 'max-sm:hidden')} />
-                    ))}
-                </div>
-            </section>
-
-            <section className="mx-auto flex max-w-6xl flex-col gap-6 px-4 py-12 sm:px-6">
-                <SectionHeader
                     title={copy.photoSectionTitle}
                     className="max-w-3xl"
                 />
                 <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-                    {PRODUCT_PHOTOS.slice(0, 10).map((photo, index) => (
+                    {PRODUCT_PHOTOS.slice(0, 6).map((photo, index) => (
                         <MediaPhoto key={photo.id} photo={photo} dense className={cn(index > 5 && 'max-sm:hidden')} />
                     ))}
                 </div>
@@ -690,9 +641,9 @@ function ReelSelector({
             type="button"
             onClick={onSelect}
             className={cn(
-                'group overflow-hidden rounded-lg border bg-card text-left shadow-sm transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
+                'group overflow-hidden border bg-card text-left transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
                 selected
-                    ? 'border-primary shadow-[0_20px_60px_rgb(206_58_42/0.18)]'
+                    ? 'border-primary'
                     : 'border-border/70 hover:border-primary/60',
             )}
             aria-pressed={selected}
@@ -743,7 +694,7 @@ function MediaPhoto({
 
     return (
         <figure className={cn(
-            'group overflow-hidden rounded-lg border shadow-sm',
+            'group overflow-hidden border',
             dark ? 'border-white/14 bg-white/6' : 'border-border/70 bg-card',
             mosaic && 'min-h-0',
             mosaic && photo.layout === 'large' && 'sm:col-span-2 sm:row-span-2',

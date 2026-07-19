@@ -15,6 +15,7 @@ use Illuminate\Support\Str;
 class PageMeta
 {
     public const LAPSIQUE_SITE_NAME = 'Lapsique Media';
+
     public const TRASCENDENTAL_SITE_NAME = 'Trascendentalby';
 
     public static function forRequest(Request $request): PageMetaData
@@ -22,6 +23,11 @@ class PageMeta
         $routeName = $request->route()?->getName();
         $settings = SiteSetting::current();
         $canonicalUrl = url()->current();
+        $page = $request->integer('page', 1);
+
+        if ($page > 1 && in_array($routeName, ['videos.index', 'portfolio.index'], true)) {
+            $canonicalUrl .= '?page='.$page;
+        }
 
         if ($routeName === 'home' && config('trascendental.enabled_as_primary')) {
             return self::forTrascendental($canonicalUrl);
@@ -40,6 +46,7 @@ class PageMeta
             'drone-sessions.show' => self::forDroneSession($canonicalUrl),
             'construction-progress.show' => self::forConstructionProgress($canonicalUrl),
             'food-reels.show' => self::forFoodReels($settings, $canonicalUrl),
+            'content-creation.show' => self::forContentCreation($settings, $canonicalUrl),
             'djs.show' => self::forDj($request->route('dj'), $canonicalUrl),
             'videos.show' => self::forVideo($request->route('video'), $canonicalUrl),
             'events.show' => self::forEvent($request->route('event'), $canonicalUrl),
@@ -232,6 +239,38 @@ class PageMeta
                     ['Trabajan en Playa del Carmen, Tulum y Cancún?', 'Sí. Atendemos Playa del Carmen, Tulum, Cancún, Puerto Morelos, Puerto Aventuras, Akumal, Mayakoba, Cozumel y zonas cercanas de Riviera Maya.'],
                     ['Puedo usar los reels para anuncios?', 'Sí. Podemos entregar contenido pensado para publicaciones orgánicas y también para campañas de Meta Ads.'],
                     ['Incluye fotos?', 'Puede incluir fotos según el paquete contratado. Recomendamos combinar reels y fotos para tener más material de publicación.'],
+                ],
+            ),
+        );
+    }
+
+    public static function forContentCreation(?SiteSetting $settings, string $canonicalUrl): PageMetaData
+    {
+        $title = 'Creación de contenido para redes sociales en Riviera Maya';
+        $description = 'Producción de reels y fotografía para Instagram, TikTok y Meta Ads en Playa del Carmen, Tulum, Cancún y Riviera Maya. Agenda con Lapsique Media.';
+        $ogImage = self::bookingOgImageUrl($settings);
+
+        return new PageMetaData(
+            title: $title,
+            metaTitle: "{$title} | Lapsique Media",
+            description: $description,
+            canonicalUrl: $canonicalUrl,
+            ogType: 'website',
+            ogImage: $ogImage,
+            ogImageAlt: 'Producción de reels y fotografía para redes sociales por Lapsique Media',
+            keywords: 'creación de contenido riviera maya, contenido para redes sociales playa del carmen, reels para instagram tulum, videos para tiktok cancún, producción de contenido meta ads',
+            jsonLd: self::serviceLandingJsonLd(
+                canonicalUrl: $canonicalUrl,
+                title: $title,
+                description: $description,
+                serviceType: 'Creación de contenido para redes sociales',
+                ogImage: $ogImage,
+                breadcrumbName: 'Creación de contenido',
+                faq: [
+                    ['Trabajan contenido para Instagram y TikTok?', 'Sí. Grabamos en formato vertical y editamos piezas para consumo móvil, publicaciones orgánicas y anuncios.'],
+                    ['Puedo usar el material en Meta Ads?', 'Sí. El reel y las fotografías se entregan con uso comercial para la campaña del negocio contratado.'],
+                    ['Qué tipo de negocios atienden?', 'Restaurantes, hoteles, propiedades, desarrollos, experiencias, eventos y marcas de servicio en Riviera Maya.'],
+                    ['Incluye estrategia de social media?', 'La producción incluye dirección visual y lista de tomas. La gestión mensual de redes se cotiza aparte según volumen y canales.'],
                 ],
             ),
         );
@@ -437,23 +476,15 @@ class PageMeta
                 ?: $event->getFirstMediaUrl('cover'),
         );
 
-        return new PageMetaData(
-            title: $title,
-            metaTitle: $metaTitle,
-            description: $description,
-            canonicalUrl: $canonicalUrl,
-            ogType: 'website',
-            ogImage: $ogImage ?: self::defaultOgImageUrl(),
-            ogImageAlt: "{$event->title} — ".self::siteName(),
-            keywords: "{$event->title}, evento, música electrónica, ".self::siteName(),
-            jsonLd: array_filter([
+        $jsonLd = $event->starts_at
+            ? array_filter([
                 '@context' => 'https://schema.org',
                 '@type' => 'Event',
                 'name' => $event->title,
                 'description' => $description,
                 'image' => $ogImage ? [$ogImage] : null,
-                'startDate' => $event->starts_at?->toIso8601String(),
-                'eventStatus' => $event->starts_at?->isPast()
+                'startDate' => $event->starts_at->toIso8601String(),
+                'eventStatus' => $event->starts_at->isPast()
                     ? 'https://schema.org/EventCompleted'
                     : 'https://schema.org/EventScheduled',
                 'eventAttendanceMode' => 'https://schema.org/OfflineEventAttendanceMode',
@@ -471,7 +502,27 @@ class PageMeta
                 'performer' => $event->relationLoaded('djs')
                     ? $event->djs->map(fn (Dj $dj) => ['@type' => 'Person', 'name' => $dj->name])->values()->all()
                     : null,
-            ], fn ($value) => $value !== null && $value !== ''),
+            ], fn ($value) => $value !== null && $value !== '')
+            : array_filter([
+                '@context' => 'https://schema.org',
+                '@type' => 'WebPage',
+                'name' => $event->title,
+                'description' => $description,
+                'image' => $ogImage,
+                'url' => $canonicalUrl,
+                'publisher' => ['@id' => url('/#organization')],
+            ], fn ($value) => $value !== null && $value !== '');
+
+        return new PageMetaData(
+            title: $title,
+            metaTitle: $metaTitle,
+            description: $description,
+            canonicalUrl: $canonicalUrl,
+            ogType: 'website',
+            ogImage: $ogImage ?: self::defaultOgImageUrl(),
+            ogImageAlt: "{$event->title} — ".self::siteName(),
+            keywords: "{$event->title}, evento, música electrónica, ".self::siteName(),
+            jsonLd: $jsonLd,
         );
     }
 
@@ -569,7 +620,7 @@ class PageMeta
     }
 
     /**
-     * @param array<int, array{0: string, 1: string}> $faq
+     * @param  array<int, array{0: string, 1: string}>  $faq
      */
     private static function serviceLandingJsonLd(
         string $canonicalUrl,
@@ -730,6 +781,7 @@ class PageMeta
     public static function featuredVideoOgImageUrl(): ?string
     {
         $video = Video::query()
+            ->whereDoesntHave('djs', fn ($query) => $query->where('trascendental_roster', true))
             ->orderByDesc('is_featured')
             ->orderBy('priority')
             ->orderByDesc('created_at')

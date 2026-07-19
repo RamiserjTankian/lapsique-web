@@ -77,13 +77,17 @@ class PortfolioAssetsSeeder extends Seeder
             'poster_path' => $entry['poster'] ?? null,
             'youtube_url' => null,
             'youtube_id' => null,
-            'caption' => $type === 'photo'
-                ? "Fotografía editada de {$title}."
-                : ($entry['caption'] ?? null),
+            'caption' => filled($entry['caption'] ?? null)
+                ? trim((string) $entry['caption'])
+                : ($type === 'photo' ? "Fotografía editada de {$title}." : null),
             'tags' => $tags,
-            'is_featured' => $index === 0,
+            'is_featured' => array_key_exists('is_featured', $entry)
+                ? (bool) $entry['is_featured']
+                : $index === 0,
             'is_active' => true,
-            'priority' => $index + 1,
+            'priority' => is_numeric($entry['priority'] ?? null)
+                ? max(1, (int) $entry['priority'])
+                : $index + 1,
         ]);
 
         $item->save();

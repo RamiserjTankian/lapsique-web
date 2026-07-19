@@ -13,6 +13,7 @@ class BookingLandingAnalyticsService
 
     public const LANDING_PATHS = [
         '/',
+        '/creacion-de-contenido-riviera-maya',
         '/reels-de-comida',
         '/dj-set',
         '/sesiones-de-dron',
@@ -29,6 +30,23 @@ class BookingLandingAnalyticsService
             'djset_page_viewed',
             'drone_session_page_viewed',
             'construction_progress_page_viewed',
+            'djset_booking_cta_clicked',
+            'food_reels_booking_cta_clicked',
+            'drone_session_booking_cta_clicked',
+            'construction_progress_booking_cta_clicked',
+            'content_creation_booking_cta_clicked',
+            'djset_whatsapp_cta_clicked',
+            'food_reels_whatsapp_cta_clicked',
+            'drone_session_whatsapp_cta_clicked',
+            'construction_progress_whatsapp_cta_clicked',
+            'content_creation_whatsapp_cta_clicked',
+            'service_landing_whatsapp_clicked',
+            'service_landing_lead_form_submitted',
+            'whatsapp_popup_shown',
+            'whatsapp_popup_dismissed',
+            'whatsapp_popup_clicked',
+            'newsletter_popup_shown',
+            'newsletter_form_submitted',
             'video_play',
             'video_progress',
             'video_complete',
@@ -68,6 +86,7 @@ class BookingLandingAnalyticsService
             'booking_form_viewed',
             'booking_form_started',
             'booking_abandoned',
+            'booking_payment_info_added',
             'booking_checkout_started',
             'booking_form_submitted',
             'booking_payment_cta_clicked',
@@ -75,6 +94,20 @@ class BookingLandingAnalyticsService
             'booking_confirmed',
             'booking_payment_pending',
             'booking_payment_failed',
+        ];
+    }
+
+    public static function contactEventNames(): array
+    {
+        return [
+            'food_reels_whatsapp_cta_clicked',
+            'djset_whatsapp_cta_clicked',
+            'drone_session_whatsapp_cta_clicked',
+            'construction_progress_whatsapp_cta_clicked',
+            'content_creation_whatsapp_cta_clicked',
+            'service_landing_whatsapp_clicked',
+            'booking_popup_whatsapp_clicked',
+            'whatsapp_popup_clicked',
         ];
     }
 
@@ -122,15 +155,12 @@ class BookingLandingAnalyticsService
                 'events as video_plays_count' => fn (Builder $query) => $query->where('name', 'video_play'),
                 'events as contact_events_count' => fn (Builder $query) => $query
                     ->where(function (Builder $events): void {
-                        $events->whereIn('name', [
-                            'food_reels_whatsapp_cta_clicked',
-                            'djset_whatsapp_cta_clicked',
-                            'drone_session_whatsapp_cta_clicked',
-                            'construction_progress_whatsapp_cta_clicked',
-                            'service_landing_whatsapp_clicked',
-                            'whatsapp_popup_clicked',
-                        ])->orWhere(function (Builder $clicks): void {
-                            $clicks->where('name', 'click')->where('element_href', 'like', 'https://wa.me/%');
+                        $events->whereIn('name', self::contactEventNames())->orWhere(function (Builder $clicks): void {
+                            $clicks->where('name', 'click')->where(function (Builder $links): void {
+                                $links
+                                    ->where('element_href', 'like', 'https://wa.me/%')
+                                    ->orWhere('element_href', 'like', 'https://api.whatsapp.com/%');
+                            });
                         });
                     }),
                 'events as form_starts_count' => fn (Builder $query) => $query
@@ -174,9 +204,10 @@ class BookingLandingAnalyticsService
         $formSubmittedSessions = $sessions->filter(fn (AnalyticsSession $session) => $this->hasEvent($session, ['booking_form_submitted']))->count();
         $videoPlaySessions = $sessions->filter(fn (AnalyticsSession $session) => $this->hasEvent($session, ['video_play', 'reel_player_opened']))->count();
         $videoCompleteSessions = $sessions->filter(fn (AnalyticsSession $session) => $this->hasEvent($session, ['video_complete']))->count();
-        $contactSessions = $sessions->filter(fn (AnalyticsSession $session) => $this->hasEvent($session, [
-            'food_reels_whatsapp_cta_clicked', 'djset_whatsapp_cta_clicked', 'drone_session_whatsapp_cta_clicked',
-            'construction_progress_whatsapp_cta_clicked', 'service_landing_whatsapp_clicked', 'whatsapp_popup_clicked',
+        $contactSessions = $sessions->filter(fn (AnalyticsSession $session) => $this->hasContactEvent($session))->count();
+        $leadSubmittedSessions = $sessions->filter(fn (AnalyticsSession $session) => $this->hasEvent($session, [
+            'service_landing_lead_form_submitted',
+            'newsletter_form_submitted',
         ]))->count();
 
         $sources = $sessions
@@ -245,6 +276,7 @@ class BookingLandingAnalyticsService
                 'video_play' => $videoPlaySessions,
                 'video_complete' => $videoCompleteSessions,
                 'contact' => $contactSessions,
+                'lead_submitted' => $leadSubmittedSessions,
                 'confirmed' => $convertedSessions,
                 'pending' => $pendingSessions,
                 'failed' => $failedSessions,
@@ -344,6 +376,30 @@ class BookingLandingAnalyticsService
     protected function hasEvent(AnalyticsSession $session, array $eventNames): bool
     {
         return $this->firstMatchingEvent($session, $eventNames) !== null;
+    }
+
+    protected function hasContactEvent(AnalyticsSession $session): bool
+    {
+        $events = $session->relationLoaded('events')
+            ? $session->events
+            : $session->events()
+                ->where(function (Builder $query): void {
+                    $query->whereIn('name', self::contactEventNames())
+                        ->orWhere('name', 'click');
+                })
+                ->get();
+
+        return $events->contains(function ($event): bool {
+            if (in_array($event->name, self::contactEventNames(), true)) {
+                return true;
+            }
+
+            return $event->name === 'click'
+                && Str::startsWith((string) $event->element_href, [
+                    'https://wa.me/',
+                    'https://api.whatsapp.com/',
+                ]);
+        });
     }
 
     protected function firstMatchingEvent(AnalyticsSession $session, array $eventNames): ?object

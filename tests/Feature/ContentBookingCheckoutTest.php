@@ -54,6 +54,32 @@ class ContentBookingCheckoutTest extends TestCase
         ];
     }
 
+    /**
+     * @param  array<string, mixed>  $payload
+     */
+    protected function postSignedStripeWebhook(array $payload): \Illuminate\Testing\TestResponse
+    {
+        $secret = 'whsec_content_booking_test';
+        config(['stripe.webhook_secret' => $secret]);
+
+        $body = json_encode($payload);
+        $timestamp = time();
+        $signature = hash_hmac('sha256', $timestamp.'.'.$body, $secret);
+
+        return $this->call(
+            'POST',
+            route('webhooks.stripe'),
+            [],
+            [],
+            [],
+            [
+                'CONTENT_TYPE' => 'application/json',
+                'HTTP_STRIPE_SIGNATURE' => 't='.$timestamp.',v1='.$signature,
+            ],
+            $body,
+        );
+    }
+
     public function test_home_includes_agenda_section(): void
     {
         SiteSetting::query()->create([
@@ -355,7 +381,7 @@ class ContentBookingCheckoutTest extends TestCase
                 && data_get($payload, 'line_items.0.price_data.product_data.name') === 'Grabación de DJ Set — multicámara, Ronin, dron y audio 32-bit'
                 && data_get($payload, 'line_items.0.price_data.unit_amount') === 1000000
                 && data_get($payload, 'metadata.content_booking_public_id') === $booking->public_id;
-            });
+        });
     }
 
     public function test_drone_session_landing_uses_shared_slots_and_price(): void
@@ -517,6 +543,225 @@ class ContentBookingCheckoutTest extends TestCase
         $this->assertSame('pending_payment', $booking->fresh()->status);
     }
 
+    public function test_confirm_accepts_only_the_stripe_session_created_for_the_booking(): void
+    {
+        config(['stripe.secret_key' => 'sk_test_fake']);
+
+        $slot = $this->createAvailableSlot();
+        $booking = ContentBooking::create([
+            'public_id' => (string) Str::uuid(),
+            'booking_slot_id' => $slot->id,
+            'client_name' => 'Cliente',
+            'client_email' => 'cliente@example.com',
+            'client_phone' => '529841234567',
+            'amount' => 3000,
+            'currency' => 'MXN',
+            'status' => 'pending_payment',
+            'payment_provider' => 'stripe',
+            'stripe_checkout_session_id' => 'cs_booking_valid',
+        ]);
+
+        Http::fake([
+            'https://api.stripe.com/v1/checkout/sessions/cs_booking_valid*' => Http::response([
+                'id' => 'cs_booking_valid',
+                'client_reference_id' => 'bkg_'.$booking->public_id,
+                'amount_total' => 300000,
+                'currency' => 'mxn',
+                'payment_status' => 'paid',
+                'payment_intent' => ['id' => 'pi_booking_valid', 'status' => 'succeeded'],
+                'metadata' => [
+                    'content_booking_id' => (string) $booking->id,
+                    'content_booking_public_id' => $booking->public_id,
+                ],
+            ]),
+        ]);
+
+        $this->get(route('booking.confirm', $booking->public_id).'?session_id=cs_booking_valid')
+            ->assertOk()
+            ->assertInertia(fn ($page) => $page
+                ->component('Booking/Confirm')
+                ->where('paymentVerified', true)
+                ->where('booking.status', 'confirmed')
+            );
+
+        $this->assertSame('confirmed', $booking->fresh()->status);
+    }
+
+    public function test_confirm_rejects_a_paid_stripe_session_owned_by_another_booking(): void
+    {
+        config(['stripe.secret_key' => 'sk_test_fake']);
+
+        $slot = $this->createAvailableSlot();
+        $booking = ContentBooking::create([
+            'public_id' => (string) Str::uuid(),
+            'booking_slot_id' => $slot->id,
+            'client_name' => 'Cliente',
+            'client_email' => 'cliente@example.com',
+            'client_phone' => '529841234567',
+            'amount' => 3000,
+            'currency' => 'MXN',
+            'status' => 'pending_payment',
+            'payment_provider' => 'stripe',
+            'stripe_checkout_session_id' => 'cs_booking_owned',
+        ]);
+        $otherPublicId = (string) Str::uuid();
+
+        Http::fake([
+            'https://api.stripe.com/v1/checkout/sessions/cs_booking_owned*' => Http::response([
+                'id' => 'cs_booking_owned',
+                'client_reference_id' => 'bkg_'.$otherPublicId,
+                'amount_total' => 300000,
+                'currency' => 'mxn',
+                'payment_status' => 'paid',
+                'payment_intent' => ['id' => 'pi_booking_owned', 'status' => 'succeeded'],
+                'metadata' => [
+                    'content_booking_id' => '999999',
+                    'content_booking_public_id' => $otherPublicId,
+                ],
+            ]),
+        ]);
+
+        $this->get(route('booking.confirm', $booking->public_id).'?session_id=cs_booking_owned')
+            ->assertOk()
+            ->assertInertia(fn ($page) => $page
+                ->where('paymentVerified', false)
+                ->where('booking.status', 'pending_payment')
+            );
+
+        $booking->refresh();
+        $this->assertSame('pending_payment', $booking->status);
+        $this->assertNull($booking->stripe_payment_intent_id);
+    }
+
+    public function test_confirm_rejects_a_session_when_reference_matches_but_metadata_does_not(): void
+    {
+        config(['stripe.secret_key' => 'sk_test_fake']);
+
+        $slot = $this->createAvailableSlot();
+        $booking = ContentBooking::create([
+            'public_id' => (string) Str::uuid(),
+            'booking_slot_id' => $slot->id,
+            'client_name' => 'Cliente',
+            'client_email' => 'cliente@example.com',
+            'client_phone' => '529841234567',
+            'amount' => 3000,
+            'currency' => 'MXN',
+            'status' => 'pending_payment',
+            'payment_provider' => 'stripe',
+            'stripe_checkout_session_id' => 'cs_booking_metadata',
+        ]);
+
+        Http::fake([
+            'https://api.stripe.com/v1/checkout/sessions/cs_booking_metadata*' => Http::response([
+                'id' => 'cs_booking_metadata',
+                'client_reference_id' => 'bkg_'.$booking->public_id,
+                'amount_total' => 300000,
+                'currency' => 'mxn',
+                'payment_status' => 'paid',
+                'payment_intent' => ['id' => 'pi_booking_metadata', 'status' => 'succeeded'],
+                'metadata' => [
+                    'content_booking_id' => '999999',
+                    'content_booking_public_id' => (string) Str::uuid(),
+                ],
+            ]),
+        ]);
+
+        $this->get(route('booking.confirm', $booking->public_id).'?session_id=cs_booking_metadata')
+            ->assertOk()
+            ->assertInertia(fn ($page) => $page
+                ->where('paymentVerified', false)
+                ->where('booking.status', 'pending_payment')
+            );
+
+        $this->assertSame('pending_payment', $booking->fresh()->status);
+    }
+
+    public function test_confirm_rejects_a_paid_stripe_session_with_wrong_amount(): void
+    {
+        config(['stripe.secret_key' => 'sk_test_fake']);
+
+        $slot = $this->createAvailableSlot();
+        $booking = ContentBooking::create([
+            'public_id' => (string) Str::uuid(),
+            'booking_slot_id' => $slot->id,
+            'client_name' => 'Cliente',
+            'client_email' => 'cliente@example.com',
+            'client_phone' => '529841234567',
+            'amount' => 3000,
+            'currency' => 'MXN',
+            'status' => 'pending_payment',
+            'payment_provider' => 'stripe',
+            'stripe_checkout_session_id' => 'cs_booking_amount',
+        ]);
+
+        Http::fake([
+            'https://api.stripe.com/v1/checkout/sessions/cs_booking_amount*' => Http::response([
+                'id' => 'cs_booking_amount',
+                'client_reference_id' => 'bkg_'.$booking->public_id,
+                'amount_total' => 100,
+                'currency' => 'mxn',
+                'payment_status' => 'paid',
+                'payment_intent' => ['id' => 'pi_booking_amount', 'status' => 'succeeded'],
+                'metadata' => [
+                    'content_booking_id' => (string) $booking->id,
+                    'content_booking_public_id' => $booking->public_id,
+                ],
+            ]),
+        ]);
+
+        $this->get(route('booking.confirm', $booking->public_id).'?session_id=cs_booking_amount')
+            ->assertOk()
+            ->assertInertia(fn ($page) => $page
+                ->where('paymentVerified', false)
+                ->where('booking.status', 'pending_payment')
+            );
+
+        $this->assertSame('pending_payment', $booking->fresh()->status);
+    }
+
+    public function test_confirm_rejects_a_paid_stripe_session_with_wrong_currency(): void
+    {
+        config(['stripe.secret_key' => 'sk_test_fake']);
+
+        $slot = $this->createAvailableSlot();
+        $booking = ContentBooking::create([
+            'public_id' => (string) Str::uuid(),
+            'booking_slot_id' => $slot->id,
+            'client_name' => 'Cliente',
+            'client_email' => 'cliente@example.com',
+            'client_phone' => '529841234567',
+            'amount' => 3000,
+            'currency' => 'MXN',
+            'status' => 'pending_payment',
+            'payment_provider' => 'stripe',
+            'stripe_checkout_session_id' => 'cs_booking_currency',
+        ]);
+
+        Http::fake([
+            'https://api.stripe.com/v1/checkout/sessions/cs_booking_currency*' => Http::response([
+                'id' => 'cs_booking_currency',
+                'client_reference_id' => 'bkg_'.$booking->public_id,
+                'amount_total' => 300000,
+                'currency' => 'usd',
+                'payment_status' => 'paid',
+                'payment_intent' => ['id' => 'pi_booking_currency', 'status' => 'succeeded'],
+                'metadata' => [
+                    'content_booking_id' => (string) $booking->id,
+                    'content_booking_public_id' => $booking->public_id,
+                ],
+            ]),
+        ]);
+
+        $this->get(route('booking.confirm', $booking->public_id).'?session_id=cs_booking_currency')
+            ->assertOk()
+            ->assertInertia(fn ($page) => $page
+                ->where('paymentVerified', false)
+                ->where('booking.status', 'pending_payment')
+            );
+
+        $this->assertSame('pending_payment', $booking->fresh()->status);
+    }
+
     public function test_mercadopago_webhook_confirms_booking(): void
     {
         config(['mercadopago.access_token' => 'TEST-token', 'mercadopago.webhook_secret' => '']);
@@ -552,8 +797,6 @@ class ContentBookingCheckoutTest extends TestCase
 
     public function test_stripe_webhook_confirms_booking(): void
     {
-        config(['stripe.webhook_secret' => '']);
-
         $slot = $this->createAvailableSlot();
 
         $booking = ContentBooking::create([
@@ -584,15 +827,7 @@ class ContentBookingCheckoutTest extends TestCase
             ],
         ];
 
-        $this->call(
-            'POST',
-            route('webhooks.stripe'),
-            [],
-            [],
-            [],
-            ['CONTENT_TYPE' => 'application/json'],
-            json_encode($payload),
-        )->assertNoContent();
+        $this->postSignedStripeWebhook($payload)->assertNoContent();
 
         $booking->refresh();
         $this->assertSame('confirmed', $booking->status);
@@ -602,8 +837,6 @@ class ContentBookingCheckoutTest extends TestCase
 
     public function test_stripe_webhook_is_idempotent(): void
     {
-        config(['stripe.webhook_secret' => '']);
-
         $slot = $this->createAvailableSlot();
 
         $booking = ContentBooking::create([
@@ -631,27 +864,8 @@ class ContentBookingCheckoutTest extends TestCase
             ],
         ];
 
-        $body = json_encode($payload);
-
-        $this->call(
-            'POST',
-            route('webhooks.stripe'),
-            [],
-            [],
-            [],
-            ['CONTENT_TYPE' => 'application/json'],
-            $body,
-        )->assertNoContent();
-
-        $this->call(
-            'POST',
-            route('webhooks.stripe'),
-            [],
-            [],
-            [],
-            ['CONTENT_TYPE' => 'application/json'],
-            $body,
-        )->assertNoContent();
+        $this->postSignedStripeWebhook($payload)->assertNoContent();
+        $this->postSignedStripeWebhook($payload)->assertNoContent();
 
         $this->assertSame(1, \App\Models\StripeWebhookEvent::where('event_id', 'evt_idempotent_test')->count());
         $this->assertSame('confirmed', $booking->fresh()->status);

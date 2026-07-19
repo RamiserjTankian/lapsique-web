@@ -36,13 +36,7 @@ function MotionSiteLayout({ children }: { children: ReactNode }) {
 function shouldShowCreatorTrust(url: string): boolean {
     const path = normalizePath(url);
 
-    return ![
-        '/clientes',
-        '/sesion-de-contenido',
-        '/pending',
-        '/failure',
-        '/retry',
-    ].some((prefix) => path === prefix || path.startsWith(`${prefix}/`));
+    return path === '/' || path === '/dj-set' || path === '/djset';
 }
 
 function normalizePath(url: string): string {

@@ -45,6 +45,18 @@ export function trackNewsletterEvent(
             content_category: 'newsletter_popup',
             ...metaPayload,
         }, eventID ? { eventID } : undefined);
+        window.trackMetaPixelCustom?.('LeadSubmitted', {
+            content_name: 'Newsletter signup',
+            content_category: 'newsletter_popup',
+            form_name: 'newsletter_popup',
+            ...metaPayload,
+        }, eventID ? { eventID } : undefined);
+        window.trackMetaPixelCustom?.('NewsletterSignup', {
+            content_name: 'Newsletter signup',
+            content_category: 'newsletter_popup',
+            form_name: 'newsletter_popup',
+            ...metaPayload,
+        }, eventID ? { eventID } : undefined);
     } else if (name === 'newsletter_popup_shown') {
         window.trackMetaPixelCustom?.('newsletter_popup_shown', payload);
     }

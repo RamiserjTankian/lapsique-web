@@ -2,9 +2,9 @@
 
 namespace Tests\Unit;
 
-use App\Models\PortfolioItem;
 use App\Models\Dj;
 use App\Models\Event;
+use App\Models\PortfolioItem;
 use App\Models\SiteSetting;
 use App\Models\Video;
 use App\Support\PageMeta;
@@ -90,6 +90,22 @@ class PageMetaTest extends TestCase
         $this->assertSame('Person', PageMeta::forDj($dj, 'https://lapsique.media/djs/schema-artist')->jsonLd['@type']);
         $this->assertSame('VideoObject', PageMeta::forVideo($video, 'https://lapsique.media/trabajos-en-video/schema-session')->jsonLd['@type']);
         $this->assertSame('Event', PageMeta::forEvent($event, 'https://lapsique.media/eventos/schema-event')->jsonLd['@type']);
+    }
+
+    public function test_undated_event_uses_web_page_schema_instead_of_invalid_scheduled_event(): void
+    {
+        $event = Event::create([
+            'title' => 'Archive Event Without Date',
+            'slug' => 'archive-event-without-date',
+            'venue' => 'Archive Venue',
+            'trascendental_visible' => false,
+        ]);
+
+        $schema = PageMeta::forEvent($event, 'https://lapsique.media/eventos/archive-event-without-date')->jsonLd;
+
+        $this->assertSame('WebPage', $schema['@type']);
+        $this->assertArrayNotHasKey('startDate', $schema);
+        $this->assertArrayNotHasKey('eventStatus', $schema);
     }
 
     public function test_booking_og_image_uses_static_campaign_image_before_portfolio_photo(): void
@@ -237,6 +253,20 @@ class PageMetaTest extends TestCase
         $graph = collect($meta->jsonLd['@graph']);
         $this->assertSame('Producción audiovisual para restaurantes', $graph->firstWhere('@type', 'Service')['serviceType']);
         $this->assertSame('Reels de comida', $graph->firstWhere('@type', 'BreadcrumbList')['itemListElement'][1]['name']);
+        $this->assertCount(4, $graph->firstWhere('@type', 'FAQPage')['mainEntity']);
+    }
+
+    public function test_content_creation_meta_targets_social_media_search_intent(): void
+    {
+        $meta = PageMeta::forContentCreation(null, 'https://lapsique.media/creacion-de-contenido-riviera-maya');
+
+        $this->assertSame('Creación de contenido para redes sociales en Riviera Maya', $meta->title);
+        $this->assertStringContainsString('Instagram', $meta->description);
+        $this->assertStringContainsString('TikTok', $meta->description);
+        $this->assertStringContainsString('Meta Ads', $meta->description);
+        $this->assertSame('https://lapsique.media/creacion-de-contenido-riviera-maya', $meta->canonicalUrl);
+        $graph = collect($meta->jsonLd['@graph']);
+        $this->assertSame('Creación de contenido para redes sociales', $graph->firstWhere('@type', 'Service')['serviceType']);
         $this->assertCount(4, $graph->firstWhere('@type', 'FAQPage')['mainEntity']);
     }
 

@@ -102,22 +102,12 @@ export function PremiumSplitDialog({
 
                         {isPromo ? (
                             <div className="relative flex h-full items-end p-3 sm:p-4 lg:flex-col lg:justify-end lg:p-5">
-                                {badge ? (
-                                    <span className="inline-flex w-fit rounded-full border border-primary/30 bg-primary/15 px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-[0.22em] text-primary backdrop-blur-sm">
-                                        {badge}
-                                    </span>
-                                ) : null}
-                                <p className="mt-3 hidden font-display text-2xl font-bold leading-tight text-white drop-shadow-md lg:block">
+                                <p className="hidden font-display text-2xl font-bold leading-tight text-white drop-shadow-md lg:block">
                                     {title}
                                 </p>
                                 <p className="mt-2 hidden max-w-xs text-sm leading-relaxed text-white/80 lg:block">
                                     {description}
                                 </p>
-                                {caption ? (
-                                    <p className="mt-3 hidden text-xs font-medium uppercase tracking-[0.18em] text-white/55 lg:block">
-                                        {caption}
-                                    </p>
-                                ) : null}
                             </div>
                         ) : (
                             <div className="relative hidden h-full flex-col justify-end gap-0 p-6 lg:flex">
@@ -161,11 +151,6 @@ export function PremiumSplitDialog({
                                 <p className="mt-1 text-sm leading-relaxed text-muted-foreground">
                                     {description}
                                 </p>
-                                {caption ? (
-                                    <p className="mt-2 text-[11px] font-medium uppercase tracking-[0.16em] text-muted-foreground/80">
-                                        {caption}
-                                    </p>
-                                ) : null}
                             </div>
                         )}
 

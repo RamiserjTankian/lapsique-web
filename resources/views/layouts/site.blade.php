@@ -6,6 +6,7 @@
     @php
         $defaultMetaImage = url('/images/og-default.jpg');
         $pageTitle = trim($__env->yieldContent('title', __('messages.site.brand')));
+        $noindex = request()->routeIs('tickets.*', 'guestlist.*', 'customers.*', 'customer.unsubscribe');
         $metaTitle = trim($__env->yieldContent('meta_title', $pageTitle));
         $metaDescription = trim($__env->yieldContent('meta_description', __('messages.site.brand_tagline')));
         $metaKeywords = trim($__env->yieldContent('meta_keywords', 'música electrónica, DJ sets, techno, house, Riviera Maya, Playa del Carmen, Tulum, eventos electrónicos, sets en vivo'));
@@ -66,7 +67,7 @@
     
     {{-- Additional Meta Tags --}}
     <meta name="author" content="{{ __('messages.site.brand') }}">
-    <meta name="robots" content="index, follow">
+    <meta name="robots" content="{{ $noindex ? 'noindex, nofollow, noarchive' : 'index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1' }}">
     <meta name="theme-color" content="#000000">
     
     {{-- Fonts --}}

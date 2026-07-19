@@ -3,18 +3,18 @@
 namespace App\Http\Controllers;
 
 use App\Http\Resources\BookingSlotResource;
-use App\Http\Resources\PortfolioItemResource;
 use App\Http\Resources\DjResource;
 use App\Http\Resources\EventResource;
+use App\Http\Resources\PortfolioItemResource;
 use App\Http\Resources\VideoResource;
 use App\Models\Dj;
 use App\Models\Event;
 use App\Models\Video;
-use App\Support\LocalizedBookingCopy;
 use App\Support\HomeHeroBackground;
 use App\Support\HomeHeroProofVideos;
 use App\Support\HomeReelDistribution;
 use App\Support\LandingPageVideos;
+use App\Support\LocalizedBookingCopy;
 use App\Support\PortfolioCuration;
 use Illuminate\Support\Facades\Log;
 use Inertia\Inertia;
@@ -38,6 +38,7 @@ class HomeController extends Controller
         $sceneVideos = Video::query()
             ->with('djs.media')
             ->whereHas('djs', fn ($query) => $query->where('trascendental_roster', false))
+            ->whereDoesntHave('djs', fn ($query) => $query->where('trascendental_roster', true))
             ->orderByDesc('is_featured')
             ->orderBy('priority')
             ->limit(3)

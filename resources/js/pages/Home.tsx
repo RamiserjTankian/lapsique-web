@@ -1,5 +1,5 @@
 import { Link, usePage } from '@inertiajs/react';
-import { ArrowRight, CalendarDays, ChevronLeft, ChevronRight } from 'lucide-react';
+import { ArrowRight, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useEffect, useMemo, useState, type ReactNode } from 'react';
 import { SeoHead } from '@/components/lapsique/SeoHead';
 import SiteLayout from '@/layouts/SiteLayout';
@@ -19,11 +19,6 @@ import { trackBookingEvent } from '@/hooks/useBookingAnalytics';
 import { useSectionEvent } from '@/hooks/useSectionEvent';
 import { landingPageStackClass } from '@/lib/landingSection';
 import { cn, formatMxn } from '@/lib/utils';
-import {
-    CONTENT_DRONE_SHOTS,
-    CONTENT_REEL_DURATION_SECONDS,
-    getContentOfferShort,
-} from '@/data/contentOffer';
 import type {
     BookingSlot,
     DjItem,
@@ -160,16 +155,6 @@ export default function Home({
 
             <ServiceLandingLinks />
 
-            <HomeEditorialSection
-                title={t('pages.home.offer_title')}
-                description={t('pages.home.offer_description', {
-                    seconds: CONTENT_REEL_DURATION_SECONDS,
-                    drone_shots: CONTENT_DRONE_SHOTS,
-                })}
-                price={price}
-                onBook={openBooking}
-            />
-
             <FeaturedReel
                 videos={[
                     landingVideos?.pauta ?? null,
@@ -201,7 +186,6 @@ export default function Home({
                 whatsapp={site.whatsapp}
             />
 
-            <AboutLapsique portfolioItems={portfolioItems} />
             </div>
             <ReelPlayerModal />
             </ReelPlayerProvider>
@@ -258,7 +242,6 @@ function SceneArchive({
 
                 {videos.length > 0 ? (
                     <EditorialBlock
-                        index="01"
                         eyebrow="Psique Sessions"
                         title={en ? 'Complete sets, not disposable clips.' : 'Sets completos, no clips desechables.'}
                         href={videosUrl}
@@ -290,7 +273,6 @@ function SceneArchive({
 
                 {djs.length > 0 ? (
                     <EditorialBlock
-                        index="02"
                         eyebrow={en ? 'Artists' : 'Artistas'}
                         title={en ? 'DJs documented by Lapsique.' : 'DJs documentados por Lapsique.'}
                         href={djsUrl}
@@ -315,20 +297,18 @@ function SceneArchive({
 
                 {events.length > 0 ? (
                     <EditorialBlock
-                        index="03"
                         eyebrow={en ? 'Produced events' : 'Eventos producidos'}
                         title={en ? 'Shows, collaborations, and residences.' : 'Shows, colaboraciones y residencias.'}
                         href={eventsUrl}
                         cta={en ? 'Open event archive' : 'Abrir archivo de eventos'}
                     >
                         <div className="divide-y divide-white/20 border-y border-white/20">
-                            {events.slice(0, 3).map((event, index) => (
+                            {events.slice(0, 3).map((event) => (
                                 <Link
                                     key={event.id}
                                     href={route('events.show', { event: event.slug }, false, ziggy)}
-                                    className="group grid gap-5 py-5 sm:grid-cols-[4rem_1fr_auto] sm:items-center"
+                                    className="group grid gap-5 py-5 sm:grid-cols-[1fr_auto] sm:items-center"
                                 >
-                                    <span className="font-mono text-xs text-primary">{String(index + 1).padStart(2, '0')}</span>
                                     <div>
                                         <h3 className="text-2xl font-semibold leading-tight text-white group-hover:text-primary md:text-3xl">{event.title}</h3>
                                         <p className="mt-2 text-sm text-white/50">{event.location_name || event.venue || event.city || (en ? 'Riviera Maya' : 'Riviera Maya')}</p>
@@ -342,7 +322,6 @@ function SceneArchive({
 
                 {media.length > 0 ? (
                     <EditorialBlock
-                        index="04"
                         eyebrow="Nightlife / Aftermovies"
                         title={en ? 'The energy of every location.' : 'La energía de cada locación.'}
                         href={`${videosUrl}#aftermovies`}
@@ -395,14 +374,12 @@ function SceneArchive({
 }
 
 function EditorialBlock({
-    index,
     eyebrow,
     title,
     href,
     cta,
     children,
 }: {
-    index: string;
     eyebrow: string;
     title: string;
     href: string;
@@ -411,8 +388,7 @@ function EditorialBlock({
 }) {
     return (
         <div className="mt-16 md:mt-24">
-            <div className="mb-7 grid gap-5 border-t border-white/20 pt-5 md:grid-cols-[4rem_1fr_auto] md:items-end">
-                <span className="font-mono text-xs text-primary">{index}</span>
+            <div className="mb-7 grid gap-5 border-t border-white/20 pt-5 md:grid-cols-[1fr_auto] md:items-end">
                 <div>
                     <p className="alpha-kicker text-white/45">{eyebrow}</p>
                     <h2 className="mt-3 max-w-4xl text-4xl font-semibold leading-[0.9] text-white md:text-6xl">{title}</h2>
@@ -510,94 +486,6 @@ function ServiceLandingLinks() {
     );
 }
 
-function HomeEditorialSection({
-    title,
-    description,
-    price,
-    onBook,
-}: {
-    title: string;
-    description: string;
-    price: number;
-    onBook: () => void;
-}) {
-    const { t, locale } = useTranslations();
-
-    return (
-        <section className="mx-auto grid max-w-6xl gap-7 border-y border-border/70 px-4 py-10 sm:px-6 lg:grid-cols-[0.68fr_0.32fr] lg:items-start">
-            <div>
-                <h2 className="font-display text-3xl font-bold leading-tight text-foreground md:text-4xl">
-                    {title}
-                </h2>
-                <p className="mt-4 max-w-3xl text-base leading-relaxed text-muted-foreground">
-                    {description}
-                </p>
-                <p className="mt-5 max-w-3xl text-base leading-relaxed text-foreground">
-                    {t('pages.home.ads_description')}
-                </p>
-            </div>
-            <div className="border-t border-border/70 pt-5 lg:border-t-0 lg:pt-0">
-                <p className="text-sm font-semibold text-muted-foreground">
-                    {locale === 'en' ? 'From' : 'Desde'}
-                </p>
-                <p className="mt-2 font-mono-tabular text-4xl font-bold text-primary">
-                    {formatMxn(price)}
-                </p>
-                <PaymentTrustOrTestMode variant="stripe" layout="compact" className="mt-3" />
-                <BookingCtaButton type="button" className="mt-5 w-full" onClick={onBook}>
-                    {t('pages.home.ads_cta')}
-                    <CalendarDays className="h-5 w-5" />
-                </BookingCtaButton>
-            </div>
-        </section>
-    );
-}
-
-function AboutLapsique({ portfolioItems }: { portfolioItems: PortfolioItemData[] }) {
-    const { t } = useTranslations();
-    const image = portfolioItems.find((item) => item.media_type === 'image' && Boolean(item.asset_url || item.poster_url));
-
-    return (
-        <section id="about" className="mx-auto grid max-w-6xl gap-7 border-t border-border/70 px-4 py-10 sm:px-6 lg:grid-cols-[0.48fr_0.52fr] lg:items-center">
-            <div>
-                <h2 className="font-display text-3xl font-bold leading-tight text-foreground md:text-4xl">
-                    {t('pages.home.about_title')}
-                </h2>
-                <p className="mt-4 text-base leading-relaxed text-muted-foreground">
-                    {t('pages.home.about_description')}
-                </p>
-                <div className="mt-6 grid gap-5 sm:grid-cols-2">
-                    <div>
-                        <h3 className="font-display text-xl font-bold text-foreground">
-                            {t('pages.home.about_film_title')}
-                        </h3>
-                        <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
-                            {t('pages.home.about_film_copy')}
-                        </p>
-                    </div>
-                    <div>
-                        <h3 className="font-display text-xl font-bold text-foreground">
-                            {t('pages.home.about_events_title')}
-                        </h3>
-                        <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
-                            {t('pages.home.about_events_copy')}
-                        </p>
-                    </div>
-                </div>
-            </div>
-            {image ? (
-                <img
-                    src={image.asset_url ?? image.poster_url ?? ''}
-                    alt={image.title ?? ''}
-                    className="aspect-[16/10] w-full rounded-xl object-cover"
-                    loading="lazy"
-                    decoding="async"
-                />
-            ) : null}
-        </section>
-    );
-}
-
 function FeaturedReel({
     video,
     videos,
@@ -668,39 +556,32 @@ function BusinessHero({
     portfolioItems: PortfolioItemData[];
     onBook: () => void;
 }) {
-    const { t } = useTranslations();
-    const offerShort = getContentOfferShort(t);
-
+    const { t, locale } = useTranslations();
     return (
         <section className="relative left-1/2 w-screen -translate-x-1/2 border-b border-foreground/20 bg-background">
             <div className="mx-auto grid max-w-[1440px] lg:min-h-[calc(100svh-4.5rem)] lg:grid-cols-[minmax(360px,0.72fr)_minmax(0,1.28fr)]">
                 <div className="flex min-w-0 flex-col justify-center border-r border-foreground/15 px-5 py-12 sm:px-8 lg:px-12 lg:py-16">
-                    <p className="alpha-kicker border-l-2 border-primary pl-3 text-muted-foreground">
-                        {t('pages.home.hero_eyebrow')}
-                    </p>
-                    <h1 className="mt-7 max-w-2xl text-[3.15rem] font-semibold leading-[0.88] text-foreground sm:text-[3.55rem] lg:text-[3.8rem] xl:text-[4rem]">
+                    <h1 className="max-w-2xl text-[3.15rem] font-semibold leading-[0.88] text-foreground sm:text-[3.55rem] lg:text-[3.8rem] xl:text-[4rem]">
                         {title}
                     </h1>
                     <p className="mt-7 max-w-xl text-base leading-relaxed text-muted-foreground lg:text-lg">
                         {subtitle}
                     </p>
-                    <p className="alpha-kicker mt-5 text-foreground/75">
-                        {offerShort}
-                    </p>
                     <div className="mt-8 border-y border-foreground/15 py-5">
                         <div className="flex items-end justify-between gap-5">
                             <div>
-                                <p className="alpha-kicker text-muted-foreground">{t('pages.home.ready_to_book')}</p>
+                                <p className="text-sm font-medium text-muted-foreground">
+                                    {locale === 'en' ? 'From' : 'Desde'}
+                                </p>
                                 <p className="mt-2 font-mono-tabular text-4xl font-semibold text-foreground">{formatMxn(price)}</p>
                             </div>
-                            <span className="alpha-kicker text-primary">MXN</span>
+                            <span className="font-mono text-xs font-semibold text-primary">MXN</span>
                         </div>
                         <PaymentTrustOrTestMode variant="stripe" layout="compact" className="mt-3" />
                     </div>
                     <BookingCtaButton
                         type="button"
                         className="mt-6 min-h-14 w-full rounded-none bg-foreground text-background shadow-none hover:bg-primary hover:text-white"
-                        data-meta-event="Lead"
                         data-analytics-cta="hero_booking"
                         onClick={onBook}
                     >
@@ -837,15 +718,9 @@ function HeroMediaCarousel({
             ) : null}
 
             <div className="pointer-events-none absolute inset-0 bg-black/8" />
-            <div className="pointer-events-none absolute inset-x-5 top-5 flex items-start justify-between gap-4 sm:inset-x-8 sm:top-8">
-                <span className="alpha-kicker border border-white/35 bg-black/45 px-3 py-2 text-white backdrop-blur-sm">REC <span className="text-red-500">●</span></span>
-                <div className="alpha-kicker space-y-1 text-right text-white/85">
-                    <p>4K · 10 BIT</p><p>S-LOG3</p><p>SONY ALPHA</p>
-                </div>
-            </div>
 
             {media.length > 1 ? (
-                <div className="absolute inset-x-5 bottom-5 z-10 flex items-center justify-between gap-4 border-t border-white/25 pt-4 sm:inset-x-8 sm:bottom-8">
+                <div className="absolute inset-x-5 bottom-5 z-10 flex items-center justify-between gap-4 border-t border-white/25 pt-4 sm:bottom-8 sm:left-8 sm:right-24">
                     <div className="flex items-center gap-2">
                         {media.map((item, index) => (
                             <button
@@ -882,15 +757,19 @@ function AlphaEquipmentStrip() {
         { label: 'Sony α7 V', format: 'Full frame · 10-bit', image: '/images/equipment/official/sony-a7v.webp', newest: true },
         { label: 'Sony α7 IV', format: 'Full frame · 4K', image: '/images/equipment/official/sony-a7iv.webp', newest: false },
         { label: 'Sony α6700', format: 'APS-C · 4K 120p', image: '/images/equipment/official/sony-a6700.webp', newest: false },
-        { label: 'DJI Air 3', format: 'Tomas aéreas · 4K', image: '/images/equipment/official/dji-air-3.png', newest: false },
+        { label: 'DJI Air 3', format: locale === 'en' ? 'Aerial footage · 4K' : 'Tomas aéreas · 4K', image: '/images/equipment/official/dji-air-3.png', newest: false },
     ];
 
     return (
-        <section ref={ref} data-analytics-section="alpha_equipment" className="mt-6 border-y border-foreground/15 bg-secondary/55">
+        <section ref={ref} data-analytics-section="alpha_equipment" className="border-b border-foreground/15 bg-secondary/55">
             <div className="grid lg:grid-cols-[230px_1fr]">
                 <div className="border-b border-foreground/15 p-6 lg:border-b-0 lg:border-r lg:p-8">
-                    <p className="alpha-kicker text-primary">Equipo de producción</p>
-                    <h2 className="mt-4 text-3xl font-semibold leading-none">Herramientas para resultados profesionales.</h2>
+                    <h2 className="text-3xl font-semibold leading-none">
+                        {locale === 'en' ? 'Sony Alpha production kit.' : 'Equipo de producción Sony Alpha.'}
+                    </h2>
+                    <p className="mt-4 text-sm leading-relaxed text-muted-foreground">
+                        {locale === 'en' ? 'Full-frame and APS-C cameras with DJI Air 3.' : 'Cámaras full frame y APS-C con dron DJI Air 3.'}
+                    </p>
                 </div>
                 <div className="grid grid-cols-2 md:grid-cols-4">
                     {equipment.map((item) => (
@@ -901,10 +780,9 @@ function AlphaEquipmentStrip() {
                                 </span>
                             ) : null}
                             <div className="flex aspect-[4/3] items-center justify-center overflow-hidden bg-background">
-                                <img src={item.image} alt={`${item.label} — equipo de producción Lapsique Media`} className="h-full w-full object-contain p-3" loading="lazy" />
+                                <img src={item.image} alt={`${item.label} — ${locale === 'en' ? 'Lapsique Media production kit' : 'equipo de producción Lapsique Media'}`} className="h-full w-full object-contain p-3" loading="lazy" />
                             </div>
-                            <p className="alpha-kicker mt-4 text-muted-foreground">Cámara / sistema</p>
-                            <h3 className="mt-1 text-xl font-semibold normal-case">{item.label}</h3>
+                            <h3 className="mt-4 text-xl font-semibold normal-case">{item.label}</h3>
                             <p className="mt-1 font-mono text-xs text-muted-foreground">{item.format}</p>
                         </article>
                     ))}

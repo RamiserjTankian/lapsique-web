@@ -2,6 +2,7 @@
 
 use Illuminate\Foundation\Inspiring;
 use Illuminate\Support\Facades\Artisan;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Schedule;
 
 Artisan::command('inspire', function () {
@@ -20,5 +21,12 @@ Schedule::command('analytics:send-booking-abandoned-events --minutes=90 --limit=
 
 Schedule::command('booking:ensure-slots')
     ->dailyAt('05:30')
+    ->timezone(config('app.timezone'))
     ->withoutOverlapping()
-    ->onOneServer();
+    ->onOneServer()
+    ->onFailure(function (): void {
+        Log::error('Scheduled booking slot generation failed.', [
+            'command' => 'booking:ensure-slots',
+            'timezone' => config('app.timezone'),
+        ]);
+    });

@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\AnalyticsController;
 use App\Http\Controllers\ContentBookingController;
+use App\Http\Controllers\ContentCreationController;
 use App\Http\Controllers\CustomerAuthController;
 use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\DjController;
@@ -18,14 +19,15 @@ use App\Http\Controllers\MercadoPagoOAuthController;
 use App\Http\Controllers\MercadoPagoWebhookController;
 use App\Http\Controllers\PortfolioController;
 use App\Http\Controllers\PostController;
-use App\Http\Controllers\StripeWebhookController;
 use App\Http\Controllers\SitemapController;
+use App\Http\Controllers\StripeWebhookController;
 use App\Http\Controllers\TicketAttendeeController;
 use App\Http\Controllers\TicketCheckInController;
 use App\Http\Controllers\TicketCheckoutController;
 use App\Http\Controllers\TrascendentalController;
 use App\Http\Controllers\TrascendentalLeadController;
 use App\Http\Controllers\VideoController;
+use App\Http\Middleware\NoIndexRobots;
 use Illuminate\Support\Facades\Route;
 
 if (config('trascendental.enabled_as_primary')) {
@@ -56,10 +58,11 @@ Route::get('/sitemap.xml', SitemapController::class)->name('sitemap');
 Route::get('/sesion-de-contenido', function () {
     return redirect()->to(route('home').'#agenda', 302);
 })->name('booking.show');
+Route::get('/creacion-de-contenido-riviera-maya', ContentCreationController::class)->name('content-creation.show');
 Route::post('/sesion-de-contenido/checkout', [ContentBookingController::class, 'checkout'])->name('booking.checkout');
-Route::get('/sesion-de-contenido/{publicId}/confirm', [ContentBookingController::class, 'confirm'])->name('booking.confirm');
-Route::get('/sesion-de-contenido/{publicId}/pending', [ContentBookingController::class, 'pending'])->name('booking.pending');
-Route::get('/sesion-de-contenido/{publicId}/failure', [ContentBookingController::class, 'failure'])->name('booking.failure');
+Route::get('/sesion-de-contenido/{publicId}/confirm', [ContentBookingController::class, 'confirm'])->middleware(NoIndexRobots::class)->name('booking.confirm');
+Route::get('/sesion-de-contenido/{publicId}/pending', [ContentBookingController::class, 'pending'])->middleware(NoIndexRobots::class)->name('booking.pending');
+Route::get('/sesion-de-contenido/{publicId}/failure', [ContentBookingController::class, 'failure'])->middleware(NoIndexRobots::class)->name('booking.failure');
 Route::post('/sesion-de-contenido/{publicId}/retry', [ContentBookingController::class, 'retryPayment'])->name('booking.retry');
 Route::get('/dj-set', [ContentBookingController::class, 'showDjSet'])->name('djset.show');
 Route::get('/djset', fn () => redirect()->route('djset.show', status: 301))->name('djset.legacy');
@@ -80,28 +83,29 @@ Route::get('/djs/{dj:slug}', [DjController::class, 'show'])->name('djs.show');
 if (! config('trascendental.enabled_as_primary')) {
     Route::get('/eventos', [EventController::class, 'index'])->name('events.index');
     Route::get('/eventos/{event:slug}', [EventController::class, 'show'])->name('events.show');
-    Route::get('/eventos/{event:slug}/tickets', [TicketCheckoutController::class, 'show'])->name('tickets.checkout.show');
+    Route::get('/eventos/{event:slug}/tickets', [TicketCheckoutController::class, 'show'])->middleware(NoIndexRobots::class)->name('tickets.checkout.show');
     Route::post('/eventos/{event:slug}/tickets', [TicketCheckoutController::class, 'checkout'])->name('tickets.checkout.store');
 }
 
 Route::get('/tickets/manage/{order}', [TicketCheckoutController::class, 'manage'])
-    ->middleware('signed')
+    ->middleware(['signed', NoIndexRobots::class])
     ->name('tickets.manage');
-Route::get('/tickets/{order}/success', [TicketCheckoutController::class, 'success'])->name('tickets.success');
-Route::get('/tickets/{order}/pending', [TicketCheckoutController::class, 'pending'])->name('tickets.pending');
-Route::get('/tickets/{order}/failure', [TicketCheckoutController::class, 'failure'])->name('tickets.failure');
+Route::get('/tickets/{order}/success', [TicketCheckoutController::class, 'success'])->middleware(NoIndexRobots::class)->name('tickets.success');
+Route::get('/tickets/{order}/pending', [TicketCheckoutController::class, 'pending'])->middleware(NoIndexRobots::class)->name('tickets.pending');
+Route::get('/tickets/{order}/failure', [TicketCheckoutController::class, 'failure'])->middleware(NoIndexRobots::class)->name('tickets.failure');
 Route::post('/tickets/{order}/retry', [TicketCheckoutController::class, 'retryPayment'])->name('tickets.retry');
 Route::post('/tickets/{order}/attendees', [TicketAttendeeController::class, 'store'])->name('tickets.attendees.store');
 
 Route::get('/tickets/check-in/{token}', [TicketCheckInController::class, 'show'])
-    ->middleware('signed')
+    ->middleware(['signed', NoIndexRobots::class])
     ->name('tickets.checkin.show');
 Route::post('/tickets/check-in/{token}', [TicketCheckInController::class, 'confirm'])
     ->middleware('signed')
     ->name('tickets.checkin.confirm');
 Route::get('/tickets/check-in/{token}/qr', [TicketCheckInController::class, 'qr'])
+    ->middleware(NoIndexRobots::class)
     ->name('tickets.checkin.qr');
-Route::get('/tickets/check-in/{token}/pdf', [TicketCheckInController::class, 'pdf'])->name('tickets.checkin.pdf');
+Route::get('/tickets/check-in/{token}/pdf', [TicketCheckInController::class, 'pdf'])->middleware(NoIndexRobots::class)->name('tickets.checkin.pdf');
 
 // `/videos` is a real public asset directory and can be intercepted by Nginx.
 // Keep editorial video pages on a URL that always reaches Laravel.
@@ -115,38 +119,41 @@ Route::get('/blog/{post:slug}', [PostController::class, 'show'])->name('posts.sh
 
 Route::post('/guest-list', [GuestListController::class, 'store'])->name('guestlist.store');
 
-Route::get('/invite/{token}', [GuestListInviteController::class, 'show'])->name('guestlist.invite.show');
+Route::get('/invite/{token}', [GuestListInviteController::class, 'show'])->middleware(NoIndexRobots::class)->name('guestlist.invite.show');
 Route::post('/invite/{token}', [GuestListInviteController::class, 'confirm'])->name('guestlist.invite.confirm');
 
 // Guest List Registration (público desde links)
-Route::get('/register/{token}', [GuestListRegisterController::class, 'show'])->name('guestlist.register');
+Route::get('/register/{token}', [GuestListRegisterController::class, 'show'])->middleware(NoIndexRobots::class)->name('guestlist.register');
 Route::post('/register/{token}', [GuestListRegisterController::class, 'store'])->name('guestlist.register.store');
-Route::get('/register/{token}/success', [GuestListRegisterController::class, 'success'])->name('guestlist.register.success');
-Route::get('/register/{token}/thank-you', [GuestListRegisterController::class, 'thankyou'])->name('guestlist.register.thankyou');
+Route::get('/register/{token}/success', [GuestListRegisterController::class, 'success'])->middleware(NoIndexRobots::class)->name('guestlist.register.success');
+Route::get('/register/{token}/thank-you', [GuestListRegisterController::class, 'thankyou'])->middleware(NoIndexRobots::class)->name('guestlist.register.thankyou');
 
 Route::get('/check-in/{token}', [GuestListCheckInController::class, 'show'])
-    ->middleware('signed')
+    ->middleware(['signed', NoIndexRobots::class])
     ->name('guestlist.checkin.show');
 Route::post('/check-in/{token}', [GuestListCheckInController::class, 'confirm'])
     ->middleware('signed')
     ->name('guestlist.checkin.confirm');
 Route::get('/check-in/{token}/qr', [GuestListCheckInController::class, 'qr'])
+    ->middleware(NoIndexRobots::class)
     ->name('guestlist.checkin.qr');
 Route::post('/customers', [CustomerController::class, 'store'])->name('customers.store');
 Route::get('/mi-portal', [CustomerController::class, 'portal'])
-    ->middleware('customer.auth')
+    ->middleware(['customer.auth', NoIndexRobots::class])
     ->name('customers.portal');
-Route::get('/mi-portal/login', [CustomerAuthController::class, 'showLogin'])->name('customers.login');
+Route::get('/mi-portal/login', [CustomerAuthController::class, 'showLogin'])->middleware(NoIndexRobots::class)->name('customers.login');
 Route::post('/mi-portal/login', [CustomerAuthController::class, 'login'])->name('customers.login.store');
 Route::post('/mi-portal/logout', [CustomerAuthController::class, 'logout'])
     ->middleware('customer.auth')
     ->name('customers.logout');
 
 Route::get('/mi-portal/password/forgot', [\App\Http\Controllers\CustomerPasswordResetController::class, 'create'])
+    ->middleware(NoIndexRobots::class)
     ->name('customers.password.request');
 Route::post('/mi-portal/password/forgot', [\App\Http\Controllers\CustomerPasswordResetController::class, 'store'])
     ->name('customers.password.email');
 Route::get('/mi-portal/password/reset/{token}', [\App\Http\Controllers\CustomerPasswordResetController::class, 'edit'])
+    ->middleware(NoIndexRobots::class)
     ->name('customers.password.reset');
 Route::post('/mi-portal/password/reset', [\App\Http\Controllers\CustomerPasswordResetController::class, 'update'])
     ->name('customers.password.update');
@@ -174,7 +181,7 @@ Route::post('/webhooks/twilio/voice/status', function () { /* TODO */
 })->name('webhooks.twilio.voice');
 
 // Unsubscribe
-Route::get('/unsubscribe', [LeadCaptureController::class, 'unsubscribe'])->name('customer.unsubscribe');
+Route::get('/unsubscribe', [LeadCaptureController::class, 'unsubscribe'])->middleware(NoIndexRobots::class)->name('customer.unsubscribe');
 Route::post('/unsubscribe', [LeadCaptureController::class, 'unsubscribe']);
 
 Route::get('/locale/{locale}', function (string $locale) {

@@ -7,9 +7,9 @@ use App\Models\ContentBooking;
 use App\Models\Customer;
 use App\Models\Event;
 use App\Models\MetaCampaignDailyInsight;
+use App\Models\TicketOrder;
 use App\Models\TicketOrderItem;
 use App\Models\TicketProduct;
-use App\Models\TicketOrder;
 use App\Services\Meta\MetaAttributionReportService;
 use App\Services\Meta\MetaConversionsApiService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -232,6 +232,62 @@ class MetaAdsIntegrationTest extends TestCase
 
         $this->assertTrue((bool) data_get($booking->fresh()->metadata, 'capi_purchase_sent'));
         Http::assertSentCount(1);
+    }
+
+    public function test_failed_capi_purchase_is_not_marked_as_sent_and_can_be_retried(): void
+    {
+        $this->configureMetaCapi();
+
+        Http::fake([
+            'graph.facebook.com/*' => Http::sequence()
+                ->push(['error' => ['message' => 'Temporary Meta error']], 500)
+                ->push(['events_received' => 1], 200),
+        ]);
+
+        $booking = ContentBooking::create([
+            'public_id' => (string) \Illuminate\Support\Str::uuid(),
+            'client_name' => 'Cliente Retry',
+            'client_email' => 'retry@example.com',
+            'client_phone' => '9990000000',
+            'amount' => 5000,
+            'currency' => 'MXN',
+            'status' => 'confirmed',
+            'paid_at' => now(),
+        ]);
+
+        $service = app(MetaConversionsApiService::class);
+        $service->sendPurchaseForBooking($booking);
+
+        $this->assertEmpty(data_get($booking->fresh()->metadata, 'capi_purchase_sent'));
+
+        $service->sendPurchaseForBooking($booking->fresh());
+
+        $this->assertTrue((bool) data_get($booking->fresh()->metadata, 'capi_purchase_sent'));
+        Http::assertSentCount(2);
+    }
+
+    public function test_successful_http_response_without_received_events_is_not_marked_as_sent(): void
+    {
+        $this->configureMetaCapi();
+
+        Http::fake([
+            'graph.facebook.com/*' => Http::response(['events_received' => 0], 200),
+        ]);
+
+        $booking = ContentBooking::create([
+            'public_id' => (string) \Illuminate\Support\Str::uuid(),
+            'client_name' => 'Cliente Rechazado',
+            'client_email' => 'rejected@example.com',
+            'client_phone' => '9990000000',
+            'amount' => 3000,
+            'currency' => 'MXN',
+            'status' => 'confirmed',
+            'paid_at' => now(),
+        ]);
+
+        app(MetaConversionsApiService::class)->sendPurchaseForBooking($booking);
+
+        $this->assertEmpty(data_get($booking->fresh()->metadata, 'capi_purchase_sent'));
     }
 
     public function test_conversions_api_sends_external_id_for_customer_on_purchase(): void

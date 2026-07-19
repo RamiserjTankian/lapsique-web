@@ -11,17 +11,36 @@ function trackMetaPixel(event, payload, options) {
         return;
     }
 
-    const { event_id, eventID, client_email, client_phone, client_name, customer_email, customer_phone, customer_name, ...rest } =
-        payload || {};
+    const {
+        event_id,
+        eventID,
+        client_email,
+        client_phone,
+        client_name,
+        customer_email,
+        customer_phone,
+        customer_name,
+        external_id,
+        customer_id,
+        booking_id,
+        ticket_order_id,
+        ...rest
+    } = payload || {};
+    const deduplicationId = event_id || eventID || options?.eventID;
 
     applyAdvancedMatchingOnce({
         em: client_email || customer_email,
         ph: client_phone || customer_phone,
         fn: client_name || customer_name,
-        external_id: resolvePixelExternalId(rest),
+        external_id: resolvePixelExternalId({
+            external_id,
+            customer_id,
+            booking_id,
+            ticket_order_id,
+        }, deduplicationId),
     });
 
-    const trackOptions = options || (event_id || eventID ? { eventID: event_id || eventID } : undefined);
+    const trackOptions = options || (deduplicationId ? { eventID: deduplicationId } : undefined);
 
     window.fbq('track', event, rest, trackOptions);
     lastTrackedStandardEvent = {
@@ -36,31 +55,75 @@ window.trackMetaPixelCustom = function trackMetaPixelCustom(event, payload, opti
         return;
     }
 
-    const { event_id, eventID, client_email, client_phone, client_name, customer_email, customer_phone, customer_name, ...rest } =
-        payload || {};
+    const {
+        event_id,
+        eventID,
+        client_email,
+        client_phone,
+        client_name,
+        customer_email,
+        customer_phone,
+        customer_name,
+        external_id,
+        customer_id,
+        booking_id,
+        ticket_order_id,
+        ...rest
+    } = payload || {};
+    const deduplicationId = event_id || eventID || options?.eventID;
 
     applyAdvancedMatchingOnce({
         em: client_email || customer_email,
         ph: client_phone || customer_phone,
         fn: client_name || customer_name,
-        external_id: resolvePixelExternalId(rest),
+        external_id: resolvePixelExternalId({
+            external_id,
+            customer_id,
+            booking_id,
+            ticket_order_id,
+        }, deduplicationId),
     });
 
-    const trackOptions = options || (event_id || eventID ? { eventID: event_id || eventID } : undefined);
+    const trackOptions = options || (deduplicationId ? { eventID: deduplicationId } : undefined);
 
     window.fbq('trackCustom', event, rest, trackOptions);
 };
 
-function resolvePixelExternalId(rest) {
-    if (rest.customer_id != null && rest.customer_id !== '') {
-        return String(rest.customer_id);
+function resolvePixelExternalId(identifiers, eventId) {
+    if (identifiers.external_id != null && identifiers.external_id !== '') {
+        return String(identifiers.external_id);
     }
 
-    if (rest.booking_id) {
-        return String(rest.booking_id);
+    if (identifiers.customer_id != null && identifiers.customer_id !== '') {
+        return withPrefix('customer_', identifiers.customer_id);
+    }
+
+    if (identifiers.booking_id) {
+        return withPrefix('booking_', identifiers.booking_id);
+    }
+
+    if (identifiers.ticket_order_id) {
+        return withPrefix('ticket_order_', identifiers.ticket_order_id);
+    }
+
+    if (typeof eventId === 'string') {
+        const leadCustomerId = eventId.match(/^lead_customer_(.+)$/)?.[1];
+        if (leadCustomerId) {
+            return withPrefix('customer_', leadCustomerId);
+        }
+
+        if (/^ticket_order_.+/.test(eventId) || /^booking_(?!checkout_|payment_|abandoned_).+/.test(eventId)) {
+            return eventId;
+        }
     }
 
     return undefined;
+}
+
+function withPrefix(prefix, value) {
+    const normalized = String(value);
+
+    return normalized.startsWith(prefix) ? normalized : `${prefix}${normalized}`;
 }
 
 flushQueuedPixelCalls();
@@ -74,7 +137,8 @@ if (pixelConfig.autoTrack) {
 
         let eventName = target.getAttribute('data-meta-event');
         const href = target.getAttribute('href') || '';
-        if (!eventName && (/^https:\/\/wa\.me\//i.test(href) || /^mailto:/i.test(href) || /^tel:/i.test(href))) {
+        const isWhatsAppLink = /^https:\/\/(wa\.me|api\.whatsapp\.com)\//i.test(href);
+        if (!eventName && (isWhatsAppLink || /^mailto:/i.test(href) || /^tel:/i.test(href))) {
             eventName = 'Contact';
         }
         if (!eventName) {
@@ -91,6 +155,12 @@ if (pixelConfig.autoTrack) {
             }
         }
 
+        const clickPayload = {
+            content_name: target.getAttribute('data-analytics-label') || target.textContent?.trim().slice(0, 120) || undefined,
+            content_category: target.getAttribute('data-analytics-category') || (eventName === 'Contact' ? 'contact' : undefined),
+            page_path: window.location.pathname,
+            ...params,
+        };
         const isDuplicateManagedEvent = lastTrackedStandardEvent?.name === eventName
             && performance.now() - lastTrackedStandardEvent.trackedAt < 250;
 
@@ -98,12 +168,21 @@ if (pixelConfig.autoTrack) {
             return;
         }
 
-        trackMetaPixel(eventName, {
-            content_name: target.getAttribute('data-analytics-label') || target.textContent?.trim().slice(0, 120) || undefined,
-            content_category: target.getAttribute('data-analytics-category') || (eventName === 'Contact' ? 'contact' : undefined),
-            page_path: window.location.pathname,
-            ...params,
-        });
+        // Un click en un CTA expresa intención, pero todavía no es un lead registrado.
+        if (eventName === 'Lead') {
+            window.trackMetaPixelCustom('LeadCtaClick', clickPayload);
+
+            return;
+        }
+
+        trackMetaPixel(eventName, clickPayload);
+
+        if (isWhatsAppLink) {
+            window.trackMetaPixelCustom('WhatsAppClick', {
+                ...clickPayload,
+                contact_channel: 'whatsapp',
+            });
+        }
     });
 }
 

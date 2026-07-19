@@ -16,8 +16,8 @@ class LapsiqueSiteIsolationTest extends TestCase
 
         $this->get(route('portfolio.index'))
             ->assertOk()
-            ->assertSee('<meta name="author" content="Lapsique Media">', false)
-            ->assertSee('<meta property="og:site_name" content="Lapsique Media">', false);
+            ->assertSee('data-inertia="author" name="author" content="Lapsique Media"', false)
+            ->assertSee('data-inertia="og-site-name" property="og:site_name" content="Lapsique Media"', false);
     }
 
     public function test_lapsique_public_site_exposes_only_lapsique_djs(): void

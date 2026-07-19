@@ -85,13 +85,17 @@ class MetaConversionsApiService
             return;
         }
 
-        $this->sendEvent(
+        $sent = $this->sendEvent(
             eventName: 'Purchase',
             eventId: 'booking_'.$booking->public_id,
             eventSourceUrl: $booking->landing_url ?: config('app.url'),
             userData: $this->userDataFromBooking($booking),
             customData: $this->purchaseCustomData($booking),
         );
+
+        if (! $sent) {
+            return;
+        }
 
         $booking->forceFill([
             'metadata' => array_merge(
@@ -166,9 +170,9 @@ class MetaConversionsApiService
         string $eventSourceUrl,
         array $userData,
         array $customData = [],
-    ): void {
+    ): bool {
         if (! $this->isEnabled()) {
-            return;
+            return false;
         }
 
         $pixelId = (string) Meta::pixelId();
@@ -197,20 +201,28 @@ class MetaConversionsApiService
         try {
             $response = Http::timeout(15)->post($url, $payload);
 
-            if ($response->failed()) {
+            $eventsReceived = (int) $response->json('events_received', 0);
+
+            if ($response->failed() || $eventsReceived < 1 || $response->json('error') !== null) {
                 Log::warning('Meta CAPI event failed', [
                     'event' => $eventName,
                     'event_id' => $eventId,
                     'status' => $response->status(),
                     'body' => $response->json(),
                 ]);
+
+                return false;
             }
+
+            return true;
         } catch (\Throwable $e) {
             Log::warning('Meta CAPI request exception', [
                 'event' => $eventName,
                 'event_id' => $eventId,
                 'error' => $e->getMessage(),
             ]);
+
+            return false;
         }
     }
 
@@ -338,13 +350,17 @@ class MetaConversionsApiService
             return;
         }
 
-        $this->sendEvent(
+        $sent = $this->sendEvent(
             eventName: $eventName,
             eventId: $eventId,
             eventSourceUrl: (string) data_get($metadata, 'landing_url', config('app.url')),
             userData: $this->userDataFromTicketOrder($order),
             customData: $this->ticketOrderCustomData($order),
         );
+
+        if (! $sent) {
+            return;
+        }
 
         $order->forceFill([
             'metadata' => array_merge($metadata, [$sentKey => true]),
@@ -364,13 +380,17 @@ class MetaConversionsApiService
             return;
         }
 
-        $this->sendEvent(
+        $sent = $this->sendEvent(
             eventName: $eventName,
             eventId: $eventId,
             eventSourceUrl: $booking->landing_url ?: config('app.url'),
             userData: $this->userDataFromBooking($booking),
             customData: $this->purchaseCustomData($booking),
         );
+
+        if (! $sent) {
+            return;
+        }
 
         $booking->forceFill([
             'metadata' => array_merge($metadata, [$sentKey => true]),

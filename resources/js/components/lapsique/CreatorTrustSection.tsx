@@ -1,41 +1,31 @@
-import { ArrowUpRight, AtSign, Camera, Sparkles, Video } from 'lucide-react';
+import { ArrowUpRight } from 'lucide-react';
 import { usePage } from '@inertiajs/react';
 import { CREATOR_PROFILE } from '@/data/creatorProfile';
 import { useTranslations } from '@/hooks/useTranslations';
 
 const CREATOR_COPY = {
     es: {
-        eyebrow: 'Quién está detrás',
-        title: 'Ramiro convierte tu negocio en contenido que se siente real.',
-        body: 'Video maker detrás de Lapsique Media. Dirige la toma, la luz, el ritmo y la edición para que cada pieza tenga uso comercial en anuncios, redes y páginas de venta.',
-        cta: 'Ver Instagram',
-        chips: ['Video maker', 'Foto de producto', 'Reels para ads'],
+        title: 'Dirección y cámara: Ramiro Díaz.',
+        body: 'Fundador y realizador de Lapsique Media en Riviera Maya. Produce reels comerciales, fotografía y coberturas de evento.',
+        cta: 'Conocer su trabajo',
     },
     en: {
-        eyebrow: 'Who is behind it',
-        title: 'Ramiro turns your business into content that feels real.',
-        body: 'Video maker behind Lapsique Media. He directs the shot, light, rhythm, and edit so every piece has commercial use in ads, social, and sales pages.',
-        cta: 'View Instagram',
-        chips: ['Video maker', 'Product photo', 'Ad reels'],
+        title: 'Direction and camera: Ramiro Díaz.',
+        body: 'Founder and filmmaker at Lapsique Media in Riviera Maya. He produces commercial reels, photography, and event coverage.',
+        cta: 'See his work',
     },
 } as const;
 
-const CHIP_ICONS = [Video, Camera, Sparkles] as const;
-
 const DJ_SET_COPY = {
     es: {
-        eyebrow: 'Dirección de DJ sets',
-        title: 'Ramiro produce DJ sets que se ven y suenan como una pieza en vivo.',
-        body: 'Dirección multicámara, señal limpia del mixer y edición al beat para entregar un set completo, clips verticales y material de promoción.',
-        cta: 'Ver sets en Instagram',
-        chips: ['Dirección multicámara', 'Audio del mixer', 'Edición al beat'],
+        title: 'DJ sets dirigidos y editados por Ramiro Díaz.',
+        body: 'Dos cámaras, audio directo del mixer y edición al beat. El resultado incluye el set completo y clips verticales para promoción.',
+        cta: 'Ver sets producidos',
     },
     en: {
-        eyebrow: 'DJ set direction',
-        title: 'Ramiro produces DJ sets that look and sound like a live piece.',
-        body: 'Multi-camera direction, clean mixer audio, and beat-matched editing for a full set, vertical clips, and promotional assets.',
-        cta: 'View sets on Instagram',
-        chips: ['Multi-camera direction', 'Mixer audio', 'Beat-matched edit'],
+        title: 'DJ sets directed and edited by Ramiro Díaz.',
+        body: 'Two cameras, direct mixer audio, and beat-matched editing. Delivery includes the full set and vertical promotional clips.',
+        cta: 'See produced sets',
     },
 } as const;
 
@@ -43,66 +33,37 @@ export function CreatorTrustSection() {
     const { locale } = useTranslations();
     const { url } = usePage();
     const language = locale === 'en' ? 'en' : 'es';
-    const copy = url.split('?')[0] === '/dj-set' ? DJ_SET_COPY[language] : CREATOR_COPY[language];
+    const path = url.split('?')[0];
+    const copy = path === '/dj-set' || path === '/djset' ? DJ_SET_COPY[language] : CREATOR_COPY[language];
 
     return (
-        <section data-creator-trust-section="true" className="mx-auto mb-10 mt-6 w-full max-w-6xl px-4 sm:px-6">
-            <div className="relative overflow-hidden rounded-2xl border border-border/70 bg-[linear-gradient(135deg,rgb(255_255_255/0.88),rgb(244_239_232/0.76))] p-5 shadow-[0_24px_80px_rgb(42_23_12/0.10)] backdrop-blur-md dark:bg-[linear-gradient(135deg,rgb(15_12_10/0.9),rgb(24_18_14/0.86))] dark:shadow-black/30 sm:p-6 md:p-8">
-                <div className="absolute inset-y-0 right-0 hidden w-1/3 bg-[radial-gradient(circle_at_center,rgb(206_58_42/0.22),transparent_62%)] lg:block" />
-                <div className="relative grid gap-8 lg:grid-cols-[1fr_0.46fr] lg:items-center">
-                    <div className="max-w-3xl">
-                        <p className="text-xs font-semibold uppercase tracking-[0.22em] text-primary">
-                            {copy.eyebrow}
-                        </p>
-                        <h2 className="mt-3 font-display text-3xl font-bold leading-tight text-foreground md:text-4xl">
-                            {copy.title}
-                        </h2>
-                        <p className="mt-4 max-w-2xl text-sm leading-relaxed text-muted-foreground md:text-base">
-                            {copy.body}
-                        </p>
-                    </div>
+        <section data-creator-trust-section="true" className="mx-auto w-full max-w-6xl px-4 py-14 sm:px-6 md:py-18">
+            <div className="grid gap-8 border-y border-foreground/15 py-8 lg:grid-cols-[1fr_auto] lg:items-end lg:gap-12">
+                <div className="max-w-3xl">
+                    <h2 className="font-display text-3xl font-bold leading-tight text-foreground md:text-4xl">
+                        {copy.title}
+                    </h2>
+                    <p className="mt-4 max-w-2xl text-sm leading-relaxed text-muted-foreground md:text-base">
+                        {copy.body}
+                    </p>
+                </div>
 
-                    <div className="rounded-xl border border-border/70 bg-background/80 p-4 shadow-sm">
-                        <div className="flex items-center justify-between gap-4">
-                            <div>
-                                <p className="font-display text-2xl font-bold text-foreground">
-                                    {CREATOR_PROFILE.name}
-                                </p>
-                                <p className="mt-1 text-sm font-semibold text-primary">
-                                    {CREATOR_PROFILE.instagramHandle}
-                                </p>
-                            </div>
-                            <span className="flex size-12 shrink-0 items-center justify-center rounded-xl border border-primary/25 bg-primary/10 text-primary">
-                                <AtSign className="size-5" aria-hidden />
-                            </span>
-                        </div>
-
-                        <div className="mt-5 grid gap-2">
-                            {copy.chips.map((chip, index) => {
-                                const Icon = CHIP_ICONS[index];
-
-                                return (
-                                    <div
-                                        key={chip}
-                                        className="flex min-h-10 items-center gap-2 rounded-lg border border-border/70 bg-secondary/50 px-3 text-sm font-semibold text-foreground"
-                                    >
-                                        <Icon className="size-4 shrink-0 text-primary" aria-hidden />
-                                        {chip}
-                                    </div>
-                                );
-                            })}
-                        </div>
-
-                        <a
-                            href={CREATOR_PROFILE.instagramUrl}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="mt-5 inline-flex w-full items-center justify-center gap-2 rounded-lg bg-primary px-4 py-3 text-sm font-bold text-primary-foreground shadow-[0_16px_44px_oklch(0.78_0.14_75/0.28)] transition hover:bg-primary/90"
-                        >
-                            {copy.cta}
-                            <ArrowUpRight className="size-4" aria-hidden />
-                        </a>
-                    </div>
+                <div className="min-w-[14rem]">
+                    <p className="font-display text-2xl font-bold text-foreground">
+                        {CREATOR_PROFILE.name}
+                    </p>
+                    <p className="mt-1 text-sm font-semibold text-primary">
+                        {CREATOR_PROFILE.instagramHandle}
+                    </p>
+                    <a
+                        href={CREATOR_PROFILE.instagramUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="mt-5 inline-flex min-h-12 w-full items-center justify-center gap-2 bg-foreground px-5 text-sm font-bold text-background transition hover:bg-primary hover:text-white"
+                    >
+                        {copy.cta}
+                        <ArrowUpRight className="size-4" aria-hidden />
+                    </a>
                 </div>
             </div>
         </section>

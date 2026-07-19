@@ -1,6 +1,9 @@
-const analyticsConfig = window.SiteAnalytics || {};
-const pageConfig = window.SitePage || {};
-const trackerQueue = Array.isArray(window.__siteTrackerQueue) ? window.__siteTrackerQueue : [];
+const analyticsConfig = window.SiteAnalytics || window.LapsiqueAnalytics || {};
+const pageConfig = window.SitePage || window.LapsiquePage || {};
+const trackerQueue = [
+    ...(Array.isArray(window.__siteTrackerQueue) ? window.__siteTrackerQueue : []),
+    ...(Array.isArray(window.__lapsiqueTrackerQueue) ? window.__lapsiqueTrackerQueue : []),
+];
 const dntEnabled =
     navigator.doNotTrack === '1' ||
     window.doNotTrack === '1' ||
@@ -33,6 +36,8 @@ const trackerApi = {
 
 window.SiteTracker = trackerApi;
 window.SiteTrackingContext = getContext();
+window.LapsiqueTracker = trackerApi;
+window.LapsiqueTrackingContext = window.SiteTrackingContext;
 
 syncTrackingForms();
 observeTrackingForms();

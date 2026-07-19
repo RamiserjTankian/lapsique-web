@@ -2,10 +2,10 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Resources\PortfolioItemResource;
 use App\Http\Resources\VideoResource;
 use App\Models\Dj;
 use App\Models\Video;
-use App\Http\Resources\PortfolioItemResource;
 use App\Support\PortfolioCuration;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -15,7 +15,10 @@ class VideoController extends Controller
 {
     public function index(Request $request): Response
     {
+        $currentRoster = (bool) config('trascendental.enabled_as_primary');
+
         $highlightedDj = Dj::query()
+            ->where('trascendental_roster', $currentRoster)
             ->where('is_highlighted', true)
             ->first();
 
@@ -25,8 +28,9 @@ class VideoController extends Controller
             ->with(['djs.media'])
             ->whereHas('djs', fn ($query) => $query->where(
                 'trascendental_roster',
-                config('trascendental.enabled_as_primary'),
+                $currentRoster,
             ))
+            ->whereDoesntHave('djs', fn ($query) => $query->where('trascendental_roster', ! $currentRoster))
             ->when($highlightedDjId, function ($query) use ($highlightedDjId) {
                 return $query->orderByRaw('EXISTS(
                     SELECT 1 FROM dj_video 
@@ -68,10 +72,13 @@ class VideoController extends Controller
 
     public function show(Video $video): Response
     {
+        $currentRoster = (bool) config('trascendental.enabled_as_primary');
         $video->load('djs.media');
         abort_unless(
             $video->djs->contains(
-                fn (Dj $dj) => (bool) $dj->trascendental_roster === (bool) config('trascendental.enabled_as_primary'),
+                fn (Dj $dj) => (bool) $dj->trascendental_roster === $currentRoster,
+            ) && $video->djs->doesntContain(
+                fn (Dj $dj) => (bool) $dj->trascendental_roster !== $currentRoster,
             ),
             404,
         );
@@ -81,8 +88,9 @@ class VideoController extends Controller
             ->whereKeyNot($video->getKey())
             ->whereHas('djs', fn ($query) => $query->where(
                 'trascendental_roster',
-                config('trascendental.enabled_as_primary'),
+                $currentRoster,
             ))
+            ->whereDoesntHave('djs', fn ($query) => $query->where('trascendental_roster', ! $currentRoster))
             ->orderByDesc('is_featured')
             ->orderBy('priority')
             ->limit(3)

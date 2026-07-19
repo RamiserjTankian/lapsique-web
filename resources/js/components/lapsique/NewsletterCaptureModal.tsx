@@ -66,7 +66,7 @@ export function NewsletterCaptureModal({
     source = 'auto',
 }: NewsletterCaptureModalProps) {
     const { ziggy } = usePage<PageProps>().props;
-    const { t, locale } = useTranslations();
+    const { t } = useTranslations();
     const visual = useMemo(() => getPopupVisualCopy(t, variant, 'newsletter'), [t, variant]);
     const image = useMemo(
         () =>
@@ -185,10 +185,8 @@ export function NewsletterCaptureModal({
             layout="promo"
             imageUrl={image.url}
             imageAlt={image.alt}
-            badge={visual.badge}
             title={visual.title}
             description={visual.description}
-            caption={visual.caption}
             contentClassName="px-4 py-4 sm:px-5 sm:py-5"
         >
             {submitted ? (
@@ -209,16 +207,6 @@ export function NewsletterCaptureModal({
                 </div>
             ) : (
                 <form onSubmit={submit} className="space-y-4">
-                    <div className="border-l-2 border-primary bg-primary/8 px-3 py-2">
-                        <p className="font-display text-base font-bold text-foreground">
-                            {source === 'exit_intent'
-                                ? (locale === 'en' ? 'Before you go, save a tailored recommendation.' : 'Antes de irte, guarda una recomendación para tu negocio.')
-                                : (locale === 'en' ? 'Tell us what you need and receive a useful proposal.' : 'Dinos qué necesitas y recibe una propuesta útil.')}
-                        </p>
-                        <p className="mt-1 text-xs text-muted-foreground">
-                            {locale === 'en' ? 'No generic newsletter. We use this to understand your project.' : 'No es un newsletter genérico. Usamos estos datos para entender tu proyecto.'}
-                        </p>
-                    </div>
                     <div className="space-y-2">
                         <Label htmlFor="newsletter-name">{t('common.form.name')}</Label>
                         <Input

@@ -59,13 +59,13 @@ return [
     | Application Timezone
     |--------------------------------------------------------------------------
     |
-    | Here you may specify the default timezone for your application, which
-    | will be used by the PHP date and date-time functions. The timezone
-    | is set to "UTC" by default as it is suitable for most use cases.
+    | Lapsique operates in Cancun. Keeping the application, scheduler and
+    | booking availability in the same timezone prevents a UTC date boundary
+    | from publishing or expiring a slot on the wrong local day.
     |
     */
 
-    'timezone' => 'UTC',
+    'timezone' => env('APP_TIMEZONE', 'America/Cancun'),
 
     /*
     |--------------------------------------------------------------------------

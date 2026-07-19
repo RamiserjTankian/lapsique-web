@@ -75,11 +75,14 @@ export function PortfolioLightbox({
                         isMediaFrame ? 'min-h-0 p-4' : 'min-h-[50vh]',
                     )}
                 >
+                    <span className="absolute left-3 top-3 z-20 bg-black/65 px-3 py-2 font-mono text-xs text-white">
+                        {activeIndex !== null ? activeIndex + 1 : 0} / {items.length}
+                    </span>
                     <Button
                         type="button"
                         variant="ghost"
                         size="icon"
-                        className="absolute top-3 right-3 z-20 rounded-full bg-background/60 backdrop-blur-sm hover:bg-background/80"
+                        className="absolute right-3 top-3 z-20 rounded-none bg-black/65 text-white hover:bg-primary hover:text-white"
                         onClick={onClose}
                         aria-label={t('common.actions.close')}
                     >
@@ -92,7 +95,7 @@ export function PortfolioLightbox({
                                 type="button"
                                 variant="ghost"
                                 size="icon"
-                                className="absolute left-3 z-20 hidden h-11 w-11 rounded-full bg-background/50 backdrop-blur-sm hover:bg-background/70 sm:flex"
+                                className="absolute left-3 z-20 hidden h-11 w-11 rounded-none bg-black/65 text-white hover:bg-primary hover:text-white sm:flex"
                                 onClick={goPrev}
                                 aria-label={t('common.actions.previous')}
                             >
@@ -102,7 +105,7 @@ export function PortfolioLightbox({
                                 type="button"
                                 variant="ghost"
                                 size="icon"
-                                className="absolute right-3 z-20 hidden h-11 w-11 rounded-full bg-background/50 backdrop-blur-sm hover:bg-background/70 sm:flex"
+                                className="absolute right-3 z-20 hidden h-11 w-11 rounded-none bg-black/65 text-white hover:bg-primary hover:text-white sm:flex"
                                 onClick={goNext}
                                 aria-label={t('common.actions.next')}
                             >
