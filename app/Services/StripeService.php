@@ -106,11 +106,13 @@ class StripeService
             'metadata' => [
                 'content_booking_id' => (string) $booking->id,
                 'content_booking_public_id' => $booking->public_id,
+                'service_type' => $booking->service_type ?: ContentBooking::SERVICE_CONTENT_SESSION,
             ],
             'payment_intent_data' => [
                 'metadata' => [
                     'content_booking_id' => (string) $booking->id,
                     'content_booking_public_id' => $booking->public_id,
+                    'service_type' => $booking->service_type ?: ContentBooking::SERVICE_CONTENT_SESSION,
                 ],
             ],
         ];
@@ -172,11 +174,15 @@ class StripeService
         $reference = (string) data_get($session, 'client_reference_id', '');
         $metadataId = (string) data_get($session, 'metadata.content_booking_id', '');
         $metadataPublicId = (string) data_get($session, 'metadata.content_booking_public_id', '');
+        $metadataServiceType = (string) data_get($session, 'metadata.service_type', '');
+        $expectedServiceType = (string) ($booking->service_type ?: ContentBooking::SERVICE_CONTENT_SESSION);
 
         if (
             ! hash_equals($expectedReference, $reference)
             || ! hash_equals((string) $booking->id, $metadataId)
             || ! hash_equals((string) $booking->public_id, $metadataPublicId)
+            || ($metadataServiceType !== '' && ! hash_equals($expectedServiceType, $metadataServiceType))
+            || ($booking->isElectronicEventCoverage() && $metadataServiceType === '')
         ) {
             throw new RuntimeException('La sesion de Stripe pertenece a otra reserva.');
         }

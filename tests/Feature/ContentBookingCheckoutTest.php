@@ -809,6 +809,7 @@ class ContentBookingCheckoutTest extends TestCase
             'currency' => 'MXN',
             'status' => 'pending_payment',
             'payment_provider' => 'stripe',
+            'stripe_checkout_session_id' => 'cs_test',
         ]);
 
         $payload = [
@@ -818,9 +819,12 @@ class ContentBookingCheckoutTest extends TestCase
                 'object' => [
                     'id' => 'cs_test',
                     'client_reference_id' => 'bkg_'.$booking->public_id,
+                    'amount_total' => 300000,
+                    'currency' => 'mxn',
                     'payment_status' => 'paid',
                     'payment_intent' => ['id' => 'pi_test', 'status' => 'succeeded'],
                     'metadata' => [
+                        'content_booking_id' => (string) $booking->id,
                         'content_booking_public_id' => $booking->public_id,
                     ],
                 ],
@@ -849,6 +853,7 @@ class ContentBookingCheckoutTest extends TestCase
             'currency' => 'MXN',
             'status' => 'pending_payment',
             'payment_provider' => 'stripe',
+            'stripe_checkout_session_id' => 'cs_dup',
         ]);
 
         $payload = [
@@ -858,8 +863,14 @@ class ContentBookingCheckoutTest extends TestCase
                 'object' => [
                     'id' => 'cs_dup',
                     'client_reference_id' => 'bkg_'.$booking->public_id,
+                    'amount_total' => 300000,
+                    'currency' => 'mxn',
                     'payment_status' => 'paid',
                     'payment_intent' => ['id' => 'pi_dup', 'status' => 'succeeded'],
+                    'metadata' => [
+                        'content_booking_id' => (string) $booking->id,
+                        'content_booking_public_id' => $booking->public_id,
+                    ],
                 ],
             ],
         ];

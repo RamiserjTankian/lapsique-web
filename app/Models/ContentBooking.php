@@ -21,6 +21,8 @@ class ContentBooking extends Model implements HasMedia
 
     public const SERVICE_DJ_SET = 'dj_set';
 
+    public const SERVICE_ELECTRONIC_EVENT_COVERAGE = 'electronic_event_coverage';
+
     public const SERVICE_DRONE_SESSION = 'drone_session';
 
     public const SERVICE_CONSTRUCTION_PROGRESS = 'construction_progress';
@@ -33,6 +35,7 @@ class ContentBooking extends Model implements HasMedia
         return [
             self::SERVICE_CONTENT_SESSION => 'Sesión de contenido',
             self::SERVICE_DJ_SET => 'DJ Set',
+            self::SERVICE_ELECTRONIC_EVENT_COVERAGE => 'Cobertura de evento electrónico',
             self::SERVICE_DRONE_SESSION => 'Vuelo con dron',
             self::SERVICE_CONSTRUCTION_PROGRESS => 'Avance de obra',
         ];
@@ -42,6 +45,7 @@ class ContentBooking extends Model implements HasMedia
     {
         return match ($serviceType) {
             self::SERVICE_DJ_SET => (int) config('booking.dj_set_price', 10000),
+            self::SERVICE_ELECTRONIC_EVENT_COVERAGE => (int) config('booking.electronic_event_coverage_price', 4500),
             self::SERVICE_DRONE_SESSION => (int) config('booking.drone_session_price', 3000),
             self::SERVICE_CONSTRUCTION_PROGRESS => (int) config('booking.construction_progress_price', 5000),
             default => SiteSetting::current()?->booking_price ?: (int) config('booking.content_price', 3000),
@@ -205,6 +209,11 @@ class ContentBooking extends Model implements HasMedia
         return $this->service_type === self::SERVICE_DRONE_SESSION;
     }
 
+    public function isElectronicEventCoverage(): bool
+    {
+        return $this->service_type === self::SERVICE_ELECTRONIC_EVENT_COVERAGE;
+    }
+
     public function isConstructionProgress(): bool
     {
         return $this->service_type === self::SERVICE_CONSTRUCTION_PROGRESS;
@@ -214,6 +223,7 @@ class ContentBooking extends Model implements HasMedia
     {
         return match ($this->service_type) {
             self::SERVICE_DJ_SET => 'Grabación de DJ Set',
+            self::SERVICE_ELECTRONIC_EVENT_COVERAGE => 'Cobertura audiovisual de evento electrónico',
             self::SERVICE_DRONE_SESSION => 'Sesión de vuelo con dron',
             self::SERVICE_CONSTRUCTION_PROGRESS => 'Avance de obra con dron',
             default => 'Sesión de contenido',
@@ -224,6 +234,7 @@ class ContentBooking extends Model implements HasMedia
     {
         return match ($this->service_type) {
             self::SERVICE_DJ_SET => 'DJ Set',
+            self::SERVICE_ELECTRONIC_EVENT_COVERAGE => 'Cobertura de evento',
             self::SERVICE_DRONE_SESSION => 'Vuelo con dron',
             self::SERVICE_CONSTRUCTION_PROGRESS => 'Avance de obra',
             default => 'Sesión de contenido',
@@ -234,6 +245,7 @@ class ContentBooking extends Model implements HasMedia
     {
         return match ($this->service_type) {
             self::SERVICE_DJ_SET => '2 horas de grabación editadas al beat con 2 cámaras fijas, 1 cámara móvil Ronin, dron y audio 32-bit',
+            self::SERVICE_ELECTRONIC_EVENT_COVERAGE => 'Cobertura audiovisual con aftermovie, tomas aéreas con dron cuando la operación sea viable y 30 fotografías editadas desde distintos ángulos',
             self::SERVICE_DRONE_SESSION => '1 hora de vuelo con DJI Air 3 para capturar 15 tomas aéreas de hasta 30 seg y hasta 10 fotos en Rec.709 y D-Log',
             self::SERVICE_CONSTRUCTION_PROGRESS => '1 hora de vuelo con DJI Air 3 para documentar avances de obra, contexto, accesos y escala del desarrollo',
             default => ContentSessionOffer::description(),
@@ -244,6 +256,7 @@ class ContentBooking extends Model implements HasMedia
     {
         return match ($this->service_type) {
             self::SERVICE_DJ_SET => 'Grabación de DJ Set — multicámara, Ronin, dron y audio 32-bit',
+            self::SERVICE_ELECTRONIC_EVENT_COVERAGE => 'Cobertura de evento electrónico — aftermovie, dron y 30 fotos desde distintos ángulos',
             self::SERVICE_DRONE_SESSION => 'Sesión de vuelo con dron DJI Air 3 — 15 tomas de hasta 30 seg + 10 fotos',
             self::SERVICE_CONSTRUCTION_PROGRESS => 'Avance de obra con dron DJI Air 3 — reporte visual de progreso',
             default => ContentSessionOffer::stripeProductName(),
@@ -254,6 +267,7 @@ class ContentBooking extends Model implements HasMedia
     {
         $prefix = match ($this->service_type) {
             self::SERVICE_DJ_SET => '🎧 Grabación de DJ Set',
+            self::SERVICE_ELECTRONIC_EVENT_COVERAGE => '🎬 Cobertura de evento electrónico',
             self::SERVICE_DRONE_SESSION => '🚁 Vuelo con dron',
             self::SERVICE_CONSTRUCTION_PROGRESS => '🏗️ Avance de obra con dron',
             default => '📸 Sesión de Contenido',

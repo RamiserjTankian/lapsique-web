@@ -118,6 +118,7 @@ class ContentBookingsTable
                     ->options([
                         'content_session' => 'Sesión de contenido',
                         'dj_set' => 'DJ Set',
+                        'electronic_event_coverage' => 'Cobertura de evento electrónico',
                         'drone_session' => 'Vuelo con dron',
                         'construction_progress' => 'Avance de obra',
                     ]),

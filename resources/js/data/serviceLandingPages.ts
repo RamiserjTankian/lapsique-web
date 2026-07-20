@@ -1,4 +1,4 @@
-export type LandingServiceKey = 'reels_de_comida' | 'sesiones_de_dron' | 'avances_de_obra';
+export type LandingServiceKey = 'reels_de_comida' | 'cobertura_eventos_electronica' | 'sesiones_de_dron' | 'avances_de_obra';
 
 type LocalizedText = {
     es: string;
@@ -194,6 +194,102 @@ export const SERVICE_LANDING_CONFIGS: Record<LandingServiceKey, LandingConfig> =
                 { es: 'Fotos', en: 'Photos' },
                 { es: 'Plan mensual', en: 'Monthly plan' },
                 { es: 'Campana de Ads', en: 'Ads campaign' },
+            ],
+        },
+    },
+    cobertura_eventos_electronica: {
+        serviceKey: 'cobertura_eventos_electronica',
+        path: '/cobertura-eventos-electronica',
+        trackingService: 'electronic_event_coverage',
+        leadType: 'electronic_event',
+        headline: {
+            es: 'Cobertura de eventos electrónicos en Riviera Maya',
+            en: 'Electronic event coverage in Riviera Maya',
+        },
+        intro: {
+            es: 'Aftermovie, fotografías editadas y tomas de dron para guardar la energía real de tu fecha.',
+            en: 'Aftermovie, edited photography, and drone shots that preserve the real energy of your date.',
+        },
+        primaryCta: { es: 'Reservar cobertura de evento', en: 'Book event coverage' },
+        finalCta: { es: 'Apartar fecha', en: 'Reserve a date' },
+        whatsappMessage: {
+            es: 'Hola, quiero cotizar cobertura para un evento de música electrónica en [fecha/venue].',
+            en: 'Hi, I want to quote coverage for an electronic music event on [date/venue].',
+        },
+        problemTitle: {
+            es: 'La noche pasa rápido; el material tiene que conservar lo que se sintió.',
+            en: 'The night moves fast; the material needs to hold on to how it felt.',
+        },
+        problem: [
+            {
+                es: 'Un evento no se comunica con una foto aislada: necesita escala, luz, pista, artistas y la respuesta de la gente.',
+                en: 'An event is not communicated with one isolated photo: it needs scale, light, dancefloor, artists, and the crowd response.',
+            },
+        ],
+        solutionTitle: {
+            es: 'Documentamos la noche desde el lenguaje de la escena.',
+            en: 'We document the night through the language of the scene.',
+        },
+        solution: [
+            {
+                es: 'Planeamos momentos clave con producción, combinamos cámara en tierra y dron viable, y editamos una pieza que puedes volver a publicar.',
+                en: 'We plan key moments with production, combine ground camera and viable drone coverage, and edit a piece you can publish again.',
+            },
+        ],
+        outcomesTitle: { es: 'Cobertura base', en: 'Base coverage' },
+        outcomes: [
+            { es: '1 aftermovie editado.', en: '1 edited aftermovie.' },
+            { es: '30 fotografías editadas desde distintos ángulos.', en: '30 photographs edited from different angles.' },
+            { es: 'Tomas de dron sujetas a viabilidad.', en: 'Drone footage, subject to feasibility.' },
+        ],
+        audienceTitle: { es: 'Ideal para', en: 'Best for' },
+        audience: [
+            { es: 'Clubs y venues', en: 'Clubs and venues' },
+            { es: 'Promotores y colectivos', en: 'Promoters and collectives' },
+            { es: 'Festivales y showcases', en: 'Festivals and showcases' },
+            { es: 'Marcas activando en la escena', en: 'Brands activating in the scene' },
+        ],
+        deliverablesTitle: { es: 'Lo que capturamos', en: 'What we capture' },
+        deliverables: [
+            { es: 'Entrada, venue y atmósfera', en: 'Arrival, venue, and atmosphere' },
+            { es: 'Artistas, cabina y momentos clave', en: 'Artists, booth, and key moments' },
+            { es: 'Pista, público y energía', en: 'Dancefloor, crowd, and energy' },
+            { es: 'Detalles de producción e iluminación', en: 'Production and lighting details' },
+            { es: 'Contexto aéreo cuando es viable', en: 'Aerial context when feasible' },
+        ],
+        packages: [
+            {
+                name: { es: 'Cobertura electrónica', en: 'Electronic coverage' },
+                priceLabel: { es: '$4,500 MXN', en: '$4,500 MXN' },
+                description: { es: 'Un paquete directo para comunicar la noche con foto, aftermovie y dron viable.', en: 'A direct package for communicating the night with photography, an aftermovie, and viable drone coverage.' },
+                includes: [
+                    { es: '1 aftermovie editado', en: '1 edited aftermovie' },
+                    { es: '30 fotos editadas desde distintos ángulos', en: '30 photos edited from different angles' },
+                    { es: 'Tomas de dron sujetas a viabilidad', en: 'Drone footage subject to feasibility' },
+                    { es: 'Planeación con producción', en: 'Planning with production' },
+                ],
+            },
+        ],
+        process: [
+            { title: { es: 'Compártenos tu fecha', en: 'Share your date' }, description: { es: 'Venue, horario, lineup y los momentos que no pueden faltar.', en: 'Venue, schedule, lineup, and the moments that cannot be missed.' } },
+            { title: { es: 'Definimos el plan', en: 'Define the plan' }, description: { es: 'Alineamos acceso, iluminación, puntos de cámara y viabilidad del dron.', en: 'We align access, lighting, camera points, and drone feasibility.' } },
+            { title: { es: 'Cubrimos el evento', en: 'Cover the event' }, description: { es: 'Capturamos la noche con dirección editorial y atención a los momentos reales.', en: 'We capture the night with editorial direction and attention to real moments.' } },
+            { title: { es: 'Editamos y entregamos', en: 'Edit and deliver' }, description: { es: 'Recibes las fotografías y la pieza final listas para los canales acordados.', en: 'You receive the photographs and final piece ready for the agreed channels.' } },
+        ],
+        faqs: [
+            { question: { es: '¿Qué incluye la cobertura de evento?', en: 'What does event coverage include?' }, answer: { es: 'La cobertura base incluye un aftermovie editado, 30 fotografías editadas desde distintos ángulos y tomas de dron cuando la ubicación, el clima y la normativa lo permiten.', en: 'Base coverage includes one edited aftermovie, 30 photographs edited from different angles, and drone footage when location, weather, and regulations allow it.' } },
+            { question: { es: '¿Cuánto cuesta la cobertura?', en: 'How much does coverage cost?' }, answer: { es: 'La cobertura base tiene un precio fijo de $4,500 MXN. Si el evento requiere horario extendido, más entregables o logística especial, lo cotizamos antes de reservar.', en: 'Base coverage has a fixed price of $4,500 MXN. If the event requires extended hours, more deliverables, or special logistics, we quote it before booking.' } },
+            { question: { es: '¿Cubren eventos en Playa del Carmen, Tulum y Cancún?', en: 'Do you cover events in Playa del Carmen, Tulum, and Cancun?' }, answer: { es: 'Sí. Trabajamos en Playa del Carmen, Tulum, Cancún y Riviera Maya. Confirma tu venue y horario para revisar la cobertura.', en: 'Yes. We work in Playa del Carmen, Tulum, Cancun, and Riviera Maya. Share your venue and schedule so we can review coverage.' } },
+            { question: { es: '¿El aftermovie funciona para redes sociales?', en: 'Does the aftermovie work for social media?' }, answer: { es: 'Sí. Editamos la pieza para comunicar la energía del evento y entregarla lista para publicar en los canales acordados.', en: 'Yes. We edit the piece to communicate the event energy and deliver it ready to publish on the agreed channels.' } },
+        ],
+        leadForm: {
+            title: { es: 'Cotiza cobertura para tu evento', en: 'Quote coverage for your event' },
+            description: { es: 'Compártenos fecha, venue, ciudad y formato del evento.', en: 'Share the date, venue, city, and event format.' },
+            needOptions: [
+                { es: 'Aftermovie', en: 'Aftermovie' },
+                { es: 'Fotografía', en: 'Photography' },
+                { es: 'Dron', en: 'Drone' },
+                { es: 'Cobertura completa', en: 'Full coverage' },
             ],
         },
     },

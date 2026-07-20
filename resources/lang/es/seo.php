@@ -28,6 +28,32 @@ return [
         'service_type' => 'Avance de obra con dron DJI Air 3',
         'og_alt' => 'Avance de obra con dron DJI Air 3 — Lapsique Media',
     ],
+    'electronic_event_coverage' => [
+        'title' => 'Cobertura de eventos de música electrónica en Riviera Maya',
+        'description' => 'Foto, video y aftermovie para eventos de música electrónica en Playa del Carmen, Tulum, Cancún y Riviera Maya. Cobertura base por $:price MXN.',
+        'keywords' => 'cobertura de eventos música electrónica Riviera Maya, aftermovie Playa del Carmen, video de evento Tulum, fotografía de eventos Cancún, cobertura nightlife, Lapsique Media',
+        'service_type' => 'Cobertura audiovisual de eventos de música electrónica',
+        'og_alt' => 'Dumas en cabina durante una cobertura de música electrónica en MTRX, Playa del Carmen',
+        'breadcrumb' => 'Cobertura de eventos de música electrónica',
+        'faq' => [
+            'includes' => [
+                'question' => '¿Qué incluye la cobertura de evento?',
+                'answer' => 'La cobertura base incluye un aftermovie editado, 30 fotografías editadas desde distintos ángulos y tomas de dron cuando la ubicación, el clima y la normativa lo permiten.',
+            ],
+            'price' => [
+                'question' => '¿Cuánto cuesta la cobertura?',
+                'answer' => 'La cobertura base tiene un precio fijo de $4,500 MXN. Si el evento requiere horario extendido, más entregables o logística especial, lo cotizamos antes de reservar.',
+            ],
+            'areas' => [
+                'question' => '¿Cubren eventos en Playa del Carmen, Tulum y Cancún?',
+                'answer' => 'Sí. Trabajamos en Playa del Carmen, Tulum, Cancún y Riviera Maya. Confirma tu venue y horario para revisar la cobertura.',
+            ],
+            'aftermovie' => [
+                'question' => '¿El aftermovie funciona para redes sociales?',
+                'answer' => 'Sí. Editamos la pieza para comunicar la energía del evento y entregarla lista para publicar en los canales acordados.',
+            ],
+        ],
+    ],
     'djs_index' => [
         'title' => 'DJs',
         'description' => 'Descubre DJs, sets y perfiles de la escena electrónica con lapsique.media.',

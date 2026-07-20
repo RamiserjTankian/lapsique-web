@@ -68,6 +68,8 @@ Route::get('/dj-set', [ContentBookingController::class, 'showDjSet'])->name('djs
 Route::get('/djset', fn () => redirect()->route('djset.show', status: 301))->name('djset.legacy');
 Route::post('/dj-set/checkout', [ContentBookingController::class, 'checkoutDjSet'])->name('djset.checkout');
 Route::post('/djset/checkout', [ContentBookingController::class, 'checkoutDjSet'])->name('djset.checkout.legacy');
+Route::get('/cobertura-eventos-electronica', [ContentBookingController::class, 'showElectronicEventCoverage'])->name('electronic-event-coverage.show');
+Route::post('/cobertura-eventos-electronica/checkout', [ContentBookingController::class, 'checkoutElectronicEventCoverage'])->name('electronic-event-coverage.checkout');
 Route::get('/sesiones-de-dron', [ContentBookingController::class, 'showDroneSession'])->name('drone-sessions.show');
 Route::get('/drone-session', fn () => redirect()->route('drone-sessions.show', status: 301))->name('drone-sessions.legacy');
 Route::get('/vuelos-con-dron', fn () => redirect()->route('drone-sessions.show', status: 301))->name('drone-sessions.flights-legacy');

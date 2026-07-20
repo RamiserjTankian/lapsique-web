@@ -64,4 +64,34 @@ class SeoHardeningTest extends TestCase
             ->assertOk()
             ->assertSee(route('content-creation.show'), false);
     }
+
+    public function test_electronic_event_coverage_landing_is_canonical_and_in_sitemap(): void
+    {
+        $canonicalUrl = route('electronic-event-coverage.show');
+        $ogImage = route('home').'/images/portfolio/video-posters/2026-07-11-mtrx-dumas-a0794b89f7.jpg';
+
+        $this->get($canonicalUrl)
+            ->assertOk()
+            ->assertSee('data-inertia="canonical" rel="canonical" href="'.$canonicalUrl.'"', false)
+            ->assertSee('data-inertia="og-image" property="og:image" content="'.$ogImage.'"', false)
+            ->assertSee('data-inertia="twitter-image" name="twitter:image" content="'.$ogImage.'"', false)
+            ->assertInertia(fn ($page) => $page
+                ->component('EventCoverage/Show')
+                ->where('seo.canonicalUrl', $canonicalUrl)
+                ->where('seo.ogImage', $ogImage)
+                ->where('seo.noindex', false));
+
+        $this->get(route('sitemap'))
+            ->assertOk()
+            ->assertSee($canonicalUrl, false);
+    }
+
+    public function test_electronic_event_coverage_is_excluded_from_the_trascendental_sitemap(): void
+    {
+        config()->set('trascendental.enabled_as_primary', true);
+
+        $this->get(route('sitemap'))
+            ->assertOk()
+            ->assertDontSee('/cobertura-eventos-electronica', false);
+    }
 }

@@ -35,6 +35,7 @@ export default function BookingConfirm({ booking, paymentVerified, isTestBooking
             currency: booking.currency,
             content_name: booking.service_name,
             content_category: bookingContentCategory(booking.service_type),
+            service_type: booking.service_type,
             customer_id: booking.customer_id ?? undefined,
             customer_name: booking.client_name,
             customer_email: booking.client_email,
@@ -128,6 +129,10 @@ function bookingContentCategory(serviceType: ContentBookingData['service_type'])
 
     if (serviceType === 'construction_progress') {
         return 'construction_progress_booking';
+    }
+
+    if (serviceType === 'electronic_event_coverage') {
+        return 'electronic_event_coverage_booking';
     }
 
     return 'content_booking';

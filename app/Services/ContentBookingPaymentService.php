@@ -16,6 +16,7 @@ class ContentBookingPaymentService
     public function __construct(
         protected GoogleCalendarService $googleCalendar,
         protected CustomerPortalAccessService $portalAccess,
+        protected StripeService $stripe,
     ) {}
 
     public function syncMercadoPagoPayment(ContentBooking $booking, array $payment): ContentBooking
@@ -48,6 +49,8 @@ class ContentBookingPaymentService
 
     public function syncStripeSession(ContentBooking $booking, array $session): ContentBooking
     {
+        $this->stripe->assertCheckoutSessionMatchesBooking($booking, $session);
+
         return DB::transaction(function () use ($booking, $session) {
             $booking->refresh();
 

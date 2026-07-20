@@ -47,6 +47,7 @@ class PageMeta
             'construction-progress.show' => self::forConstructionProgress($canonicalUrl),
             'food-reels.show' => self::forFoodReels($settings, $canonicalUrl),
             'content-creation.show' => self::forContentCreation($settings, $canonicalUrl),
+            'electronic-event-coverage.show' => self::forElectronicEventCoverage($canonicalUrl),
             'djs.show' => self::forDj($request->route('dj'), $canonicalUrl),
             'videos.show' => self::forVideo($request->route('video'), $canonicalUrl),
             'events.show' => self::forEvent($request->route('event'), $canonicalUrl),
@@ -272,6 +273,55 @@ class PageMeta
                     ['Qué tipo de negocios atienden?', 'Restaurantes, hoteles, propiedades, desarrollos, experiencias, eventos y marcas de servicio en Riviera Maya.'],
                     ['Incluye estrategia de social media?', 'La producción incluye dirección visual y lista de tomas. La gestión mensual de redes se cotiza aparte según volumen y canales.'],
                 ],
+            ),
+        );
+    }
+
+    public static function forElectronicEventCoverage(string $canonicalUrl): PageMetaData
+    {
+        $price = (int) config('booking.electronic_event_coverage_price', 4500);
+        $title = __('seo.electronic_event_coverage.title');
+        $description = self::truncate(__('seo.electronic_event_coverage.description', [
+            'price' => number_format($price, 0, '.', ','),
+        ]));
+        $ogImage = self::staticPublicImageUrl('images/portfolio/video-posters/2026-07-11-mtrx-dumas-a0794b89f7.jpg')
+            ?? self::defaultOgImageUrl();
+
+        return new PageMetaData(
+            title: $title,
+            metaTitle: "{$title} | Lapsique Media",
+            description: $description,
+            canonicalUrl: $canonicalUrl,
+            ogType: 'website',
+            ogImage: $ogImage,
+            ogImageAlt: __('seo.electronic_event_coverage.og_alt'),
+            keywords: __('seo.electronic_event_coverage.keywords'),
+            jsonLd: self::serviceLandingJsonLd(
+                canonicalUrl: $canonicalUrl,
+                title: $title,
+                description: $description,
+                serviceType: __('seo.electronic_event_coverage.service_type'),
+                ogImage: $ogImage,
+                breadcrumbName: __('seo.electronic_event_coverage.breadcrumb'),
+                faq: [
+                    [
+                        __('seo.electronic_event_coverage.faq.includes.question'),
+                        __('seo.electronic_event_coverage.faq.includes.answer'),
+                    ],
+                    [
+                        __('seo.electronic_event_coverage.faq.price.question'),
+                        __('seo.electronic_event_coverage.faq.price.answer'),
+                    ],
+                    [
+                        __('seo.electronic_event_coverage.faq.areas.question'),
+                        __('seo.electronic_event_coverage.faq.areas.answer'),
+                    ],
+                    [
+                        __('seo.electronic_event_coverage.faq.aftermovie.question'),
+                        __('seo.electronic_event_coverage.faq.aftermovie.answer'),
+                    ],
+                ],
+                offerPrice: $price,
             ),
         );
     }
@@ -630,6 +680,7 @@ class PageMeta
         ?string $ogImage,
         string $breadcrumbName,
         array $faq,
+        ?int $offerPrice = null,
     ): array {
         $areaServed = [
             'Playa del Carmen',
@@ -643,6 +694,36 @@ class PageMeta
             'Riviera Maya',
         ];
 
+        $service = [
+            '@type' => 'Service',
+            '@id' => rtrim($canonicalUrl, '/').'#service',
+            'name' => $title,
+            'serviceType' => $serviceType,
+            'provider' => [
+                '@id' => url('/#organization'),
+            ],
+            'areaServed' => array_map(
+                fn (string $area): array => [
+                    '@type' => 'Place',
+                    'name' => $area,
+                ],
+                $areaServed,
+            ),
+            'description' => $description,
+            'image' => $ogImage,
+            'url' => $canonicalUrl,
+        ];
+
+        if ($offerPrice !== null) {
+            $service['offers'] = [
+                '@type' => 'Offer',
+                'price' => $offerPrice,
+                'priceCurrency' => 'MXN',
+                'availability' => 'https://schema.org/InStock',
+                'url' => $canonicalUrl,
+            ];
+        }
+
         return [
             '@context' => 'https://schema.org',
             '@graph' => [
@@ -654,24 +735,7 @@ class PageMeta
                     'logo' => self::staticPublicImageUrl('images/lapsique-media-logo-dark.png') ?? self::defaultOgImageUrl(),
                     'sameAs' => self::sameAsUrls(),
                 ],
-                [
-                    '@type' => 'Service',
-                    '@id' => rtrim($canonicalUrl, '/').'#service',
-                    'name' => $title,
-                    'serviceType' => $serviceType,
-                    'provider' => [
-                        '@id' => url('/#organization'),
-                    ],
-                    'areaServed' => array_map(
-                        fn (string $area): array => [
-                            '@type' => 'Place',
-                            'name' => $area,
-                        ],
-                        $areaServed,
-                    ),
-                    'description' => $description,
-                    'image' => $ogImage,
-                ],
+                $service,
                 [
                     '@type' => 'BreadcrumbList',
                     '@id' => rtrim($canonicalUrl, '/').'#breadcrumb',

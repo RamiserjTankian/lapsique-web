@@ -91,6 +91,12 @@ export function buildSiteNavigation(
                         href: route('djset.show', undefined, false, ziggy),
                     },
                     {
+                        id: 'electronic-event-coverage',
+                        label: en ? 'Electronic event coverage' : 'Cobertura de eventos electrónicos',
+                        description: en ? 'Aftermovie, drone shots, and edited photography.' : 'Aftermovie, tomas de dron y fotografía editada.',
+                        href: route('electronic-event-coverage.show', undefined, false, ziggy),
+                    },
+                    {
                         id: 'drone',
                         label: en ? 'Drone flights' : 'Vuelos con dron',
                         href: route('drone-sessions.show', undefined, false, ziggy),

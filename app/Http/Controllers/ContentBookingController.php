@@ -104,6 +104,21 @@ class ContentBookingController extends Controller
         ]);
     }
 
+    public function showElectronicEventCoverage(): Response
+    {
+        abort_if(config('trascendental.enabled_as_primary'), 404);
+
+        $data = $this->bookingPageData();
+
+        return Inertia::render('EventCoverage/Show', [
+            'price' => ContentBooking::amountForService(ContentBooking::SERVICE_ELECTRONIC_EVENT_COVERAGE),
+            'slots' => BookingSlotResource::collection($data['slots'])->resolve(),
+            'portfolioItems' => $this->electronicEventCoverageFallbackPortfolioItems(),
+            'eventReels' => $this->electronicEventCoverageReels(),
+            'errors' => session('errors')?->getBag('default')?->getMessages() ?? [],
+        ]);
+    }
+
     public function showConstructionProgress(): Response
     {
         $data = $this->bookingPageData();
@@ -176,6 +191,70 @@ class ContentBookingController extends Controller
             '/aaron-sevilla|basement|ceballos|concept-night|danny|daymon|demerry|dj|galgo|graziano|guy-mantzur|james-zabiela|kapi|magdalena|mellino|noferini|pergola|provenza|rebolledo|sasha|satoshi|set|sudbeat|umi|victor-ruiz|wav|zaza/i',
             $haystack,
         );
+    }
+
+    /**
+     * @return array<int, array{id: string, title: string, src: string, poster: string|null}>
+     */
+    private function electronicEventCoverageReels(): array
+    {
+        $reels = [
+            ['mtrx-dumas', 'Dumas en MTRX', '/videos/reels/2026-07-11-mtrx-dumas-a0794b89f7.mp4', '/images/portfolio/video-posters/2026-07-11-mtrx-dumas-a0794b89f7.jpg'],
+            ['mtrx-mauro', 'Mauro Scollo en MTRX', '/videos/reels/2026-07-11-mtrx-mauro-883c0cb709.mp4', '/images/portfolio/video-posters/2026-07-11-mtrx-mauro-883c0cb709.jpg'],
+            ['karen-drop-01', 'Karen Echev · Drop 01', '/videos/reels/2026-07-13-karen-echev-drop-01-5647efd7f8.mp4', '/images/portfolio/video-posters/2026-07-13-karen-echev-drop-01-5647efd7f8.jpg'],
+        ];
+
+        return collect($reels)
+            ->filter(fn (array $reel): bool => is_readable(public_path(ltrim($reel[2], '/'))))
+            ->map(fn (array $reel): array => [
+                'id' => $reel[0],
+                'title' => $reel[1],
+                'src' => $reel[2],
+                'poster' => is_readable(public_path(ltrim($reel[3], '/'))) ? $reel[3] : null,
+            ])
+            ->values()
+            ->all();
+    }
+
+    /**
+     * @return array<int, array<string, mixed>>
+     */
+    private function electronicEventCoverageFallbackPortfolioItems(): array
+    {
+        $items = [
+            ['2026-07-11-mtrx-pista-58db81e520.webp', 'horizontal', 'MTRX · pista', 'Pista y producción visual en MTRX, Playa del Carmen.'],
+            ['2026-07-11-mtrx-entrada-137e44b9ea.webp', 'horizontal', 'MTRX · entrada', 'Entrada y atmósfera de MTRX durante una noche de música electrónica.'],
+            ['2026-07-11-mtrx-cabina-9b4907c016.webp', 'horizontal', 'MTRX · cabina', 'Cabina y público en MTRX.'],
+            ['2026-07-11-mtrx-mauro-dumas-46d0e76d5e.webp', 'horizontal', 'Mauro Scollo y Dumas en MTRX', 'Mauro Scollo y Dumas en la cabina de MTRX.'],
+            ['2026-07-11-mtrx-mauro-02e4149d8f.webp', 'vertical', 'Mauro Scollo en MTRX', 'Mauro Scollo durante su set en MTRX.'],
+            ['2026-07-13-karen-echev-set-96c4894e43.webp', 'horizontal', 'Karen Echev · DJ set', 'Karen Echev durante su set.'],
+            ['2026-07-13-karen-echev-cabina-cb42e7b31c.webp', 'horizontal', 'Karen Echev · cabina y público', 'Karen Echev frente al público durante su set.'],
+            ['2026-07-13-karen-echev-publico-d1d43e559e.webp', 'horizontal', 'Karen Echev · desde la cabina', 'La sesión de Karen Echev vista desde la cabina.'],
+            ['2026-07-13-karen-echev-banderas-ccc898e739.webp', 'vertical', 'Karen Echev · público', 'Público durante la sesión de Karen Echev.'],
+        ];
+
+        return collect($items)
+            ->filter(fn (array $item): bool => is_readable(public_path('images/portfolio/photos/'.$item[0])))
+            ->values()
+            ->map(fn (array $item, int $index): array => [
+                'id' => -($index + 101),
+                'title' => $item[2],
+                'slug' => pathinfo($item[0], PATHINFO_FILENAME),
+                'type' => 'photo',
+                'source' => 'public',
+                'caption' => $item[3],
+                'tags' => ['electronic-event'],
+                'asset_url' => asset('images/portfolio/photos/'.$item[0]),
+                'poster_url' => asset('images/portfolio/photos/'.$item[0]),
+                'playback_url' => null,
+                'embed_url' => null,
+                'youtube_id' => null,
+                'youtube_url' => null,
+                'media_type' => 'image',
+                'is_featured' => $index < 2,
+                'orientation' => $item[1],
+            ])
+            ->all();
     }
 
     /**
@@ -330,6 +409,27 @@ class ContentBookingController extends Controller
             $portalAccess,
             $attributionService,
             ContentBooking::SERVICE_DRONE_SESSION,
+        );
+    }
+
+    public function checkoutElectronicEventCoverage(
+        Request $request,
+        MercadoPagoService $mercadoPago,
+        StripeService $stripe,
+        ContentBookingPaymentService $bookingPayment,
+        CustomerPortalAccessService $portalAccess,
+        CustomerAnalyticsAttributionService $attributionService,
+    ): SymfonyResponse {
+        abort_if(config('trascendental.enabled_as_primary'), 404);
+
+        return $this->checkoutForService(
+            $request,
+            $mercadoPago,
+            $stripe,
+            $bookingPayment,
+            $portalAccess,
+            $attributionService,
+            ContentBooking::SERVICE_ELECTRONIC_EVENT_COVERAGE,
         );
     }
 

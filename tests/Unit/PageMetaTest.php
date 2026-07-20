@@ -242,6 +242,46 @@ class PageMetaTest extends TestCase
         $this->assertCount(4, $graph->firstWhere('@type', 'FAQPage')['mainEntity']);
     }
 
+    public function test_electronic_event_coverage_meta_uses_the_real_mtrx_asset_and_fixed_offer(): void
+    {
+        $canonicalUrl = 'https://lapsique.media/cobertura-eventos-electronica';
+        $meta = PageMeta::forElectronicEventCoverage($canonicalUrl);
+
+        $this->assertSame('Cobertura de eventos de música electrónica en Riviera Maya', $meta->title);
+        $this->assertStringContainsString('$4,500 MXN', $meta->description);
+        $this->assertStringContainsString(
+            '/images/portfolio/video-posters/2026-07-11-mtrx-dumas-a0794b89f7.jpg',
+            (string) $meta->ogImage,
+        );
+
+        $graph = collect($meta->jsonLd['@graph']);
+        $service = $graph->firstWhere('@type', 'Service');
+
+        $this->assertSame('Cobertura audiovisual de eventos de música electrónica', $service['serviceType']);
+        $this->assertSame(4500, $service['offers']['price']);
+        $this->assertSame('MXN', $service['offers']['priceCurrency']);
+        $this->assertSame($canonicalUrl, $service['offers']['url']);
+        $this->assertCount(4, $graph->firstWhere('@type', 'FAQPage')['mainEntity']);
+    }
+
+    public function test_electronic_event_coverage_meta_is_localized_in_english(): void
+    {
+        app()->setLocale('en');
+
+        $meta = PageMeta::forElectronicEventCoverage('https://lapsique.media/cobertura-eventos-electronica');
+        $graph = collect($meta->jsonLd['@graph']);
+
+        $this->assertSame('Electronic music event coverage in Riviera Maya', $meta->title);
+        $this->assertSame(
+            'Electronic music event audiovisual coverage',
+            $graph->firstWhere('@type', 'Service')['serviceType'],
+        );
+        $this->assertSame(
+            'What does event coverage include?',
+            $graph->firstWhere('@type', 'FAQPage')['mainEntity'][0]['name'],
+        );
+    }
+
     public function test_food_reels_meta_includes_local_seo_schema_and_static_media(): void
     {
         $meta = PageMeta::forFoodReels(null, 'https://lapsique.media/reels-de-comida');

@@ -76,6 +76,8 @@ interface BookingWidgetProps {
     popupOriginals?: VideoItem[];
     highlight?: boolean;
     analyticsPayload?: Record<string, unknown>;
+    /** Optional landing-specific event emitted only after the booking modal actually opens. */
+    analyticsOpenEvent?: string;
 }
 
 export interface BookingWidgetProduct {
@@ -119,6 +121,7 @@ export function BookingWidget({
     popupOriginals = [],
     highlight = false,
     analyticsPayload = DEFAULT_ANALYTICS_PAYLOAD,
+    analyticsOpenEvent,
 }: BookingWidgetProps) {
     const { t, locale } = useTranslations();
     const product = useMemo(
@@ -295,9 +298,15 @@ export function BookingWidget({
         (source: string) => {
             resetBookingWizard();
             handleBookingModalOpenChange(true);
-            trackBookingEvent('booking_popup_shown', { ...analyticsPayload, source });
+            const openPayload = { ...analyticsPayload, source, target: 'booking_popup' };
+
+            trackBookingEvent('booking_popup_shown', openPayload);
+
+            if (analyticsOpenEvent) {
+                trackBookingEvent(analyticsOpenEvent, openPayload);
+            }
         },
-        [analyticsPayload, handleBookingModalOpenChange, resetBookingWizard],
+        [analyticsOpenEvent, analyticsPayload, handleBookingModalOpenChange, resetBookingWizard],
     );
 
     useEffect(() => {

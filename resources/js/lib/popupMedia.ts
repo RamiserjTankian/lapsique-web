@@ -1,7 +1,7 @@
 import type { TranslateFn } from '@/hooks/useTranslations';
 import type { HeroProofVideoData, PortfolioItemData, VideoItem } from '@/types';
 
-export type PopupVariant = 'home' | 'djset' | 'drone' | 'construction';
+export type PopupVariant = 'home' | 'djset' | 'drone' | 'construction' | 'eventCoverage';
 
 export type PopupMediaPurpose = 'booking' | 'newsletter' | 'whatsapp';
 
@@ -23,6 +23,7 @@ const FALLBACK_IMAGES: Record<PopupVariant, string> = {
     djset: '/images/portfolio/photos/082-proper-collective-cab1bed3f4.webp',
     drone: '/images/drone-sessions/hero.jpg',
     construction: '/images/drone-sessions/construction-goba-aerial.jpg',
+    eventCoverage: '/images/portfolio/video-posters/2026-07-11-mtrx-dumas-a0794b89f7.jpg',
 };
 
 function firstPortfolioImage(
@@ -76,7 +77,12 @@ export function resolvePopupImage(
     const posterFromProof = heroProofVideo?.poster_url ?? null;
     const djThumbnail = variant === 'djset' ? firstOriginalThumbnail(originals) : null;
 
-    const url = variant === 'djset'
+    const url = variant === 'eventCoverage'
+        ? (
+            posterFromProof
+            ?? FALLBACK_IMAGES[variant]
+        )
+        : variant === 'djset'
         ? (
             djThumbnail
             ?? posterFromProof
@@ -98,9 +104,11 @@ export function resolvePopupImage(
             ? t('funnel.popup.fallback_alt_djset')
             : variant === 'drone'
               ? t('funnel.popup.fallback_alt_drone')
-              : variant === 'construction'
+            : variant === 'construction'
                 ? t('funnel.popup.fallback_alt_construction')
-              : t('funnel.popup.fallback_alt_home'));
+                : variant === 'eventCoverage'
+                  ? t('funnel.popup.fallback_alt_event_coverage')
+                : t('funnel.popup.fallback_alt_home'));
 
     return { url, alt };
 }
@@ -138,6 +146,15 @@ export function getPopupVisualCopy(
             };
         }
 
+        if (variant === 'eventCoverage') {
+            return {
+                badge: t('funnel.popup.booking_event_coverage_badge'),
+                title: t('funnel.popup.booking_event_coverage_title'),
+                description: t('funnel.popup.booking_event_coverage_description'),
+                caption: t('funnel.popup.booking_event_coverage_caption'),
+            };
+        }
+
         return {
             badge: t('funnel.popup.booking_home_badge'),
             title: t('funnel.popup.booking_home_title'),
@@ -147,6 +164,15 @@ export function getPopupVisualCopy(
     }
 
     if (purpose === 'newsletter') {
+        if (variant === 'eventCoverage') {
+            return {
+                badge: t('funnel.popup.newsletter_event_coverage_badge'),
+                title: t('funnel.popup.newsletter_event_coverage_title'),
+                description: t('funnel.popup.newsletter_event_coverage_description'),
+                caption: t('funnel.popup.newsletter_event_coverage_caption'),
+            };
+        }
+
         return variant === 'djset'
             ? {
                   badge: t('funnel.popup.newsletter_djset_badge'),
@@ -160,6 +186,15 @@ export function getPopupVisualCopy(
                   description: t('funnel.popup.newsletter_home_description'),
                   caption: t('funnel.popup.newsletter_home_caption'),
               };
+    }
+
+    if (variant === 'eventCoverage') {
+        return {
+            badge: t('funnel.popup.whatsapp_badge'),
+            title: t('funnel.popup.whatsapp_event_coverage_title'),
+            description: t('funnel.popup.whatsapp_event_coverage_description'),
+            caption: t('funnel.popup.whatsapp_event_coverage_caption'),
+        };
     }
 
     return variant === 'djset'

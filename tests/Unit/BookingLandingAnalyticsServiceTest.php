@@ -30,6 +30,10 @@ class BookingLandingAnalyticsServiceTest extends TestCase
         $this->assertContains('booking_payment_info_added', $events);
         $this->assertContains('content_creation_booking_cta_clicked', $events);
         $this->assertContains('content_creation_whatsapp_cta_clicked', $events);
+        $this->assertContains('electronic_event_coverage_portfolio_engaged', $events);
+        $this->assertContains('electronic_event_coverage_booking_opened', $events);
+        $this->assertContains('electronic_event_coverage_booking_cta_clicked', $events);
+        $this->assertContains('electronic_event_coverage_whatsapp_cta_clicked', $events);
 
         foreach (BookingLandingAnalyticsService::contactEventNames() as $contactEvent) {
             $this->assertContains($contactEvent, $events);
@@ -51,6 +55,7 @@ class BookingLandingAnalyticsServiceTest extends TestCase
         $this->assertSame([
             '/',
             '/creacion-de-contenido-riviera-maya',
+            '/cobertura-eventos-electronica',
             '/reels-de-comida',
             '/dj-set',
             '/sesiones-de-dron',

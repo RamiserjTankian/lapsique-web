@@ -298,6 +298,7 @@ class MetaConversionsApiService
                 ContentBooking::SERVICE_DJ_SET => 'dj_set_booking',
                 ContentBooking::SERVICE_DRONE_SESSION => 'drone_session_booking',
                 ContentBooking::SERVICE_CONSTRUCTION_PROGRESS => 'construction_progress_booking',
+                ContentBooking::SERVICE_ELECTRONIC_EVENT_COVERAGE => 'electronic_event_coverage_booking',
                 default => 'content_booking',
             },
         ];

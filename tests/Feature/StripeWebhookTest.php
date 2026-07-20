@@ -80,7 +80,7 @@ class StripeWebhookTest extends TestCase
             'currency' => 'MXN',
             'status' => 'pending_payment',
             'payment_provider' => 'stripe',
-            'stripe_checkout_session_id' => 'cs_existing',
+            'stripe_checkout_session_id' => 'cs_test_paid',
         ]);
 
         $this->postStripeWebhook([
@@ -90,9 +90,12 @@ class StripeWebhookTest extends TestCase
                 'object' => [
                     'id' => 'cs_test_paid',
                     'client_reference_id' => 'bkg_'.$booking->public_id,
+                    'amount_total' => 300000,
+                    'currency' => 'mxn',
                     'payment_status' => 'paid',
                     'payment_intent' => ['id' => 'pi_test_paid', 'status' => 'succeeded'],
                     'metadata' => [
+                        'content_booking_id' => (string) $booking->id,
                         'content_booking_public_id' => $booking->public_id,
                     ],
                 ],
@@ -120,6 +123,7 @@ class StripeWebhookTest extends TestCase
             'currency' => 'MXN',
             'status' => 'pending_payment',
             'payment_provider' => 'stripe',
+            'stripe_checkout_session_id' => 'cs_idem',
         ]);
 
         $payload = [
@@ -129,8 +133,14 @@ class StripeWebhookTest extends TestCase
                 'object' => [
                     'id' => 'cs_idem',
                     'client_reference_id' => 'bkg_'.$booking->public_id,
+                    'amount_total' => 300000,
+                    'currency' => 'mxn',
                     'payment_status' => 'paid',
                     'payment_intent' => ['id' => 'pi_idem', 'status' => 'succeeded'],
+                    'metadata' => [
+                        'content_booking_id' => (string) $booking->id,
+                        'content_booking_public_id' => $booking->public_id,
+                    ],
                 ],
             ],
         ];
@@ -166,7 +176,134 @@ class StripeWebhookTest extends TestCase
             'data' => [
                 'object' => [
                     'id' => 'cs_expired_booking',
+                    'client_reference_id' => 'bkg_'.$booking->public_id,
+                    'amount_total' => 300000,
+                    'currency' => 'mxn',
                     'status' => 'expired',
+                    'metadata' => [
+                        'content_booking_id' => (string) $booking->id,
+                        'content_booking_public_id' => $booking->public_id,
+                    ],
+                ],
+            ],
+        ])->assertNoContent();
+
+        $this->assertSame('failed', $booking->fresh()->status);
+        $this->assertSame(0, $slot->fresh()->booked_count);
+    }
+
+    public function test_checkout_session_expired_does_not_release_a_booking_when_the_session_id_is_spoofed(): void
+    {
+        $slot = $this->createAvailableSlot();
+        $slot->update(['booked_count' => 1]);
+
+        $booking = ContentBooking::create([
+            'public_id' => (string) Str::uuid(),
+            'booking_slot_id' => $slot->id,
+            'client_name' => 'Cliente',
+            'client_email' => 'cliente@example.com',
+            'client_phone' => '529841234567',
+            'amount' => 3000,
+            'currency' => 'MXN',
+            'status' => 'pending_payment',
+            'payment_provider' => 'stripe',
+            'stripe_checkout_session_id' => 'cs_expected_booking',
+        ]);
+
+        $this->postStripeWebhook([
+            'id' => 'evt_booking_expired_spoofed',
+            'type' => 'checkout.session.expired',
+            'data' => [
+                'object' => [
+                    'id' => 'cs_spoofed_booking',
+                    'client_reference_id' => 'bkg_'.$booking->public_id,
+                    'amount_total' => 300000,
+                    'currency' => 'mxn',
+                    'status' => 'expired',
+                    'metadata' => [
+                        'content_booking_id' => (string) $booking->id,
+                        'content_booking_public_id' => $booking->public_id,
+                    ],
+                ],
+            ],
+        ])->assertStatus(500);
+
+        $this->assertSame('pending_payment', $booking->fresh()->status);
+        $this->assertSame(1, $slot->fresh()->booked_count);
+    }
+
+    public function test_async_payment_failed_does_not_release_a_booking_when_the_session_metadata_is_spoofed(): void
+    {
+        $slot = $this->createAvailableSlot();
+        $slot->update(['booked_count' => 1]);
+
+        $booking = ContentBooking::create([
+            'public_id' => (string) Str::uuid(),
+            'booking_slot_id' => $slot->id,
+            'client_name' => 'Cliente',
+            'client_email' => 'cliente@example.com',
+            'client_phone' => '529841234567',
+            'amount' => 3000,
+            'currency' => 'MXN',
+            'status' => 'pending_payment',
+            'payment_provider' => 'stripe',
+            'stripe_checkout_session_id' => 'cs_failed_booking',
+        ]);
+
+        $this->postStripeWebhook([
+            'id' => 'evt_booking_failed_spoofed',
+            'type' => 'checkout.session.async_payment_failed',
+            'data' => [
+                'object' => [
+                    'id' => 'cs_failed_booking',
+                    'client_reference_id' => 'bkg_'.$booking->public_id,
+                    'amount_total' => 300000,
+                    'currency' => 'mxn',
+                    'status' => 'async_payment_failed',
+                    'metadata' => [
+                        'content_booking_id' => (string) $booking->id,
+                        'content_booking_public_id' => (string) Str::uuid(),
+                    ],
+                ],
+            ],
+        ])->assertStatus(500);
+
+        $this->assertSame('pending_payment', $booking->fresh()->status);
+        $this->assertSame(1, $slot->fresh()->booked_count);
+    }
+
+    public function test_async_payment_failed_releases_a_booking_for_the_matching_session(): void
+    {
+        $slot = $this->createAvailableSlot();
+        $slot->update(['booked_count' => 1]);
+
+        $booking = ContentBooking::create([
+            'public_id' => (string) Str::uuid(),
+            'booking_slot_id' => $slot->id,
+            'client_name' => 'Cliente',
+            'client_email' => 'cliente@example.com',
+            'client_phone' => '529841234567',
+            'amount' => 3000,
+            'currency' => 'MXN',
+            'status' => 'pending_payment',
+            'payment_provider' => 'stripe',
+            'stripe_checkout_session_id' => 'cs_failed_matching',
+        ]);
+
+        $this->postStripeWebhook([
+            'id' => 'evt_booking_failed_matching',
+            'type' => 'checkout.session.async_payment_failed',
+            'data' => [
+                'object' => [
+                    'id' => 'cs_failed_matching',
+                    'client_reference_id' => 'bkg_'.$booking->public_id,
+                    'amount_total' => 300000,
+                    'currency' => 'mxn',
+                    'status' => 'async_payment_failed',
+                    'metadata' => [
+                        'content_booking_id' => (string) $booking->id,
+                        'content_booking_public_id' => $booking->public_id,
+                    ],
                 ],
             ],
         ])->assertNoContent();

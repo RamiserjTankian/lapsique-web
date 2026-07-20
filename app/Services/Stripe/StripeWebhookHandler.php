@@ -93,6 +93,7 @@ class StripeWebhookHandler
         ];
 
         if ($booking = $this->resolveBookingFromSession($session)) {
+            $this->stripe->assertCheckoutSessionMatchesBooking($booking, $session);
             $this->bookingPayment->releaseSlotIfFailed($booking, 'failed');
 
             return;
@@ -115,6 +116,7 @@ class StripeWebhookHandler
         ];
 
         if ($booking = $this->resolveBookingFromSession($session)) {
+            $this->stripe->assertCheckoutSessionMatchesBooking($booking, $session);
             $this->bookingPayment->releaseSlotIfFailed($booking, 'failed');
 
             return;

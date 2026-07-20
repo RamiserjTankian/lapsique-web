@@ -11,6 +11,7 @@ use DateTimeInterface;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Response;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Route;
 
 class SitemapController extends Controller
 {
@@ -73,6 +74,23 @@ class SitemapController extends Controller
             $this->entry(route('drone-sessions.show'), $this->lastModified('resources/js/pages/DroneSessions/Show.tsx'), 'monthly', '0.9'),
             $this->entry(route('construction-progress.show'), $this->lastModified('resources/js/pages/ConstructionProgress/Show.tsx'), 'monthly', '0.9'),
         ]);
+
+        if (Route::has('electronic-event-coverage.show')) {
+            $eventCoverageAssetModifiedAt = @filemtime(
+                public_path('images/portfolio/video-posters/2026-07-11-mtrx-dumas-a0794b89f7.jpg'),
+            );
+
+            $static->push($this->entry(
+                route('electronic-event-coverage.show'),
+                $this->lastModified('resources/js/pages/EventCoverage/Show.tsx', [
+                    is_int($eventCoverageAssetModifiedAt)
+                        ? CarbonImmutable::createFromTimestampUTC($eventCoverageAssetModifiedAt)
+                        : null,
+                ]),
+                'monthly',
+                '0.9',
+            ));
+        }
 
         $djs = (clone $djsQuery)
             ->get(['slug', 'updated_at'])

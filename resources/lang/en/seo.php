@@ -28,6 +28,32 @@ return [
         'service_type' => 'DJI Air 3 construction progress flight',
         'og_alt' => 'DJI Air 3 construction progress flight — Lapsique Media',
     ],
+    'electronic_event_coverage' => [
+        'title' => 'Electronic music event coverage in Riviera Maya',
+        'description' => 'Photo, video, and an aftermovie for electronic music events in Playa del Carmen, Tulum, Cancun, and Riviera Maya. Base coverage for $:price MXN.',
+        'keywords' => 'electronic music event coverage Riviera Maya, aftermovie Playa del Carmen, event video Tulum, event photography Cancun, nightlife coverage, Lapsique Media',
+        'service_type' => 'Electronic music event audiovisual coverage',
+        'og_alt' => 'Dumas in the booth during electronic music coverage at MTRX, Playa del Carmen',
+        'breadcrumb' => 'Electronic music event coverage',
+        'faq' => [
+            'includes' => [
+                'question' => 'What does event coverage include?',
+                'answer' => 'Base coverage includes an edited aftermovie, 30 photographs edited from different angles, and drone footage when the location, weather, and regulations allow it.',
+            ],
+            'price' => [
+                'question' => 'How much does event coverage cost?',
+                'answer' => 'Base coverage has a fixed price of $4,500 MXN. If the event needs extended hours, more deliverables, or special logistics, we quote it before booking.',
+            ],
+            'areas' => [
+                'question' => 'Do you cover events in Playa del Carmen, Tulum, and Cancun?',
+                'answer' => 'Yes. We work in Playa del Carmen, Tulum, Cancun, and Riviera Maya. Share your venue and schedule so we can review the coverage.',
+            ],
+            'aftermovie' => [
+                'question' => 'Does the aftermovie work for social media?',
+                'answer' => 'Yes. We edit the piece to communicate the event energy and deliver it ready to publish on the agreed channels.',
+            ],
+        ],
+    ],
     'djs_index' => [
         'title' => 'DJs',
         'description' => 'Discover DJs, sets, and profiles from the electronic scene with lapsique.media.',

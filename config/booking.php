@@ -15,6 +15,7 @@ return [
     'content_drone_shots' => 3,
     'content_photos_count' => 10,
     'dj_set_price' => 10000,
+    'electronic_event_coverage_price' => 4500,
     'drone_session_price' => 3000,
     'construction_progress_price' => 5000,
 
