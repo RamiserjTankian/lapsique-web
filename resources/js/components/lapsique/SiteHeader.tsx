@@ -88,11 +88,15 @@ function HeaderActions({ open, setOpen }: { open: boolean; setOpen: (open: boole
                         </NavigationMenuLink>
                     </NavigationMenuItem>
                     {navigation.groups.map((group) => (
-                        <NavigationMenuItem key={group.id}>
-                            <NavigationMenuTrigger className={desktopNavClass}>
+                        <NavigationMenuItem key={group.id} value={group.id}>
+                            <NavigationMenuTrigger
+                                type="button"
+                                className={desktopNavClass}
+                                onPointerMove={(event) => event.preventDefault()}
+                            >
                                 {group.label}
                             </NavigationMenuTrigger>
-                            <NavigationMenuContent className="w-[21rem] rounded-none border-foreground/15 bg-background p-0 shadow-2xl md:!left-auto md:!right-0 md:max-h-[calc(100vh-4.5rem)] md:w-[21rem] md:!overflow-y-auto">
+                            <NavigationMenuContent className="w-[21rem] rounded-none border-foreground/15 bg-background p-0 shadow-2xl md:!left-auto md:!right-0 md:!mt-0 md:max-h-[calc(100vh-4.5rem)] md:w-[21rem] md:!overflow-y-auto">
                                 <div className="border-b border-foreground/15 px-5 py-4">
                                     <p className="alpha-kicker text-primary">Lapsique / {group.label}</p>
                                 </div>
@@ -232,7 +236,7 @@ function MobileLink({
     );
 }
 
-const desktopNavClass = 'rounded-none bg-transparent px-3 font-ui-display text-[0.68rem] font-bold uppercase tracking-[0.12em] hover:bg-transparent hover:text-primary focus:bg-transparent data-[state=open]:bg-transparent data-[state=open]:text-primary';
+const desktopNavClass = 'rounded-none bg-transparent px-3 font-ui-display text-[0.68rem] font-bold uppercase tracking-[0.12em] text-foreground hover:!bg-transparent hover:!text-primary focus:!bg-transparent focus:!text-foreground focus-visible:!text-primary data-[active=true]:!bg-transparent data-[active=true]:!text-primary data-[state=open]:!bg-transparent data-[state=open]:!text-primary data-[state=open]:focus:!text-primary';
 
 function normalizePath(url: string): string {
     try {
