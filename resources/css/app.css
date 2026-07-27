@@ -679,6 +679,63 @@ video[data-lapsique-autoplay]::-webkit-media-controls-play-button {
     object-fit: cover;
 }
 
+.multicam-video-control {
+    display: inline-flex;
+    width: 2.25rem;
+    height: 2.25rem;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid rgb(255 255 255 / 0.28);
+    background: rgb(5 6 7 / 0.72);
+    color: rgb(255 255 255 / 0.9);
+    transition: border-color 160ms ease, background-color 160ms ease, color 160ms ease;
+}
+
+.multicam-video-control:hover,
+.multicam-video-control:focus-visible {
+    border-color: var(--primary);
+    background: rgb(232 92 21 / 0.18);
+    color: var(--primary);
+}
+
+.multicam-video-control:focus-visible {
+    outline: 2px solid var(--primary);
+    outline-offset: 2px;
+}
+
+.multicam-video-control-range {
+    height: 0.25rem;
+    cursor: pointer;
+    appearance: none;
+    border-radius: 999px;
+    background: linear-gradient(to right, var(--primary) 0%, var(--primary) var(--progress, 0%), rgb(255 255 255 / 0.28) var(--progress, 0%), rgb(255 255 255 / 0.28) 100%);
+    accent-color: var(--primary);
+}
+
+.multicam-video-control-range::-webkit-slider-thumb {
+    width: 0.75rem;
+    height: 0.75rem;
+    appearance: none;
+    border: 2px solid #050607;
+    border-radius: 999px;
+    background: var(--primary);
+    box-shadow: 0 0 0 1px var(--primary);
+}
+
+.multicam-video-control-range::-moz-range-thumb {
+    width: 0.75rem;
+    height: 0.75rem;
+    border: 2px solid #050607;
+    border-radius: 999px;
+    background: var(--primary);
+    box-shadow: 0 0 0 1px var(--primary);
+}
+
+.multicam-video-control-range:disabled {
+    cursor: default;
+    opacity: 0.45;
+}
+
 @media (prefers-reduced-motion: reduce) {
     .multicam-marquee__track { animation: none; }
 }

@@ -210,15 +210,15 @@ class ContentBookingController extends Controller
     }
 
     /**
-     * @return array<int, array{id: string, title: string, src: string, poster: string|null}>
+     * @return array<int, array{id: string, title: string, src: string, poster: string|null, orientation: 'horizontal'|'vertical'}>
      */
     private function electronicEventCoverageReels(): array
     {
         $reels = [
-            ['mtrx-dumas', 'Dumas en MTRX', '/videos/reels/2026-07-11-mtrx-dumas-a0794b89f7.mp4', '/images/portfolio/video-posters/2026-07-11-mtrx-dumas-a0794b89f7.jpg'],
-            ['mtrx-mauro', 'Mauro Scollo en MTRX', '/videos/reels/2026-07-11-mtrx-mauro-883c0cb709.mp4', '/images/portfolio/video-posters/2026-07-11-mtrx-mauro-883c0cb709.jpg'],
-            ['karen-drop-01', 'Karen Echev · Drop 01', '/videos/reels/2026-07-13-karen-echev-drop-01-5647efd7f8.mp4', '/images/portfolio/video-posters/2026-07-13-karen-echev-drop-01-5647efd7f8.jpg'],
-            ['karen-drop-02', 'Karen Echev · Drop 02', '/videos/reels/2026-07-13-karen-echev-drop-02-f3b7e32f70.mp4', '/images/portfolio/video-posters/2026-07-13-karen-echev-drop-02-f3b7e32f70.jpg'],
+            ['mtrx-dumas', 'Dumas en MTRX', '/videos/reels/2026-07-11-mtrx-dumas-a0794b89f7.mp4', '/images/portfolio/video-posters/2026-07-11-mtrx-dumas-a0794b89f7.jpg', 'horizontal'],
+            ['mtrx-mauro', 'Mauro Scollo en MTRX', '/videos/reels/2026-07-11-mtrx-mauro-883c0cb709.mp4', '/images/portfolio/video-posters/2026-07-11-mtrx-mauro-883c0cb709.jpg', 'horizontal'],
+            ['karen-drop-01', 'Karen Echev · Drop 01', '/videos/reels/2026-07-13-karen-echev-drop-01-5647efd7f8.mp4', '/images/portfolio/video-posters/2026-07-13-karen-echev-drop-01-5647efd7f8.jpg', 'vertical'],
+            ['karen-drop-02', 'Karen Echev · Drop 02', '/videos/reels/2026-07-13-karen-echev-drop-02-f3b7e32f70.mp4', '/images/portfolio/video-posters/2026-07-13-karen-echev-drop-02-f3b7e32f70.jpg', 'vertical'],
         ];
 
         return collect($reels)
@@ -228,6 +228,7 @@ class ContentBookingController extends Controller
                 'title' => $reel[1],
                 'src' => $reel[2],
                 'poster' => is_readable(public_path(ltrim($reel[3], '/'))) ? $reel[3] : null,
+                'orientation' => $reel[4],
             ])
             ->values()
             ->all();
@@ -298,6 +299,7 @@ class ContentBookingController extends Controller
                 'kind' => 'video',
                 'src' => $reel['src'],
                 'poster' => $reel['poster'],
+                'orientation' => $reel['orientation'],
             ]);
 
         $frameDrops = collect($photos)->take(6)->values()->map(fn (array $photo, int $index): array => [

@@ -108,6 +108,8 @@ class SeoHardeningTest extends TestCase
                 ->where('seo.canonicalUrl', $canonicalUrl)
                 ->where('seo.noindex', false)
                 ->has('drops', 10)
+                ->where('drops.0.orientation', 'horizontal')
+                ->where('drops.2.orientation', 'vertical')
                 ->has('photos', 15));
 
         $this->get(route('sitemap'))

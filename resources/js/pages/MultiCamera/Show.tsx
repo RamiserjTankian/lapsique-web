@@ -1,6 +1,6 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState, type CSSProperties } from 'react';
 import { usePage } from '@inertiajs/react';
-import { ArrowRight, CalendarDays, Check, Film, Headphones, MessageCircle } from 'lucide-react';
+import { ArrowRight, CalendarDays, Check, ChevronLeft, ChevronRight, Film, Headphones, Maximize2, MessageCircle, Pause, Play, Volume2, VolumeX } from 'lucide-react';
 import SiteLayout from '@/layouts/SiteLayout';
 import { BookingCtaButton } from '@/components/lapsique/BookingCtaButton';
 import { BookingWidget, type BookingWidgetProduct } from '@/components/lapsique/BookingWidget';
@@ -18,6 +18,7 @@ type MultiCameraDrop = {
     kind: 'video' | 'image';
     src: string;
     poster: string | null;
+    orientation?: 'horizontal' | 'vertical';
 };
 
 interface MultiCameraShowProps {
@@ -113,12 +114,13 @@ export default function MultiCameraShow({ price, slots, drops, photos, errors }:
     const { locale } = useTranslations();
     const copy = COPY[locale === 'en' ? 'en' : 'es'];
     const carouselLabels = locale === 'en'
-        ? { previous: 'Previous video', next: 'Next video', audio: 'original audio' }
-        : { previous: 'Video anterior', next: 'Siguiente video', audio: 'audio original' };
+        ? { previous: 'Previous video', next: 'Next video', audio: 'original audio', play: 'Play video', pause: 'Pause video', mute: 'Mute video', unmute: 'Turn audio on', fullscreen: 'Fullscreen', progress: 'Video progress' }
+        : { previous: 'Video anterior', next: 'Siguiente video', audio: 'audio original', play: 'Reproducir video', pause: 'Pausar video', mute: 'Silenciar video', unmute: 'Activar audio', fullscreen: 'Pantalla completa', progress: 'Progreso del video' };
     const whatsappHref = useMemo(() => buildWhatsAppHref(site.whatsapp, copy.whatsappMessage), [copy.whatsappMessage, site.whatsapp]);
     const analyticsPayload = useMemo(() => ({ content_name: copy.title, content_category: 'multi_camera_booking', service_type: 'multi_camera', currency: 'MXN', value: price }), [copy.title, price]);
     const bookingProduct = useMemo<BookingWidgetProduct>(() => ({ checkoutLabel: copy.booking.checkoutLabel, headerTitle: copy.booking.headerTitle, headerDescription: copy.booking.headerDescription, summaryTitle: copy.booking.summaryTitle, summaryDescription: copy.booking.summaryDescription, cartService: copy.booking.cartService, cartDuration: copy.booking.cartDuration, summaryPerks: [...copy.booking.perks], terms: [...copy.booking.terms], paymentCopy: copy.booking.paymentCopy, unavailableWhatsApp: copy.booking.unavailableWhatsApp }), [copy]);
     const videoDrops = useMemo(() => drops.filter((drop) => drop.kind === 'video'), [drops]);
+    const horizontalVideoDrops = useMemo(() => videoDrops.filter((drop) => drop.orientation !== 'vertical'), [videoDrops]);
 
     useEffect(() => {
         trackBookingEvent('multi_camera_page_viewed', { ...analyticsPayload, section: 'multi_camera' });
@@ -187,7 +189,7 @@ export default function MultiCameraShow({ price, slots, drops, photos, errors }:
 
             <section className="relative left-1/2 mb-0 w-screen -translate-x-1/2 overflow-hidden bg-primary py-14 text-white md:py-20"><div className="mx-auto grid max-w-6xl gap-8 px-4 sm:px-6 lg:grid-cols-[1fr_auto] lg:items-end"><div className="max-w-3xl"><h2 className="font-display text-4xl font-bold leading-[.94] md:text-6xl">{copy.finalTitle}</h2><p className="mt-5 text-base leading-relaxed text-white/85 md:text-lg">{copy.finalCopy}</p></div><div className="grid gap-3 sm:grid-cols-2 lg:min-w-[440px]"><BookingCtaButton opensBookingModal bookingSource="multi_camera_final" bookingAnalytics={{ analyticsEvent: 'multi_camera_booking_cta_clicked', analyticsPayload }} className="w-full rounded-none border-white/40 bg-black/15 text-white hover:bg-white hover:text-black"><CalendarDays className="size-5" />{copy.book}</BookingCtaButton><Button size="xl" className="w-full rounded-none border border-[#25D366] bg-[#25D366] text-white hover:bg-[#1ebe5d]" asChild><a href={whatsappHref} target="_blank" rel="noopener noreferrer" onClick={() => trackWhatsApp('final')}><MessageCircle className="size-5" />{copy.whatsapp}</a></Button></div></div></section>
 
-            <section className="relative left-1/2 w-screen -translate-x-1/2 overflow-hidden bg-[#050607] py-14 text-white md:py-20"><div className="mx-auto max-w-6xl px-4 sm:px-6"><p className="alpha-kicker text-primary">Psique Sessions · Horizontal</p><h2 className="mt-4 font-display text-4xl font-bold leading-[.94] md:text-6xl">El set completo también se ve así.</h2></div><FullBleedVideoCarousel videos={videoDrops} label="Psique Sessions · Horizontal" labels={carouselLabels} /></section>
+            {horizontalVideoDrops.length > 0 ? <section className="relative left-1/2 w-screen -translate-x-1/2 overflow-hidden bg-[#050607] py-14 text-white md:py-20"><div className="mx-auto max-w-6xl px-4 sm:px-6"><p className="alpha-kicker text-primary">Psique Sessions · Horizontal</p><h2 className="mt-4 font-display text-4xl font-bold leading-[.94] md:text-6xl">El set completo también se ve así.</h2></div><FullBleedVideoCarousel videos={horizontalVideoDrops} label="Psique Sessions · Horizontal" labels={carouselLabels} /></section> : null}
         </SiteLayout>
     );
 }
@@ -197,14 +199,26 @@ function buildWhatsAppHref(phone: string | null | undefined, text: string): stri
     return `https://wa.me/${digits}?text=${encodeURIComponent(text)}`;
 }
 
-function FullBleedVideoCarousel({ videos, label, labels }: { videos: MultiCameraDrop[]; label: string; labels: { previous: string; next: string; audio: string } }) {
+function FullBleedVideoCarousel({ videos, label, labels }: { videos: MultiCameraDrop[]; label: string; labels: { previous: string; next: string; audio: string; play: string; pause: string; mute: string; unmute: string; fullscreen: string; progress: string } }) {
     const [activeIndex, setActiveIndex] = useState(0);
     const [duration, setDuration] = useState<number | null>(null);
+    const [currentTime, setCurrentTime] = useState(0);
+    const [isPlaying, setIsPlaying] = useState(true);
+    const [isMuted, setIsMuted] = useState(false);
+    const videoRef = useRef<HTMLVideoElement | null>(null);
     const activeVideo = videos[activeIndex];
 
     useEffect(() => {
         setDuration(null);
+        setCurrentTime(0);
+        setIsPlaying(true);
     }, [activeVideo?.src]);
+
+    useEffect(() => {
+        if (activeIndex >= videos.length) {
+            setActiveIndex(0);
+        }
+    }, [activeIndex, videos.length]);
 
     if (!activeVideo) {
         return null;
@@ -214,30 +228,96 @@ function FullBleedVideoCarousel({ videos, label, labels }: { videos: MultiCamera
         setActiveIndex((current) => (current + direction + videos.length) % videos.length);
     };
 
+    const togglePlay = () => {
+        const video = videoRef.current;
+        if (!video) return;
+
+        if (video.paused) {
+            void video.play().then(() => setIsPlaying(true)).catch(() => setIsPlaying(false));
+        } else {
+            video.pause();
+            setIsPlaying(false);
+        }
+    };
+
+    const toggleMute = () => {
+        const video = videoRef.current;
+        if (!video) return;
+
+        video.muted = !video.muted;
+        setIsMuted(video.muted);
+    };
+
+    const seek = (value: number) => {
+        const video = videoRef.current;
+        if (!video) return;
+
+        video.currentTime = value;
+        setCurrentTime(value);
+    };
+
+    const enterFullscreen = () => {
+        void videoRef.current?.requestFullscreen?.();
+    };
+
     return (
         <div className="mt-8 w-screen border-y border-white/10 bg-black md:mt-10">
             <div className="relative mx-auto max-w-[90rem]">
                 <video
                     key={activeVideo.src}
+                    ref={videoRef}
                     className="multicam-fullbleed-video"
                     src={activeVideo.src}
                     poster={activeVideo.poster ?? undefined}
                     autoPlay
-                    controls
                     playsInline
                     preload="metadata"
-                    onLoadedMetadata={(event) => setDuration(Number.isFinite(event.currentTarget.duration) ? event.currentTarget.duration : null)}
+                    onLoadedMetadata={(event) => {
+                        const nextDuration = event.currentTarget.duration;
+                        setDuration(Number.isFinite(nextDuration) ? nextDuration : null);
+                        event.currentTarget.muted = isMuted;
+                        void event.currentTarget.play().then(() => setIsPlaying(true)).catch(() => setIsPlaying(false));
+                    }}
+                    onTimeUpdate={(event) => setCurrentTime(event.currentTarget.currentTime)}
+                    onPlay={() => setIsPlaying(true)}
+                    onPause={() => setIsPlaying(false)}
                     onEnded={() => move(1)}
                 />
-                <div className="pointer-events-none absolute inset-x-0 bottom-0 flex items-end justify-between gap-4 bg-gradient-to-t from-black/85 via-black/35 to-transparent px-4 pb-4 pt-16 text-white sm:px-6 md:px-10">
-                    <div>
+                <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/95 via-black/65 to-transparent px-4 pb-4 pt-20 text-white sm:px-6 md:px-10">
+                    <div className="mb-4 flex items-end justify-between gap-4">
+                        <div>
                         <p className="font-mono text-[10px] uppercase tracking-[.16em] text-primary">{label} · {String(activeIndex + 1).padStart(2, '0')} / {String(videos.length).padStart(2, '0')}</p>
                         <p className="mt-1 font-display text-2xl font-bold uppercase md:text-4xl">{activeVideo.title}</p>
                         {duration ? <p className="mt-1 font-mono text-[10px] uppercase tracking-[.14em] text-white/60">{formatVideoDuration(duration)} · {labels.audio}</p> : null}
+                        </div>
+                        <div className="hidden shrink-0 items-center gap-2 sm:flex">
+                            <button type="button" onClick={() => move(-1)} className="multicam-video-control" aria-label={labels.previous}><ChevronLeft className="size-4" /></button>
+                            <button type="button" onClick={() => move(1)} className="multicam-video-control" aria-label={labels.next}><ChevronRight className="size-4" /></button>
+                        </div>
                     </div>
-                    <div className="pointer-events-auto flex shrink-0 gap-2">
-                        <button type="button" onClick={() => move(-1)} className="inline-flex size-10 items-center justify-center border border-white/30 bg-black/40 text-white transition hover:border-primary hover:text-primary" aria-label={labels.previous}>←</button>
-                        <button type="button" onClick={() => move(1)} className="inline-flex size-10 items-center justify-center border border-white/30 bg-black/40 text-white transition hover:border-primary hover:text-primary" aria-label={labels.next}>→</button>
+                    <input
+                        type="range"
+                        min="0"
+                        max={duration ?? 0}
+                        step="0.1"
+                        value={Math.min(currentTime, duration ?? 0)}
+                        onChange={(event) => seek(Number(event.target.value))}
+                        aria-label={labels.progress}
+                        style={{ '--progress': `${duration ? Math.min(100, (currentTime / duration) * 100) : 0}%` } as CSSProperties}
+                        className="multicam-video-control-range mb-3 w-full"
+                        disabled={!duration}
+                    />
+                    <div className="flex items-center justify-between gap-3">
+                        <div className="flex items-center gap-2">
+                            <button type="button" onClick={togglePlay} className="multicam-video-control" aria-label={isPlaying ? labels.pause : labels.play}>{isPlaying ? <Pause className="size-4" /> : <Play className="size-4" />}</button>
+                            <span className="font-mono text-[10px] uppercase tracking-[.12em] text-white/65">{formatVideoDuration(currentTime)} / {duration ? formatVideoDuration(duration) : '—:—'}</span>
+                            <button type="button" onClick={toggleMute} className="multicam-video-control" aria-label={isMuted ? labels.unmute : labels.mute}>{isMuted ? <VolumeX className="size-4" /> : <Volume2 className="size-4" />}</button>
+                        </div>
+                        <div className="flex items-center gap-2 sm:hidden">
+                            <button type="button" onClick={() => move(-1)} className="multicam-video-control" aria-label={labels.previous}><ChevronLeft className="size-4" /></button>
+                            <button type="button" onClick={() => move(1)} className="multicam-video-control" aria-label={labels.next}><ChevronRight className="size-4" /></button>
+                        </div>
+                        <button type="button" onClick={enterFullscreen} className="multicam-video-control" aria-label={labels.fullscreen}><Maximize2 className="size-4" /></button>
                     </div>
                 </div>
             </div>
