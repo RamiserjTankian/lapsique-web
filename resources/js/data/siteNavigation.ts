@@ -97,6 +97,12 @@ export function buildSiteNavigation(
                         href: route('electronic-event-coverage.show', undefined, false, ziggy),
                     },
                     {
+                        id: 'multi-camera',
+                        label: en ? 'Multicamera DJ sets' : 'Producción multicámara',
+                        description: en ? '10 drops, continuous Log video, audio, and event photos.' : '10 drops, video continuo en Log, audio y fotos del evento.',
+                        href: route('multi-camera.show', undefined, false, ziggy),
+                    },
+                    {
                         id: 'drone',
                         label: en ? 'Drone flights' : 'Vuelos con dron',
                         href: route('drone-sessions.show', undefined, false, ziggy),

@@ -1,7 +1,7 @@
 import type { TranslateFn } from '@/hooks/useTranslations';
 import type { HeroProofVideoData, PortfolioItemData, VideoItem } from '@/types';
 
-export type PopupVariant = 'home' | 'djset' | 'drone' | 'construction' | 'eventCoverage';
+export type PopupVariant = 'home' | 'djset' | 'drone' | 'construction' | 'eventCoverage' | 'multiCamera';
 
 export type PopupMediaPurpose = 'booking' | 'newsletter' | 'whatsapp';
 
@@ -24,6 +24,7 @@ const FALLBACK_IMAGES: Record<PopupVariant, string> = {
     drone: '/images/drone-sessions/hero.jpg',
     construction: '/images/drone-sessions/construction-goba-aerial.jpg',
     eventCoverage: '/images/portfolio/video-posters/2026-07-11-mtrx-dumas-a0794b89f7.jpg',
+    multiCamera: '/images/portfolio/video-posters/2026-07-11-mtrx-dumas-a0794b89f7.jpg',
 };
 
 function firstPortfolioImage(

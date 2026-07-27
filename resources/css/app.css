@@ -627,3 +627,36 @@ video[data-lapsique-autoplay]::-webkit-media-controls-play-button {
         transform: translateX(100%);
     }
 }
+
+@keyframes multicam-marquee {
+    from { transform: translateX(0); }
+    to { transform: translateX(-50%); }
+}
+
+.multicam-marquee__track {
+    display: flex;
+    width: max-content;
+    gap: 1rem;
+    animation: multicam-marquee 34s linear infinite;
+}
+
+.multicam-marquee__item {
+    width: min(18rem, 70vw);
+    aspect-ratio: 4 / 5;
+    overflow: hidden;
+    background: #090a0b;
+}
+
+.multicam-marquee__item--wide {
+    width: min(34rem, 82vw);
+    aspect-ratio: 16 / 9;
+}
+
+.multicam-marquee:hover .multicam-marquee__track,
+.multicam-marquee:focus-within .multicam-marquee__track {
+    animation-play-state: paused;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .multicam-marquee__track { animation: none; }
+}

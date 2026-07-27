@@ -1,6 +1,6 @@
 import { Link, usePage } from '@inertiajs/react';
 import { CalendarDays, Menu } from 'lucide-react';
-import { useMemo, useState, type MouseEvent } from 'react';
+import { useEffect, useMemo, useRef, useState, type MouseEvent } from 'react';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { Button } from '@/components/ui/button';
 import {
@@ -54,6 +54,45 @@ function HeaderActions({ open, setOpen }: { open: boolean; setOpen: (open: boole
     const isConstruction = currentPath === '/avances-de-obra';
     const bookingHref = isConstruction ? `${constructionHref}#agenda` : homeAgenda;
     const bookingLabel = isConstruction ? t('common.nav.book_progress') : t('common.nav.book_session');
+    const [menuValue, setMenuValue] = useState<string | undefined>();
+    const menuCloseTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+    const clearMenuClose = () => {
+        if (menuCloseTimer.current) {
+            clearTimeout(menuCloseTimer.current);
+            menuCloseTimer.current = null;
+        }
+    };
+
+    const closeMenuLater = () => {
+        clearMenuClose();
+        menuCloseTimer.current = setTimeout(() => {
+            setMenuValue(undefined);
+            menuCloseTimer.current = null;
+        }, 520);
+    };
+
+    useEffect(() => {
+        const handleDocumentPointerMove = (event: PointerEvent) => {
+            if (!menuValue) {
+                return;
+            }
+
+            const target = event.target as HTMLElement | null;
+            if (target?.closest('[data-slot="navigation-menu"]')) {
+                clearMenuClose();
+                return;
+            }
+
+            if (event.clientY > 220 || event.clientX < 420 || event.clientX > window.innerWidth - 80) {
+                closeMenuLater();
+            }
+        };
+
+        document.addEventListener('pointermove', handleDocumentPointerMove);
+
+        return () => document.removeEventListener('pointermove', handleDocumentPointerMove);
+    }, [menuValue]);
 
     const openBooking = (event: MouseEvent) => {
         if (document.getElementById('agenda')) {
@@ -74,7 +113,21 @@ function HeaderActions({ open, setOpen }: { open: boolean; setOpen: (open: boole
 
     return (
         <div className="flex items-center gap-2">
-            <NavigationMenu viewport={false} className="hidden md:flex">
+            <NavigationMenu
+                viewport={false}
+                value={menuValue}
+                onValueChange={(nextValue) => {
+                    clearMenuClose();
+                    if (nextValue) {
+                        setMenuValue(nextValue);
+                    } else {
+                        closeMenuLater();
+                    }
+                }}
+                onPointerEnter={clearMenuClose}
+                onPointerLeave={closeMenuLater}
+                className="hidden md:flex"
+            >
                 <NavigationMenuList className="gap-0">
                     <NavigationMenuItem>
                         <NavigationMenuLink asChild active={isActive(currentPath, navigation.portfolio.href)}>
@@ -91,8 +144,8 @@ function HeaderActions({ open, setOpen }: { open: boolean; setOpen: (open: boole
                         <NavigationMenuItem key={group.id} value={group.id}>
                             <NavigationMenuTrigger
                                 type="button"
+                                aria-label={group.label}
                                 className={desktopNavClass}
-                                onPointerMove={(event) => event.preventDefault()}
                             >
                                 {group.label}
                             </NavigationMenuTrigger>
@@ -106,9 +159,9 @@ function HeaderActions({ open, setOpen }: { open: boolean; setOpen: (open: boole
                                             <Link
                                                 href={link.href}
                                                 onClick={() => trackNavigation(link, group.id)}
-                                                className="group block rounded-none px-5 py-4 hover:bg-secondary focus:bg-secondary"
+                                                className="group block rounded-none px-5 py-4 text-foreground hover:bg-secondary hover:!text-foreground focus:bg-secondary focus:!text-foreground data-[active=true]:bg-secondary data-[active=true]:!text-foreground"
                                             >
-                                                <span className="font-ui-display text-sm font-bold uppercase tracking-[0.08em] text-foreground group-hover:text-primary">
+                                                <span className="font-ui-display text-sm font-bold uppercase tracking-[0.08em] text-foreground group-hover:!text-primary group-focus:!text-primary group-data-[active=true]:!text-primary">
                                                     {link.label}
                                                 </span>
                                                 {link.description ? (
@@ -236,7 +289,7 @@ function MobileLink({
     );
 }
 
-const desktopNavClass = 'rounded-none bg-transparent px-3 font-ui-display text-[0.68rem] font-bold uppercase tracking-[0.12em] text-foreground hover:!bg-transparent hover:!text-primary focus:!bg-transparent focus:!text-foreground focus-visible:!text-primary data-[active=true]:!bg-transparent data-[active=true]:!text-primary data-[state=open]:!bg-transparent data-[state=open]:!text-primary data-[state=open]:focus:!text-primary';
+const desktopNavClass = 'rounded-none bg-transparent px-3 font-ui-display text-[0.68rem] font-bold uppercase tracking-[0.12em] text-foreground hover:!bg-transparent hover:!text-primary focus:!bg-transparent focus:!text-foreground focus-visible:!text-primary data-[active=true]:!bg-transparent data-[active=true]:!text-primary data-[state=open]:!bg-transparent data-[state=open]:!text-primary data-[state=open]:focus:!text-primary data-[state=closed]:!bg-transparent data-[state=closed]:!text-foreground data-[state=closed]:hover:!text-primary data-[state=closed]:focus:!text-foreground';
 
 function normalizePath(url: string): string {
     try {

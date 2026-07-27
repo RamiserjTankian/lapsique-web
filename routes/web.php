@@ -70,6 +70,9 @@ Route::post('/dj-set/checkout', [ContentBookingController::class, 'checkoutDjSet
 Route::post('/djset/checkout', [ContentBookingController::class, 'checkoutDjSet'])->name('djset.checkout.legacy');
 Route::get('/cobertura-eventos-electronica', [ContentBookingController::class, 'showElectronicEventCoverage'])->name('electronic-event-coverage.show');
 Route::post('/cobertura-eventos-electronica/checkout', [ContentBookingController::class, 'checkoutElectronicEventCoverage'])->name('electronic-event-coverage.checkout');
+Route::get('/multicamara', [ContentBookingController::class, 'showMultiCamera'])->name('multi-camera.show');
+Route::get('/produccion-multicamara', fn () => redirect()->route('multi-camera.show', status: 301))->name('multi-camera.legacy');
+Route::post('/multicamara/checkout', [ContentBookingController::class, 'checkoutMultiCamera'])->name('multi-camera.checkout');
 Route::get('/sesiones-de-dron', [ContentBookingController::class, 'showDroneSession'])->name('drone-sessions.show');
 Route::get('/drone-session', fn () => redirect()->route('drone-sessions.show', status: 301))->name('drone-sessions.legacy');
 Route::get('/vuelos-con-dron', fn () => redirect()->route('drone-sessions.show', status: 301))->name('drone-sessions.flights-legacy');

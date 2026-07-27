@@ -73,6 +73,7 @@ class SitemapController extends Controller
             $this->entry(route('djset.show'), $this->lastModified('resources/js/pages/DjSet/Show.tsx'), 'monthly', '0.9'),
             $this->entry(route('drone-sessions.show'), $this->lastModified('resources/js/pages/DroneSessions/Show.tsx'), 'monthly', '0.9'),
             $this->entry(route('construction-progress.show'), $this->lastModified('resources/js/pages/ConstructionProgress/Show.tsx'), 'monthly', '0.9'),
+            $this->entry(route('multi-camera.show'), $this->lastModified('resources/js/pages/MultiCamera/Show.tsx'), 'monthly', '0.9'),
         ]);
 
         if (Route::has('electronic-event-coverage.show')) {

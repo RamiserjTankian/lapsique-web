@@ -27,6 +27,8 @@ class ContentBooking extends Model implements HasMedia
 
     public const SERVICE_CONSTRUCTION_PROGRESS = 'construction_progress';
 
+    public const SERVICE_MULTI_CAMERA = 'multi_camera';
+
     /**
      * @return array<string, string>
      */
@@ -38,6 +40,7 @@ class ContentBooking extends Model implements HasMedia
             self::SERVICE_ELECTRONIC_EVENT_COVERAGE => 'Cobertura de evento electrónico',
             self::SERVICE_DRONE_SESSION => 'Vuelo con dron',
             self::SERVICE_CONSTRUCTION_PROGRESS => 'Avance de obra',
+            self::SERVICE_MULTI_CAMERA => 'Producción multicámara',
         ];
     }
 
@@ -48,6 +51,7 @@ class ContentBooking extends Model implements HasMedia
             self::SERVICE_ELECTRONIC_EVENT_COVERAGE => (int) config('booking.electronic_event_coverage_price', 4500),
             self::SERVICE_DRONE_SESSION => (int) config('booking.drone_session_price', 3000),
             self::SERVICE_CONSTRUCTION_PROGRESS => (int) config('booking.construction_progress_price', 5000),
+            self::SERVICE_MULTI_CAMERA => (int) config('booking.multi_camera_price', 5000),
             default => SiteSetting::current()?->booking_price ?: (int) config('booking.content_price', 3000),
         };
     }
@@ -219,6 +223,11 @@ class ContentBooking extends Model implements HasMedia
         return $this->service_type === self::SERVICE_CONSTRUCTION_PROGRESS;
     }
 
+    public function isMultiCamera(): bool
+    {
+        return $this->service_type === self::SERVICE_MULTI_CAMERA;
+    }
+
     public function getServiceNameAttribute(): string
     {
         return match ($this->service_type) {
@@ -226,6 +235,7 @@ class ContentBooking extends Model implements HasMedia
             self::SERVICE_ELECTRONIC_EVENT_COVERAGE => 'Cobertura audiovisual de evento electrónico',
             self::SERVICE_DRONE_SESSION => 'Sesión de vuelo con dron',
             self::SERVICE_CONSTRUCTION_PROGRESS => 'Avance de obra con dron',
+            self::SERVICE_MULTI_CAMERA => 'Producción multicámara de DJ set',
             default => 'Sesión de contenido',
         };
     }
@@ -237,6 +247,7 @@ class ContentBooking extends Model implements HasMedia
             self::SERVICE_ELECTRONIC_EVENT_COVERAGE => 'Cobertura de evento',
             self::SERVICE_DRONE_SESSION => 'Vuelo con dron',
             self::SERVICE_CONSTRUCTION_PROGRESS => 'Avance de obra',
+            self::SERVICE_MULTI_CAMERA => 'Multicámara',
             default => 'Sesión de contenido',
         };
     }
@@ -248,6 +259,7 @@ class ContentBooking extends Model implements HasMedia
             self::SERVICE_ELECTRONIC_EVENT_COVERAGE => 'Cobertura audiovisual con aftermovie, tomas aéreas con dron cuando la operación sea viable y 30 fotografías editadas desde distintos ángulos',
             self::SERVICE_DRONE_SESSION => '1 hora de vuelo con DJI Air 3 para capturar 15 tomas aéreas de hasta 30 seg y hasta 10 fotos en Rec.709 y D-Log',
             self::SERVICE_CONSTRUCTION_PROGRESS => '1 hora de vuelo con DJI Air 3 para documentar avances de obra, contexto, accesos y escala del desarrollo',
+            self::SERVICE_MULTI_CAMERA => '10 drops multicámara con 1:30 horas de video continuo en Log, 3 cámaras Sony, audio Zoom H4 a 32 bits y 15 fotografías editadas',
             default => ContentSessionOffer::description(),
         };
     }
@@ -259,6 +271,7 @@ class ContentBooking extends Model implements HasMedia
             self::SERVICE_ELECTRONIC_EVENT_COVERAGE => 'Cobertura de evento electrónico — aftermovie, dron y 30 fotos desde distintos ángulos',
             self::SERVICE_DRONE_SESSION => 'Sesión de vuelo con dron DJI Air 3 — 15 tomas de hasta 30 seg + 10 fotos',
             self::SERVICE_CONSTRUCTION_PROGRESS => 'Avance de obra con dron DJI Air 3 — reporte visual de progreso',
+            self::SERVICE_MULTI_CAMERA => 'Producción multicámara de DJ set — 10 drops, video continuo Log, audio Zoom H4 32-bit y 15 fotos',
             default => ContentSessionOffer::stripeProductName(),
         };
     }
@@ -270,6 +283,7 @@ class ContentBooking extends Model implements HasMedia
             self::SERVICE_ELECTRONIC_EVENT_COVERAGE => '🎬 Cobertura de evento electrónico',
             self::SERVICE_DRONE_SESSION => '🚁 Vuelo con dron',
             self::SERVICE_CONSTRUCTION_PROGRESS => '🏗️ Avance de obra con dron',
+            self::SERVICE_MULTI_CAMERA => '🎥 Producción multicámara',
             default => '📸 Sesión de Contenido',
         };
 

@@ -78,5 +78,9 @@ function retryLandingPath(serviceType: ContentBookingData['service_type'], ziggy
         return route('construction-progress.show', undefined, false, ziggy);
     }
 
+    if (serviceType === 'multi_camera') {
+        return route('multi-camera.show', undefined, false, ziggy);
+    }
+
     return route('home', undefined, false, ziggy);
 }

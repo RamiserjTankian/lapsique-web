@@ -86,6 +86,7 @@
             'food-reels.show' => 'food_reels',
             'content-creation.show' => 'content_session',
             'electronic-event-coverage.show' => 'electronic_event_coverage',
+            'multi-camera.show' => 'multi_camera',
             'home', 'booking.show' => 'content_session',
             default => null,
         };

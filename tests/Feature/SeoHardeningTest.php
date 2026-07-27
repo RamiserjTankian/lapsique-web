@@ -94,4 +94,24 @@ class SeoHardeningTest extends TestCase
             ->assertOk()
             ->assertDontSee('/cobertura-eventos-electronica', false);
     }
+
+    public function test_multicamera_landing_is_public_canonical_and_exposes_real_event_material(): void
+    {
+        $canonicalUrl = route('multi-camera.show');
+
+        $this->get($canonicalUrl)
+            ->assertOk()
+            ->assertSee('data-inertia="canonical" rel="canonical" href="'.$canonicalUrl.'"', false)
+            ->assertInertia(fn ($page) => $page
+                ->component('MultiCamera/Show')
+                ->where('price', 5000)
+                ->where('seo.canonicalUrl', $canonicalUrl)
+                ->where('seo.noindex', false)
+                ->has('drops', 10)
+                ->has('photos', 15));
+
+        $this->get(route('sitemap'))
+            ->assertOk()
+            ->assertSee($canonicalUrl, false);
+    }
 }

@@ -121,6 +121,7 @@ class ContentBookingsTable
                         'electronic_event_coverage' => 'Cobertura de evento electrónico',
                         'drone_session' => 'Vuelo con dron',
                         'construction_progress' => 'Avance de obra',
+                        'multi_camera' => 'Producción multicámara',
                     ]),
                 Filter::make('paid_at')
                     ->label('Pagadas en periodo')

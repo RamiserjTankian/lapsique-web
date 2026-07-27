@@ -54,6 +54,20 @@ return [
             ],
         ],
     ],
+    'multi_camera' => [
+        'title' => 'Producción multicámara para DJ sets y eventos',
+        'description' => 'Graba tu DJ set o evento con 3 cámaras Sony por $:price MXN: 10 drops, 1:30 horas continuas en Log, audio Zoom H4 a 32 bits y 15 fotos editadas de DJ, público y escenario.',
+        'keywords' => 'producción multicámara DJ set, video continuo Log, grabación 3 cámaras Sony, audio Zoom H4 32 bits, fotos de eventos Riviera Maya, drops multicam',
+        'service_type' => 'Producción multicámara de DJ sets y eventos',
+        'og_alt' => 'Producción multicámara Sony para DJ set en Riviera Maya',
+        'breadcrumb' => 'Producción multicámara',
+        'faq' => [
+            'includes' => ['question' => '¿Qué incluye el paquete multicámara?', 'answer' => 'Incluye 10 drops multicámara, 1:30 horas de video continuo en Log desde 3 cámaras Sony y 15 fotografías editadas del DJ, público y escenario.'],
+            'log' => ['question' => '¿Entregan el video continuo en Log?', 'answer' => 'Sí. Entregamos el set continuo de 1:30 horas en Log para que puedas editar y crear tu propia versión.'],
+            'audio' => ['question' => '¿Cómo se graba el audio?', 'answer' => 'Capturamos el audio con Zoom H4 a 32 bits para conservar margen dinámico y sincronizarlo con las cámaras.'],
+            'areas' => ['question' => '¿En qué zonas trabajan?', 'answer' => 'Playa del Carmen, Tulum, Cancún y Riviera Maya. Confirma venue, fecha y horario para revisar disponibilidad.'],
+        ],
+    ],
     'djs_index' => [
         'title' => 'DJs',
         'description' => 'Descubre DJs, sets y perfiles de la escena electrónica con lapsique.media.',

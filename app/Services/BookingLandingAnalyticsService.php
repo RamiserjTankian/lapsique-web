@@ -21,6 +21,7 @@ class BookingLandingAnalyticsService
         '/avances-de-obra',
         '/portafolio',
         '/trabajos-en-video',
+        '/multicamara',
     ];
 
     public static function trackedEventNames(): array
@@ -32,6 +33,7 @@ class BookingLandingAnalyticsService
             'drone_session_page_viewed',
             'construction_progress_page_viewed',
             'electronic_event_coverage_page_viewed',
+            'multi_camera_page_viewed',
             'djset_booking_cta_clicked',
             'food_reels_booking_cta_clicked',
             'drone_session_booking_cta_clicked',
@@ -39,6 +41,9 @@ class BookingLandingAnalyticsService
             'content_creation_booking_cta_clicked',
             'electronic_event_coverage_booking_cta_clicked',
             'electronic_event_coverage_booking_opened',
+            'multi_camera_booking_cta_clicked',
+            'multi_camera_booking_opened',
+            'multi_camera_portfolio_engaged',
             'electronic_event_coverage_portfolio_engaged',
             'djset_whatsapp_cta_clicked',
             'food_reels_whatsapp_cta_clicked',
@@ -46,6 +51,7 @@ class BookingLandingAnalyticsService
             'construction_progress_whatsapp_cta_clicked',
             'content_creation_whatsapp_cta_clicked',
             'electronic_event_coverage_whatsapp_cta_clicked',
+            'multi_camera_whatsapp_cta_clicked',
             'service_landing_whatsapp_clicked',
             'service_landing_lead_form_submitted',
             'whatsapp_popup_shown',
@@ -112,6 +118,7 @@ class BookingLandingAnalyticsService
             'construction_progress_whatsapp_cta_clicked',
             'content_creation_whatsapp_cta_clicked',
             'electronic_event_coverage_whatsapp_cta_clicked',
+            'multi_camera_whatsapp_cta_clicked',
             'service_landing_whatsapp_clicked',
             'booking_popup_whatsapp_clicked',
             'whatsapp_popup_clicked',

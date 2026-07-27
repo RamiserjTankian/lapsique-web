@@ -32,6 +32,7 @@ class ContentBookingSalesOverviewWidget extends BaseWidget
                 ContentBooking::SERVICE_ELECTRONIC_EVENT_COVERAGE => 'Cobertura evento',
                 ContentBooking::SERVICE_DRONE_SESSION => 'Dron',
                 ContentBooking::SERVICE_CONSTRUCTION_PROGRESS => 'Avance obra',
+                ContentBooking::SERVICE_MULTI_CAMERA => 'Multicámara',
                 ContentBooking::SERVICE_CONTENT_SESSION => 'Sesión',
                 default => (string) $service,
             }.': $'.number_format($amount, 0))

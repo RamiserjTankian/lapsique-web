@@ -119,6 +119,22 @@ class ContentBookingController extends Controller
         ]);
     }
 
+    public function showMultiCamera(): Response
+    {
+        abort_if(config('trascendental.enabled_as_primary'), 404);
+
+        $data = $this->bookingPageData();
+        $photos = $this->multiCameraPhotos();
+
+        return Inertia::render('MultiCamera/Show', [
+            'price' => ContentBooking::amountForService(ContentBooking::SERVICE_MULTI_CAMERA),
+            'slots' => BookingSlotResource::collection($data['slots'])->resolve(),
+            'drops' => $this->multiCameraDrops($photos),
+            'photos' => $photos,
+            'errors' => session('errors')?->getBag('default')?->getMessages() ?? [],
+        ]);
+    }
+
     public function showConstructionProgress(): Response
     {
         $data = $this->bookingPageData();
@@ -202,6 +218,7 @@ class ContentBookingController extends Controller
             ['mtrx-dumas', 'Dumas en MTRX', '/videos/reels/2026-07-11-mtrx-dumas-a0794b89f7.mp4', '/images/portfolio/video-posters/2026-07-11-mtrx-dumas-a0794b89f7.jpg'],
             ['mtrx-mauro', 'Mauro Scollo en MTRX', '/videos/reels/2026-07-11-mtrx-mauro-883c0cb709.mp4', '/images/portfolio/video-posters/2026-07-11-mtrx-mauro-883c0cb709.jpg'],
             ['karen-drop-01', 'Karen Echev · Drop 01', '/videos/reels/2026-07-13-karen-echev-drop-01-5647efd7f8.mp4', '/images/portfolio/video-posters/2026-07-13-karen-echev-drop-01-5647efd7f8.jpg'],
+            ['karen-drop-02', 'Karen Echev · Drop 02', '/videos/reels/2026-07-13-karen-echev-drop-02-f3b7e32f70.mp4', '/images/portfolio/video-posters/2026-07-13-karen-echev-drop-02-f3b7e32f70.jpg'],
         ];
 
         return collect($reels)
@@ -214,6 +231,85 @@ class ContentBookingController extends Controller
             ])
             ->values()
             ->all();
+    }
+
+    /**
+     * Curated, public event stills for the multicamera landing. These are the
+     * current MTRX/Karen Echev productions plus five real nightlife archive
+     * frames so the promised 15-photo delivery is visible without inventing
+     * material.
+     *
+     * @return array<int, array<string, mixed>>
+     */
+    private function multiCameraPhotos(): array
+    {
+        $items = [
+            ['2026-07-11-mtrx-pista-58db81e520.webp', 'MTRX · Pista', 'horizontal'],
+            ['2026-07-11-mtrx-entrada-137e44b9ea.webp', 'MTRX · Entrada', 'vertical'],
+            ['2026-07-11-mtrx-cabina-9b4907c016.webp', 'MTRX · Cabina', 'horizontal'],
+            ['2026-07-11-mtrx-luces-274377584b.webp', 'MTRX · Luces', 'horizontal'],
+            ['2026-07-11-mtrx-mauro-dumas-46d0e76d5e.webp', 'MTRX · Mauro Dumas', 'horizontal'],
+            ['2026-07-11-mtrx-mauro-02e4149d8f.webp', 'MTRX · Mauro', 'vertical'],
+            ['2026-07-13-karen-echev-set-96c4894e43.webp', 'Karen Echev · Set', 'horizontal'],
+            ['2026-07-13-karen-echev-cabina-cb42e7b31c.webp', 'Karen Echev · Cabina', 'horizontal'],
+            ['2026-07-13-karen-echev-publico-d1d43e559e.webp', 'Karen Echev · Público', 'horizontal'],
+            ['2026-07-13-karen-echev-banderas-ccc898e739.webp', 'Karen Echev · Banderas', 'vertical'],
+            ['083-rebolledo-6303cc8117.webp', 'Rebolledo · Archivo', 'vertical'],
+            ['081-proper-collective-8795ef25a1.webp', 'Proper Collective · Archivo', 'vertical'],
+            ['067-fotos-proper-54490411c4.webp', 'Proper · Archivo', 'horizontal'],
+            ['034-santino-on-heaven-22-de-marzo-afac794f4e.webp', 'Santino · On Heaven', 'vertical'],
+            ['084-rebolledo-aca3815016.webp', 'Rebolledo · Archivo', 'horizontal'],
+        ];
+
+        return collect($items)
+            ->filter(fn (array $item): bool => is_readable(public_path('images/portfolio/photos/'.$item[0])))
+            ->values()
+            ->map(fn (array $item, int $index): array => [
+                'id' => 'multi-camera-photo-'.($index + 1),
+                'title' => $item[1],
+                'slug' => pathinfo($item[0], PATHINFO_FILENAME),
+                'type' => 'photo',
+                'source' => 'public',
+                'caption' => $item[1],
+                'asset_url' => asset('images/portfolio/photos/'.$item[0]),
+                'poster_url' => asset('images/portfolio/photos/'.$item[0]),
+                'playback_url' => null,
+                'embed_url' => null,
+                'youtube_id' => null,
+                'youtube_url' => null,
+                'media_type' => 'image',
+                'is_featured' => $index < 10,
+                'orientation' => $item[2],
+            ])
+            ->all();
+    }
+
+    /**
+     * @param array<int, array<string, mixed>> $photos
+     * @return array<int, array<string, mixed>>
+     */
+    private function multiCameraDrops(array $photos): array
+    {
+        $videoDrops = collect($this->electronicEventCoverageReels())
+            ->map(fn (array $reel): array => [
+                'id' => 'drop-'.$reel['id'],
+                'title' => $reel['title'],
+                'project' => str_contains($reel['id'], 'karen') ? 'Karen Echev' : 'MTRX',
+                'kind' => 'video',
+                'src' => $reel['src'],
+                'poster' => $reel['poster'],
+            ]);
+
+        $frameDrops = collect($photos)->take(6)->values()->map(fn (array $photo, int $index): array => [
+            'id' => 'drop-frame-'.($index + 5),
+            'title' => 'Frame '.str_pad((string) ($index + 5), 2, '0', STR_PAD_LEFT).' · '.$photo['title'],
+            'project' => $photo['title'],
+            'kind' => 'image',
+            'src' => $photo['asset_url'],
+            'poster' => $photo['poster_url'],
+        ]);
+
+        return $videoDrops->concat($frameDrops)->values()->all();
     }
 
     /**
@@ -430,6 +526,27 @@ class ContentBookingController extends Controller
             $portalAccess,
             $attributionService,
             ContentBooking::SERVICE_ELECTRONIC_EVENT_COVERAGE,
+        );
+    }
+
+    public function checkoutMultiCamera(
+        Request $request,
+        MercadoPagoService $mercadoPago,
+        StripeService $stripe,
+        ContentBookingPaymentService $bookingPayment,
+        CustomerPortalAccessService $portalAccess,
+        CustomerAnalyticsAttributionService $attributionService,
+    ): SymfonyResponse {
+        abort_if(config('trascendental.enabled_as_primary'), 404);
+
+        return $this->checkoutForService(
+            $request,
+            $mercadoPago,
+            $stripe,
+            $bookingPayment,
+            $portalAccess,
+            $attributionService,
+            ContentBooking::SERVICE_MULTI_CAMERA,
         );
     }
 

@@ -77,6 +77,7 @@ class CustomerForm
                         'dj_set' => 'Landing DJ Sets',
                         'drone_session' => 'Landing dron',
                         'construction_progress' => 'Landing avances',
+                        'multi_camera' => 'Landing multicámara',
                         'other' => 'Otro',
                     ])
                     ->default('manual'),

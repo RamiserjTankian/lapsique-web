@@ -135,6 +135,10 @@ function bookingContentCategory(serviceType: ContentBookingData['service_type'])
         return 'electronic_event_coverage_booking';
     }
 
+    if (serviceType === 'multi_camera') {
+        return 'multi_camera_booking';
+    }
+
     return 'content_booking';
 }
 

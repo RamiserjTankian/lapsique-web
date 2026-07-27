@@ -14,9 +14,11 @@ class SiteHeaderNavigationTest extends TestCase
 
         $this->assertIsString($source);
         $this->assertStringContainsString('value={group.id}', $source);
-        $this->assertStringContainsString('onPointerMove={(event) => event.preventDefault()}', $source);
+        $this->assertStringNotContainsString('onPointerMove={(event) => event.preventDefault()}', $source);
         $this->assertStringContainsString('md:!mt-0', $source);
         $this->assertStringContainsString('focus:!text-foreground', $source);
         $this->assertStringContainsString('data-[state=open]:focus:!text-primary', $source);
+        $this->assertStringContainsString('data-[state=closed]:!text-foreground', $source);
+        $this->assertStringContainsString('data-[active=true]:!text-foreground', $source);
     }
 }

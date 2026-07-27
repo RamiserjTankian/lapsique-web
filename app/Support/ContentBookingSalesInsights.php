@@ -49,6 +49,14 @@ class ContentBookingSalesInsights
                 'lead_events' => ['construction_progress_booking_cta_clicked'],
                 'contact_events' => ['construction_progress_whatsapp_cta_clicked', 'whatsapp_popup_clicked'],
             ],
+            ContentBooking::SERVICE_MULTI_CAMERA => [
+                'label' => 'Multicámara',
+                'paths' => ['/multicamara'],
+                'service_types' => [ContentBooking::SERVICE_MULTI_CAMERA],
+                'page_event' => 'multi_camera_page_viewed',
+                'lead_events' => ['multi_camera_booking_cta_clicked'],
+                'contact_events' => ['multi_camera_whatsapp_cta_clicked', 'whatsapp_popup_clicked'],
+            ],
         ];
     }
 

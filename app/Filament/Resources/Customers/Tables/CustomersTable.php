@@ -237,6 +237,7 @@ class CustomersTable
                         'dj_set' => 'DJ Sets',
                         'drone_session' => 'Vuelos con dron',
                         'construction_progress' => 'Avances de obra',
+                        'multi_camera' => 'Multicámara',
                     ]),
 
                 TrashedFilter::make(),

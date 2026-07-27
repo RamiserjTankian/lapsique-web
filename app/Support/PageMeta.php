@@ -48,6 +48,7 @@ class PageMeta
             'food-reels.show' => self::forFoodReels($settings, $canonicalUrl),
             'content-creation.show' => self::forContentCreation($settings, $canonicalUrl),
             'electronic-event-coverage.show' => self::forElectronicEventCoverage($canonicalUrl),
+            'multi-camera.show' => self::forMultiCamera($canonicalUrl),
             'djs.show' => self::forDj($request->route('dj'), $canonicalUrl),
             'videos.show' => self::forVideo($request->route('video'), $canonicalUrl),
             'events.show' => self::forEvent($request->route('event'), $canonicalUrl),
@@ -320,6 +321,43 @@ class PageMeta
                         __('seo.electronic_event_coverage.faq.aftermovie.question'),
                         __('seo.electronic_event_coverage.faq.aftermovie.answer'),
                     ],
+                ],
+                offerPrice: $price,
+            ),
+        );
+    }
+
+    public static function forMultiCamera(string $canonicalUrl): PageMetaData
+    {
+        $price = (int) config('booking.multi_camera_price', 5000);
+        $title = __('seo.multi_camera.title');
+        $description = self::truncate(__('seo.multi_camera.description', [
+            'price' => number_format($price, 0, '.', ','),
+        ]));
+        $ogImage = self::staticPublicImageUrl('images/portfolio/video-posters/2026-07-11-mtrx-dumas-a0794b89f7.jpg')
+            ?? self::defaultOgImageUrl();
+
+        return new PageMetaData(
+            title: $title,
+            metaTitle: "{$title} | Lapsique Media",
+            description: $description,
+            canonicalUrl: $canonicalUrl,
+            ogType: 'website',
+            ogImage: $ogImage,
+            ogImageAlt: __('seo.multi_camera.og_alt'),
+            keywords: __('seo.multi_camera.keywords'),
+            jsonLd: self::serviceLandingJsonLd(
+                canonicalUrl: $canonicalUrl,
+                title: $title,
+                description: $description,
+                serviceType: __('seo.multi_camera.service_type'),
+                ogImage: $ogImage,
+                breadcrumbName: __('seo.multi_camera.breadcrumb'),
+                faq: [
+                    [__('seo.multi_camera.faq.includes.question'), __('seo.multi_camera.faq.includes.answer')],
+                    [__('seo.multi_camera.faq.log.question'), __('seo.multi_camera.faq.log.answer')],
+                    [__('seo.multi_camera.faq.audio.question'), __('seo.multi_camera.faq.audio.answer')],
+                    [__('seo.multi_camera.faq.areas.question'), __('seo.multi_camera.faq.areas.answer')],
                 ],
                 offerPrice: $price,
             ),

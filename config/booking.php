@@ -18,6 +18,7 @@ return [
     'electronic_event_coverage_price' => 4500,
     'drone_session_price' => 3000,
     'construction_progress_price' => 5000,
+    'multi_camera_price' => 5000,
 
     'skip_payment_hosts' => [
         'localhost',
