@@ -25,6 +25,7 @@ interface MultiCameraShowProps {
     price: number;
     slots: BookingSlot[];
     drops: MultiCameraDrop[];
+    horizontalSessions: MultiCameraDrop[];
     photos: PortfolioItemData[];
     errors?: Record<string, string>;
 }
@@ -109,7 +110,7 @@ const COPY = {
     },
 } as const;
 
-export default function MultiCameraShow({ price, slots, drops, photos, errors }: MultiCameraShowProps) {
+export default function MultiCameraShow({ price, slots, drops, horizontalSessions, photos, errors }: MultiCameraShowProps) {
     const { site } = usePage<PageProps>().props;
     const { locale } = useTranslations();
     const copy = COPY[locale === 'en' ? 'en' : 'es'];
@@ -120,7 +121,7 @@ export default function MultiCameraShow({ price, slots, drops, photos, errors }:
     const analyticsPayload = useMemo(() => ({ content_name: copy.title, content_category: 'multi_camera_booking', service_type: 'multi_camera', currency: 'MXN', value: price }), [copy.title, price]);
     const bookingProduct = useMemo<BookingWidgetProduct>(() => ({ checkoutLabel: copy.booking.checkoutLabel, headerTitle: copy.booking.headerTitle, headerDescription: copy.booking.headerDescription, summaryTitle: copy.booking.summaryTitle, summaryDescription: copy.booking.summaryDescription, cartService: copy.booking.cartService, cartDuration: copy.booking.cartDuration, summaryPerks: [...copy.booking.perks], terms: [...copy.booking.terms], paymentCopy: copy.booking.paymentCopy, unavailableWhatsApp: copy.booking.unavailableWhatsApp }), [copy]);
     const videoDrops = useMemo(() => drops.filter((drop) => drop.kind === 'video'), [drops]);
-    const horizontalVideoDrops = useMemo(() => videoDrops.filter((drop) => drop.orientation !== 'vertical'), [videoDrops]);
+    const horizontalVideoDrops = useMemo(() => [...videoDrops.filter((drop) => drop.orientation !== 'vertical'), ...horizontalSessions], [horizontalSessions, videoDrops]);
 
     useEffect(() => {
         trackBookingEvent('multi_camera_page_viewed', { ...analyticsPayload, section: 'multi_camera' });
@@ -189,7 +190,7 @@ export default function MultiCameraShow({ price, slots, drops, photos, errors }:
 
             <section className="relative left-1/2 mb-0 w-screen -translate-x-1/2 overflow-hidden bg-primary py-14 text-white md:py-20"><div className="mx-auto grid max-w-6xl gap-8 px-4 sm:px-6 lg:grid-cols-[1fr_auto] lg:items-end"><div className="max-w-3xl"><h2 className="font-display text-4xl font-bold leading-[.94] md:text-6xl">{copy.finalTitle}</h2><p className="mt-5 text-base leading-relaxed text-white/85 md:text-lg">{copy.finalCopy}</p></div><div className="grid gap-3 sm:grid-cols-2 lg:min-w-[440px]"><BookingCtaButton opensBookingModal bookingSource="multi_camera_final" bookingAnalytics={{ analyticsEvent: 'multi_camera_booking_cta_clicked', analyticsPayload }} className="w-full rounded-none border-white/40 bg-black/15 text-white hover:bg-white hover:text-black"><CalendarDays className="size-5" />{copy.book}</BookingCtaButton><Button size="xl" className="w-full rounded-none border border-[#25D366] bg-[#25D366] text-white hover:bg-[#1ebe5d]" asChild><a href={whatsappHref} target="_blank" rel="noopener noreferrer" onClick={() => trackWhatsApp('final')}><MessageCircle className="size-5" />{copy.whatsapp}</a></Button></div></div></section>
 
-            {horizontalVideoDrops.length > 0 ? <section className="relative left-1/2 w-screen -translate-x-1/2 overflow-hidden bg-[#050607] py-14 text-white md:py-20"><div className="mx-auto max-w-6xl px-4 sm:px-6"><p className="alpha-kicker text-primary">Psique Sessions · Horizontal</p><h2 className="mt-4 font-display text-4xl font-bold leading-[.94] md:text-6xl">El set completo también se ve así.</h2></div><FullBleedVideoCarousel videos={horizontalVideoDrops} label="Psique Sessions · Horizontal" labels={carouselLabels} /></section> : null}
+            {horizontalVideoDrops.length > 0 ? <section className="relative left-1/2 w-screen -translate-x-1/2 overflow-hidden bg-[#050607] py-14 text-white md:py-20"><div className="mx-auto max-w-6xl px-4 sm:px-6"><p className="alpha-kicker text-primary">Psique Sessions · Horizontal · Danzahaus</p><h2 className="mt-4 font-display text-4xl font-bold leading-[.94] md:text-6xl">El set completo también se ve así.</h2></div><FullBleedVideoCarousel videos={horizontalVideoDrops} label="Psique Sessions · Horizontal · Danzahaus" labels={carouselLabels} /></section> : null}
         </SiteLayout>
     );
 }

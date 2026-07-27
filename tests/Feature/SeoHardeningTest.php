@@ -110,6 +110,9 @@ class SeoHardeningTest extends TestCase
                 ->has('drops', 10)
                 ->where('drops.0.orientation', 'horizontal')
                 ->where('drops.2.orientation', 'vertical')
+                ->has('horizontalSessions', 6)
+                ->where('horizontalSessions.0.project', 'Danzahaus')
+                ->where('horizontalSessions.0.orientation', 'horizontal')
                 ->has('photos', 15));
 
         $this->get(route('sitemap'))

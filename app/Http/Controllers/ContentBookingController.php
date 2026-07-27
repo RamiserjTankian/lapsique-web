@@ -130,6 +130,7 @@ class ContentBookingController extends Controller
             'price' => ContentBooking::amountForService(ContentBooking::SERVICE_MULTI_CAMERA),
             'slots' => BookingSlotResource::collection($data['slots'])->resolve(),
             'drops' => $this->multiCameraDrops($photos),
+            'horizontalSessions' => $this->danzahausHorizontalSessions(),
             'photos' => $photos,
             'errors' => session('errors')?->getBag('default')?->getMessages() ?? [],
         ]);
@@ -229,6 +230,39 @@ class ContentBookingController extends Controller
                 'src' => $reel[2],
                 'poster' => is_readable(public_path(ltrim($reel[3], '/'))) ? $reel[3] : null,
                 'orientation' => $reel[4],
+            ])
+            ->values()
+            ->all();
+    }
+
+    /**
+     * Real horizontal Danzahaus drops supplied for the Psique Sessions archive.
+     * They stay separate from the ten-drop package so the commercial promise
+     * and the editorial horizontal carousel can evolve independently.
+     *
+     * @return array<int, array{id: string, title: string, project: string, kind: 'video', src: string, poster: string|null, orientation: 'horizontal'}>
+     */
+    private function danzahausHorizontalSessions(): array
+    {
+        $drops = collect(range(1, 6))->map(function (int $number): array {
+            $slug = '2026-07-27-danzahaus-mauro-drop-0'.$number;
+
+            return [
+                'id' => 'danzahaus-mauro-drop-'.$number,
+                'title' => 'Danzahaus · Mauro Drop '.str_pad((string) $number, 2, '0', STR_PAD_LEFT),
+                'project' => 'Danzahaus',
+                'kind' => 'video',
+                'src' => '/videos/reels/'.$slug.'.mp4',
+                'poster' => '/images/portfolio/video-posters/'.$slug.'.jpg',
+                'orientation' => 'horizontal',
+            ];
+        });
+
+        return $drops
+            ->filter(fn (array $drop): bool => is_readable(public_path(ltrim($drop['src'], '/'))))
+            ->map(fn (array $drop): array => [
+                ...$drop,
+                'poster' => is_readable(public_path(ltrim($drop['poster'], '/'))) ? $drop['poster'] : null,
             ])
             ->values()
             ->all();
