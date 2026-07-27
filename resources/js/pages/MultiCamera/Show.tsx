@@ -1,4 +1,4 @@
-import { useEffect, useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { usePage } from '@inertiajs/react';
 import { ArrowRight, CalendarDays, Check, Film, Headphones, MessageCircle } from 'lucide-react';
 import SiteLayout from '@/layouts/SiteLayout';
@@ -48,7 +48,7 @@ const COPY = {
         ],
         dropsEyebrow: 'Archivo real · MTRX + Karen Echev',
         dropsTitle: 'Cortes, frames y pruebas de una noche completa.',
-        dropsCopy: 'Los primeros cuatro drops son videos reales. Los siguientes muestran frames de la misma cobertura para que veas cómo se construye el paquete completo.',
+        dropsCopy: 'Cada drop se reproduce completo y pasa al siguiente al terminar. Usa los controles para escuchar el audio y revisar su duración real.',
         photosEyebrow: '15 fotografías incluidas',
         photosTitle: 'DJ, público, escenario y la atmósfera que hace reconocible tu fecha.',
         packageEyebrow: 'El paquete',
@@ -91,7 +91,7 @@ const COPY = {
         specs: [['10', 'multicamera drops'], ['1:30 h', 'continuous Log video'], ['3', 'Sony cameras'], ['32-bit', 'Zoom H4 audio'], ['15', 'edited photos']],
         dropsEyebrow: 'Real archive · MTRX + Karen Echev',
         dropsTitle: 'Cuts, frames, and proof of a complete night.',
-        dropsCopy: 'The first four drops are real videos. The next ones show frames from the same coverage so you can see how the full package is built.',
+        dropsCopy: 'Each drop plays in full and advances when it ends. Use the controls to hear the audio and review its real duration.',
         photosEyebrow: '15 photos included',
         photosTitle: 'DJ, crowd, stage, and the atmosphere that makes your date recognizable.',
         packageEyebrow: 'The package',
@@ -112,6 +112,9 @@ export default function MultiCameraShow({ price, slots, drops, photos, errors }:
     const { site } = usePage<PageProps>().props;
     const { locale } = useTranslations();
     const copy = COPY[locale === 'en' ? 'en' : 'es'];
+    const carouselLabels = locale === 'en'
+        ? { previous: 'Previous video', next: 'Next video', audio: 'original audio' }
+        : { previous: 'Video anterior', next: 'Siguiente video', audio: 'audio original' };
     const whatsappHref = useMemo(() => buildWhatsAppHref(site.whatsapp, copy.whatsappMessage), [copy.whatsappMessage, site.whatsapp]);
     const analyticsPayload = useMemo(() => ({ content_name: copy.title, content_category: 'multi_camera_booking', service_type: 'multi_camera', currency: 'MXN', value: price }), [copy.title, price]);
     const bookingProduct = useMemo<BookingWidgetProduct>(() => ({ checkoutLabel: copy.booking.checkoutLabel, headerTitle: copy.booking.headerTitle, headerDescription: copy.booking.headerDescription, summaryTitle: copy.booking.summaryTitle, summaryDescription: copy.booking.summaryDescription, cartService: copy.booking.cartService, cartDuration: copy.booking.cartDuration, summaryPerks: [...copy.booking.perks], terms: [...copy.booking.terms], paymentCopy: copy.booking.paymentCopy, unavailableWhatsApp: copy.booking.unavailableWhatsApp }), [copy]);
@@ -137,7 +140,7 @@ export default function MultiCameraShow({ price, slots, drops, photos, errors }:
                         <p className="mt-6 max-w-2xl text-base leading-relaxed text-white/70 md:text-lg">{copy.intro}</p>
                         <p className="mt-4 font-mono text-[11px] uppercase tracking-[.18em] text-primary">{copy.location}</p>
                         <div className="mt-8 flex flex-wrap gap-3">
-                            <BookingCtaButton size="lg" opensBookingModal bookingSource="multi_camera_hero" bookingAnalytics={{ analyticsEvent: 'multi_camera_booking_cta_clicked', analyticsPayload }} className="w-fit rounded-none border border-primary bg-primary px-6 text-primary-foreground shadow-[0_12px_30px_rgba(232,92,21,.22)] hover:bg-primary/90"><CalendarDays className="size-5" />{copy.book}<ArrowRight className="size-5" /></BookingCtaButton>
+                            <BookingCtaButton size="lg" opensBookingModal bookingSource="multi_camera_hero" bookingAnalytics={{ analyticsEvent: 'multi_camera_booking_cta_clicked', analyticsPayload }} className="booking-cta--accent w-fit rounded-none border border-primary bg-primary px-6 text-primary-foreground shadow-[0_12px_30px_rgba(232,92,21,.22)] hover:bg-primary/90"><CalendarDays className="size-5" />{copy.book}<ArrowRight className="size-5" /></BookingCtaButton>
                             <Button variant="outline" size="xl" className="rounded-none border-white/25 bg-white/5 text-white hover:bg-white hover:text-black" asChild><a href={whatsappHref} target="_blank" rel="noopener noreferrer" onClick={() => trackWhatsApp('hero')}><MessageCircle className="size-5" />{copy.whatsapp}</a></Button>
                         </div>
                     </div>
@@ -149,19 +152,29 @@ export default function MultiCameraShow({ price, slots, drops, photos, errors }:
                 </div>
             </section>
 
-            <section className="mx-auto max-w-6xl py-16 sm:px-0 md:py-24">
+            <section className="relative left-1/2 w-screen -translate-x-1/2 bg-[#050607] py-14 text-white md:py-20">
+                <div className="mx-auto max-w-6xl px-4 sm:px-6">
                 <p className="alpha-kicker text-primary">{copy.dropsEyebrow}</p>
                 <h2 className="mt-4 max-w-3xl font-display text-4xl font-bold leading-[.94] md:text-6xl">{copy.dropsTitle}</h2>
-                <p className="mt-5 max-w-2xl text-muted-foreground">{copy.dropsCopy}</p>
-                <div className="multicam-marquee mt-10 overflow-hidden border-y border-border py-4">
-                    <div className="multicam-marquee__track">
-                        {[...videoDrops, ...videoDrops].map((drop, index) => <div key={`${drop.id}-${index}`} className="multicam-marquee__item"><video className="h-full w-full object-cover" src={drop.src} poster={drop.poster ?? undefined} muted autoPlay loop playsInline preload="metadata" /></div>)}
-                    </div>
+                <p className="mt-5 max-w-2xl text-white/65">{copy.dropsCopy}</p>
                 </div>
+                <FullBleedVideoCarousel videos={videoDrops} label={copy.dropsEyebrow} labels={carouselLabels} />
             </section>
 
-            <section className="relative left-1/2 w-screen -translate-x-1/2 bg-[#070809] py-16 text-white md:py-24">
-                <div className="mx-auto max-w-6xl px-4 sm:px-6"><p className="alpha-kicker text-primary">{copy.photosEyebrow}</p><h2 className="mt-4 max-w-4xl font-display text-4xl font-bold leading-[.94] md:text-6xl">{copy.photosTitle}</h2><div className="mt-10 columns-2 gap-4 md:columns-3 lg:columns-5">{photos.map((photo) => <button key={photo.id} type="button" className="group mb-4 block w-full overflow-hidden border border-white/10 text-left" onClick={() => trackBookingEvent('multi_camera_portfolio_engaged', { ...analyticsPayload, asset: photo.slug })}><img src={photo.asset_url ?? photo.poster_url ?? ''} alt={photo.title ?? 'Fotografía de evento'} className="h-auto w-full object-cover transition duration-500 group-hover:scale-105" loading="lazy" /></button>)}</div></div>
+            <section className="relative left-1/2 w-screen -translate-x-1/2 border-y border-border bg-background py-12 md:py-16">
+                <div className="mx-auto max-w-6xl px-4 sm:px-6">
+                    <div className="flex flex-wrap items-end justify-between gap-5">
+                        <div>
+                            <p className="alpha-kicker text-primary">{copy.photosEyebrow}</p>
+                            <h2 className="mt-3 max-w-2xl font-display text-3xl font-bold leading-[.95] md:text-5xl">{copy.photosTitle}</h2>
+                        </div>
+                        <p className="max-w-xs text-right text-xs leading-relaxed text-muted-foreground">15 selects de la cobertura. La entrega final incluye la serie completa.</p>
+                    </div>
+                    <div className="mt-8 grid grid-cols-2 gap-2 sm:grid-cols-3 md:grid-cols-6">
+                        {photos.slice(0, 6).map((photo) => <button key={photo.id} type="button" className="group aspect-[4/3] block w-full overflow-hidden border border-border text-left" onClick={() => trackBookingEvent('multi_camera_portfolio_engaged', { ...analyticsPayload, asset: photo.slug })}><img src={photo.asset_url ?? photo.poster_url ?? ''} alt={photo.title ?? 'Fotografía de evento'} className="h-full w-full object-cover transition duration-500 group-hover:scale-105" loading="lazy" /></button>)}
+                    </div>
+                    <p className="mt-4 font-mono text-[10px] uppercase tracking-[.16em] text-muted-foreground">DJ · público · escenario · atmósfera</p>
+                </div>
             </section>
 
             <section className="mx-auto grid max-w-6xl gap-10 py-16 md:grid-cols-[.9fr_1.1fr] md:py-24"><div><p className="alpha-kicker text-primary">{copy.packageEyebrow}</p><h2 className="mt-4 font-display text-4xl font-bold leading-[.94] md:text-6xl">{copy.packageTitle}</h2><p className="mt-5 text-muted-foreground">{copy.packageCopy}</p><div className="mt-7 grid gap-3">{copy.includes.map((item) => <div key={item} className="flex gap-3 border-t border-border pt-3 text-sm"><Check className="mt-0.5 size-4 shrink-0 text-primary" />{item}</div>)}</div></div><div className="border border-[#26292d] bg-[#08090b] p-6 text-white md:p-8"><p className="font-mono text-[10px] uppercase tracking-[.16em] text-primary">{copy.priceLabel}</p><p className="mt-3 font-display text-5xl font-bold">{formatMxn(price)}</p><p className="mt-1 text-sm text-white/55">{copy.priceNote}</p><div className="mt-8 divide-y divide-white/10 border-y border-white/10"><div className="grid grid-cols-[auto_1fr] gap-4 py-4"><Film className="mt-1 size-5 text-primary" /><div><p className="font-display text-2xl font-bold">1:30 h · Log</p><p className="mt-1 text-sm text-white/60">Master continuo listo para abrir en DaVinci Resolve.</p></div></div><div className="grid grid-cols-[auto_1fr] gap-4 py-4"><Headphones className="mt-1 size-5 text-primary" /><div><p className="font-display text-2xl font-bold">Zoom H4 · 32-bit</p><p className="mt-1 text-sm text-white/60">Audio de mixer y ambiente sincronizado con tres cámaras.</p></div></div></div></div></section>
@@ -174,7 +187,7 @@ export default function MultiCameraShow({ price, slots, drops, photos, errors }:
 
             <section className="relative left-1/2 mb-0 w-screen -translate-x-1/2 overflow-hidden bg-primary py-14 text-white md:py-20"><div className="mx-auto grid max-w-6xl gap-8 px-4 sm:px-6 lg:grid-cols-[1fr_auto] lg:items-end"><div className="max-w-3xl"><h2 className="font-display text-4xl font-bold leading-[.94] md:text-6xl">{copy.finalTitle}</h2><p className="mt-5 text-base leading-relaxed text-white/85 md:text-lg">{copy.finalCopy}</p></div><div className="grid gap-3 sm:grid-cols-2 lg:min-w-[440px]"><BookingCtaButton opensBookingModal bookingSource="multi_camera_final" bookingAnalytics={{ analyticsEvent: 'multi_camera_booking_cta_clicked', analyticsPayload }} className="w-full rounded-none border-white/40 bg-black/15 text-white hover:bg-white hover:text-black"><CalendarDays className="size-5" />{copy.book}</BookingCtaButton><Button size="xl" className="w-full rounded-none border border-[#25D366] bg-[#25D366] text-white hover:bg-[#1ebe5d]" asChild><a href={whatsappHref} target="_blank" rel="noopener noreferrer" onClick={() => trackWhatsApp('final')}><MessageCircle className="size-5" />{copy.whatsapp}</a></Button></div></div></section>
 
-            <section className="relative left-1/2 w-screen -translate-x-1/2 overflow-hidden bg-[#050607] py-14 text-white"><div className="mx-auto max-w-6xl px-4 sm:px-6"><p className="alpha-kicker text-primary">Psique Sessions · Horizontal</p><h2 className="mt-4 font-display text-4xl font-bold leading-[.94] md:text-6xl">El set completo también se ve así.</h2><div className="multicam-marquee mt-8 overflow-hidden border-y border-white/10 py-4"><div className="multicam-marquee__track">{[...videoDrops, ...videoDrops].map((drop, index) => <div key={`horizontal-${drop.id}-${index}`} className="multicam-marquee__item multicam-marquee__item--wide"><video className="h-full w-full object-cover" src={drop.src} poster={drop.poster ?? undefined} muted autoPlay loop playsInline preload="metadata" /></div>)}</div></div></div></section>
+            <section className="relative left-1/2 w-screen -translate-x-1/2 overflow-hidden bg-[#050607] py-14 text-white md:py-20"><div className="mx-auto max-w-6xl px-4 sm:px-6"><p className="alpha-kicker text-primary">Psique Sessions · Horizontal</p><h2 className="mt-4 font-display text-4xl font-bold leading-[.94] md:text-6xl">El set completo también se ve así.</h2></div><FullBleedVideoCarousel videos={videoDrops} label="Psique Sessions · Horizontal" labels={carouselLabels} /></section>
         </SiteLayout>
     );
 }
@@ -182,4 +195,59 @@ export default function MultiCameraShow({ price, slots, drops, photos, errors }:
 function buildWhatsAppHref(phone: string | null | undefined, text: string): string {
     const digits = (phone ?? '').replace(/\D/g, '');
     return `https://wa.me/${digits}?text=${encodeURIComponent(text)}`;
+}
+
+function FullBleedVideoCarousel({ videos, label, labels }: { videos: MultiCameraDrop[]; label: string; labels: { previous: string; next: string; audio: string } }) {
+    const [activeIndex, setActiveIndex] = useState(0);
+    const [duration, setDuration] = useState<number | null>(null);
+    const activeVideo = videos[activeIndex];
+
+    useEffect(() => {
+        setDuration(null);
+    }, [activeVideo?.src]);
+
+    if (!activeVideo) {
+        return null;
+    }
+
+    const move = (direction: number) => {
+        setActiveIndex((current) => (current + direction + videos.length) % videos.length);
+    };
+
+    return (
+        <div className="mt-8 w-screen border-y border-white/10 bg-black md:mt-10">
+            <div className="relative mx-auto max-w-[90rem]">
+                <video
+                    key={activeVideo.src}
+                    className="multicam-fullbleed-video"
+                    src={activeVideo.src}
+                    poster={activeVideo.poster ?? undefined}
+                    autoPlay
+                    controls
+                    playsInline
+                    preload="metadata"
+                    onLoadedMetadata={(event) => setDuration(Number.isFinite(event.currentTarget.duration) ? event.currentTarget.duration : null)}
+                    onEnded={() => move(1)}
+                />
+                <div className="pointer-events-none absolute inset-x-0 bottom-0 flex items-end justify-between gap-4 bg-gradient-to-t from-black/85 via-black/35 to-transparent px-4 pb-4 pt-16 text-white sm:px-6 md:px-10">
+                    <div>
+                        <p className="font-mono text-[10px] uppercase tracking-[.16em] text-primary">{label} · {String(activeIndex + 1).padStart(2, '0')} / {String(videos.length).padStart(2, '0')}</p>
+                        <p className="mt-1 font-display text-2xl font-bold uppercase md:text-4xl">{activeVideo.title}</p>
+                        {duration ? <p className="mt-1 font-mono text-[10px] uppercase tracking-[.14em] text-white/60">{formatVideoDuration(duration)} · {labels.audio}</p> : null}
+                    </div>
+                    <div className="pointer-events-auto flex shrink-0 gap-2">
+                        <button type="button" onClick={() => move(-1)} className="inline-flex size-10 items-center justify-center border border-white/30 bg-black/40 text-white transition hover:border-primary hover:text-primary" aria-label={labels.previous}>←</button>
+                        <button type="button" onClick={() => move(1)} className="inline-flex size-10 items-center justify-center border border-white/30 bg-black/40 text-white transition hover:border-primary hover:text-primary" aria-label={labels.next}>→</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    );
+}
+
+function formatVideoDuration(seconds: number): string {
+    const total = Math.max(0, Math.round(seconds));
+    const minutes = Math.floor(total / 60);
+    const remainder = String(total % 60).padStart(2, '0');
+    return `${minutes}:${remainder}`;
 }

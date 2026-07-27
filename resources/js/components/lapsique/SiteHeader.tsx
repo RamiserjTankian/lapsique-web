@@ -159,9 +159,9 @@ function HeaderActions({ open, setOpen }: { open: boolean; setOpen: (open: boole
                                             <Link
                                                 href={link.href}
                                                 onClick={() => trackNavigation(link, group.id)}
-                                                className="group block rounded-none px-5 py-4 text-foreground hover:bg-secondary hover:!text-foreground focus:bg-secondary focus:!text-foreground data-[active=true]:bg-secondary data-[active=true]:!text-foreground"
+                                                className="group/nav-link block rounded-none px-5 py-4 text-foreground hover:bg-secondary hover:!text-foreground focus:bg-secondary focus:!text-foreground data-[active=true]:bg-secondary data-[active=true]:!text-foreground"
                                             >
-                                                <span className="font-ui-display text-sm font-bold uppercase tracking-[0.08em] text-foreground group-hover:!text-primary group-focus:!text-primary group-data-[active=true]:!text-primary">
+                                                <span className="font-ui-display text-sm font-bold uppercase tracking-[0.08em] text-foreground group-hover/nav-link:!text-primary group-focus/nav-link:!text-primary group-data-[active=true]/nav-link:!text-primary">
                                                     {link.label}
                                                 </span>
                                                 {link.description ? (

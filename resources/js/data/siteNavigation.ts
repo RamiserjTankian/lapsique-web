@@ -83,11 +83,13 @@ export function buildSiteNavigation(
                     {
                         id: 'food-reels',
                         label: en ? 'Restaurant reels' : 'Reels para restaurantes',
+                        description: en ? 'Food, atmosphere, and service made to sell.' : 'Comida, ambiente y servicio listos para vender.',
                         href: route('food-reels.show', undefined, false, ziggy),
                     },
                     {
                         id: 'record-dj-set',
                         label: en ? 'Record a DJ set' : 'Grabar un DJ set',
+                        description: en ? 'A cinematic record of your set, ready to publish.' : 'Registro cinematográfico de tu set, listo para publicar.',
                         href: route('djset.show', undefined, false, ziggy),
                     },
                     {
@@ -105,11 +107,13 @@ export function buildSiteNavigation(
                     {
                         id: 'drone',
                         label: en ? 'Drone flights' : 'Vuelos con dron',
+                        description: en ? 'Aerial footage for properties, venues, and campaigns.' : 'Tomas aéreas para propiedades, venues y campañas.',
                         href: route('drone-sessions.show', undefined, false, ziggy),
                     },
                     {
                         id: 'construction',
                         label: en ? 'Construction progress' : 'Avances de obra',
+                        description: en ? 'Progress reports with photo, video, and drone.' : 'Reportes de avance con foto, video y dron.',
                         href: route('construction-progress.show', undefined, false, ziggy),
                     },
                 ],

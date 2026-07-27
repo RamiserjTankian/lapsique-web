@@ -544,6 +544,20 @@
     outline: none;
 }
 
+/* Hero booking actions need to read as the orange conversion point even
+ * inside the dark Sony Alpha scene, where the base booking button is black. */
+.booking-cta--accent {
+    border-color: var(--primary) !important;
+    background-color: var(--primary) !important;
+    color: var(--primary-foreground) !important;
+}
+
+.booking-cta--accent:hover {
+    border-color: color-mix(in oklab, var(--primary) 88%, black) !important;
+    background-color: color-mix(in oklab, var(--primary) 88%, black) !important;
+    color: var(--primary-foreground) !important;
+}
+
 @media (min-width: 1024px) {
     .booking-cta--hero {
         min-height: 4rem;
@@ -655,6 +669,14 @@ video[data-lapsique-autoplay]::-webkit-media-controls-play-button {
 .multicam-marquee:hover .multicam-marquee__track,
 .multicam-marquee:focus-within .multicam-marquee__track {
     animation-play-state: paused;
+}
+
+.multicam-fullbleed-video {
+    display: block;
+    width: 100%;
+    height: min(72vh, 48rem);
+    background: #050607;
+    object-fit: cover;
 }
 
 @media (prefers-reduced-motion: reduce) {
