@@ -48,7 +48,7 @@ const COPY = {
             ['32-bit', 'audio Zoom H4'],
             ['15', 'fotos editadas'],
         ],
-        dropsEyebrow: 'Archivo real · MTRX + Karen Echev',
+        dropsEyebrow: 'Archivo real · MTRX + Karen Echev + Danzahaus',
         dropsTitle: 'Cortes, frames y pruebas de una noche completa.',
         dropsCopy: 'Cada drop se reproduce completo y pasa al siguiente al terminar. Usa los controles para escuchar el audio y revisar su duración real.',
         photosEyebrow: '15 fotografías incluidas',
@@ -91,7 +91,7 @@ const COPY = {
         priceLabel: 'Complete production',
         priceNote: 'Fixed price · online booking · secure card payment.',
         specs: [['10', 'multicamera drops'], ['1:30 h', 'continuous Log video'], ['3', 'Sony cameras'], ['32-bit', 'Zoom H4 audio'], ['15', 'edited photos']],
-        dropsEyebrow: 'Real archive · MTRX + Karen Echev',
+        dropsEyebrow: 'Real archive · MTRX + Karen Echev + Danzahaus',
         dropsTitle: 'Cuts, frames, and proof of a complete night.',
         dropsCopy: 'Each drop plays in full and advances when it ends. Use the controls to hear the audio and review its real duration.',
         photosEyebrow: '15 photos included',
@@ -121,6 +121,7 @@ export default function MultiCameraShow({ price, slots, drops, horizontalSession
     const analyticsPayload = useMemo(() => ({ content_name: copy.title, content_category: 'multi_camera_booking', service_type: 'multi_camera', currency: 'MXN', value: price }), [copy.title, price]);
     const bookingProduct = useMemo<BookingWidgetProduct>(() => ({ checkoutLabel: copy.booking.checkoutLabel, headerTitle: copy.booking.headerTitle, headerDescription: copy.booking.headerDescription, summaryTitle: copy.booking.summaryTitle, summaryDescription: copy.booking.summaryDescription, cartService: copy.booking.cartService, cartDuration: copy.booking.cartDuration, summaryPerks: [...copy.booking.perks], terms: [...copy.booking.terms], paymentCopy: copy.booking.paymentCopy, unavailableWhatsApp: copy.booking.unavailableWhatsApp }), [copy]);
     const videoDrops = useMemo(() => drops.filter((drop) => drop.kind === 'video'), [drops]);
+    const archiveVideoDrops = useMemo(() => [...videoDrops, ...horizontalSessions.filter((drop) => drop.id.includes('track-drop'))], [horizontalSessions, videoDrops]);
     const horizontalVideoDrops = useMemo(() => [...videoDrops.filter((drop) => drop.orientation !== 'vertical'), ...horizontalSessions], [horizontalSessions, videoDrops]);
 
     useEffect(() => {
@@ -161,7 +162,7 @@ export default function MultiCameraShow({ price, slots, drops, horizontalSession
                 <h2 className="mt-4 max-w-3xl font-display text-4xl font-bold leading-[.94] md:text-6xl">{copy.dropsTitle}</h2>
                 <p className="mt-5 max-w-2xl text-white/65">{copy.dropsCopy}</p>
                 </div>
-                <FullBleedVideoCarousel videos={videoDrops} label={copy.dropsEyebrow} labels={carouselLabels} />
+                <FullBleedVideoCarousel videos={archiveVideoDrops} label={copy.dropsEyebrow} labels={carouselLabels} />
             </section>
 
             <section className="relative left-1/2 w-screen -translate-x-1/2 border-y border-border bg-background py-12 md:py-16">
