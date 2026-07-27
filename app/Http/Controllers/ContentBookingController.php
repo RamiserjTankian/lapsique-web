@@ -244,19 +244,25 @@ class ContentBookingController extends Controller
      */
     private function danzahausHorizontalSessions(): array
     {
-        $drops = collect(range(1, 6))->map(function (int $number): array {
-            $slug = '2026-07-27-danzahaus-mauro-drop-0'.$number;
+        $definitions = collect(range(1, 6))->map(fn (int $number): array => [
+            'id' => 'danzahaus-mauro-drop-'.$number,
+            'title' => 'Danzahaus · Mauro Drop '.str_pad((string) $number, 2, '0', STR_PAD_LEFT),
+            'slug' => '2026-07-27-danzahaus-mauro-drop-0'.$number,
+        ])->concat([
+            ['id' => 'danzahaus-track-drop-1', 'title' => 'Danzahaus · Track Drop 01', 'slug' => '2026-07-27-danzahaus-track-drop-01'],
+            ['id' => 'danzahaus-track-drop-2', 'title' => 'Danzahaus · Drop 02', 'slug' => '2026-07-27-danzahaus-track-drop-02'],
+            ['id' => 'danzahaus-track-drop-3', 'title' => 'Danzahaus · Drop 03', 'slug' => '2026-07-27-danzahaus-track-drop-03'],
+            ['id' => 'danzahaus-track-drop-4', 'title' => 'Danzahaus · Drop 04', 'slug' => '2026-07-27-danzahaus-track-drop-04'],
+        ]);
 
-            return [
-                'id' => 'danzahaus-mauro-drop-'.$number,
-                'title' => 'Danzahaus · Mauro Drop '.str_pad((string) $number, 2, '0', STR_PAD_LEFT),
-                'project' => 'Danzahaus',
-                'kind' => 'video',
-                'src' => '/videos/reels/'.$slug.'.mp4',
-                'poster' => '/images/portfolio/video-posters/'.$slug.'.jpg',
-                'orientation' => 'horizontal',
-            ];
-        });
+        $drops = $definitions->map(fn (array $definition): array => [
+            ...$definition,
+            'project' => 'Danzahaus',
+            'kind' => 'video',
+            'src' => '/videos/reels/'.$definition['slug'].'.mp4',
+            'poster' => '/images/portfolio/video-posters/'.$definition['slug'].'.jpg',
+            'orientation' => 'horizontal',
+        ]);
 
         return $drops
             ->filter(fn (array $drop): bool => is_readable(public_path(ltrim($drop['src'], '/'))))
