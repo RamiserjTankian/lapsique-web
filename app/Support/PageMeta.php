@@ -334,8 +334,40 @@ class PageMeta
         $description = self::truncate(__('seo.multi_camera.description', [
             'price' => number_format($price, 0, '.', ','),
         ]));
-        $ogImage = self::staticPublicImageUrl('images/portfolio/video-posters/2026-07-11-mtrx-dumas-a0794b89f7.jpg')
+        $ogImage = self::staticPublicImageUrl('images/og/multicamara.jpg')
             ?? self::defaultOgImageUrl();
+        $videos = [
+            [
+                '@type' => 'VideoObject',
+                '@id' => rtrim($canonicalUrl, '/').'#coverage-video-1',
+                'name' => __('seo.multi_camera.video_names.1'),
+                'description' => __('seo.multi_camera.video_description'),
+                'thumbnailUrl' => [self::staticPublicImageUrl('images/portfolio/video-posters/2026-07-28-multicamera-open-booth-01.jpg')],
+                'contentUrl' => url('/videos/reels/2026-07-28-multicamera-open-booth-01.mp4'),
+                'uploadDate' => '2026-07-28',
+                'duration' => 'PT52S',
+            ],
+            [
+                '@type' => 'VideoObject',
+                '@id' => rtrim($canonicalUrl, '/').'#coverage-video-2',
+                'name' => __('seo.multi_camera.video_names.2'),
+                'description' => __('seo.multi_camera.video_description'),
+                'thumbnailUrl' => [self::staticPublicImageUrl('images/portfolio/video-posters/2026-07-27-danzahaus-mauro-drop-01.jpg')],
+                'contentUrl' => url('/videos/reels/2026-07-27-danzahaus-mauro-drop-01.mp4'),
+                'uploadDate' => '2026-07-27',
+                'duration' => 'PT32S',
+            ],
+            [
+                '@type' => 'VideoObject',
+                '@id' => rtrim($canonicalUrl, '/').'#coverage-video-3',
+                'name' => __('seo.multi_camera.video_names.3'),
+                'description' => __('seo.multi_camera.video_description'),
+                'thumbnailUrl' => [self::staticPublicImageUrl('images/portfolio/video-posters/2026-07-27-danzahaus-track-drop-01.jpg')],
+                'contentUrl' => url('/videos/reels/2026-07-27-danzahaus-track-drop-01.mp4'),
+                'uploadDate' => '2026-07-27',
+                'duration' => 'PT46S',
+            ],
+        ];
 
         return new PageMetaData(
             title: $title,
@@ -360,6 +392,8 @@ class PageMeta
                     [__('seo.multi_camera.faq.areas.question'), __('seo.multi_camera.faq.areas.answer')],
                 ],
                 offerPrice: $price,
+                additionalAreaServed: ['Mérida'],
+                videos: $videos,
             ),
         );
     }
@@ -709,6 +743,8 @@ class PageMeta
 
     /**
      * @param  array<int, array{0: string, 1: string}>  $faq
+     * @param  array<int, string>  $additionalAreaServed
+     * @param  array<int, array<string, mixed>>  $videos
      */
     private static function serviceLandingJsonLd(
         string $canonicalUrl,
@@ -719,8 +755,10 @@ class PageMeta
         string $breadcrumbName,
         array $faq,
         ?int $offerPrice = null,
+        array $additionalAreaServed = [],
+        array $videos = [],
     ): array {
-        $areaServed = [
+        $areaServed = array_values(array_unique(array_merge([
             'Playa del Carmen',
             'Tulum',
             'Cancún',
@@ -730,7 +768,7 @@ class PageMeta
             'Mayakoba',
             'Cozumel',
             'Riviera Maya',
-        ];
+        ], $additionalAreaServed)));
 
         $service = [
             '@type' => 'Service',
@@ -762,52 +800,62 @@ class PageMeta
             ];
         }
 
-        return [
-            '@context' => 'https://schema.org',
-            '@graph' => [
-                [
-                    '@type' => 'Organization',
-                    '@id' => url('/#organization'),
-                    'name' => self::LAPSIQUE_SITE_NAME,
-                    'url' => url('/'),
-                    'logo' => self::staticPublicImageUrl('images/lapsique-media-logo-dark.png') ?? self::defaultOgImageUrl(),
-                    'sameAs' => self::sameAsUrls(),
-                ],
-                $service,
-                [
-                    '@type' => 'BreadcrumbList',
-                    '@id' => rtrim($canonicalUrl, '/').'#breadcrumb',
-                    'itemListElement' => [
-                        [
-                            '@type' => 'ListItem',
-                            'position' => 1,
-                            'name' => 'Inicio',
-                            'item' => url('/'),
-                        ],
-                        [
-                            '@type' => 'ListItem',
-                            'position' => 2,
-                            'name' => $breadcrumbName,
-                            'item' => $canonicalUrl,
-                        ],
+        $graph = [
+            [
+                '@type' => 'Organization',
+                '@id' => url('/#organization'),
+                'name' => self::LAPSIQUE_SITE_NAME,
+                'url' => url('/'),
+                'logo' => self::staticPublicImageUrl('images/lapsique-media-logo-dark.png') ?? self::defaultOgImageUrl(),
+                'sameAs' => self::sameAsUrls(),
+            ],
+            $service,
+            [
+                '@type' => 'BreadcrumbList',
+                '@id' => rtrim($canonicalUrl, '/').'#breadcrumb',
+                'itemListElement' => [
+                    [
+                        '@type' => 'ListItem',
+                        'position' => 1,
+                        'name' => 'Inicio',
+                        'item' => url('/'),
+                    ],
+                    [
+                        '@type' => 'ListItem',
+                        'position' => 2,
+                        'name' => $breadcrumbName,
+                        'item' => $canonicalUrl,
                     ],
                 ],
-                [
-                    '@type' => 'FAQPage',
-                    '@id' => rtrim($canonicalUrl, '/').'#faq',
-                    'mainEntity' => array_map(
-                        fn (array $item): array => [
-                            '@type' => 'Question',
-                            'name' => $item[0],
-                            'acceptedAnswer' => [
-                                '@type' => 'Answer',
-                                'text' => $item[1],
-                            ],
-                        ],
-                        $faq,
-                    ),
-                ],
             ],
+            [
+                '@type' => 'FAQPage',
+                '@id' => rtrim($canonicalUrl, '/').'#faq',
+                'mainEntity' => array_map(
+                    fn (array $item): array => [
+                        '@type' => 'Question',
+                        'name' => $item[0],
+                        'acceptedAnswer' => [
+                            '@type' => 'Answer',
+                            'text' => $item[1],
+                        ],
+                    ],
+                    $faq,
+                ),
+            ],
+        ];
+
+        foreach ($videos as $video) {
+            $graph[] = array_merge($video, [
+                'publisher' => [
+                    '@id' => url('/#organization'),
+                ],
+            ]);
+        }
+
+        return [
+            '@context' => 'https://schema.org',
+            '@graph' => $graph,
         ];
     }
 

@@ -24,7 +24,7 @@ const FALLBACK_IMAGES: Record<PopupVariant, string> = {
     drone: '/images/drone-sessions/hero.jpg',
     construction: '/images/drone-sessions/construction-goba-aerial.jpg',
     eventCoverage: '/images/portfolio/video-posters/2026-07-11-mtrx-dumas-a0794b89f7.jpg',
-    multiCamera: '/images/portfolio/video-posters/2026-07-11-mtrx-dumas-a0794b89f7.jpg',
+    multiCamera: '/images/og/multicamara.jpg',
 };
 
 function firstPortfolioImage(
@@ -109,6 +109,8 @@ export function resolvePopupImage(
                 ? t('funnel.popup.fallback_alt_construction')
                 : variant === 'eventCoverage'
                   ? t('funnel.popup.fallback_alt_event_coverage')
+                : variant === 'multiCamera'
+                  ? t('funnel.popup.fallback_alt_multi_camera')
                 : t('funnel.popup.fallback_alt_home'));
 
     return { url, alt };
@@ -156,6 +158,15 @@ export function getPopupVisualCopy(
             };
         }
 
+        if (variant === 'multiCamera') {
+            return {
+                badge: t('funnel.popup.booking_multi_camera_badge'),
+                title: t('funnel.popup.booking_multi_camera_title'),
+                description: t('funnel.popup.booking_multi_camera_description'),
+                caption: t('funnel.popup.booking_multi_camera_caption'),
+            };
+        }
+
         return {
             badge: t('funnel.popup.booking_home_badge'),
             title: t('funnel.popup.booking_home_title'),
@@ -171,6 +182,15 @@ export function getPopupVisualCopy(
                 title: t('funnel.popup.newsletter_event_coverage_title'),
                 description: t('funnel.popup.newsletter_event_coverage_description'),
                 caption: t('funnel.popup.newsletter_event_coverage_caption'),
+            };
+        }
+
+        if (variant === 'multiCamera') {
+            return {
+                badge: t('funnel.popup.newsletter_multi_camera_badge'),
+                title: t('funnel.popup.newsletter_multi_camera_title'),
+                description: t('funnel.popup.newsletter_multi_camera_description'),
+                caption: t('funnel.popup.newsletter_multi_camera_caption'),
             };
         }
 
@@ -195,6 +215,15 @@ export function getPopupVisualCopy(
             title: t('funnel.popup.whatsapp_event_coverage_title'),
             description: t('funnel.popup.whatsapp_event_coverage_description'),
             caption: t('funnel.popup.whatsapp_event_coverage_caption'),
+        };
+    }
+
+    if (variant === 'multiCamera') {
+        return {
+            badge: t('funnel.popup.whatsapp_badge'),
+            title: t('funnel.popup.whatsapp_multi_camera_title'),
+            description: t('funnel.popup.whatsapp_multi_camera_description'),
+            caption: t('funnel.popup.whatsapp_multi_camera_caption'),
         };
     }
 

@@ -32,7 +32,10 @@ export function SiteImageViewer() {
 
             return Array.from(document.querySelectorAll<HTMLImageElement>(VIEWER_SELECTOR))
                 .filter((image) => {
-                    if (image.closest('a, button, [data-no-lightbox="true"]')) return false;
+                    const explicitTrigger = image.closest('[data-lightbox-trigger="true"]');
+
+                    if (!explicitTrigger && image.closest('a, button, [data-no-lightbox="true"]')) return false;
+                    if (image.closest('[data-no-lightbox="true"]')) return false;
                     if (image.getAttribute('aria-hidden') === 'true') return false;
                     return image.naturalWidth >= 180 || image.width >= 180;
                 })
@@ -49,9 +52,13 @@ export function SiteImageViewer() {
 
         const openFromTarget = (target: EventTarget | null) => {
             if (!(target instanceof Element)) return;
-            const image = target.closest<HTMLImageElement>('img');
+            const explicitTrigger = target.closest<HTMLElement>('[data-lightbox-trigger="true"]');
+            const image = explicitTrigger?.querySelector<HTMLImageElement>('img')
+                ?? target.closest<HTMLImageElement>('img');
+
             if (!image?.matches(VIEWER_SELECTOR)) return;
-            if (image.closest('a, button, [data-no-lightbox="true"]')) return;
+            if (!explicitTrigger && image.closest('a, button, [data-no-lightbox="true"]')) return;
+            if (image.closest('[data-no-lightbox="true"]')) return;
 
             const nextImages = collectImages();
             const src = image.currentSrc || image.src;
@@ -120,7 +127,7 @@ export function SiteImageViewer() {
                 <img src={active.src} alt={active.alt} className="max-h-full max-w-full object-contain" />
                 <div className="absolute left-4 top-4 inline-flex items-center gap-2 bg-black/65 px-3 py-2 font-mono text-[10px] uppercase tracking-[0.16em] text-white/75">
                     <ZoomIn className="size-3.5" />
-                    {activeIndex + 1} / {images.length}
+                    {(activeIndex ?? 0) + 1} / {images.length}
                 </div>
             </div>
 

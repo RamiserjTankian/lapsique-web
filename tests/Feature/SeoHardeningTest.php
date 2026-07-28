@@ -98,22 +98,37 @@ class SeoHardeningTest extends TestCase
     public function test_multicamera_landing_is_public_canonical_and_exposes_real_event_material(): void
     {
         $canonicalUrl = route('multi-camera.show');
+        $ogImage = route('home').'/images/og/multicamara.jpg';
 
         $this->get($canonicalUrl)
             ->assertOk()
             ->assertSee('data-inertia="canonical" rel="canonical" href="'.$canonicalUrl.'"', false)
+            ->assertSee('data-inertia="og-image" property="og:image" content="'.$ogImage.'"', false)
             ->assertInertia(fn ($page) => $page
                 ->component('MultiCamera/Show')
                 ->where('price', 5000)
                 ->where('seo.canonicalUrl', $canonicalUrl)
+                ->where('seo.ogImage', $ogImage)
                 ->where('seo.noindex', false)
-                ->has('drops', 10)
-                ->where('drops.0.orientation', 'horizontal')
-                ->where('drops.2.orientation', 'vertical')
-                ->has('horizontalSessions', 10)
-                ->where('horizontalSessions.0.project', 'Danzahaus')
-                ->where('horizontalSessions.0.orientation', 'horizontal')
-                ->has('photos', 15));
+                ->has('coverages', 4)
+                ->where('coverages.0.id', 'coverage-01')
+                ->has('coverages.0.videos', 6)
+                ->has('coverages.0.photos', 4)
+                ->where('coverages.1.id', 'coverage-02')
+                ->has('coverages.1.videos', 10)
+                ->has('coverages.1.photos', 4)
+                ->where('coverages.2.id', 'coverage-03')
+                ->has('coverages.2.videos', 4)
+                ->has('coverages.2.vertical_videos', 4)
+                ->has('coverages.2.photos', 5)
+                ->where('coverages.3.id', 'coverage-04')
+                ->has('coverages.3.videos', 2)
+                ->has('coverages.3.photos', 6)
+                ->where('heroVideo.id', 'coverage-01-video-01')
+                ->has('photos', 19)
+                ->where('seo.jsonLd.@graph.4.@type', 'VideoObject')
+                ->where('seo.jsonLd.@graph.5.@type', 'VideoObject')
+                ->where('seo.jsonLd.@graph.6.@type', 'VideoObject'));
 
         $this->get(route('sitemap'))
             ->assertOk()

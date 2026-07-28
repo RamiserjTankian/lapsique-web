@@ -34,6 +34,14 @@ class BookingLandingAnalyticsServiceTest extends TestCase
         $this->assertContains('electronic_event_coverage_booking_opened', $events);
         $this->assertContains('electronic_event_coverage_booking_cta_clicked', $events);
         $this->assertContains('electronic_event_coverage_whatsapp_cta_clicked', $events);
+        $this->assertContains('multi_camera_portfolio_engaged', $events);
+        $this->assertContains('multi_camera_coverage_selected', $events);
+        $this->assertContains('multi_camera_format_selected', $events);
+        $this->assertContains('multi_camera_video_started', $events);
+        $this->assertContains('multi_camera_video_progress', $events);
+        $this->assertContains('multi_camera_video_completed', $events);
+        $this->assertContains('multi_camera_gear_viewed', $events);
+        $this->assertContains('multi_camera_package_viewed', $events);
 
         foreach (BookingLandingAnalyticsService::contactEventNames() as $contactEvent) {
             $this->assertContains($contactEvent, $events);
@@ -62,6 +70,7 @@ class BookingLandingAnalyticsServiceTest extends TestCase
             '/avances-de-obra',
             '/portafolio',
             '/trabajos-en-video',
+            '/multicamara',
         ], BookingLandingAnalyticsService::LANDING_PATHS);
     }
 }

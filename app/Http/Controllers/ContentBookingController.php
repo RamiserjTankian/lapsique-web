@@ -124,13 +124,35 @@ class ContentBookingController extends Controller
         abort_if(config('trascendental.enabled_as_primary'), 404);
 
         $data = $this->bookingPageData();
-        $photos = $this->multiCameraPhotos();
+        $coverages = $this->multiCameraCoverages();
+        $photos = collect($coverages)
+            ->flatMap(fn (array $coverage): array => $coverage['photos'])
+            ->unique('src')
+            ->values()
+            ->map(fn (array $photo, int $index): array => [
+                'id' => 'multi-camera-photo-'.($index + 1),
+                'title' => null,
+                'slug' => $photo['id'],
+                'type' => 'photo',
+                'source' => 'public',
+                'caption' => null,
+                'asset_url' => asset(ltrim($photo['src'], '/')),
+                'poster_url' => asset(ltrim($photo['src'], '/')),
+                'playback_url' => null,
+                'embed_url' => null,
+                'youtube_id' => null,
+                'youtube_url' => null,
+                'media_type' => 'image',
+                'is_featured' => $index < 8,
+                'orientation' => $photo['orientation'],
+            ])
+            ->all();
 
         return Inertia::render('MultiCamera/Show', [
             'price' => ContentBooking::amountForService(ContentBooking::SERVICE_MULTI_CAMERA),
             'slots' => BookingSlotResource::collection($data['slots'])->resolve(),
-            'drops' => $this->multiCameraDrops($photos),
-            'horizontalSessions' => $this->danzahausHorizontalSessions(),
+            'coverages' => $coverages,
+            'heroVideo' => data_get($coverages, '0.videos.0'),
             'photos' => $photos,
             'errors' => session('errors')?->getBag('default')?->getMessages() ?? [],
         ]);
@@ -236,122 +258,194 @@ class ContentBookingController extends Controller
     }
 
     /**
-     * Real horizontal Danzahaus drops supplied for the Psique Sessions archive.
-     * They stay separate from the ten-drop package so the commercial promise
-     * and the editorial horizontal carousel can evolve independently.
-     *
-     * @return array<int, array{id: string, title: string, project: string, kind: 'video', src: string, poster: string|null, orientation: 'horizontal'}>
-     */
-    private function danzahausHorizontalSessions(): array
-    {
-        $definitions = collect(range(1, 6))->map(fn (int $number): array => [
-            'id' => 'danzahaus-mauro-drop-'.$number,
-            'title' => 'Danzahaus · Mauro Drop '.str_pad((string) $number, 2, '0', STR_PAD_LEFT),
-            'slug' => '2026-07-27-danzahaus-mauro-drop-0'.$number,
-        ])->concat([
-            ['id' => 'danzahaus-track-drop-1', 'title' => 'Danzahaus · Track Drop 01', 'slug' => '2026-07-27-danzahaus-track-drop-01'],
-            ['id' => 'danzahaus-track-drop-2', 'title' => 'Danzahaus · Drop 02', 'slug' => '2026-07-27-danzahaus-track-drop-02'],
-            ['id' => 'danzahaus-track-drop-3', 'title' => 'Danzahaus · Drop 03', 'slug' => '2026-07-27-danzahaus-track-drop-03'],
-            ['id' => 'danzahaus-track-drop-4', 'title' => 'Danzahaus · Drop 04', 'slug' => '2026-07-27-danzahaus-track-drop-04'],
-        ]);
-
-        $drops = $definitions->map(fn (array $definition): array => [
-            ...$definition,
-            'project' => 'Danzahaus',
-            'kind' => 'video',
-            'src' => '/videos/reels/'.$definition['slug'].'.mp4',
-            'poster' => '/images/portfolio/video-posters/'.$definition['slug'].'.jpg',
-            'orientation' => 'horizontal',
-        ]);
-
-        return $drops
-            ->filter(fn (array $drop): bool => is_readable(public_path(ltrim($drop['src'], '/'))))
-            ->map(fn (array $drop): array => [
-                ...$drop,
-                'poster' => is_readable(public_path(ltrim($drop['poster'], '/'))) ? $drop['poster'] : null,
-            ])
-            ->values()
-            ->all();
-    }
-
-    /**
-     * Curated, public event stills for the multicamera landing. These are the
-     * current MTRX/Karen Echev productions plus five real nightlife archive
-     * frames so the promised 15-photo delivery is visible without inventing
-     * material.
+     * Every group below was matched visually before being included. Public copy
+     * is editorial and never generated from a source filename or folder name.
      *
      * @return array<int, array<string, mixed>>
      */
-    private function multiCameraPhotos(): array
+    private function multiCameraCoverages(): array
     {
-        $items = [
-            ['2026-07-11-mtrx-pista-58db81e520.webp', 'MTRX · Pista', 'horizontal'],
-            ['2026-07-11-mtrx-entrada-137e44b9ea.webp', 'MTRX · Entrada', 'vertical'],
-            ['2026-07-11-mtrx-cabina-9b4907c016.webp', 'MTRX · Cabina', 'horizontal'],
-            ['2026-07-11-mtrx-luces-274377584b.webp', 'MTRX · Luces', 'horizontal'],
-            ['2026-07-11-mtrx-mauro-dumas-46d0e76d5e.webp', 'MTRX · Mauro Dumas', 'horizontal'],
-            ['2026-07-11-mtrx-mauro-02e4149d8f.webp', 'MTRX · Mauro', 'vertical'],
-            ['2026-07-13-karen-echev-set-96c4894e43.webp', 'Karen Echev · Set', 'horizontal'],
-            ['2026-07-13-karen-echev-cabina-cb42e7b31c.webp', 'Karen Echev · Cabina', 'horizontal'],
-            ['2026-07-13-karen-echev-publico-d1d43e559e.webp', 'Karen Echev · Público', 'horizontal'],
-            ['2026-07-13-karen-echev-banderas-ccc898e739.webp', 'Karen Echev · Banderas', 'vertical'],
-            ['083-rebolledo-6303cc8117.webp', 'Rebolledo · Archivo', 'vertical'],
-            ['081-proper-collective-8795ef25a1.webp', 'Proper Collective · Archivo', 'vertical'],
-            ['067-fotos-proper-54490411c4.webp', 'Proper · Archivo', 'horizontal'],
-            ['034-santino-on-heaven-22-de-marzo-afac794f4e.webp', 'Santino · On Heaven', 'vertical'],
-            ['084-rebolledo-aca3815016.webp', 'Rebolledo · Archivo', 'horizontal'],
-        ];
+        $openBoothVideos = collect(range(1, 6))
+            ->map(fn (int $number): array => $this->multiCameraVideo(
+                coverage: 'coverage-01',
+                number: $number,
+                src: '/videos/reels/2026-07-28-multicamera-open-booth-'.str_pad((string) $number, 2, '0', STR_PAD_LEFT).'.mp4',
+                poster: '/images/portfolio/video-posters/2026-07-28-multicamera-open-booth-'.str_pad((string) $number, 2, '0', STR_PAD_LEFT).'.jpg',
+            ))
+            ->filter()
+            ->values()
+            ->all();
 
+        $danzahausVideos = collect(range(1, 10))
+            ->map(function (int $number): array {
+                $slug = $number <= 6
+                    ? '2026-07-27-danzahaus-mauro-drop-'.str_pad((string) $number, 2, '0', STR_PAD_LEFT)
+                    : '2026-07-28-multicamera-danzahaus-'.str_pad((string) $number, 2, '0', STR_PAD_LEFT);
+
+                return $this->multiCameraVideo(
+                    coverage: 'coverage-02',
+                    number: $number,
+                    src: '/videos/reels/'.$slug.'.mp4',
+                    poster: '/images/portfolio/video-posters/'.$slug.'.jpg',
+                );
+            })
+            ->filter()
+            ->values()
+            ->all();
+
+        $campaignHorizontalVideos = collect(range(1, 4))
+            ->map(fn (int $number): array => $this->multiCameraVideo(
+                coverage: 'coverage-03-horizontal',
+                number: $number,
+                src: '/videos/reels/2026-07-27-danzahaus-track-drop-'.str_pad((string) $number, 2, '0', STR_PAD_LEFT).'.mp4',
+                poster: '/images/portfolio/video-posters/2026-07-27-danzahaus-track-drop-'.str_pad((string) $number, 2, '0', STR_PAD_LEFT).'.jpg',
+            ))
+            ->filter()
+            ->values()
+            ->all();
+
+        $campaignVerticalVideos = collect(range(1, 4))
+            ->map(fn (int $number): array => $this->multiCameraVideo(
+                coverage: 'coverage-03-vertical',
+                number: $number,
+                src: '/videos/reels/2026-07-28-multicamera-social-'.str_pad((string) $number, 2, '0', STR_PAD_LEFT).'.mp4',
+                poster: '/images/portfolio/video-posters/2026-07-28-multicamera-social-'.str_pad((string) $number, 2, '0', STR_PAD_LEFT).'.jpg',
+                orientation: 'vertical',
+            ))
+            ->filter()
+            ->values()
+            ->all();
+
+        $mtrxVideos = collect($this->electronicEventCoverageReels())
+            ->where('orientation', 'horizontal')
+            ->values()
+            ->map(fn (array $video, int $index): array => [
+                'id' => 'coverage-04-video-'.str_pad((string) ($index + 1), 2, '0', STR_PAD_LEFT),
+                'src' => $video['src'],
+                'poster' => $video['poster'],
+                'orientation' => 'horizontal',
+                'has_audio' => false,
+            ])
+            ->all();
+
+        return [
+            [
+                'id' => 'coverage-01',
+                'name' => ['es' => 'Cabina abierta', 'en' => 'Open booth'],
+                'context' => ['es' => 'Set continuo · salida horizontal', 'en' => 'Continuous set · horizontal output'],
+                'summary' => [
+                    'es' => 'Seis cortes de una misma noche: cabina, cambios de energía y reacción de pista.',
+                    'en' => 'Six cuts from one night: booth, energy changes, and dance-floor response.',
+                ],
+                'videos' => $openBoothVideos,
+                'vertical_videos' => [],
+                'photos' => $this->multiCameraPhotosFor(
+                    'coverage-01',
+                    collect(range(1, 4))->map(fn (int $number): array => [
+                        '/images/portfolio/photos/2026-07-28-multicamera-open-booth-still-'.str_pad((string) $number, 2, '0', STR_PAD_LEFT).'.webp',
+                        'horizontal',
+                        'film_still',
+                    ])->all(),
+                ),
+            ],
+            [
+                'id' => 'coverage-02',
+                'name' => ['es' => 'Danzahaus', 'en' => 'Danzahaus'],
+                'context' => ['es' => 'Salón interior · salida horizontal', 'en' => 'Indoor room · horizontal output'],
+                'summary' => [
+                    'es' => 'Diez piezas completas con el mismo lenguaje visual y el audio original de la sesión.',
+                    'en' => 'Ten complete pieces with one visual language and the session’s original audio.',
+                ],
+                'videos' => $danzahausVideos,
+                'vertical_videos' => [],
+                'photos' => $this->multiCameraPhotosFor(
+                    'coverage-02',
+                    collect(range(1, 4))->map(fn (int $number): array => [
+                        '/images/portfolio/photos/2026-07-28-multicamera-danzahaus-still-'.str_pad((string) $number, 2, '0', STR_PAD_LEFT).'.webp',
+                        'horizontal',
+                        'film_still',
+                    ])->all(),
+                ),
+            ],
+            [
+                'id' => 'coverage-03',
+                'name' => ['es' => 'Pista nocturna', 'en' => 'Night floor'],
+                'context' => ['es' => 'Una cobertura · dos formatos', 'en' => 'One coverage · two formats'],
+                'summary' => [
+                    'es' => 'La misma sesión entregada en horizontal para archivo y vertical para reels y pauta.',
+                    'en' => 'The same session delivered horizontally for archive and vertically for reels and ads.',
+                ],
+                'videos' => $campaignHorizontalVideos,
+                'vertical_videos' => $campaignVerticalVideos,
+                'photos' => $this->multiCameraPhotosFor('coverage-03', [
+                    ['/images/portfolio/photos/2026-07-28-multicamera-campaign-photo-01.webp', 'horizontal', 'photograph'],
+                    ['/images/portfolio/photos/2026-07-28-multicamera-campaign-photo-02.webp', 'horizontal', 'photograph'],
+                    ['/images/portfolio/photos/2026-07-28-multicamera-campaign-photo-03.webp', 'horizontal', 'photograph'],
+                    ['/images/portfolio/photos/2026-07-13-karen-echev-set-96c4894e43.webp', 'horizontal', 'photograph'],
+                    ['/images/portfolio/photos/2026-07-13-karen-echev-publico-d1d43e559e.webp', 'horizontal', 'photograph'],
+                ]),
+            ],
+            [
+                'id' => 'coverage-04',
+                'name' => ['es' => 'MTRX', 'en' => 'MTRX'],
+                'context' => ['es' => 'Cabina, público y espacio', 'en' => 'Booth, crowd, and venue'],
+                'summary' => [
+                    'es' => 'Una lectura completa de la fecha: entrada, pista, cabina, iluminación y artistas.',
+                    'en' => 'A complete read of the night: entrance, floor, booth, lighting, and artists.',
+                ],
+                'videos' => $mtrxVideos,
+                'vertical_videos' => [],
+                'photos' => $this->multiCameraPhotosFor('coverage-04', [
+                    ['/images/portfolio/photos/2026-07-11-mtrx-pista-58db81e520.webp', 'horizontal', 'photograph'],
+                    ['/images/portfolio/photos/2026-07-11-mtrx-entrada-137e44b9ea.webp', 'vertical', 'photograph'],
+                    ['/images/portfolio/photos/2026-07-11-mtrx-cabina-9b4907c016.webp', 'horizontal', 'photograph'],
+                    ['/images/portfolio/photos/2026-07-11-mtrx-luces-274377584b.webp', 'horizontal', 'photograph'],
+                    ['/images/portfolio/photos/2026-07-11-mtrx-mauro-dumas-46d0e76d5e.webp', 'horizontal', 'photograph'],
+                    ['/images/portfolio/photos/2026-07-11-mtrx-mauro-02e4149d8f.webp', 'vertical', 'photograph'],
+                ]),
+            ],
+        ];
+    }
+
+    /**
+     * @return array{id: string, src: string, poster: string|null, orientation: string, has_audio: bool}
+     */
+    private function multiCameraVideo(
+        string $coverage,
+        int $number,
+        string $src,
+        string $poster,
+        string $orientation = 'horizontal',
+    ): array {
+        if (! is_readable(public_path(ltrim($src, '/')))) {
+            return [];
+        }
+
+        return [
+            'id' => $coverage.'-video-'.str_pad((string) $number, 2, '0', STR_PAD_LEFT),
+            'src' => $src,
+            'poster' => is_readable(public_path(ltrim($poster, '/'))) ? $poster : null,
+            'orientation' => $orientation,
+            'has_audio' => true,
+        ];
+    }
+
+    /**
+     * @param  array<int, array{0: string, 1: string, 2: string}>  $items
+     * @return array<int, array{id: string, src: string, orientation: string, kind: string}>
+     */
+    private function multiCameraPhotosFor(string $coverage, array $items): array
+    {
         return collect($items)
-            ->filter(fn (array $item): bool => is_readable(public_path('images/portfolio/photos/'.$item[0])))
+            ->filter(fn (array $item): bool => is_readable(public_path(ltrim($item[0], '/'))))
             ->values()
             ->map(fn (array $item, int $index): array => [
-                'id' => 'multi-camera-photo-'.($index + 1),
-                'title' => $item[1],
-                'slug' => pathinfo($item[0], PATHINFO_FILENAME),
-                'type' => 'photo',
-                'source' => 'public',
-                'caption' => $item[1],
-                'asset_url' => asset('images/portfolio/photos/'.$item[0]),
-                'poster_url' => asset('images/portfolio/photos/'.$item[0]),
-                'playback_url' => null,
-                'embed_url' => null,
-                'youtube_id' => null,
-                'youtube_url' => null,
-                'media_type' => 'image',
-                'is_featured' => $index < 10,
-                'orientation' => $item[2],
+                'id' => $coverage.'-photo-'.str_pad((string) ($index + 1), 2, '0', STR_PAD_LEFT),
+                'src' => $item[0],
+                'orientation' => $item[1],
+                'kind' => $item[2],
             ])
             ->all();
-    }
-
-    /**
-     * @param array<int, array<string, mixed>> $photos
-     * @return array<int, array<string, mixed>>
-     */
-    private function multiCameraDrops(array $photos): array
-    {
-        $videoDrops = collect($this->electronicEventCoverageReels())
-            ->map(fn (array $reel): array => [
-                'id' => 'drop-'.$reel['id'],
-                'title' => $reel['title'],
-                'project' => str_contains($reel['id'], 'karen') ? 'Karen Echev' : 'MTRX',
-                'kind' => 'video',
-                'src' => $reel['src'],
-                'poster' => $reel['poster'],
-                'orientation' => $reel['orientation'],
-            ]);
-
-        $frameDrops = collect($photos)->take(6)->values()->map(fn (array $photo, int $index): array => [
-            'id' => 'drop-frame-'.($index + 5),
-            'title' => 'Frame '.str_pad((string) ($index + 5), 2, '0', STR_PAD_LEFT).' · '.$photo['title'],
-            'project' => $photo['title'],
-            'kind' => 'image',
-            'src' => $photo['asset_url'],
-            'poster' => $photo['poster_url'],
-        ]);
-
-        return $videoDrops->concat($frameDrops)->values()->all();
     }
 
     /**

@@ -674,15 +674,30 @@ video[data-lapsique-autoplay]::-webkit-media-controls-play-button {
 .multicam-fullbleed-video {
     display: block;
     width: 100%;
-    height: min(72vh, 48rem);
+    aspect-ratio: 16 / 9;
+    height: auto;
+    max-height: min(82svh, 56rem);
     background: #050607;
-    object-fit: cover;
+    object-fit: contain;
+}
+
+.multicam-video-shell:fullscreen {
+    display: flex;
+    width: 100vw;
+    height: 100vh;
+    align-items: center;
+    justify-content: center;
+    background: #050607;
+}
+
+.multicam-video-shell:fullscreen .multicam-fullbleed-video {
+    max-height: 100vh;
 }
 
 .multicam-video-control {
     display: inline-flex;
-    width: 2.25rem;
-    height: 2.25rem;
+    width: 2.75rem;
+    height: 2.75rem;
     align-items: center;
     justify-content: center;
     border: 1px solid rgb(255 255 255 / 0.28);
