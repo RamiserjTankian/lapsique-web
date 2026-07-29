@@ -24,7 +24,6 @@ export function buildSiteNavigation(
     locale: string,
 ): SiteNavigation {
     const en = locale === 'en';
-    const home = route('home', undefined, false, ziggy);
     const videos = route('videos.index', undefined, false, ziggy);
 
     return {
@@ -78,7 +77,7 @@ export function buildSiteNavigation(
                         id: 'business-reels',
                         label: en ? 'Reels for business' : 'Reels para negocios',
                         description: en ? 'Commercial content built for ads.' : 'Contenido comercial pensado para anuncios.',
-                        href: `${home}#servicios`,
+                        href: route('business-reels.show', undefined, false, ziggy),
                     },
                     {
                         id: 'food-reels',

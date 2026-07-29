@@ -8,6 +8,7 @@ import { useTranslations } from '@/hooks/useTranslations';
 import { markWhatsAppPopupSeen } from '@/lib/funnelModalEvents';
 import { openBookingModal } from '@/lib/openBookingModal';
 import {
+    getPopupWhatsAppPrefillKey,
     getPopupVisualCopy,
     resolvePopupImage,
     type PopupVariant,
@@ -52,9 +53,7 @@ export function WhatsAppCaptureModal({
             return '';
         }
 
-        const prefillKey = variant === 'djset' ? 'funnel.whatsapp.prefill_djset' : 'funnel.whatsapp.prefill_home';
-
-        return `https://wa.me/${site.whatsapp}?text=${encodeURIComponent(t(prefillKey))}`;
+        return `https://wa.me/${site.whatsapp}?text=${encodeURIComponent(t(getPopupWhatsAppPrefillKey(variant)))}`;
     }, [site.whatsapp, t, variant]);
 
     useEffect(() => {

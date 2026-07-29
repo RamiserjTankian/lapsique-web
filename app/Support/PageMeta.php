@@ -47,6 +47,7 @@ class PageMeta
             'construction-progress.show' => self::forConstructionProgress($canonicalUrl),
             'food-reels.show' => self::forFoodReels($settings, $canonicalUrl),
             'content-creation.show' => self::forContentCreation($settings, $canonicalUrl),
+            'business-reels.show' => self::forBusinessReels($settings, $canonicalUrl),
             'electronic-event-coverage.show' => self::forElectronicEventCoverage($canonicalUrl),
             'multi-camera.show' => self::forMultiCamera($canonicalUrl),
             'djs.show' => self::forDj($request->route('dj'), $canonicalUrl),
@@ -115,14 +116,23 @@ class PageMeta
 
     public static function forDjSet(?SiteSetting $settings, string $canonicalUrl): PageMetaData
     {
-        $price = (int) config('booking.dj_set_price', 10000);
-        $title = __('seo.djset.title');
-        $metaTitle = "{$title} · ".self::siteName();
-        $description = self::truncate(
-            __('seo.djset.description', ['price' => number_format($price, 0, '.', ',')]),
+        $title = self::localized(
+            'Grabación cinematográfica de DJ sets en Riviera Maya',
+            'Cinematic DJ set recording in Riviera Maya',
+        );
+        $metaTitle = self::localized(
+            'Graba tu DJ set en Riviera Maya | Lapsique',
+            'Record your DJ set in Riviera Maya | Lapsique',
+        );
+        $description = self::localized(
+            'Video continuo, piezas cortas, audio de cabina y fotografía editorial para presentar tu DJ set a promotores, venues y audiencia.',
+            'Continuous video, short edits, booth audio, and editorial photography to present your DJ set to promoters, venues, and audiences.',
         );
         $ogImage = self::djsetOgImageUrl($settings);
-        $ogImageAlt = __('seo.djset.og_alt');
+        $ogImageAlt = self::localized(
+            'DJ set documentado por Lapsique Media en Riviera Maya',
+            'DJ set documented by Lapsique Media in Riviera Maya',
+        );
 
         return new PageMetaData(
             title: $title,
@@ -132,18 +142,42 @@ class PageMeta
             ogType: 'website',
             ogImage: $ogImage,
             ogImageAlt: $ogImageAlt,
-            keywords: __('seo.djset.keywords'),
+            keywords: self::localized(
+                'grabación de DJ set Riviera Maya, video DJ set Tulum, contenido para DJs, fotografía nightlife, Psique Sessions',
+                'DJ set recording Riviera Maya, DJ set video Tulum, content for DJs, nightlife photography, Psique Sessions',
+            ),
             jsonLd: self::serviceLandingJsonLd(
                 canonicalUrl: $canonicalUrl,
                 title: $title,
                 description: $description,
-                serviceType: 'Producción y grabación audiovisual de DJ set',
+                serviceType: self::localized(
+                    'Producción y grabación audiovisual de DJ sets',
+                    'Audiovisual production and recording for DJ sets',
+                ),
                 ogImage: $ogImage,
-                breadcrumbName: 'Grabación de DJ set',
+                breadcrumbName: self::localized('Grabación de DJ set', 'DJ set recording'),
                 faq: [
-                    ['Cuánto dura la grabación?', 'La producción contempla hasta cuatro horas de set y una edición principal de hasta dos horas, según la propuesta acordada.'],
-                    ['Incluye audio del mixer?', 'Sí. Capturamos la señal del mixer y audio ambiente para construir una mezcla con energía de cabina.'],
-                    ['Incluye dron?', 'Puede incluir tomas de dron cuando la ubicación, el clima y las condiciones de seguridad permiten volar.'],
+                    [
+                        self::localized('¿Cuánto dura la grabación?', 'How long does the recording last?'),
+                        self::localized(
+                            'La duración se define según el set, el venue y las piezas acordadas antes de grabar.',
+                            'The duration is defined around the set, venue, and deliverables agreed before filming.',
+                        ),
+                    ],
+                    [
+                        self::localized('¿Incluye audio del mixer?', 'Does it include mixer audio?'),
+                        self::localized(
+                            'Sí. Capturamos la señal del mixer y audio ambiente para construir una mezcla con energía de cabina.',
+                            'Yes. We capture the mixer signal and room audio to build a mix that preserves the booth energy.',
+                        ),
+                    ],
+                    [
+                        self::localized('¿Incluye piezas cortas para redes?', 'Does it include short edits for social media?'),
+                        self::localized(
+                            'Sí. La propuesta puede incluir drops, fotografías y un video continuo según el paquete y los formatos acordados.',
+                            'Yes. The proposal can include drops, photographs, and a continuous video based on the package and agreed formats.',
+                        ),
+                    ],
                 ],
             ),
         );
@@ -151,31 +185,70 @@ class PageMeta
 
     public static function forDroneSession(string $canonicalUrl): PageMetaData
     {
-        $title = 'Sesiones de dron en Riviera Maya para hoteles y propiedades';
-        $description = 'Video y fotografía con dron para hoteles, villas, restaurantes, eventos, propiedades e inmobiliarias en Playa del Carmen, Tulum, Cancún y Riviera Maya.';
+        $title = self::localized(
+            'Vuelos con dron para propiedades y campañas en Riviera Maya',
+            'Drone filming for properties and campaigns in Riviera Maya',
+        );
+        $description = self::localized(
+            'Video y fotografía aérea para hoteles, villas, yates, terrenos, venues y campañas en Playa del Carmen, Tulum, Cancún y Riviera Maya.',
+            'Aerial video and photography for hotels, villas, yachts, land, venues, and campaigns in Playa del Carmen, Tulum, Cancun, and Riviera Maya.',
+        );
         $ogImage = self::absoluteImageUrl('/images/drone-sessions/hero.jpg');
 
         return new PageMetaData(
             title: $title,
-            metaTitle: "{$title} | Lapsique",
+            metaTitle: self::localized(
+                'Vuelos con dron en Riviera Maya | Lapsique',
+                'Drone filming in Riviera Maya | Lapsique',
+            ),
             description: $description,
             canonicalUrl: $canonicalUrl,
             ogType: 'website',
             ogImage: $ogImage,
-            ogImageAlt: 'Toma aérea con dron para hotel o propiedad en Riviera Maya',
-            keywords: 'sesiones de dron riviera maya, video con dron playa del carmen, dron para hoteles tulum, tomas aéreas cancún, video dron inmobiliario riviera maya',
+            ogImageAlt: self::localized(
+                'Toma aérea con dron para una propiedad en Riviera Maya',
+                'Aerial drone view of a property in Riviera Maya',
+            ),
+            keywords: self::localized(
+                'vuelos con dron Riviera Maya, video con dron Playa del Carmen, dron para hoteles Tulum, tomas aéreas Cancún, video inmobiliario',
+                'drone filming Riviera Maya, drone video Playa del Carmen, hotel drone Tulum, aerial video Cancun, real estate video',
+            ),
             jsonLd: self::serviceLandingJsonLd(
                 canonicalUrl: $canonicalUrl,
-                title: 'Sesiones de dron para hoteles, propiedades y negocios',
-                description: 'Tomas aéreas con dron para hoteles, villas, restaurantes, eventos, propiedades, inmobiliarias y proyectos comerciales en Riviera Maya.',
-                serviceType: 'Video y fotografía aérea con dron',
+                title: $title,
+                description: $description,
+                serviceType: self::localized('Video y fotografía aérea con dron', 'Aerial drone video and photography'),
                 ogImage: $ogImage,
-                breadcrumbName: 'Sesiones de dron',
+                breadcrumbName: self::localized('Vuelos con dron', 'Drone filming'),
                 faq: [
-                    ['El dron depende del clima?', 'Sí. La sesión puede depender de viento, lluvia, ubicación y condiciones de seguridad. Antes de confirmar revisamos la viabilidad.'],
-                    ['Puedo pedir video vertical y horizontal?', 'Sí. Podemos entregar material vertical para redes y horizontal para web, YouTube, presentaciones o pantallas.'],
-                    ['Sirve para Airbnb o villas?', 'Sí. Las tomas de dron ayudan a mostrar ubicación, entorno, acceso y valor visual de propiedades y villas.'],
-                    ['Pueden combinar dron con cámara en tierra?', 'Sí. Para proyectos comerciales conviene combinar tomas aéreas con detalles en tierra para contar mejor la experiencia.'],
+                    [
+                        self::localized('¿El vuelo depende del clima?', 'Does the flight depend on weather?'),
+                        self::localized(
+                            'Sí. Antes de confirmar revisamos viento, lluvia, ubicación y condiciones de seguridad.',
+                            'Yes. Before confirming, we review wind, rain, location, and safety conditions.',
+                        ),
+                    ],
+                    [
+                        self::localized('¿Puedo pedir video vertical y horizontal?', 'Can I request vertical and horizontal video?'),
+                        self::localized(
+                            'Sí. Podemos entregar material vertical para redes y horizontal para web, YouTube, presentaciones o pantallas.',
+                            'Yes. We can deliver vertical material for social media and horizontal material for web, YouTube, presentations, or screens.',
+                        ),
+                    ],
+                    [
+                        self::localized('¿Sirve para hoteles, villas o yates?', 'Is it suitable for hotels, villas, or yachts?'),
+                        self::localized(
+                            'Sí. Las tomas aéreas muestran ubicación, entorno, acceso, escala y valor visual.',
+                            'Yes. Aerial views show location, surroundings, access, scale, and visual value.',
+                        ),
+                    ],
+                    [
+                        self::localized('¿Pueden combinar dron con cámara en tierra?', 'Can drone footage be combined with ground cameras?'),
+                        self::localized(
+                            'Sí. Combinamos tomas aéreas y detalles en tierra cuando el proyecto necesita contar una experiencia completa.',
+                            'Yes. We combine aerial footage and ground details when the project needs to tell a complete story.',
+                        ),
+                    ],
                 ],
             ),
         );
@@ -183,31 +256,70 @@ class PageMeta
 
     public static function forConstructionProgress(string $canonicalUrl): PageMetaData
     {
-        $title = 'Avances de obra con dron, foto y video en Riviera Maya';
-        $description = 'Documentación audiovisual de avances de obra para constructoras, arquitectos y desarrolladoras en Playa del Carmen, Tulum, Cancún y Riviera Maya.';
+        $title = self::localized(
+            'Avances de obra con dron, foto y video en Riviera Maya',
+            'Construction progress with drone, photo, and video in Riviera Maya',
+        );
+        $description = self::localized(
+            'Documentación audiovisual por etapas para constructoras, arquitectos y desarrolladoras en Playa del Carmen, Tulum, Cancún y Riviera Maya.',
+            'Stage-by-stage audiovisual documentation for builders, architects, and developers in Playa del Carmen, Tulum, Cancun, and Riviera Maya.',
+        );
         $ogImage = self::absoluteImageUrl('/images/drone-sessions/construction-goba-aerial.jpg');
 
         return new PageMetaData(
             title: $title,
-            metaTitle: "{$title} | Lapsique",
+            metaTitle: self::localized(
+                'Avances de obra con dron | Lapsique',
+                'Drone construction progress | Lapsique',
+            ),
             description: $description,
             canonicalUrl: $canonicalUrl,
             ogType: 'website',
             ogImage: $ogImage,
-            ogImageAlt: 'Avance de obra con dron en Riviera Maya documentado por Lapsique Media',
-            keywords: 'avances de obra con dron riviera maya, seguimiento de obra playa del carmen, video de construcción tulum, fotografía de obra cancún, documentación audiovisual de obra',
+            ogImageAlt: self::localized(
+                'Avance de obra documentado con dron en Riviera Maya',
+                'Construction progress documented by drone in Riviera Maya',
+            ),
+            keywords: self::localized(
+                'avances de obra con dron Riviera Maya, seguimiento de obra Playa del Carmen, video de construcción Tulum, fotografía de obra Cancún',
+                'construction progress drone Riviera Maya, construction monitoring Playa del Carmen, construction video Tulum, site photography Cancun',
+            ),
             jsonLd: self::serviceLandingJsonLd(
                 canonicalUrl: $canonicalUrl,
                 title: $title,
-                description: 'Documentación audiovisual de avances de obra con fotografía, video y dron para constructoras, arquitectos, desarrolladoras e inmobiliarias en Riviera Maya.',
-                serviceType: 'Documentación audiovisual de construcción',
+                description: $description,
+                serviceType: self::localized('Documentación audiovisual de construcción', 'Construction audiovisual documentation'),
                 ogImage: $ogImage,
-                breadcrumbName: 'Avances de obra',
+                breadcrumbName: self::localized('Avances de obra', 'Construction progress'),
                 faq: [
-                    ['Trabajan con planes mensuales?', 'Sí. Para avances de obra recomendamos planes mensuales porque el valor está en documentar la evolución del proyecto de forma constante.'],
-                    ['Incluye dron?', 'Puede incluir dron según ubicación, clima, seguridad y viabilidad de vuelo.'],
-                    ['Sirve para inversionistas?', 'Sí. El contenido puede usarse para mostrar progreso real a inversionistas, clientes, brokers y equipo comercial.'],
-                    ['Pueden hacer comparativos de avance?', 'Sí. Si el proyecto se documenta de forma recurrente, se pueden crear comparativos visuales por fecha, etapa o zona.'],
+                    [
+                        self::localized('¿Trabajan con planes mensuales?', 'Do you offer monthly plans?'),
+                        self::localized(
+                            'Sí. Los planes recurrentes permiten documentar la evolución del proyecto de forma consistente.',
+                            'Yes. Recurring plans document the project evolution consistently.',
+                        ),
+                    ],
+                    [
+                        self::localized('¿Incluye dron?', 'Does it include drone footage?'),
+                        self::localized(
+                            'Puede incluir dron según ubicación, clima, seguridad y viabilidad de vuelo.',
+                            'It can include drone footage depending on location, weather, safety, and flight viability.',
+                        ),
+                    ],
+                    [
+                        self::localized('¿Sirve para reportes e inversionistas?', 'Can it be used for reports and investors?'),
+                        self::localized(
+                            'Sí. El contenido muestra progreso real a inversionistas, clientes, brokers y equipos comerciales.',
+                            'Yes. The material shows real progress to investors, clients, brokers, and commercial teams.',
+                        ),
+                    ],
+                    [
+                        self::localized('¿Pueden hacer comparativos de avance?', 'Can you create progress comparisons?'),
+                        self::localized(
+                            'Sí. Con documentación recurrente creamos comparativos visuales por fecha, etapa o zona.',
+                            'Yes. With recurring documentation, we create visual comparisons by date, stage, or area.',
+                        ),
+                    ],
                 ],
             ),
         );
@@ -215,32 +327,71 @@ class PageMeta
 
     public static function forFoodReels(?SiteSetting $settings, string $canonicalUrl): PageMetaData
     {
-        $title = 'Reels de comida para restaurantes en Riviera Maya';
-        $description = 'Reels, fotos y contenido para restaurantes, sushi, cafés y bares en Playa del Carmen, Tulum, Cancún y Riviera Maya. Agenda una sesión con Lapsique Media.';
-        $ogImage = self::staticPublicImageUrl('images/food-reels/sushiclub-day-sushi-promo-poster.jpg')
+        $title = self::localized(
+            'Reels de comida para restaurantes en Riviera Maya',
+            'Food reels for restaurants in Riviera Maya',
+        );
+        $description = self::localized(
+            'Portafolio real de comida, ambiente y servicio: reels y fotografía para restaurantes, cafés y bares en Riviera Maya y Cancún.',
+            'A real portfolio of food, atmosphere, and service: reels and photography for restaurants, cafés, and bars in Riviera Maya and Cancun.',
+        );
+        $ogImage = self::staticPublicImageUrl('images/portfolio/photos/095-the-roof-comida-a715561b91.webp')
             ?? self::bookingOgImageUrl($settings);
 
         return new PageMetaData(
             title: $title,
-            metaTitle: "{$title} | Lapsique Media",
+            metaTitle: self::localized(
+                'Reels para restaurantes en Riviera Maya | Lapsique',
+                'Restaurant reels in Riviera Maya | Lapsique',
+            ),
             description: $description,
             canonicalUrl: $canonicalUrl,
             ogType: 'website',
             ogImage: $ogImage,
-            ogImageAlt: 'Reel de comida para restaurante en Riviera Maya creado por Lapsique Media',
-            keywords: 'reels de comida riviera maya, reels para restaurantes playa del carmen, videos para restaurantes tulum, fotografía gastronómica cancún, contenido para restaurantes riviera maya',
+            ogImageAlt: self::localized(
+                'Fotografía gastronómica producida por Lapsique Media en Riviera Maya',
+                'Food photography produced by Lapsique Media in Riviera Maya',
+            ),
+            keywords: self::localized(
+                'reels de comida Riviera Maya, reels para restaurantes Playa del Carmen, video gastronómico Tulum, fotografía de restaurantes Cancún',
+                'food reels Riviera Maya, restaurant reels Playa del Carmen, food video Tulum, restaurant photography Cancun',
+            ),
             jsonLd: self::serviceLandingJsonLd(
                 canonicalUrl: $canonicalUrl,
                 title: $title,
-                description: 'Producción de reels, fotos y contenido audiovisual para restaurantes, sushi, cafés, bares y conceptos gastronómicos en Riviera Maya.',
-                serviceType: 'Producción audiovisual para restaurantes',
+                description: $description,
+                serviceType: self::localized('Producción audiovisual para restaurantes', 'Audiovisual production for restaurants'),
                 ogImage: $ogImage,
-                breadcrumbName: 'Reels de comida',
+                breadcrumbName: self::localized('Reels de comida', 'Food reels'),
                 faq: [
-                    ['Cuánto dura una sesión de reels de comida?', 'Depende del paquete. Una sesión express puede durar alrededor de 1 hora, mientras que una producción más completa puede tomar 2 o más horas según platillos, ambiente y entregables.'],
-                    ['Trabajan en Playa del Carmen, Tulum y Cancún?', 'Sí. Atendemos Playa del Carmen, Tulum, Cancún, Puerto Morelos, Puerto Aventuras, Akumal, Mayakoba, Cozumel y zonas cercanas de Riviera Maya.'],
-                    ['Puedo usar los reels para anuncios?', 'Sí. Podemos entregar contenido pensado para publicaciones orgánicas y también para campañas de Meta Ads.'],
-                    ['Incluye fotos?', 'Puede incluir fotos según el paquete contratado. Recomendamos combinar reels y fotos para tener más material de publicación.'],
+                    [
+                        self::localized('¿Cuánto dura una producción de reels de comida?', 'How long does a food reel production take?'),
+                        self::localized(
+                            'Depende de los platillos, el ambiente y los entregables acordados antes de grabar.',
+                            'It depends on the dishes, atmosphere, and deliverables agreed before filming.',
+                        ),
+                    ],
+                    [
+                        self::localized('¿Trabajan en Playa del Carmen, Tulum y Cancún?', 'Do you work in Playa del Carmen, Tulum, and Cancun?'),
+                        self::localized(
+                            'Sí. Atendemos Riviera Maya, Cancún y zonas cercanas según la logística del proyecto.',
+                            'Yes. We cover Riviera Maya, Cancun, and nearby areas depending on project logistics.',
+                        ),
+                    ],
+                    [
+                        self::localized('¿Puedo usar los reels para anuncios?', 'Can I use the reels in ads?'),
+                        self::localized(
+                            'Sí. Podemos producir piezas para publicaciones orgánicas y campañas de Meta Ads.',
+                            'Yes. We can produce pieces for organic publishing and Meta Ads campaigns.',
+                        ),
+                    ],
+                    [
+                        self::localized('¿Incluye fotografías?', 'Does it include photographs?'),
+                        self::localized(
+                            'Puede incluir fotografía de producto, preparación, servicio y ambiente según el paquete.',
+                            'It can include product, preparation, service, and atmosphere photography depending on the package.',
+                        ),
+                    ],
                 ],
             ),
         );
@@ -248,32 +399,115 @@ class PageMeta
 
     public static function forContentCreation(?SiteSetting $settings, string $canonicalUrl): PageMetaData
     {
-        $title = 'Creación de contenido para redes sociales en Riviera Maya';
-        $description = 'Producción de reels y fotografía para Instagram, TikTok y Meta Ads en Playa del Carmen, Tulum, Cancún y Riviera Maya. Agenda con Lapsique Media.';
-        $ogImage = self::bookingOgImageUrl($settings);
+        $title = self::localized(
+            'Creación de contenido para redes en Riviera Maya',
+            'Social media content creation in Riviera Maya',
+        );
+        $description = self::localized(
+            'Reels y fotografía para Instagram, TikTok y Meta Ads, con portafolio real de marcas, hospitality, experiencias y servicios.',
+            'Reels and photography for Instagram, TikTok, and Meta Ads, backed by a real portfolio of brands, hospitality, experiences, and services.',
+        );
+        $ogImage = self::staticPublicImageUrl('images/portfolio/photos/050-zal-marina-5399c16416.webp')
+            ?? self::bookingOgImageUrl($settings);
 
         return new PageMetaData(
             title: $title,
-            metaTitle: "{$title} | Lapsique Media",
+            metaTitle: self::localized(
+                'Contenido para redes en Riviera Maya | Lapsique',
+                'Social media content in Riviera Maya | Lapsique',
+            ),
             description: $description,
             canonicalUrl: $canonicalUrl,
             ogType: 'website',
             ogImage: $ogImage,
-            ogImageAlt: 'Producción de reels y fotografía para redes sociales por Lapsique Media',
-            keywords: 'creación de contenido riviera maya, contenido para redes sociales playa del carmen, reels para instagram tulum, videos para tiktok cancún, producción de contenido meta ads',
+            ogImageAlt: self::localized(
+                'Contenido para redes producido por Lapsique Media en Riviera Maya',
+                'Social media content produced by Lapsique Media in Riviera Maya',
+            ),
+            keywords: self::localized(
+                'creación de contenido Riviera Maya, contenido para redes Playa del Carmen, reels Instagram Tulum, videos TikTok Cancún, Meta Ads',
+                'content creation Riviera Maya, social media content Playa del Carmen, Instagram reels Tulum, TikTok videos Cancun, Meta Ads',
+            ),
             jsonLd: self::serviceLandingJsonLd(
                 canonicalUrl: $canonicalUrl,
                 title: $title,
                 description: $description,
-                serviceType: 'Creación de contenido para redes sociales',
+                serviceType: self::localized('Creación de contenido para redes sociales', 'Social media content creation'),
                 ogImage: $ogImage,
-                breadcrumbName: 'Creación de contenido',
+                breadcrumbName: self::localized('Creación de contenido', 'Content creation'),
                 faq: [
-                    ['Trabajan contenido para Instagram y TikTok?', 'Sí. Grabamos en formato vertical y editamos piezas para consumo móvil, publicaciones orgánicas y anuncios.'],
-                    ['Puedo usar el material en Meta Ads?', 'Sí. El reel y las fotografías se entregan con uso comercial para la campaña del negocio contratado.'],
-                    ['Qué tipo de negocios atienden?', 'Restaurantes, hoteles, propiedades, desarrollos, experiencias, eventos y marcas de servicio en Riviera Maya.'],
-                    ['Incluye estrategia de social media?', 'La producción incluye dirección visual y lista de tomas. La gestión mensual de redes se cotiza aparte según volumen y canales.'],
+                    [
+                        self::localized('¿Producen contenido para Instagram y TikTok?', 'Do you produce content for Instagram and TikTok?'),
+                        self::localized(
+                            'Sí. Grabamos en formato vertical y editamos piezas para consumo móvil, publicaciones orgánicas y anuncios.',
+                            'Yes. We film vertically and edit for mobile viewing, organic publishing, and ads.',
+                        ),
+                    ],
+                    [
+                        self::localized('¿Puedo usar el material en Meta Ads?', 'Can I use the material in Meta Ads?'),
+                        self::localized(
+                            'Sí. Los reels y fotografías se entregan con el uso comercial acordado para la campaña.',
+                            'Yes. Reels and photographs are delivered with the commercial usage agreed for the campaign.',
+                        ),
+                    ],
+                    [
+                        self::localized('¿Qué tipos de negocio atienden?', 'What kinds of businesses do you work with?'),
+                        self::localized(
+                            'Marcas, hospitality, experiencias, servicios, restaurantes y propiedades en Riviera Maya.',
+                            'Brands, hospitality, experiences, services, restaurants, and properties in Riviera Maya.',
+                        ),
+                    ],
+                    [
+                        self::localized('¿Incluye estrategia de redes?', 'Does it include social media strategy?'),
+                        self::localized(
+                            'La producción incluye dirección visual y lista de tomas. La gestión mensual de redes se cotiza aparte.',
+                            'Production includes visual direction and a shot list. Monthly social media management is quoted separately.',
+                        ),
+                    ],
                 ],
+            ),
+        );
+    }
+
+    public static function forBusinessReels(?SiteSetting $settings, string $canonicalUrl): PageMetaData
+    {
+        $title = self::localized(
+            'Reels para negocios y anuncios en Riviera Maya',
+            'Business reels and ads in Riviera Maya',
+        );
+        $description = self::localized(
+            'Reels comerciales construidos con hook, oferta y CTA para campañas de Instagram, TikTok y Meta Ads.',
+            'Commercial reels built around a hook, offer, and CTA for Instagram, TikTok, and Meta Ads campaigns.',
+        );
+        $ogImage = self::staticPublicImageUrl('images/portfolio/photos/063-dpm-ce73daedf9.webp')
+            ?? self::bookingOgImageUrl($settings);
+
+        return new PageMetaData(
+            title: $title,
+            metaTitle: self::localized(
+                'Reels para negocios en Riviera Maya | Lapsique',
+                'Business reels in Riviera Maya | Lapsique',
+            ),
+            description: $description,
+            canonicalUrl: $canonicalUrl,
+            ogType: 'website',
+            ogImage: $ogImage,
+            ogImageAlt: self::localized(
+                'Producción comercial para negocios realizada por Lapsique Media',
+                'Commercial production for businesses by Lapsique Media',
+            ),
+            keywords: self::localized(
+                'reels para negocios Riviera Maya, videos para anuncios Playa del Carmen, reels comerciales Tulum, producción Meta Ads Cancún',
+                'business reels Riviera Maya, ad videos Playa del Carmen, commercial reels Tulum, Meta Ads production Cancun',
+            ),
+            jsonLd: self::serviceLandingJsonLd(
+                canonicalUrl: $canonicalUrl,
+                title: $title,
+                description: $description,
+                serviceType: self::localized('Producción de reels para negocios', 'Business reel production'),
+                ogImage: $ogImage,
+                breadcrumbName: self::localized('Reels para negocios', 'Business reels'),
+                faq: [],
             ),
         );
     }
@@ -290,7 +524,10 @@ class PageMeta
 
         return new PageMetaData(
             title: $title,
-            metaTitle: "{$title} | Lapsique Media",
+            metaTitle: self::localized(
+                'Cobertura de eventos electrónicos | Lapsique',
+                'Electronic event coverage | Lapsique',
+            ),
             description: $description,
             canonicalUrl: $canonicalUrl,
             ogType: 'website',
@@ -333,7 +570,7 @@ class PageMeta
         $title = __('seo.multi_camera.title');
         $description = self::truncate(__('seo.multi_camera.description', [
             'price' => number_format($price, 0, '.', ','),
-        ]));
+        ]), 157);
         $ogImage = self::staticPublicImageUrl('images/og/multicamara.jpg')
             ?? self::defaultOgImageUrl();
         $videos = [
@@ -371,7 +608,10 @@ class PageMeta
 
         return new PageMetaData(
             title: $title,
-            metaTitle: "{$title} | Lapsique Media",
+            metaTitle: self::localized(
+                'Producción multicámara para DJ sets | Lapsique',
+                'Multicamera DJ set production | Lapsique',
+            ),
             description: $description,
             canonicalUrl: $canonicalUrl,
             ogType: 'website',
@@ -433,17 +673,28 @@ class PageMeta
     public static function forBookingFunnel(?SiteSetting $settings, string $canonicalUrl): PageMetaData
     {
         $price = (int) ($settings?->booking_price ?? config('booking.content_price', 4000));
-        $subtitle = $settings?->booking_subtitle
-            ?: ContentSessionOffer::defaultSubtitle();
         $bookingTitle = LocalizedBookingCopy::title($settings?->booking_title);
 
-        $title = __('seo.home.title');
-        $metaTitle = "{$title} · ".self::siteName();
+        $title = self::localized(
+            'Más de 200 piezas audiovisuales producidas por Lapsique',
+            'More than 200 audiovisual pieces produced by Lapsique',
+        );
+        $metaTitle = self::localized(
+            'Más de 200 piezas audiovisuales | Lapsique Media',
+            'More than 200 audiovisual pieces | Lapsique Media',
+        );
         $description = self::truncate(
-            __('seo.home.description', ['price' => number_format($price, 0, '.', ',')]),
+            self::localized(
+                'Un archivo real de fotografía y video para restaurantes, marcas, artistas, eventos, propiedades y desarrollos, creado desde Riviera Maya y Mérida para vender, documentar y permanecer.',
+                'A real photography and video archive for restaurants, brands, artists, events, properties, and developments, created from Riviera Maya and Merida to sell, document, and endure.',
+            ),
+            157,
         );
         $ogImage = self::bookingOgImageUrl($settings);
-        $ogImageAlt = __('seo.content_session_alt');
+        $ogImageAlt = self::localized(
+            'Producción audiovisual de Lapsique Media en Riviera Maya',
+            'Lapsique Media audiovisual production in Riviera Maya',
+        );
 
         $jsonLd = [
             '@context' => 'https://schema.org',
@@ -460,8 +711,23 @@ class PageMeta
                     '@id' => url('/#website'),
                     'url' => url('/'),
                     'name' => self::siteName(),
-                    'description' => __('seo.home.scene_description'),
+                    'description' => $description,
                     'publisher' => ['@id' => url('/#organization')],
+                ],
+                [
+                    '@type' => 'WebPage',
+                    '@id' => rtrim($canonicalUrl, '/').'#webpage',
+                    'url' => $canonicalUrl,
+                    'name' => $metaTitle,
+                    'headline' => $title,
+                    'description' => $description,
+                    'primaryImageOfPage' => [
+                        '@type' => 'ImageObject',
+                        'contentUrl' => $ogImage,
+                    ],
+                    'about' => ['@id' => url('/#organization')],
+                    'isPartOf' => ['@id' => url('/#website')],
+                    'inLanguage' => app()->getLocale() === 'en' ? 'en-US' : 'es-MX',
                 ],
                 [
                     '@type' => 'Service',
@@ -491,7 +757,10 @@ class PageMeta
             ogType: 'website',
             ogImage: $ogImage,
             ogImageAlt: $ogImageAlt,
-            keywords: __('seo.home.keywords'),
+            keywords: self::localized(
+                'producción audiovisual Riviera Maya, reels para negocios, fotografía gastronómica, DJ sets, aftermovies, dron, avances de obra, Lapsique Media',
+                'audiovisual production Riviera Maya, business reels, food photography, DJ sets, aftermovies, drone, construction progress, Lapsique Media',
+            ),
             jsonLd: $jsonLd,
         );
     }
@@ -828,7 +1097,10 @@ class PageMeta
                     ],
                 ],
             ],
-            [
+        ];
+
+        if ($faq !== []) {
+            $graph[] = [
                 '@type' => 'FAQPage',
                 '@id' => rtrim($canonicalUrl, '/').'#faq',
                 'mainEntity' => array_map(
@@ -842,10 +1114,20 @@ class PageMeta
                     ],
                     $faq,
                 ),
-            ],
-        ];
+            ];
+        }
 
         foreach ($videos as $video) {
+            if (
+                blank($video['name'] ?? null)
+                || blank($video['description'] ?? null)
+                || blank($video['thumbnailUrl'] ?? null)
+                || blank($video['contentUrl'] ?? null)
+                || blank($video['uploadDate'] ?? null)
+            ) {
+                continue;
+            }
+
             $graph[] = array_merge($video, [
                 'publisher' => [
                     '@id' => url('/#organization'),
@@ -857,6 +1139,11 @@ class PageMeta
             '@context' => 'https://schema.org',
             '@graph' => $graph,
         ];
+    }
+
+    private static function localized(string $spanish, string $english): string
+    {
+        return app()->getLocale() === 'en' ? $english : $spanish;
     }
 
     private static function siteName(): string
@@ -885,6 +1172,11 @@ class PageMeta
         $uploaded = $settings?->djset_og_image;
         if (filled($uploaded) && Storage::disk('public')->exists($uploaded)) {
             return self::absoluteImageUrl(Storage::disk('public')->url($uploaded)) ?? self::defaultOgImageUrl();
+        }
+
+        $contextualImage = self::staticPublicImageUrl('images/portfolio/photos/067-fotos-proper-54490411c4.webp');
+        if (filled($contextualImage)) {
+            return $contextualImage;
         }
 
         $portfolioImage = self::portfolioOgImageUrl();

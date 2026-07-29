@@ -1,26 +1,46 @@
-import { useMemo } from 'react';
+import { useEffect, useMemo } from 'react';
 import { usePage } from '@inertiajs/react';
-import { ArrowRight, CalendarDays, Camera, Film, MessageCircle } from 'lucide-react';
+import { ArrowRight, CalendarDays } from 'lucide-react';
 import SiteLayout from '@/layouts/SiteLayout';
+import { AutoplayVideo } from '@/components/lapsique/AutoplayVideo';
 import { BookingCtaButton } from '@/components/lapsique/BookingCtaButton';
 import { BookingWidget } from '@/components/lapsique/BookingWidget';
 import { SeoHead } from '@/components/lapsique/SeoHead';
-import { Button } from '@/components/ui/button';
+import {
+    PortfolioMediaRail,
+    ServicePortfolioShowcase,
+    ServiceProofBand,
+    ServiceFunnelDeliverables,
+    ServiceFunnelFaq,
+    ServiceFunnelFinalCta,
+    ServiceFunnelHeading,
+    ServiceFunnelHero,
+    ServiceFunnelProcess,
+    ServiceFunnelSection,
+    ServiceWhatsAppButton,
+    serviceFunnelPrimaryActionClass,
+} from '@/components/lapsique/ServiceFunnel';
 import { trackBookingEvent } from '@/hooks/useBookingAnalytics';
 import { useTranslations } from '@/hooks/useTranslations';
 import { getContentSessionProduct } from '@/lib/bookingProducts';
-import { formatMxn } from '@/lib/utils';
-import type { BookingSlot, PageProps, PortfolioItemData } from '@/types';
+import type {
+    BookingSlot,
+    PageProps,
+    PortfolioItemData,
+    ServicePortfolioBundle,
+} from '@/types';
 
 interface ContentCreationShowProps {
+    variant?: 'content_creation' | 'business_reels';
     price: number;
     slots: BookingSlot[];
-    portfolioItems: PortfolioItemData[];
+    servicePortfolio: ServicePortfolioBundle;
     errors?: Record<string, string>;
 }
 
 const COPY = {
     es: {
+        heroEyebrow: 'Lapsique / Contenido para redes',
         title: 'Creación de contenido para redes sociales en Riviera Maya',
         intro: 'Producimos reels y fotografías para negocios que necesitan verse claros, actuales y listos para vender en Instagram, TikTok y campañas de Meta.',
         location: 'Playa del Carmen · Tulum · Cancún',
@@ -28,8 +48,30 @@ const COPY = {
         whatsapp: 'Hablar por WhatsApp',
         whatsappMessage: 'Hola, quiero crear contenido para las redes sociales de mi negocio en Riviera Maya.',
         from: 'Sesiones desde',
+        proofEyebrow: 'Portafolio contextual',
+        proofBandTitle: 'Proyectos reales, dirigidos para cada negocio',
+        proofBandCopy: 'La selección reúne clientes, espacios y formatos distintos. Cada proyecto conserva su contexto y su objetivo comercial.',
         proofTitle: 'Trabajo real, producido por Lapsique',
-        proofCopy: 'Dirección, cámara y edición aplicadas a gastronomía, hospitalidad, propiedades, eventos y marcas locales.',
+        proofCopy: 'Explora producciones para marcas, servicios, hospitalidad y experiencias. No son imágenes de relleno: cada pieza pertenece a un proyecto documentado.',
+        proofCta: 'Quiero una producción así',
+        systemEyebrow: 'Dirección por sector',
+        systemTitle: 'Una sesión, un sistema de contenido',
+        systemCopy: 'La estructura se adapta al negocio para que el reel y las fotografías trabajen juntos, sin grabar piezas aisladas.',
+        systemItems: [
+            {
+                title: 'Marcas y servicios',
+                copy: 'Producto, proceso, equipo y resultado para explicar con claridad qué haces y por qué elegirte.',
+            },
+            {
+                title: 'Hospitalidad y espacios',
+                copy: 'Llegada, arquitectura, amenidades y detalles para convertir el lugar en una experiencia visible.',
+            },
+            {
+                title: 'Gastronomía y experiencias',
+                copy: 'Preparación, producto y personas para mostrar tanto lo que vendes como la sensación de vivirlo.',
+            },
+        ],
+        railLabel: 'Más proyectos de creación de contenido',
         deliverablesTitle: 'Una sesión pensada para publicar y pautar',
         deliverables: [
             {
@@ -62,6 +104,7 @@ const COPY = {
         ],
     },
     en: {
+        heroEyebrow: 'Lapsique / Social content',
         title: 'Social media content creation in Riviera Maya',
         intro: 'We produce reels and photography for businesses that need clear, current material built to sell on Instagram, TikTok, and Meta campaigns.',
         location: 'Playa del Carmen · Tulum · Cancun',
@@ -69,8 +112,30 @@ const COPY = {
         whatsapp: 'Talk on WhatsApp',
         whatsappMessage: 'Hi, I want to create social media content for my business in Riviera Maya.',
         from: 'Sessions from',
+        proofEyebrow: 'Contextual portfolio',
+        proofBandTitle: 'Real projects, directed for each business',
+        proofBandCopy: 'This selection brings together different clients, spaces, and formats. Every project keeps its own context and commercial goal.',
         proofTitle: 'Real work produced by Lapsique',
-        proofCopy: 'Direction, camera, and editing for food, hospitality, properties, events, and local brands.',
+        proofCopy: 'Explore productions for brands, services, hospitality, and experiences. These are not filler images: every piece belongs to a documented project.',
+        proofCta: 'I want a production like this',
+        systemEyebrow: 'Direction by industry',
+        systemTitle: 'One session, one content system',
+        systemCopy: 'The structure adapts to the business so the reel and photographs work together instead of becoming isolated assets.',
+        systemItems: [
+            {
+                title: 'Brands and services',
+                copy: 'Product, process, team, and result to explain what you do and why customers should choose you.',
+            },
+            {
+                title: 'Hospitality and spaces',
+                copy: 'Arrival, architecture, amenities, and details that turn a place into a visible experience.',
+            },
+            {
+                title: 'Food and experiences',
+                copy: 'Preparation, product, and people to show both what you sell and what it feels like to experience it.',
+            },
+        ],
+        railLabel: 'More content creation projects',
         deliverablesTitle: 'One session built for publishing and ads',
         deliverables: [
             {
@@ -104,51 +169,127 @@ const COPY = {
     },
 } as const;
 
-const FALLBACK_IMAGES = [
-    '/images/portfolio/photos/011-juanis-barber-shop-abril-21-221f6c6aa9.webp',
-    '/images/food-reels/food-roof-models-toast-clean.webp',
-    '/images/portfolio/photos/050-zal-marina-5399c16416.webp',
-    '/images/portfolio/photos/082-proper-collective-cab1bed3f4.webp',
-    '/images/food-reels/food-santino-cocktail.webp',
-    '/images/portfolio/photos/005-dron-malfa-66a6622e91.webp',
-];
+const BUSINESS_REELS_COPY = {
+    es: {
+        ...COPY.es,
+        heroEyebrow: 'Lapsique / Reels para negocios',
+        title: 'Reels para negocios listos para vender y pautar',
+        intro: 'Convertimos tu producto, espacio o servicio en video vertical y fotografía con un objetivo comercial claro.',
+        book: 'Reservar producción',
+        whatsapp: 'Cotizar por WhatsApp',
+        whatsappMessage: 'Hola, quiero cotizar reels para promocionar mi negocio.',
+        proofTitle: 'Reels construidos alrededor de una oferta real',
+        proofCopy: 'Cada caso parte de un producto, una audiencia y una acción medible. La selección muestra campañas con objetivos distintos, no una plantilla repetida.',
+        proofBandTitle: 'Campañas reales con una intención comercial clara',
+        proofBandCopy: 'La evidencia está agrupada por campaña para que puedas revisar cómo cambia la dirección según la oferta y el público.',
+        systemEyebrow: 'Estructura de anuncio',
+        systemTitle: 'Hook · oferta · acción',
+        systemCopy: 'Cada reel ordena la atención antes de pedir una conversión. La imagen puede cambiar; la función de cada momento no.',
+        systemItems: [
+            {
+                title: 'Hook',
+                copy: 'Abrimos con el producto, el problema o el resultado para detener el scroll en los primeros segundos.',
+            },
+            {
+                title: 'Oferta',
+                copy: 'Mostramos el beneficio con detalles y prueba visual, sin llenar la pieza de explicaciones.',
+            },
+            {
+                title: 'Acción',
+                copy: 'Cerramos con una instrucción concreta: reservar, pedir información, visitar o comprar.',
+            },
+        ],
+        railLabel: 'Más campañas producidas para negocios',
+        deliverablesTitle: 'Una campaña corta, no contenido suelto',
+        processTitle: 'De la oferta al anuncio en tres pasos',
+        bookingTitle: 'Reserva la producción de tu campaña',
+        bookingCopy: 'Elige una fecha. Después definimos oferta, audiencia, locación y lista de tomas antes de grabar.',
+    },
+    en: {
+        ...COPY.en,
+        heroEyebrow: 'Lapsique / Business reels',
+        title: 'Business reels built to sell and run as ads',
+        intro: 'We turn your product, space, or service into vertical video and photography with a clear commercial goal.',
+        book: 'Book production',
+        whatsapp: 'Quote on WhatsApp',
+        whatsappMessage: 'Hi, I want to quote reels to promote my business.',
+        proofTitle: 'Reels built around a real offer',
+        proofCopy: 'Every case begins with a product, an audience, and a measurable action. This selection shows campaigns with distinct goals instead of one repeated template.',
+        proofBandTitle: 'Real campaigns with a clear commercial intention',
+        proofBandCopy: 'Evidence is grouped by campaign so you can see how direction changes with the offer and audience.',
+        systemEyebrow: 'Ad structure',
+        systemTitle: 'Hook · offer · action',
+        systemCopy: 'Each reel earns attention before asking for a conversion. The image can change; the role of each moment does not.',
+        systemItems: [
+            {
+                title: 'Hook',
+                copy: 'Lead with the product, problem, or result to stop the scroll in the opening seconds.',
+            },
+            {
+                title: 'Offer',
+                copy: 'Show the benefit through detail and visual proof without overexplaining the piece.',
+            },
+            {
+                title: 'Action',
+                copy: 'End with one direct next step: book, request information, visit, or buy.',
+            },
+        ],
+        railLabel: 'More campaigns produced for businesses',
+        deliverablesTitle: 'A short campaign, not loose content',
+        processTitle: 'From offer to ad in three steps',
+        bookingTitle: 'Book your campaign production',
+        bookingCopy: 'Choose a date. We then define the offer, audience, location, and shot list before filming.',
+    },
+} as const;
 
 export default function ContentCreationShow({
+    variant = 'content_creation',
     price,
     slots,
-    portfolioItems,
+    servicePortfolio,
     errors,
 }: ContentCreationShowProps) {
     const { site } = usePage<PageProps>().props;
     const { locale, t } = useTranslations();
-    const copy = locale === 'en' ? COPY.en : COPY.es;
+    const copySet = variant === 'business_reels' ? BUSINESS_REELS_COPY : COPY;
+    const copy = locale === 'en' ? copySet.en : copySet.es;
     const product = useMemo(() => getContentSessionProduct(t), [t]);
-    const images = useMemo(() => {
-        const real = portfolioItems
-            .filter((item) => item.media_type === 'image' && Boolean(item.asset_url))
-            .map((item) => ({ src: item.asset_url as string, alt: item.title || item.caption || copy.proofTitle }));
-
-        const fallbacks = FALLBACK_IMAGES.map((src) => ({ src, alt: copy.proofTitle }));
-
-        return [...real, ...fallbacks]
-            .filter((item, index, all) => all.findIndex((candidate) => candidate.src === item.src) === index)
-            .slice(0, 6);
-    }, [copy.proofTitle, portfolioItems]);
-    const heroImage = images[0]?.src ?? FALLBACK_IMAGES[0];
+    const { showcasePortfolio, supportingPortfolio } = useMemo(
+        () => splitPortfolioForSections(servicePortfolio),
+        [servicePortfolio],
+    );
+    const popupPortfolioItems = useMemo(
+        () => toPopupPortfolioItems(servicePortfolio),
+        [servicePortfolio],
+    );
     const whatsappHref = buildWhatsAppHref(site.whatsapp, copy.whatsappMessage);
-    const analyticsPayload = {
-        content_name: copy.title,
-        content_category: 'social_media_content_creation',
-        service_type: 'content_session',
-        currency: 'MXN',
-        value: price,
-    };
+    const analyticsPrefix = variant === 'business_reels' ? 'business_reels' : 'content_creation';
+    const analyticsPayload = useMemo(
+        () => ({
+            content_name: copy.title,
+            content_category: variant === 'business_reels' ? 'business_reels' : 'social_media_content_creation',
+            service_name: variant,
+            service_type: 'content_session',
+            currency: 'MXN',
+            value: price,
+        }),
+        [copy.title, price, variant],
+    );
 
-    const trackWhatsApp = () => {
-        trackBookingEvent('content_creation_whatsapp_cta_clicked', {
+    useEffect(() => {
+        trackBookingEvent(`${analyticsPrefix}_page_viewed`, {
             ...analyticsPayload,
-            source: 'content_creation_hero',
+            landing: window.location.pathname,
+            source: `${analyticsPrefix}_landing`,
+        });
+    }, [analyticsPayload, analyticsPrefix]);
+
+    const trackWhatsApp = (source: 'hero' | 'final') => {
+        trackBookingEvent(`${analyticsPrefix}_whatsapp_cta_clicked`, {
+            ...analyticsPayload,
+            source: `${analyticsPrefix}_${source}`,
             target: 'whatsapp',
+            contact_channel: 'whatsapp',
         });
     };
 
@@ -156,138 +297,189 @@ export default function ContentCreationShow({
         <SiteLayout>
             <SeoHead />
 
-            <section className="relative left-1/2 w-screen -translate-x-1/2 overflow-hidden bg-[#070708] text-white">
-                <img
-                    src={heroImage}
-                    alt=""
-                    className="absolute inset-0 h-full w-full object-cover opacity-65"
-                    fetchPriority="high"
-                />
-                <div className="absolute inset-0 bg-[linear-gradient(90deg,rgb(5_6_8/0.98)_0%,rgb(5_6_8/0.88)_48%,rgb(5_6_8/0.30)_100%)]" />
-                <div className="absolute inset-0 bg-[linear-gradient(180deg,transparent_55%,var(--background)_100%)]" />
-                <div className="relative mx-auto flex min-h-[min(760px,84svh)] max-w-6xl items-end px-4 pb-24 pt-24 sm:px-6 lg:pb-28">
-                    <div className="max-w-4xl">
-                        <p className="font-mono text-xs uppercase tracking-[0.18em] text-primary">{copy.location}</p>
-                        <h1 className="mt-5 max-w-4xl font-display text-4xl font-bold leading-[0.94] tracking-tight sm:text-6xl lg:text-7xl">
-                            {copy.title}
-                        </h1>
-                        <p className="mt-6 max-w-2xl text-base leading-relaxed text-white/78 sm:text-xl">
-                            {copy.intro}
-                        </p>
-                        <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-                            <BookingCtaButton
-                                opensBookingModal
-                                bookingSource="content_creation_hero"
-                                bookingAnalytics={{
-                                    analyticsEvent: 'content_creation_booking_cta_clicked',
-                                    analyticsPayload,
-                                }}
-                                className="rounded-none"
-                            >
-                                <CalendarDays className="size-5" />
-                                {copy.book}
-                                <ArrowRight className="size-4" />
-                            </BookingCtaButton>
-                            <Button variant="outline" size="xl" className="rounded-none border-white/35 bg-black/35 text-white hover:bg-white hover:text-black" asChild>
-                                <a href={whatsappHref} target="_blank" rel="noopener noreferrer" onClick={trackWhatsApp}>
-                                    <MessageCircle className="size-5" />
-                                    {copy.whatsapp}
-                                </a>
-                            </Button>
-                        </div>
-                        <div className="mt-8 border-t border-white/20 pt-5">
-                            <p className="text-xs uppercase tracking-[0.16em] text-white/55">{copy.from}</p>
-                            <p className="mt-1 font-mono-tabular text-3xl font-bold text-primary">{formatMxn(price)}</p>
-                        </div>
-                    </div>
-                </div>
-            </section>
+            <ServiceFunnelHero
+                eyebrow={copy.heroEyebrow}
+                title={copy.title}
+                description={copy.intro}
+                locations={copy.location}
+                price={price}
+                priceLabel={copy.from}
+                primaryAction={(
+                    <BookingCtaButton
+                        opensBookingModal
+                        bookingSource={`${analyticsPrefix}_hero`}
+                        bookingAnalytics={{
+                            analyticsEvent: `${analyticsPrefix}_booking_cta_clicked`,
+                            analyticsPayload,
+                        }}
+                        className={serviceFunnelPrimaryActionClass}
+                    >
+                        <CalendarDays className="size-5" aria-hidden />
+                        {copy.book}
+                        <ArrowRight className="size-4" aria-hidden />
+                    </BookingCtaButton>
+                )}
+                secondaryAction={(
+                    <ServiceWhatsAppButton
+                        href={whatsappHref}
+                        label={copy.whatsapp}
+                        onClick={() => trackWhatsApp('hero')}
+                    />
+                )}
+                media={(
+                    <ServiceHeroMedia portfolio={servicePortfolio} />
+                )}
+                mediaLabel={servicePortfolio.hero.projectLabel}
+                mediaCaption={[
+                    servicePortfolio.hero.sessionLabel,
+                    servicePortfolio.hero.location,
+                ].filter(Boolean).join(' · ')}
+            />
 
-            <section className="py-16 sm:py-20">
-                <div className="grid gap-10 lg:grid-cols-[0.72fr_1fr]">
-                    <h2 className="max-w-xl font-display text-4xl font-bold leading-none text-foreground sm:text-5xl">
-                        {copy.deliverablesTitle}
-                    </h2>
-                    <div className="grid gap-8 sm:grid-cols-3">
-                        {copy.deliverables.map((item, index) => (
-                            <article key={item.title} className="border-t border-border pt-5">
-                                {index === 0 ? <Film className="size-5 text-primary" /> : index === 1 ? <Camera className="size-5 text-primary" /> : <span className="font-mono text-sm text-primary">03</span>}
-                                <h3 className="mt-4 font-display text-2xl font-bold text-foreground">{item.title}</h3>
-                                <p className="mt-3 text-sm leading-relaxed text-muted-foreground">{item.copy}</p>
-                            </article>
+            <ServiceFunnelSection innerClassName="py-0 sm:py-0 lg:py-0">
+                <ServiceProofBand
+                    portfolio={servicePortfolio}
+                    eyebrow={copy.proofEyebrow}
+                    title={copy.proofBandTitle}
+                    description={copy.proofBandCopy}
+                />
+            </ServiceFunnelSection>
+
+            <ServicePortfolioShowcase
+                portfolio={showcasePortfolio}
+                eyebrow={copy.proofEyebrow}
+                title={copy.proofTitle}
+                description={copy.proofCopy}
+                action={(
+                    <BookingCtaButton
+                        opensBookingModal
+                        bookingSource={`${analyticsPrefix}_portfolio`}
+                        bookingAnalytics={{
+                            analyticsEvent: `${analyticsPrefix}_booking_cta_clicked`,
+                            analyticsPayload: {
+                                ...analyticsPayload,
+                                source: `${analyticsPrefix}_portfolio`,
+                            },
+                        }}
+                        className={`${serviceFunnelPrimaryActionClass} sm:w-auto`}
+                    >
+                        {copy.proofCta}
+                        <ArrowRight className="size-4" aria-hidden />
+                    </BookingCtaButton>
+                )}
+            />
+
+            <ServiceFunnelSection tone="dark">
+                <div className="grid gap-10 lg:grid-cols-[0.72fr_1.28fr] lg:items-start">
+                    <ServiceFunnelHeading
+                        eyebrow={copy.systemEyebrow}
+                        title={copy.systemTitle}
+                        description={copy.systemCopy}
+                        inverse
+                    />
+                    <ServiceFunnelDeliverables
+                        items={copy.systemItems.map((item) => ({
+                            title: item.title,
+                            description: item.copy,
+                        }))}
+                        inverse
+                    />
+                </div>
+                {supportingPortfolio.projects.length > 0 ? (
+                    <div className="mt-12 space-y-12">
+                        {supportingPortfolio.projects.map((project) => (
+                            <PortfolioMediaRail
+                                key={project.key}
+                                portfolio={supportingPortfolio}
+                                projectKey={project.key}
+                                ariaLabel={`${copy.railLabel}: ${project.label}`}
+                            />
                         ))}
                     </div>
-                </div>
-            </section>
+                ) : null}
+            </ServiceFunnelSection>
 
-            <section className="relative left-1/2 w-screen -translate-x-1/2 bg-[#090a0c] py-16 text-white sm:py-20">
-                <div className="mx-auto max-w-6xl px-4 sm:px-6">
-                    <div className="grid gap-5 sm:grid-cols-[0.7fr_1fr] sm:items-end">
-                        <h2 className="font-display text-4xl font-bold leading-none sm:text-5xl">{copy.proofTitle}</h2>
-                        <p className="max-w-2xl text-sm leading-relaxed text-white/65 sm:text-base">{copy.proofCopy}</p>
-                    </div>
-                    <div className="mt-10 grid auto-rows-[220px] gap-3 sm:grid-cols-2 sm:auto-rows-[300px] lg:grid-cols-3">
-                        {images.map((image, index) => (
-                            <figure key={image.src} className={index === 0 ? 'overflow-hidden lg:col-span-2' : 'overflow-hidden'}>
-                                <img
-                                    src={image.src}
-                                    alt={image.alt}
-                                    className="h-full w-full object-cover transition duration-500 hover:scale-[1.025]"
-                                    loading="lazy"
-                                />
-                            </figure>
-                        ))}
-                    </div>
+            <ServiceFunnelSection>
+                <div className="grid gap-10 lg:grid-cols-[0.72fr_1.28fr] lg:items-start">
+                    <ServiceFunnelHeading title={copy.deliverablesTitle} />
+                    <ServiceFunnelDeliverables
+                        items={copy.deliverables.map((item) => ({
+                            title: item.title,
+                            description: item.copy,
+                        }))}
+                    />
                 </div>
-            </section>
+            </ServiceFunnelSection>
 
-            <section className="py-16 sm:py-20">
-                <h2 className="max-w-3xl font-display text-4xl font-bold leading-none text-foreground sm:text-5xl">{copy.processTitle}</h2>
-                <div className="mt-10 grid gap-8 md:grid-cols-3">
-                    {copy.process.map(([number, title, description]) => (
-                        <article key={number} className="border-t border-border pt-5">
-                            <p className="font-mono text-sm text-primary">{number}</p>
-                            <h3 className="mt-5 font-display text-2xl font-bold text-foreground">{title}</h3>
-                            <p className="mt-3 text-sm leading-relaxed text-muted-foreground">{description}</p>
-                        </article>
-                    ))}
+            <ServiceFunnelSection>
+                <ServiceFunnelHeading title={copy.processTitle} />
+                <div className="mt-10">
+                    <ServiceFunnelProcess
+                        items={copy.process.map(([, title, description]) => ({
+                            title,
+                            description,
+                        }))}
+                    />
                 </div>
-            </section>
+            </ServiceFunnelSection>
 
-            <section id="request" className="scroll-mt-24 border-t border-border py-16 sm:py-20">
-                <div className="mb-8 max-w-3xl">
-                    <h2 className="font-display text-4xl font-bold leading-none text-foreground sm:text-5xl">{copy.bookingTitle}</h2>
-                    <p className="mt-4 text-base leading-relaxed text-muted-foreground">{copy.bookingCopy}</p>
-                </div>
-                <BookingWidget
-                    slots={slots}
-                    price={price}
-                    whatsapp={site.whatsapp}
-                    errors={errors}
-                    checkoutRoute="booking.checkout"
-                    paymentProvider="stripe"
-                    product={product}
-                    popupVariant="home"
-                    popupPortfolioItems={portfolioItems}
-                    highlight
-                    analyticsPayload={analyticsPayload}
+            <ServiceFunnelSection id="request" tone="soft" className="scroll-mt-24">
+                <ServiceFunnelHeading
+                    title={copy.bookingTitle}
+                    description={copy.bookingCopy}
                 />
-            </section>
-
-            <section className="border-t border-border py-16 sm:py-20">
-                <h2 className="font-display text-4xl font-bold text-foreground">{copy.faqTitle}</h2>
-                <div className="mt-8 divide-y divide-border border-y border-border">
-                    {copy.faqs.map(([question, answer]) => (
-                        <details key={question} className="group py-5">
-                            <summary className="flex cursor-pointer list-none items-center justify-between gap-6 font-display text-xl font-bold text-foreground">
-                                {question}
-                                <span className="font-mono text-primary transition group-open:rotate-45">+</span>
-                            </summary>
-                            <p className="max-w-3xl pt-4 text-sm leading-relaxed text-muted-foreground">{answer}</p>
-                        </details>
-                    ))}
+                <div className="mt-10">
+                    <BookingWidget
+                        slots={slots}
+                        price={price}
+                        whatsapp={site.whatsapp}
+                        errors={errors}
+                        checkoutRoute="booking.checkout"
+                        paymentProvider="stripe"
+                        product={product}
+                        popupVariant="home"
+                        popupPortfolioItems={popupPortfolioItems}
+                        highlight
+                        analyticsPayload={analyticsPayload}
+                    />
                 </div>
-            </section>
+            </ServiceFunnelSection>
+
+            <ServiceFunnelSection>
+                <div className="grid gap-10 lg:grid-cols-[0.72fr_1.28fr]">
+                    <ServiceFunnelHeading title={copy.faqTitle} />
+                    <ServiceFunnelFaq
+                        items={copy.faqs.map(([question, answer]) => ({ question, answer }))}
+                    />
+                </div>
+            </ServiceFunnelSection>
+
+            <ServiceFunnelFinalCta
+                eyebrow="Lapsique Media"
+                title={copy.bookingTitle}
+                description={copy.bookingCopy}
+                primaryAction={(
+                    <BookingCtaButton
+                        opensBookingModal
+                        bookingSource={`${analyticsPrefix}_final`}
+                        bookingAnalytics={{
+                            analyticsEvent: `${analyticsPrefix}_booking_cta_clicked`,
+                            analyticsPayload,
+                        }}
+                        className={serviceFunnelPrimaryActionClass}
+                    >
+                        <CalendarDays className="size-5" aria-hidden />
+                        {copy.book}
+                    </BookingCtaButton>
+                )}
+                secondaryAction={(
+                    <ServiceWhatsAppButton
+                        href={whatsappHref}
+                        label={copy.whatsapp}
+                        onClick={() => trackWhatsApp('final')}
+                    />
+                )}
+            />
         </SiteLayout>
     );
 }
@@ -297,4 +489,105 @@ function buildWhatsAppHref(phone: string | undefined, message: string): string {
     const base = cleanedPhone ? `https://wa.me/${cleanedPhone}` : 'https://wa.me/';
 
     return `${base}?text=${encodeURIComponent(message)}`;
+}
+
+function ServiceHeroMedia({ portfolio }: { portfolio: ServicePortfolioBundle }) {
+    const hero = portfolio.hero;
+
+    if (hero.kind === 'video') {
+        return (
+            <AutoplayVideo
+                src={hero.src}
+                poster={hero.poster}
+                title={hero.alt}
+                className="h-full w-full"
+                eager
+                preload="metadata"
+            />
+        );
+    }
+
+    return (
+        <img
+            src={hero.src}
+            alt={hero.alt}
+            fetchPriority="high"
+            loading="eager"
+            className="h-full w-full object-cover"
+        />
+    );
+}
+
+function splitPortfolioForSections(portfolio: ServicePortfolioBundle): {
+    showcasePortfolio: ServicePortfolioBundle;
+    supportingPortfolio: ServicePortfolioBundle;
+} {
+    const projectsWithoutHero = portfolio.projects
+        .map((project) => ({
+            ...project,
+            media: project.media.filter((media) => (
+                media.id !== portfolio.hero.id
+                && media.src !== portfolio.hero.src
+            )),
+        }))
+        .filter((project) => project.media.length > 0);
+    const showcaseProjectCount = Math.min(3, projectsWithoutHero.length);
+
+    return {
+        showcasePortfolio: portfolioWithProjects(
+            portfolio,
+            projectsWithoutHero.slice(0, showcaseProjectCount),
+        ),
+        supportingPortfolio: portfolioWithProjects(
+            portfolio,
+            projectsWithoutHero.slice(showcaseProjectCount),
+        ),
+    };
+}
+
+function portfolioWithProjects(
+    portfolio: ServicePortfolioBundle,
+    projects: ServicePortfolioBundle['projects'],
+): ServicePortfolioBundle {
+    return {
+        ...portfolio,
+        projects,
+        stats: {
+            projectCount: projects.length,
+            mediaCount: projects.reduce((total, project) => total + project.media.length, 0),
+        },
+    };
+}
+
+function toPopupPortfolioItems(portfolio: ServicePortfolioBundle): PortfolioItemData[] {
+    const seen = new Set<string>();
+    const media = [portfolio.hero, ...portfolio.projects.flatMap((project) => project.media)]
+        .filter((item) => {
+            if (seen.has(item.id) || seen.has(item.src)) {
+                return false;
+            }
+
+            seen.add(item.id);
+            seen.add(item.src);
+            return true;
+        });
+
+    return media.map((item, index) => ({
+        id: index + 1,
+        title: item.projectLabel,
+        slug: null,
+        type: 'service_portfolio',
+        source: 'service-curation',
+        caption: item.sessionLabel ?? item.location ?? null,
+        tags: [item.projectKey, portfolio.serviceKey],
+        asset_url: item.kind === 'image' ? item.src : null,
+        poster_url: item.poster ?? (item.kind === 'image' ? item.src : null),
+        playback_url: item.kind === 'video' ? item.src : null,
+        embed_url: null,
+        youtube_id: null,
+        youtube_url: null,
+        media_type: item.kind,
+        is_featured: index === 0,
+        orientation: item.orientation,
+    }));
 }

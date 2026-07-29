@@ -15,6 +15,7 @@ export function SeoHead({ seo: override }: SeoHeadProps) {
 
     const seo: SeoMeta = { ...shared!, ...override };
     const ogImage = seo.ogImage ?? '';
+    const ogImageType = imageMimeType(ogImage);
     const siteName = site.name;
     const headKey = (key: string) => ({ 'head-key': key });
 
@@ -34,9 +35,7 @@ export function SeoHead({ seo: override }: SeoHeadProps) {
             {ogImage ? <meta {...headKey('og-image')} property="og:image" content={ogImage} /> : null}
             {ogImage ? <meta {...headKey('og-image-url')} property="og:image:url" content={ogImage} /> : null}
             {ogImage ? <meta {...headKey('og-image-secure-url')} property="og:image:secure_url" content={ogImage} /> : null}
-            {ogImage ? <meta {...headKey('og-image-width')} property="og:image:width" content="1200" /> : null}
-            {ogImage ? <meta {...headKey('og-image-height')} property="og:image:height" content="630" /> : null}
-            {ogImage ? <meta {...headKey('og-image-type')} property="og:image:type" content="image/jpeg" /> : null}
+            {ogImageType ? <meta {...headKey('og-image-type')} property="og:image:type" content={ogImageType} /> : null}
             {seo.ogImageAlt ? <meta {...headKey('og-image-alt')} property="og:image:alt" content={seo.ogImageAlt} /> : null}
             <meta {...headKey('og-site-name')} property="og:site_name" content={siteName} />
             <meta {...headKey('og-locale')} property="og:locale" content={ogLocale} />
@@ -56,4 +55,14 @@ export function SeoHead({ seo: override }: SeoHeadProps) {
             ) : null}
         </Head>
     );
+}
+
+function imageMimeType(url: string): string | null {
+    const extension = url.split(/[?#]/, 1)[0]?.split('.').pop()?.toLowerCase();
+
+    if (extension === 'webp') return 'image/webp';
+    if (extension === 'png') return 'image/png';
+    if (extension === 'jpg' || extension === 'jpeg') return 'image/jpeg';
+
+    return null;
 }

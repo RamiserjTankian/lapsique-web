@@ -3,7 +3,6 @@
 namespace App\Http\Controllers;
 
 use App\Http\Resources\BookingSlotResource;
-use App\Http\Resources\PortfolioItemResource;
 use App\Support\PortfolioCuration;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -13,12 +12,13 @@ class ContentCreationController extends Controller
     public function __invoke(): Response
     {
         $booking = ContentBookingController::bookingPageData();
-        $portfolio = PortfolioCuration::forHome(12);
+        $variant = request()->routeIs('business-reels.show') ? 'business_reels' : 'content_creation';
 
         return Inertia::render('ContentCreation/Show', [
+            'variant' => $variant,
             'price' => $booking['price'],
             'slots' => BookingSlotResource::collection($booking['slots'])->resolve(),
-            'portfolioItems' => PortfolioItemResource::collection($portfolio)->resolve(),
+            'servicePortfolio' => PortfolioCuration::forService($variant),
             'errors' => session('errors')?->getBag('default')?->getMessages() ?? [],
         ]);
     }

@@ -70,6 +70,7 @@ class SitemapController extends Controller
             ]), 'weekly', '0.8'),
             $this->entry(route('food-reels.show'), $this->lastModified('resources/js/pages/FoodReels/Show.tsx'), 'monthly', '0.9'),
             $this->entry(route('content-creation.show'), $this->lastModified('resources/js/pages/ContentCreation/Show.tsx'), 'monthly', '0.9'),
+            $this->entry(route('business-reels.show'), $this->lastModified('resources/js/pages/ContentCreation/Show.tsx'), 'monthly', '0.9'),
             $this->entry(route('djset.show'), $this->lastModified('resources/js/pages/DjSet/Show.tsx'), 'monthly', '0.9'),
             $this->entry(route('drone-sessions.show'), $this->lastModified('resources/js/pages/DroneSessions/Show.tsx'), 'monthly', '0.9'),
             $this->entry(route('construction-progress.show'), $this->lastModified('resources/js/pages/ConstructionProgress/Show.tsx'), 'monthly', '0.9'),

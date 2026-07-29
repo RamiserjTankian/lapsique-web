@@ -76,7 +76,7 @@ export function AutoplayVideo({
     }, [src]);
 
     useEffect(() => {
-        if (eager || showPosterOnly || !pauseWhenOffscreen) {
+        if (showPosterOnly || !pauseWhenOffscreen) {
             setIsInView(true);
 
             return;
@@ -98,7 +98,7 @@ export function AutoplayVideo({
         observer.observe(node);
 
         return () => observer.disconnect();
-    }, [eager, offscreenRootMargin, pauseWhenOffscreen, showPosterOnly]);
+    }, [offscreenRootMargin, pauseWhenOffscreen, showPosterOnly]);
 
     useEffect(() => {
         onInViewChange?.(isInView);

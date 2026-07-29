@@ -10,12 +10,10 @@ use App\Http\Resources\VideoResource;
 use App\Models\Dj;
 use App\Models\Event;
 use App\Models\Video;
-use App\Support\HomeHeroBackground;
-use App\Support\HomeHeroProofVideos;
-use App\Support\HomeReelDistribution;
 use App\Support\LandingPageVideos;
 use App\Support\LocalizedBookingCopy;
 use App\Support\PortfolioCuration;
+use App\Support\ServicePortfolioCatalog;
 use Illuminate\Support\Facades\Log;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -27,6 +25,12 @@ class HomeController extends Controller
         $bookingData = ContentBookingController::bookingPageData();
 
         $portfolioItems = PortfolioCuration::forHome(12);
+        $portfolioOverview = ServicePortfolioCatalog::overview();
+        $overviewHeroImage = collect($portfolioOverview['heroMedia'])
+            ->firstWhere('kind', 'image');
+        $overviewHeroVideo = collect($portfolioOverview['heroMedia'])
+            ->firstWhere('kind', 'video');
+        $landingVideos = LandingPageVideos::forHome();
         $sceneDjs = Dj::query()
             ->where('trascendental_roster', false)
             ->with('media')
@@ -52,9 +56,6 @@ class HomeController extends Controller
             ->get();
 
         $settings = $bookingData['settings'];
-        $reelDistribution = HomeReelDistribution::forHome(
-            HomeReelDistribution::previewCountForUserAgent(request()->userAgent()),
-        );
 
         if ($bookingData['slots']->isEmpty() && app()->environment(['local', 'testing'])) {
             Log::warning('Home booking funnel rendered without published slots.', [
@@ -68,20 +69,23 @@ class HomeController extends Controller
             'price' => $bookingData['price'],
             'slots' => BookingSlotResource::collection($bookingData['slots'])->resolve(),
             'portfolioItems' => PortfolioItemResource::collection($portfolioItems)->resolve(),
+            'portfolioOverview' => $portfolioOverview,
             'sceneDjs' => DjResource::collection($sceneDjs)->resolve(),
             'sceneVideos' => VideoResource::collection($sceneVideos)->resolve(),
             'sceneEvents' => EventResource::collection($sceneEvents)->resolve(),
             'sceneMedia' => PortfolioItemResource::collection(PortfolioCuration::forScene(10))->resolve(),
-            'heroBackgroundImage' => HomeHeroBackground::resolve($portfolioItems),
-            'landingVideos' => $reelDistribution['landingVideos'] ?? LandingPageVideos::forHome(),
-            'heroProofVideo' => $reelDistribution['heroProofVideo']
-                ?? HomeHeroProofVideos::resolve($settings, $portfolioItems)[0]
-                ?? null,
-            'reelLibraryPreview' => $reelDistribution['reelLibraryPreview'] ?? [],
-            'reelStats' => $reelDistribution['reelStats'] ?? [
-                'totalSourceVideos' => 0,
-                'uniqueVideos' => 0,
-            ],
+            'heroBackgroundImage' => is_array($overviewHeroImage) ? [
+                'url' => $overviewHeroImage['src'],
+                'alt' => $overviewHeroImage['alt'],
+            ] : null,
+            'landingVideos' => $landingVideos,
+            'heroProofVideo' => is_array($overviewHeroVideo) ? [
+                'title' => $overviewHeroVideo['alt'],
+                'media_type' => 'video',
+                'embed_url' => null,
+                'playback_url' => $overviewHeroVideo['src'],
+                'poster_url' => $overviewHeroVideo['poster'] ?? null,
+            ] : LandingPageVideos::toHeroProofVideo($landingVideos['proof'] ?? null),
             'errors' => session('errors')?->getBag('default')?->getMessages() ?? [],
         ]);
     }

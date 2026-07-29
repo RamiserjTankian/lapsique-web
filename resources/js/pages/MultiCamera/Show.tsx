@@ -4,22 +4,16 @@ import {
     useRef,
     useState,
     type CSSProperties,
-    type ReactNode,
+    type KeyboardEvent,
 } from 'react';
 import { usePage } from '@inertiajs/react';
 import {
     ArrowRight,
     CalendarDays,
-    Camera,
-    Check,
     ChevronLeft,
     ChevronRight,
-    CircleDot,
     Clock3,
-    Film,
-    Focus,
     Maximize2,
-    MessageCircle,
     Pause,
     Play,
     Volume2,
@@ -31,13 +25,29 @@ import {
     type BookingWidgetProduct,
 } from '@/components/lapsique/BookingWidget';
 import { SeoHead } from '@/components/lapsique/SeoHead';
-import { Button } from '@/components/ui/button';
+import {
+    ServiceFunnelDeliverables,
+    ServiceFunnelFaq,
+    ServiceFunnelFinalCta,
+    ServiceFunnelHeading,
+    ServiceFunnelHero,
+    ServiceFunnelProcess,
+    ServiceFunnelSection,
+    PortfolioMediaRail,
+    ServiceProofBand,
+    ServiceWhatsAppButton,
+    serviceFunnelPrimaryActionClass,
+} from '@/components/lapsique/ServiceFunnel';
 import { trackBookingEvent } from '@/hooks/useBookingAnalytics';
 import { useSectionEvent } from '@/hooks/useSectionEvent';
 import { useTranslations } from '@/hooks/useTranslations';
 import SiteLayout from '@/layouts/SiteLayout';
-import { formatMxn } from '@/lib/utils';
-import type { BookingSlot, PageProps, PortfolioItemData } from '@/types';
+import type {
+    BookingSlot,
+    PageProps,
+    PortfolioItemData,
+    ServicePortfolioBundle,
+} from '@/types';
 
 interface LocalizedText {
     es: string;
@@ -75,6 +85,7 @@ interface MultiCameraShowProps {
     coverages: MultiCameraCoverage[];
     heroVideo: MultiCameraVideo | null;
     photos: PortfolioItemData[];
+    servicePortfolio: ServicePortfolioBundle;
     errors?: Record<string, string>;
 }
 
@@ -90,6 +101,13 @@ const COPY = {
         proofEyebrow: 'Coberturas reales',
         proofTitle: 'Mira una entrega antes de reservar.',
         proofDescription: 'Explora cada cobertura completa. El contador, la duración y el audio corresponden al archivo publicado.',
+        archiveEyebrow: 'Tres producciones verificadas',
+        archiveTitle: 'Cabina abierta, Danzahaus y MTRX: tres noches, tres necesidades de entrega.',
+        archiveDescription: 'Reproduce las piezas publicadas, cambia de cobertura y compara horizontal, vertical, duración y audio sin controles nativos.',
+        photosEyebrow: 'Galería de producción',
+        photosTitle: '12 fotografías para revisar la cobertura completa.',
+        photosDescription: 'Cabina, público, venue y detalles organizados por producción. Abre cualquier imagen para recorrer la selección en el visor.',
+        photosCta: 'Reservar esta producción',
         coverage: 'Cobertura',
         horizontal: 'Horizontal',
         vertical: 'Vertical',
@@ -173,6 +191,13 @@ const COPY = {
         proofEyebrow: 'Real coverage',
         proofTitle: 'Review a delivery before you book.',
         proofDescription: 'Explore every coverage set. The counter, duration, and audio belong to the published file.',
+        archiveEyebrow: 'Three verified productions',
+        archiveTitle: 'Open booth, Danzahaus, and MTRX: three nights with three delivery needs.',
+        archiveDescription: 'Play the published pieces, switch coverage, and compare horizontal, vertical, duration, and audio without native controls.',
+        photosEyebrow: 'Production gallery',
+        photosTitle: '12 photographs to review the full coverage.',
+        photosDescription: 'Booth, crowd, venue, and details organized by production. Open any image to move through the selection in the viewer.',
+        photosCta: 'Book this production',
         coverage: 'Coverage',
         horizontal: 'Horizontal',
         vertical: 'Vertical',
@@ -251,26 +276,22 @@ export default function MultiCameraShow({
     price,
     slots,
     coverages,
-    heroVideo,
     photos,
+    servicePortfolio,
     errors = {},
 }: MultiCameraShowProps) {
     const { locale } = useTranslations();
     const { site } = usePage<PageProps>().props;
     const copy = locale === 'en' ? COPY.en : COPY.es;
-    const proofRef = useSectionEvent<HTMLElement>('multi_camera_portfolio_engaged', {
+    const proofRef = useSectionEvent<HTMLDivElement>('multi_camera_portfolio_engaged', {
         section: 'multi_camera_coverages',
         service_type: 'multi_camera',
     });
-    const processRef = useSectionEvent<HTMLElement>('multi_camera_workflow_viewed', {
+    const processRef = useSectionEvent<HTMLDivElement>('multi_camera_workflow_viewed', {
         section: 'multi_camera_workflow',
         service_type: 'multi_camera',
     });
-    const gearRef = useSectionEvent<HTMLElement>('multi_camera_gear_viewed', {
-        section: 'multi_camera_equipment',
-        service_type: 'multi_camera',
-    });
-    const offerRef = useSectionEvent<HTMLElement>('multi_camera_package_viewed', {
+    const offerRef = useSectionEvent<HTMLDivElement>('multi_camera_package_viewed', {
         section: 'multi_camera_package',
         service_type: 'multi_camera',
         value: price,
@@ -297,6 +318,14 @@ export default function MultiCameraShow({
         unavailableWhatsApp: copy.booking.unavailableWhatsApp,
     }), [copy]);
     const whatsappHref = `https://wa.me/${site.whatsapp.replace(/\D/g, '')}?text=${encodeURIComponent(copy.booking.unavailableWhatsApp)}`;
+    const curatedCoverages = useMemo(
+        () => curateCoverages(coverages, servicePortfolio.hero.src),
+        [coverages, servicePortfolio.hero.src],
+    );
+    const photoPortfolio = useMemo(
+        () => portfolioWithOnlyPhotos(servicePortfolio),
+        [servicePortfolio],
+    );
 
     useEffect(() => {
         trackBookingEvent('multi_camera_page_viewed', {
@@ -312,276 +341,294 @@ export default function MultiCameraShow({
             target: 'whatsapp',
         });
     };
+    const deliverables = copy.deliverables.map(([title, description]) => ({ title, description }));
+    const process = copy.process.map(([, title, description]) => ({ title, description }));
+    const faqs = copy.faqs.map(([question, answer]) => ({ question, answer }));
+    const primaryAction = (source: string, label: string = copy.book) => (
+        <BookingCtaButton
+            type="button"
+            className={serviceFunnelPrimaryActionClass}
+            opensBookingModal
+            bookingSource={`multi_camera_${source}`}
+            bookingAnalytics={{
+                analyticsEvent: 'multi_camera_booking_cta_clicked',
+                analyticsPayload,
+            }}
+        >
+            <CalendarDays className="size-5" aria-hidden />
+            {label}
+            <ArrowRight className="size-4" aria-hidden />
+        </BookingCtaButton>
+    );
+    const whatsappAction = (source: string) => (
+        <ServiceWhatsAppButton
+            href={whatsappHref}
+            label={copy.whatsapp}
+            onClick={() => trackWhatsApp(source)}
+        />
+    );
 
     return (
         <SiteLayout>
             <SeoHead />
 
-            <section className="relative left-1/2 w-screen -translate-x-1/2 overflow-hidden bg-[#050607] text-white">
-                <HeroBackground video={heroVideo} />
-                <div className="relative mx-auto grid min-h-[min(860px,92svh)] max-w-6xl content-end gap-10 px-4 pb-14 pt-28 sm:px-6 lg:grid-cols-[minmax(0,0.96fr)_minmax(380px,0.8fr)] lg:items-end lg:pb-20">
-                    <div className="max-w-4xl">
-                        <p className="alpha-kicker text-primary">{copy.heroEyebrow}</p>
-                        <h1 className="mt-5 max-w-4xl font-display text-5xl font-bold leading-[0.9] tracking-tight text-white drop-shadow-[0_12px_42px_rgba(0,0,0,0.8)] sm:text-6xl md:text-8xl">
-                            {copy.heroTitle}
-                        </h1>
-                        <p className="mt-6 max-w-2xl text-base leading-relaxed text-white/78 sm:text-lg md:text-xl">
-                            {copy.heroDescription}
-                        </p>
-                        <p className="mt-5 font-mono text-[11px] uppercase tracking-[0.2em] text-primary">
-                            {copy.locations}
-                        </p>
-                        <div className="mt-8 grid max-w-2xl gap-3 sm:grid-cols-[1fr_auto]">
-                            <BookingCtaButton
-                                type="button"
-                                className="h-14 w-full rounded-none border-primary bg-primary text-white hover:border-white hover:bg-white hover:text-black"
-                                opensBookingModal
-                                bookingSource="multi_camera_hero"
-                                bookingAnalytics={{
-                                    analyticsEvent: 'multi_camera_booking_cta_clicked',
-                                    analyticsPayload,
-                                }}
-                            >
-                                <CalendarDays className="size-5" />
-                                {copy.book}
-                                <ArrowRight className="size-5" />
-                            </BookingCtaButton>
-                            <Button
-                                size="xl"
-                                className="h-14 rounded-none border border-[#25D366] bg-[#25D366] px-6 text-[#04150a] hover:bg-[#1ebe5d] hover:text-[#04150a]"
-                                asChild
-                            >
-                                <a href={whatsappHref} target="_blank" rel="noopener noreferrer" onClick={() => trackWhatsApp('hero')}>
-                                    <MessageCircle className="size-5" />
-                                    {copy.whatsapp}
-                                </a>
-                            </Button>
-                        </div>
-                        <p className="mt-5 max-w-2xl border-t border-white/15 pt-4 font-mono text-[10px] uppercase tracking-[0.16em] text-white/55">
-                            {copy.heroProof}
-                        </p>
-                    </div>
+            <ServiceFunnelHero
+                eyebrow={copy.heroEyebrow}
+                title={copy.heroTitle}
+                description={copy.heroDescription}
+                locations={copy.locations}
+                price={price}
+                priceLabel={copy.from}
+                priceNote={copy.heroProof}
+                media={<ServiceHeroMedia portfolio={servicePortfolio} />}
+                mediaLabel="Sony Alpha · DaVinci Resolve 21"
+                mediaCaption={servicePortfolio.hero.projectLabel}
+                primaryAction={primaryAction('hero')}
+                secondaryAction={whatsappAction('hero')}
+            />
 
-                    {heroVideo ? (
-                        <div className="hidden border border-white/20 bg-black/55 p-3 shadow-2xl backdrop-blur-sm lg:block">
-                            <img
-                                src={heroVideo.poster ?? '/images/og/multicamara.jpg'}
-                                alt=""
-                                className="aspect-video w-full object-cover"
-                            />
-                            <div className="flex items-center justify-between border-t border-white/15 px-1 pt-3 font-mono text-[10px] uppercase tracking-[0.16em] text-white/55">
-                                <span>{copy.proofEyebrow}</span>
-                                <span>01 / {String(coverages.length).padStart(2, '0')}</span>
-                            </div>
-                        </div>
-                    ) : null}
-                </div>
-            </section>
+            <ServiceFunnelSection innerClassName="py-0 sm:py-0 lg:py-0">
+                <ServiceProofBand
+                    portfolio={servicePortfolio}
+                    eyebrow={copy.proofEyebrow}
+                    title={copy.proofTitle}
+                    description={copy.proofDescription}
+                />
+            </ServiceFunnelSection>
 
-            <section ref={proofRef} className="relative left-1/2 w-screen -translate-x-1/2 bg-[#07090c] py-16 text-white md:py-24">
-                <div className="mx-auto max-w-6xl px-4 sm:px-6">
-                    <SectionHeading
-                        eyebrow={copy.proofEyebrow}
-                        title={copy.proofTitle}
-                        description={copy.proofDescription}
+            <ServiceFunnelSection tone="dark" innerClassName="max-w-none px-0 py-16 sm:px-0 sm:py-20 lg:py-24">
+                <div ref={proofRef} className="mx-auto max-w-6xl px-4 sm:px-6">
+                    <ServiceFunnelHeading
+                        eyebrow={copy.archiveEyebrow}
+                        title={copy.archiveTitle}
+                        description={copy.archiveDescription}
                         inverse
                     />
                 </div>
-                <CoverageShowcase coverages={coverages} locale={locale} copy={copy} />
-            </section>
+                <CoverageShowcase coverages={curatedCoverages} locale={locale} copy={copy} />
+            </ServiceFunnelSection>
 
-            <section className="mx-auto grid max-w-6xl gap-10 px-4 py-16 sm:px-6 md:py-24 lg:grid-cols-[0.72fr_1.28fr] lg:items-start">
-                <SectionHeading
+            <ServiceFunnelSection>
+                <ServiceFunnelHeading
+                    eyebrow={copy.photosEyebrow}
+                    title={copy.photosTitle}
+                    description={copy.photosDescription}
+                />
+                <div className="mt-10 space-y-14">
+                    {photoPortfolio.projects.map((project, index) => (
+                        <div key={project.key}>
+                            <div className="mb-5 flex flex-wrap items-end justify-between gap-3 border-b border-border pb-4">
+                                <h3 className="text-balance font-display text-3xl font-bold leading-none text-foreground">
+                                    {project.label}
+                                </h3>
+                                <p className="font-mono text-[0.65rem] uppercase tracking-[0.15em] text-muted-foreground">
+                                    {project.media.length} {locale === 'en' ? 'photographs' : 'fotografías'}
+                                </p>
+                            </div>
+                            <PortfolioMediaRail
+                                portfolio={photoPortfolio}
+                                projectKey={project.key}
+                                ariaLabel={`${copy.photosTitle}: ${project.label}`}
+                                action={index === photoPortfolio.projects.length - 1 ? (
+                                    <div className="grid w-full gap-3 sm:max-w-2xl sm:grid-cols-2">
+                                        {primaryAction('portfolio', copy.photosCta)}
+                                        {whatsappAction('portfolio')}
+                                    </div>
+                                ) : undefined}
+                            />
+                        </div>
+                    ))}
+                </div>
+            </ServiceFunnelSection>
+
+            <ServiceFunnelSection>
+                <ServiceFunnelHeading
                     eyebrow={copy.deliverablesEyebrow}
                     title={copy.deliverablesTitle}
                     description={copy.deliverablesDescription}
                 />
-                <div className="divide-y divide-border/70 border-y border-border/70">
-                    {copy.deliverables.map(([title, description], index) => {
-                        const Icon = [Film, CircleDot, Camera, Focus][index] ?? Check;
-
-                        return (
-                            <article key={title} className="grid gap-3 py-5 sm:grid-cols-[2.5rem_minmax(0,0.8fr)_1.2fr] sm:gap-5">
-                                <Icon className="size-5 text-primary" aria-hidden />
-                                <h3 className="font-display text-2xl font-bold leading-none text-foreground">{title}</h3>
-                                <p className="text-sm leading-relaxed text-muted-foreground">{description}</p>
-                            </article>
-                        );
-                    })}
+                <div className="mt-10">
+                    <ServiceFunnelDeliverables items={deliverables} />
                 </div>
-            </section>
+            </ServiceFunnelSection>
 
-            <section ref={processRef} className="relative left-1/2 w-screen -translate-x-1/2 bg-[#0a0b0d] py-16 text-white md:py-24">
-                <div className="mx-auto max-w-6xl px-4 sm:px-6">
-                    <SectionHeading eyebrow={copy.processEyebrow} title={copy.processTitle} inverse />
-                    <div className="mt-10 grid border-y border-white/15 md:grid-cols-3 md:divide-x md:divide-white/15">
-                        {copy.process.map(([number, title, description]) => (
-                            <article key={number} className="border-b border-white/15 px-1 py-7 last:border-b-0 md:border-b-0 md:px-6 md:first:pl-0 md:last:pr-0">
-                                <p className="font-mono text-xs tracking-[0.2em] text-primary">{number}</p>
-                                <h3 className="mt-6 font-display text-3xl font-bold leading-none text-white">{title}</h3>
-                                <p className="mt-4 text-sm leading-relaxed text-white/60">{description}</p>
-                            </article>
-                        ))}
+            <ServiceFunnelSection tone="dark">
+                <div ref={processRef}>
+                    <ServiceFunnelHeading eyebrow={copy.processEyebrow} title={copy.processTitle} inverse />
+                    <div className="mt-10">
+                        <ServiceFunnelProcess items={process} inverse />
                     </div>
                 </div>
-            </section>
+            </ServiceFunnelSection>
 
-            <section ref={gearRef} className="mx-auto grid max-w-6xl gap-10 px-4 py-16 sm:px-6 md:py-24 lg:grid-cols-[0.72fr_1.28fr] lg:items-start">
-                <SectionHeading
-                    eyebrow={copy.gearEyebrow}
-                    title={copy.gearTitle}
-                    description={copy.gearDescription}
+            <ServiceFunnelSection tone="soft" id="reservar">
+                <div ref={offerRef}>
+                    <ServiceFunnelHeading
+                        eyebrow={copy.offerEyebrow}
+                        title={copy.booking.headerTitle}
+                        description={copy.booking.headerDescription}
+                    />
+                    <BookingWidget
+                        slots={slots}
+                        price={price}
+                        whatsapp={site.whatsapp}
+                        errors={errors}
+                        className="mt-10"
+                        checkoutRoute="multi-camera.checkout"
+                        paymentProvider="stripe"
+                        product={bookingProduct}
+                        popupVariant="multiCamera"
+                        popupPortfolioItems={photos}
+                        popupHeroProofVideo={servicePortfolio.hero.kind === 'video' ? {
+                            title: servicePortfolio.hero.projectLabel,
+                            media_type: 'video',
+                            embed_url: null,
+                            playback_url: servicePortfolio.hero.src,
+                            poster_url: servicePortfolio.hero.poster ?? null,
+                        } : null}
+                        highlight
+                        analyticsPayload={analyticsPayload}
+                        analyticsOpenEvent="multi_camera_booking_opened"
+                    />
+                </div>
+            </ServiceFunnelSection>
+
+            <ServiceFunnelSection>
+                <ServiceFunnelHeading
+                    eyebrow={copy.faqEyebrow}
+                    title={locale === 'en' ? 'What to know before production' : 'Lo que debes saber antes de producir'}
                 />
-                <div className="grid gap-8 sm:grid-cols-2">
-                    <GearList title={copy.cameras} items={copy.cameraGear} icon={<Camera className="size-5" />} />
-                    <GearList title={copy.lenses} items={copy.lensGear} icon={<Focus className="size-5" />} />
+                <div className="mt-10">
+                    <ServiceFunnelFaq items={faqs} />
                 </div>
-            </section>
+            </ServiceFunnelSection>
 
-            <section ref={offerRef} className="relative left-1/2 w-screen -translate-x-1/2 bg-[#101114] py-16 text-white md:py-24">
-                <div className="mx-auto grid max-w-6xl gap-10 px-4 sm:px-6 lg:grid-cols-[1fr_0.72fr] lg:items-end">
-                    <div>
-                        <p className="alpha-kicker text-primary">{copy.offerEyebrow}</p>
-                        <h2 className="mt-4 max-w-3xl font-display text-4xl font-bold leading-[0.94] tracking-tight text-white md:text-6xl">
-                            {copy.offerTitle}
-                        </h2>
-                        <p className="mt-5 max-w-2xl text-base leading-relaxed text-white/64">{copy.offerDescription}</p>
-                        <ul className="mt-8 grid gap-x-8 gap-y-3 border-y border-white/15 py-5 sm:grid-cols-2">
-                            {copy.offerIncludes.map((item) => (
-                                <li key={item} className="flex items-center gap-3 text-sm text-white/75">
-                                    <Check className="size-4 text-primary" aria-hidden />
-                                    {item}
-                                </li>
-                            ))}
-                        </ul>
-                    </div>
-                    <div className="border-l border-white/15 pl-0 lg:pl-8">
-                        <p className="font-mono text-xs uppercase tracking-[0.18em] text-white/48">{copy.from}</p>
-                        <p className="mt-2 font-mono-tabular text-5xl font-bold text-primary">{formatMxn(price)}</p>
-                        <div className="mt-7 grid gap-3">
-                            <BookingCtaButton
-                                type="button"
-                                className="h-14 w-full rounded-none border-primary bg-primary text-white hover:border-white hover:bg-white hover:text-black"
-                                opensBookingModal
-                                bookingSource="multi_camera_package"
-                                bookingAnalytics={{
-                                    analyticsEvent: 'multi_camera_booking_cta_clicked',
-                                    analyticsPayload,
-                                }}
-                            >
-                                <CalendarDays className="size-5" />
-                                {copy.book}
-                                <ArrowRight className="size-5" />
-                            </BookingCtaButton>
-                            <Button size="xl" className="h-14 w-full rounded-none border border-[#25D366] bg-[#25D366] text-[#04150a] hover:bg-[#1ebe5d] hover:text-[#04150a]" asChild>
-                                <a href={whatsappHref} target="_blank" rel="noopener noreferrer" onClick={() => trackWhatsApp('package')}>
-                                    <MessageCircle className="size-5" />
-                                    {copy.whatsapp}
-                                </a>
-                            </Button>
-                        </div>
-                    </div>
-                </div>
-            </section>
-
-            <BookingWidget
-                slots={slots}
-                price={price}
-                whatsapp={site.whatsapp}
-                errors={errors}
-                className="mx-auto max-w-6xl"
-                checkoutRoute="multi-camera.checkout"
-                paymentProvider="stripe"
-                product={bookingProduct}
-                popupVariant="multiCamera"
-                popupPortfolioItems={photos}
-                popupHeroProofVideo={heroVideo ? {
-                    title: null,
-                    media_type: 'video',
-                    embed_url: null,
-                    playback_url: heroVideo.src,
-                    poster_url: heroVideo.poster,
-                } : null}
-                highlight
-                analyticsPayload={analyticsPayload}
-                analyticsOpenEvent="multi_camera_booking_opened"
+            <ServiceFunnelFinalCta
+                eyebrow="Lapsique Originals"
+                title={copy.finalTitle}
+                description={copy.finalDescription}
+                primaryAction={primaryAction('final')}
+                secondaryAction={whatsappAction('final')}
             />
-
-            <section className="mx-auto grid max-w-6xl gap-10 px-4 py-16 sm:px-6 md:py-24 lg:grid-cols-[0.72fr_1.28fr]">
-                <div><p className="alpha-kicker text-primary">{copy.faqEyebrow}</p></div>
-                <div className="divide-y divide-border/70 border-y border-border/70">
-                    {copy.faqs.map(([question, answer]) => (
-                        <Faq key={question} question={question} answer={answer} />
-                    ))}
-                </div>
-            </section>
-
-            <section className="relative left-1/2 mb-0 w-screen -translate-x-1/2 bg-primary py-14 text-white md:py-20">
-                <div className="mx-auto grid max-w-6xl gap-8 px-4 sm:px-6 lg:grid-cols-[1fr_auto] lg:items-end">
-                    <div className="max-w-3xl">
-                        <h2 className="font-display text-4xl font-bold leading-[0.94] tracking-tight md:text-6xl">{copy.finalTitle}</h2>
-                        <p className="mt-5 max-w-2xl text-base leading-relaxed text-white/84 md:text-lg">{copy.finalDescription}</p>
-                    </div>
-                    <div className="grid gap-3 sm:grid-cols-2 lg:min-w-[460px]">
-                        <BookingCtaButton
-                            type="button"
-                            className="h-14 w-full rounded-none border-black bg-black text-white hover:border-white hover:bg-white hover:text-black"
-                            opensBookingModal
-                            bookingSource="multi_camera_final"
-                            bookingAnalytics={{
-                                analyticsEvent: 'multi_camera_booking_cta_clicked',
-                                analyticsPayload,
-                            }}
-                        >
-                            <CalendarDays className="size-5" />
-                            {copy.book}
-                        </BookingCtaButton>
-                        <Button size="xl" className="h-14 w-full rounded-none border border-[#25D366] bg-[#25D366] text-[#04150a] hover:bg-[#1ebe5d] hover:text-[#04150a]" asChild>
-                            <a href={whatsappHref} target="_blank" rel="noopener noreferrer" onClick={() => trackWhatsApp('final')}>
-                                <MessageCircle className="size-5" />
-                                {copy.whatsapp}
-                            </a>
-                        </Button>
-                    </div>
-                </div>
-            </section>
         </SiteLayout>
     );
 }
 
-function HeroBackground({ video }: { video: MultiCameraVideo | null }) {
-    const videoRef = useRef<HTMLVideoElement>(null);
+function ServiceHeroMedia({ portfolio }: { portfolio: ServicePortfolioBundle }) {
+    const media = portfolio.hero;
+    const still = media.kind === 'image'
+        ? media.src
+        : media.poster ?? portfolio.projects
+            .flatMap((project) => project.media)
+            .find((item) => item.kind === 'image' && item.src !== media.src)
+            ?.src;
 
-    useEffect(() => {
-        if (!videoRef.current || window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
-            return;
-        }
-
-        void videoRef.current.play().catch(() => undefined);
-    }, [video?.src]);
+    if (still) {
+        return (
+            <img
+                src={still}
+                alt={media.alt}
+                fetchPriority="high"
+                className="h-full w-full object-cover"
+            />
+        );
+    }
 
     return (
-        <div className="absolute inset-0">
-            {video ? (
-                <video
-                    ref={videoRef}
-                    src={video.src}
-                    poster={video.poster ?? undefined}
-                    muted
-                    loop
-                    playsInline
-                    preload="metadata"
-                    className="h-full w-full object-cover opacity-55"
-                    aria-hidden
-                    tabIndex={-1}
-                />
-            ) : (
-                <img src="/images/og/multicamara.jpg" alt="" className="h-full w-full object-cover opacity-55" />
-            )}
-            <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(5,6,7,0.98)_0%,rgba(5,6,7,0.78)_52%,rgba(5,6,7,0.26)_100%)]" />
-            <div className="absolute inset-0 bg-[linear-gradient(0deg,#050607_0%,transparent_56%,rgba(5,6,7,0.44)_100%)]" />
-        </div>
+        <video
+            src={media.src}
+            poster={media.poster ?? undefined}
+            muted
+            playsInline
+            preload="metadata"
+            aria-label={media.alt}
+            className="h-full w-full object-cover"
+        />
     );
+}
+
+function curateCoverages(
+    coverages: MultiCameraCoverage[],
+    excludedHeroSrc: string,
+): MultiCameraCoverage[] {
+    const sanitized = coverages.map((coverage) => ({
+        ...coverage,
+        videos: uniqueBySource(
+            coverage.videos.filter((video) => video.src !== excludedHeroSrc),
+        ),
+        vertical_videos: uniqueBySource(
+            coverage.vertical_videos.filter((video) => video.src !== excludedHeroSrc),
+        ),
+        photos: uniqueBySource(
+            coverage.photos.filter((photo) => !photo.src.toLowerCase().includes('karen-echev')),
+        ),
+    }));
+    const openBooth = sanitized.find((coverage) => coverage.id === 'coverage-01');
+    const danzahaus = sanitized.find((coverage) => coverage.id === 'coverage-02');
+    const formatStudy = sanitized.find((coverage) => coverage.id === 'coverage-03');
+    const mtrx = sanitized.find((coverage) => coverage.id === 'coverage-04');
+
+    if (!openBooth || !danzahaus || !mtrx) {
+        return sanitized;
+    }
+
+    const mergedDanzahaus = formatStudy ? {
+        ...danzahaus,
+        context: {
+            es: 'Una cobertura · entregas horizontales y verticales',
+            en: 'One coverage · horizontal and vertical delivery',
+        },
+        summary: {
+            es: 'Drops completos, cortes de campaña y formatos para archivo y redes, todos organizados dentro de la misma producción.',
+            en: 'Full drops, campaign cuts, and formats for archive and social, all organized within the same production.',
+        },
+        videos: uniqueBySource([...danzahaus.videos, ...formatStudy.videos]),
+        vertical_videos: uniqueBySource([
+            ...danzahaus.vertical_videos,
+            ...formatStudy.vertical_videos,
+        ]),
+        photos: uniqueBySource([...danzahaus.photos, ...formatStudy.photos]),
+    } : danzahaus;
+
+    return [openBooth, mergedDanzahaus, mtrx];
+}
+
+function uniqueBySource<T extends { id: string; src: string }>(items: T[]): T[] {
+    const seen = new Set<string>();
+
+    return items.filter((item) => {
+        const key = item.src || item.id;
+
+        if (seen.has(key)) {
+            return false;
+        }
+
+        seen.add(key);
+
+        return true;
+    });
+}
+
+function portfolioWithOnlyPhotos(portfolio: ServicePortfolioBundle): ServicePortfolioBundle {
+    const projects = portfolio.projects
+        .map((project) => ({
+            ...project,
+            media: project.media.filter((media) => media.kind === 'image'),
+        }))
+        .filter((project) => project.media.length > 0);
+    const imageCount = projects.reduce((total, project) => total + project.media.length, 0);
+
+    return {
+        ...portfolio,
+        projects,
+        stats: {
+            ...portfolio.stats,
+            mediaCount: imageCount,
+            projectCount: projects.length,
+            imageCount,
+            videoCount: 0,
+        },
+    };
 }
 
 function CoverageShowcase({
@@ -626,6 +673,31 @@ function CoverageShowcase({
             format: nextFormat,
         });
     };
+    const onCoverageKeyDown = (
+        event: KeyboardEvent<HTMLButtonElement>,
+        index: number,
+    ) => {
+        let nextIndex: number | null = null;
+
+        if (event.key === 'ArrowRight' || event.key === 'ArrowDown') {
+            nextIndex = (index + 1) % coverages.length;
+        } else if (event.key === 'ArrowLeft' || event.key === 'ArrowUp') {
+            nextIndex = (index - 1 + coverages.length) % coverages.length;
+        } else if (event.key === 'Home') {
+            nextIndex = 0;
+        } else if (event.key === 'End') {
+            nextIndex = coverages.length - 1;
+        }
+
+        if (nextIndex === null) {
+            return;
+        }
+
+        event.preventDefault();
+        selectCoverage(nextIndex);
+        const tabs = event.currentTarget.parentElement?.querySelectorAll<HTMLButtonElement>('[role="tab"]');
+        tabs?.[nextIndex]?.focus();
+    };
 
     return (
         <div className="mt-10">
@@ -636,8 +708,12 @@ function CoverageShowcase({
                             key={item.id}
                             type="button"
                             role="tab"
+                            id={`multi-camera-tab-${item.id}`}
+                            aria-controls={`multi-camera-panel-${item.id}`}
                             aria-selected={coverageIndex === index}
+                            tabIndex={coverageIndex === index ? 0 : -1}
                             onClick={() => selectCoverage(index)}
+                            onKeyDown={(event) => onCoverageKeyDown(event, index)}
                             className={`min-h-11 shrink-0 border px-4 py-2 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-[#07090c] ${
                                 coverageIndex === index
                                     ? 'border-primary bg-primary text-white'
@@ -652,7 +728,13 @@ function CoverageShowcase({
                     ))}
                 </div>
 
-                <div className="mt-6 grid gap-5 md:grid-cols-[1fr_auto] md:items-end">
+                <div
+                    id={`multi-camera-panel-${coverage.id}`}
+                    role="tabpanel"
+                    aria-labelledby={`multi-camera-tab-${coverage.id}`}
+                    tabIndex={0}
+                    className="mt-6 grid gap-5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary md:grid-cols-[1fr_auto] md:items-end"
+                >
                     <div>
                         <p className="alpha-kicker text-primary">{coverage.context[locale === 'en' ? 'en' : 'es']}</p>
                         <h3 className="mt-3 font-display text-4xl font-bold text-white">{coverage.name[locale === 'en' ? 'en' : 'es']}</h3>
@@ -685,33 +767,6 @@ function CoverageShowcase({
                 format={format}
                 copy={copy}
             />
-
-            {coverage.photos.length > 0 ? (
-                <div className="mx-auto mt-6 max-w-6xl px-4 sm:px-6">
-                    <p className="mb-3 font-mono text-[9px] uppercase tracking-[0.18em] text-white/45">{copy.photosLabel}</p>
-                    <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
-                        {coverage.photos.slice(0, 4).map((photo, index) => (
-                            <button
-                                key={photo.id}
-                                type="button"
-                                data-lightbox-trigger="true"
-                                className="group relative min-h-11 overflow-hidden bg-black focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
-                                aria-label={`${copy.photosLabel} ${index + 1}`}
-                            >
-                                <img
-                                    src={photo.src}
-                                    alt=""
-                                    loading="lazy"
-                                    className="aspect-[4/3] h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.025]"
-                                />
-                                <span className="absolute bottom-2 right-2 bg-black/70 px-2 py-1 font-mono text-[8px] uppercase tracking-[0.14em] text-white/70">
-                                    {String(index + 1).padStart(2, '0')}
-                                </span>
-                            </button>
-                        ))}
-                    </div>
-                </div>
-            ) : null}
         </div>
     );
 }
@@ -732,6 +787,8 @@ function CustomVideoCarousel({
     const [muted, setMuted] = useState(true);
     const [currentTime, setCurrentTime] = useState(0);
     const [duration, setDuration] = useState(0);
+    const [isInViewport, setIsInViewport] = useState(false);
+    const [prefersReducedMotion, setPrefersReducedMotion] = useState(false);
     const videoRef = useRef<HTMLVideoElement>(null);
     const shellRef = useRef<HTMLDivElement>(null);
     const milestonesRef = useRef<Set<number>>(new Set());
@@ -743,6 +800,35 @@ function CustomVideoCarousel({
     }, [videos]);
 
     useEffect(() => {
+        const mediaQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
+        const updatePreference = () => setPrefersReducedMotion(mediaQuery.matches);
+
+        updatePreference();
+        mediaQuery.addEventListener('change', updatePreference);
+
+        return () => mediaQuery.removeEventListener('change', updatePreference);
+    }, []);
+
+    useEffect(() => {
+        const shell = shellRef.current;
+
+        if (!shell || typeof IntersectionObserver === 'undefined') {
+            return;
+        }
+
+        const observer = new IntersectionObserver(
+            ([entry]) => {
+                setIsInViewport(entry.isIntersecting && entry.intersectionRatio >= 0.2);
+            },
+            { threshold: [0, 0.2, 0.5] },
+        );
+
+        observer.observe(shell);
+
+        return () => observer.disconnect();
+    }, []);
+
+    useEffect(() => {
         const video = videoRef.current;
 
         setCurrentTime(0);
@@ -751,14 +837,32 @@ function CustomVideoCarousel({
         milestonesRef.current.clear();
         startedRef.current = false;
 
-        if (!video || window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+        if (!video) {
+            return;
+        }
+
+        video.pause();
+        video.muted = true;
+        setMuted(true);
+    }, [activeIndex, activeVideo?.src]);
+
+    useEffect(() => {
+        const video = videoRef.current;
+
+        if (!video) {
+            return;
+        }
+
+        if (!isInViewport || prefersReducedMotion) {
+            video.pause();
+            setPlaying(false);
             return;
         }
 
         video.muted = true;
         setMuted(true);
         void video.play().then(() => setPlaying(true)).catch(() => undefined);
-    }, [activeIndex, activeVideo?.src]);
+    }, [activeIndex, activeVideo?.src, isInViewport, prefersReducedMotion]);
 
     if (!activeVideo) {
         return null;
@@ -840,7 +944,7 @@ function CustomVideoCarousel({
         setPlaying(false);
         report('multi_camera_video_completed', { duration_seconds: Math.round(duration) });
 
-        if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches && videos.length > 1) {
+        if (isInViewport && !prefersReducedMotion && videos.length > 1) {
             goTo(activeIndex + 1, 'completed');
         }
     };
@@ -880,12 +984,13 @@ function CustomVideoCarousel({
                     onEnded={handleEnded}
                     onClick={togglePlayback}
                     className={`multicam-fullbleed-video ${format === 'vertical' ? 'object-contain' : 'object-cover'}`}
+                    style={{ aspectRatio: format === 'vertical' ? '9 / 16' : '16 / 9' }}
                     aria-label={`${copy.coverage} ${coverageId}, ${activeIndex + 1} / ${videos.length}`}
                 />
 
-                <div className="pointer-events-none absolute inset-x-0 bottom-0 bg-gradient-to-t from-black via-black/60 to-transparent px-4 pb-4 pt-24 text-white sm:px-6">
-                    <div className="pointer-events-auto">
-                        <div className="mb-4 flex items-end justify-between gap-5">
+                <div className="relative z-10 bg-[#050607] px-4 py-4 text-white sm:pointer-events-none sm:absolute sm:inset-x-0 sm:bottom-0 sm:bg-gradient-to-t sm:from-black sm:via-black/60 sm:to-transparent sm:px-6 sm:pb-4 sm:pt-24">
+                    <div className="sm:pointer-events-auto">
+                        <div className="mb-3 flex flex-wrap items-end justify-between gap-3 sm:mb-4 sm:flex-nowrap sm:gap-5">
                             <div>
                                 <p className="font-mono text-[9px] uppercase tracking-[0.18em] text-primary">
                                     {copy.coverage} · {String(activeIndex + 1).padStart(2, '0')} / {String(videos.length).padStart(2, '0')}
@@ -964,63 +1069,6 @@ function CustomVideoCarousel({
                 </div>
             </div>
         </div>
-    );
-}
-
-function SectionHeading({
-    eyebrow,
-    title,
-    description,
-    inverse = false,
-}: {
-    eyebrow: string;
-    title: string;
-    description?: string;
-    inverse?: boolean;
-}) {
-    return (
-        <div>
-            <p className="alpha-kicker text-primary">{eyebrow}</p>
-            <h2 className={`mt-4 max-w-4xl font-display text-4xl font-bold leading-[0.94] tracking-tight md:text-6xl ${inverse ? 'text-white' : 'text-foreground'}`}>
-                {title}
-            </h2>
-            {description ? (
-                <p className={`mt-5 max-w-2xl text-sm leading-relaxed md:text-base ${inverse ? 'text-white/60' : 'text-muted-foreground'}`}>
-                    {description}
-                </p>
-            ) : null}
-        </div>
-    );
-}
-
-function GearList({ title, items, icon }: { title: string; items: readonly string[]; icon: ReactNode }) {
-    return (
-        <div>
-            <h3 className="flex items-center gap-3 border-b border-border/70 pb-4 font-display text-2xl font-bold text-foreground">
-                <span className="text-primary">{icon}</span>
-                {title}
-            </h3>
-            <ul className="divide-y divide-border/70">
-                {items.map((item) => (
-                    <li key={item} className="flex min-h-12 items-center justify-between gap-3 py-3 text-sm text-foreground">
-                        <span>{item}</span>
-                        <span className="font-mono text-[10px] uppercase tracking-[0.16em] text-muted-foreground">1 ×</span>
-                    </li>
-                ))}
-            </ul>
-        </div>
-    );
-}
-
-function Faq({ question, answer }: { question: string; answer: string }) {
-    return (
-        <details className="group">
-            <summary className="flex min-h-14 cursor-pointer list-none items-center justify-between gap-6 py-4 font-display text-xl font-bold text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary [&::-webkit-details-marker]:hidden">
-                {question}
-                <span className="font-mono text-lg text-primary transition-transform group-open:rotate-45" aria-hidden>+</span>
-            </summary>
-            <p className="max-w-3xl pb-5 pr-10 text-sm leading-relaxed text-muted-foreground">{answer}</p>
-        </details>
     );
 }
 

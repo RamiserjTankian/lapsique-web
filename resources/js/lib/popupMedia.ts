@@ -1,7 +1,19 @@
 import type { TranslateFn } from '@/hooks/useTranslations';
 import type { HeroProofVideoData, PortfolioItemData, VideoItem } from '@/types';
 
-export type PopupVariant = 'home' | 'djset' | 'drone' | 'construction' | 'eventCoverage' | 'multiCamera';
+export const POPUP_VARIANTS = [
+    'home',
+    'contentCreation',
+    'businessReels',
+    'foodReels',
+    'djset',
+    'drone',
+    'construction',
+    'eventCoverage',
+    'multiCamera',
+] as const;
+
+export type PopupVariant = (typeof POPUP_VARIANTS)[number];
 
 export type PopupMediaPurpose = 'booking' | 'newsletter' | 'whatsapp';
 
@@ -19,13 +31,39 @@ export interface ResolvedPopupImage {
 }
 
 const FALLBACK_IMAGES: Record<PopupVariant, string> = {
-    home: '/images/equipment/sony-a7iv.svg',
+    home: '/images/og-default.jpg',
+    contentCreation: '/images/booking-og.jpg',
+    businessReels: '/images/og-default.jpg',
+    foodReels: '/images/food-reels/food-santino-brunch-table.webp',
     djset: '/images/portfolio/photos/082-proper-collective-cab1bed3f4.webp',
     drone: '/images/drone-sessions/hero.jpg',
     construction: '/images/drone-sessions/construction-goba-aerial.jpg',
     eventCoverage: '/images/portfolio/video-posters/2026-07-11-mtrx-dumas-a0794b89f7.jpg',
     multiCamera: '/images/og/multicamara.jpg',
 };
+
+const COPY_SUFFIXES: Record<PopupVariant, string> = {
+    home: 'home',
+    contentCreation: 'content_creation',
+    businessReels: 'business_reels',
+    foodReels: 'food_reels',
+    djset: 'djset',
+    drone: 'drone',
+    construction: 'construction',
+    eventCoverage: 'event_coverage',
+    multiCamera: 'multi_camera',
+};
+
+const NEWSLETTER_SUFFIXES: Partial<Record<PopupVariant, string>> = {
+    home: 'home',
+    djset: 'djset',
+    eventCoverage: 'event_coverage',
+    multiCamera: 'multi_camera',
+};
+
+export function getPopupWhatsAppPrefillKey(variant: PopupVariant): string {
+    return `funnel.whatsapp.prefill_${COPY_SUFFIXES[variant]}`;
+}
 
 function firstPortfolioImage(
     items: PortfolioItemData[] | undefined,
@@ -101,17 +139,7 @@ export function resolvePopupImage(
     const alt =
         (variant === 'djset' ? null : featuredImage?.title)
         ?? heroProofVideo?.title
-        ?? (variant === 'djset'
-            ? t('funnel.popup.fallback_alt_djset')
-            : variant === 'drone'
-              ? t('funnel.popup.fallback_alt_drone')
-            : variant === 'construction'
-                ? t('funnel.popup.fallback_alt_construction')
-                : variant === 'eventCoverage'
-                  ? t('funnel.popup.fallback_alt_event_coverage')
-                : variant === 'multiCamera'
-                  ? t('funnel.popup.fallback_alt_multi_camera')
-                : t('funnel.popup.fallback_alt_home'));
+        ?? t(`funnel.popup.fallback_alt_${COPY_SUFFIXES[variant]}`);
 
     return { url, alt };
 }
@@ -122,122 +150,33 @@ export function getPopupVisualCopy(
     purpose: PopupMediaPurpose,
 ): { badge: string; title: string; description: string; caption?: string } {
     if (purpose === 'booking') {
-        if (variant === 'djset') {
-            return {
-                badge: t('funnel.popup.booking_djset_badge'),
-                title: t('funnel.popup.booking_djset_title'),
-                description: t('funnel.popup.booking_djset_description'),
-                caption: t('funnel.popup.booking_djset_caption'),
-            };
-        }
-
-        if (variant === 'drone') {
-            return {
-                badge: t('funnel.popup.booking_drone_badge'),
-                title: t('funnel.popup.booking_drone_title'),
-                description: t('funnel.popup.booking_drone_description'),
-                caption: t('funnel.popup.booking_drone_caption'),
-            };
-        }
-
-        if (variant === 'construction') {
-            return {
-                badge: t('funnel.popup.booking_construction_badge'),
-                title: t('funnel.popup.booking_construction_title'),
-                description: t('funnel.popup.booking_construction_description'),
-                caption: t('funnel.popup.booking_construction_caption'),
-            };
-        }
-
-        if (variant === 'eventCoverage') {
-            return {
-                badge: t('funnel.popup.booking_event_coverage_badge'),
-                title: t('funnel.popup.booking_event_coverage_title'),
-                description: t('funnel.popup.booking_event_coverage_description'),
-                caption: t('funnel.popup.booking_event_coverage_caption'),
-            };
-        }
-
-        if (variant === 'multiCamera') {
-            return {
-                badge: t('funnel.popup.booking_multi_camera_badge'),
-                title: t('funnel.popup.booking_multi_camera_title'),
-                description: t('funnel.popup.booking_multi_camera_description'),
-                caption: t('funnel.popup.booking_multi_camera_caption'),
-            };
-        }
+        const suffix = COPY_SUFFIXES[variant];
 
         return {
-            badge: t('funnel.popup.booking_home_badge'),
-            title: t('funnel.popup.booking_home_title'),
-            description: t('funnel.popup.booking_home_description'),
-            caption: t('funnel.popup.booking_home_caption'),
+            badge: t(`funnel.popup.booking_${suffix}_badge`),
+            title: t(`funnel.popup.booking_${suffix}_title`),
+            description: t(`funnel.popup.booking_${suffix}_description`),
+            caption: t(`funnel.popup.booking_${suffix}_caption`),
         };
     }
 
     if (purpose === 'newsletter') {
-        if (variant === 'eventCoverage') {
-            return {
-                badge: t('funnel.popup.newsletter_event_coverage_badge'),
-                title: t('funnel.popup.newsletter_event_coverage_title'),
-                description: t('funnel.popup.newsletter_event_coverage_description'),
-                caption: t('funnel.popup.newsletter_event_coverage_caption'),
-            };
-        }
+        const suffix = NEWSLETTER_SUFFIXES[variant] ?? 'home';
 
-        if (variant === 'multiCamera') {
-            return {
-                badge: t('funnel.popup.newsletter_multi_camera_badge'),
-                title: t('funnel.popup.newsletter_multi_camera_title'),
-                description: t('funnel.popup.newsletter_multi_camera_description'),
-                caption: t('funnel.popup.newsletter_multi_camera_caption'),
-            };
-        }
-
-        return variant === 'djset'
-            ? {
-                  badge: t('funnel.popup.newsletter_djset_badge'),
-                  title: t('funnel.popup.newsletter_djset_title'),
-                  description: t('funnel.popup.newsletter_djset_description'),
-                  caption: t('funnel.popup.newsletter_djset_caption'),
-              }
-            : {
-                  badge: t('funnel.popup.newsletter_home_badge'),
-                  title: t('funnel.popup.newsletter_home_title'),
-                  description: t('funnel.popup.newsletter_home_description'),
-                  caption: t('funnel.popup.newsletter_home_caption'),
-              };
-    }
-
-    if (variant === 'eventCoverage') {
         return {
-            badge: t('funnel.popup.whatsapp_badge'),
-            title: t('funnel.popup.whatsapp_event_coverage_title'),
-            description: t('funnel.popup.whatsapp_event_coverage_description'),
-            caption: t('funnel.popup.whatsapp_event_coverage_caption'),
+            badge: t(`funnel.popup.newsletter_${suffix}_badge`),
+            title: t(`funnel.popup.newsletter_${suffix}_title`),
+            description: t(`funnel.popup.newsletter_${suffix}_description`),
+            caption: t(`funnel.popup.newsletter_${suffix}_caption`),
         };
     }
 
-    if (variant === 'multiCamera') {
-        return {
-            badge: t('funnel.popup.whatsapp_badge'),
-            title: t('funnel.popup.whatsapp_multi_camera_title'),
-            description: t('funnel.popup.whatsapp_multi_camera_description'),
-            caption: t('funnel.popup.whatsapp_multi_camera_caption'),
-        };
-    }
+    const suffix = COPY_SUFFIXES[variant];
 
-    return variant === 'djset'
-        ? {
-              badge: t('funnel.popup.whatsapp_badge'),
-              title: t('funnel.popup.whatsapp_djset_title'),
-              description: t('funnel.popup.whatsapp_djset_description'),
-              caption: t('funnel.popup.whatsapp_djset_caption'),
-          }
-        : {
-              badge: t('funnel.popup.whatsapp_badge'),
-              title: t('funnel.popup.whatsapp_home_title'),
-              description: t('funnel.popup.whatsapp_home_description'),
-              caption: t('funnel.popup.whatsapp_home_caption'),
-          };
+    return {
+        badge: t('funnel.popup.whatsapp_badge'),
+        title: t(`funnel.popup.whatsapp_${suffix}_title`),
+        description: t(`funnel.popup.whatsapp_${suffix}_description`),
+        caption: t(`funnel.popup.whatsapp_${suffix}_caption`),
+    };
 }

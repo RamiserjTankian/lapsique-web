@@ -73,6 +73,81 @@ export interface PortfolioItemData {
     orientation?: string | null;
 }
 
+export type ServicePortfolioKey =
+    | 'content_creation'
+    | 'business_reels'
+    | 'food_reels'
+    | 'dj_set'
+    | 'event_coverage'
+    | 'multi_camera'
+    | 'drone_sessions'
+    | 'construction_progress';
+
+export interface ServicePortfolioMedia {
+    id: string;
+    projectKey: string;
+    projectLabel: string;
+    sessionLabel?: string | null;
+    kind: 'image' | 'video';
+    src: string;
+    poster?: string | null;
+    orientation: 'horizontal' | 'vertical';
+    duration?: number | null;
+    hasAudio?: boolean | null;
+    location?: string | null;
+    alt: string;
+    priority?: number;
+    site?: 'lapsique';
+    services?: ServicePortfolioKey[];
+}
+
+export interface ServicePortfolioProject {
+    key: string;
+    label: string;
+    media: ServicePortfolioMedia[];
+}
+
+export interface ServicePortfolioStats {
+    mediaCount: number;
+    projectCount: number;
+    imageCount?: number;
+    videoCount?: number;
+}
+
+export interface ServicePortfolioBundle {
+    serviceKey: ServicePortfolioKey;
+    hero: ServicePortfolioMedia;
+    projects: ServicePortfolioProject[];
+    stats: ServicePortfolioStats;
+}
+
+export interface HomePortfolioOverview {
+    site: 'lapsique';
+    archiveMediaCount: number;
+    claim: {
+        es: string;
+        en: string;
+    };
+    copy: {
+        es: string;
+        en: string;
+    };
+    totalCuratedMedia: number;
+    projects: ServicePortfolioProject[];
+    heroMedia: ServicePortfolioMedia[];
+    featuredMedia: ServicePortfolioMedia[];
+    servicePreviews: Array<{
+        serviceKey: ServicePortfolioKey;
+        label: {
+            es: string;
+            en: string;
+        };
+        href: string;
+        media: ServicePortfolioMedia;
+        stats: ServicePortfolioStats;
+    }>;
+}
+
 export interface DjGalleryImage {
     id: number;
     url: string;

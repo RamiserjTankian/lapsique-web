@@ -17,7 +17,6 @@ use App\Services\StripeService;
 use App\Support\BookingMode;
 use App\Support\LocalizedBookingCopy;
 use App\Support\PortfolioCuration;
-use App\Support\ReelLibrary;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Arr;
@@ -52,6 +51,8 @@ class ContentBookingController extends Controller
         $originals = \App\Models\Video::query()
             ->whereJsonContains('tags', 'psique-originals')
             ->with('djs.media')
+            ->whereHas('djs', fn ($query) => $query->where('trascendental_roster', false))
+            ->whereDoesntHave('djs', fn ($query) => $query->where('trascendental_roster', true))
             ->orderByDesc('is_featured')
             ->orderBy('priority')
             ->orderByDesc('published_at')
@@ -62,14 +63,13 @@ class ContentBookingController extends Controller
 
         $djs = \App\Models\Dj::query()
             ->with('media')
+            ->where('trascendental_roster', false)
             ->orderByDesc('is_highlighted')
             ->orderByDesc('is_featured')
             ->orderBy('priority')
             ->orderByDesc('id')
             ->take(8)
             ->get();
-
-        $djSetReels = $this->djSetReels();
 
         $portfolioPayload = \App\Http\Resources\PortfolioItemResource::collection($portfolioItems)->resolve();
 
@@ -87,7 +87,7 @@ class ContentBookingController extends Controller
             'slots' => BookingSlotResource::collection($data['slots'])->resolve(),
             'originals' => \App\Http\Resources\VideoResource::collection($originals)->resolve(),
             'portfolioItems' => $portfolioPayload,
-            'djSetReels' => $djSetReels,
+            'servicePortfolio' => PortfolioCuration::forService('dj_set'),
             'djs' => \App\Http\Resources\DjResource::collection($djs)->resolve(),
             'errors' => session('errors')?->getBag('default')?->getMessages() ?? [],
         ]);
@@ -100,6 +100,7 @@ class ContentBookingController extends Controller
         return Inertia::render('DroneSessions/Show', [
             'price' => (int) config('booking.drone_session_price', 3000),
             'slots' => BookingSlotResource::collection($data['slots'])->resolve(),
+            'servicePortfolio' => PortfolioCuration::forService('drone_sessions'),
             'errors' => session('errors')?->getBag('default')?->getMessages() ?? [],
         ]);
     }
@@ -113,6 +114,7 @@ class ContentBookingController extends Controller
         return Inertia::render('EventCoverage/Show', [
             'price' => ContentBooking::amountForService(ContentBooking::SERVICE_ELECTRONIC_EVENT_COVERAGE),
             'slots' => BookingSlotResource::collection($data['slots'])->resolve(),
+            'servicePortfolio' => PortfolioCuration::forService('event_coverage'),
             'portfolioItems' => $this->electronicEventCoverageFallbackPortfolioItems(),
             'eventReels' => $this->electronicEventCoverageReels(),
             'errors' => session('errors')?->getBag('default')?->getMessages() ?? [],
@@ -151,6 +153,7 @@ class ContentBookingController extends Controller
         return Inertia::render('MultiCamera/Show', [
             'price' => ContentBooking::amountForService(ContentBooking::SERVICE_MULTI_CAMERA),
             'slots' => BookingSlotResource::collection($data['slots'])->resolve(),
+            'servicePortfolio' => PortfolioCuration::forService('multi_camera'),
             'coverages' => $coverages,
             'heroVideo' => data_get($coverages, '0.videos.0'),
             'photos' => $photos,
@@ -165,6 +168,7 @@ class ContentBookingController extends Controller
         return Inertia::render('ConstructionProgress/Show', [
             'price' => (int) config('booking.construction_progress_price', 5000),
             'slots' => BookingSlotResource::collection($data['slots'])->resolve(),
+            'servicePortfolio' => PortfolioCuration::forService('construction_progress'),
             'errors' => session('errors')?->getBag('default')?->getMessages() ?? [],
         ]);
     }
@@ -176,60 +180,9 @@ class ContentBookingController extends Controller
         return Inertia::render('FoodReels/Show', [
             'price' => $data['price'],
             'slots' => BookingSlotResource::collection($data['slots'])->resolve(),
+            'servicePortfolio' => PortfolioCuration::forService('food_reels'),
             'errors' => session('errors')?->getBag('default')?->getMessages() ?? [],
         ]);
-    }
-
-    /**
-     * @return array<int, array{id: string, title: string, src: string, poster: string|null}>
-     */
-    private function djSetReels(): array
-    {
-        $all = collect(ReelLibrary::all());
-        $preferred = $all
-            ->filter(fn (array $reel): bool => $this->isDjSetReel($reel))
-            ->values();
-
-        if ($preferred->isEmpty()) {
-            $preferred = $all->values();
-        }
-
-        return $preferred
-            ->unique(fn (array $reel): string => (string) ($reel['src'] ?? $reel['id']))
-            ->take(8)
-            ->map(fn (array $reel): array => [
-                'id' => $reel['id'],
-                'title' => $reel['title'],
-                'src' => $reel['src'],
-                'poster' => ReelLibrary::posterForSrc($reel['src']),
-            ])
-            ->all();
-    }
-
-    private function isDjSetReel(array $reel): bool
-    {
-        $haystack = Str::lower(($reel['title'] ?? '').' '.($reel['src'] ?? ''));
-
-        if (Str::contains($haystack, [
-            'barber',
-            'bioevolution',
-            'hamburguesa',
-            'juanis',
-            'new-life',
-            'padel',
-            'sound-healing',
-            'tacos',
-            'tanuki',
-            'tatuaje',
-            'yoga',
-        ])) {
-            return false;
-        }
-
-        return (bool) preg_match(
-            '/aaron-sevilla|basement|ceballos|concept-night|danny|daymon|demerry|dj|galgo|graziano|guy-mantzur|james-zabiela|kapi|magdalena|mellino|noferini|pergola|provenza|rebolledo|sasha|satoshi|set|sudbeat|umi|victor-ruiz|wav|zaza/i',
-            $haystack,
-        );
     }
 
     /**

@@ -55,6 +55,7 @@ class SeoHardeningTest extends TestCase
     {
         $this->get(route('content-creation.show'))
             ->assertOk()
+            ->assertSee('data-inertia="og-image-type" property="og:image:type" content="image/webp"', false)
             ->assertInertia(fn ($page) => $page
                 ->component('ContentCreation/Show')
                 ->where('seo.canonicalUrl', route('content-creation.show'))
@@ -63,6 +64,55 @@ class SeoHardeningTest extends TestCase
         $this->get(route('sitemap'))
             ->assertOk()
             ->assertSee(route('content-creation.show'), false);
+    }
+
+    public function test_business_reels_landing_has_distinct_canonical_and_sitemap_entry(): void
+    {
+        $this->get(route('business-reels.show'))
+            ->assertOk()
+            ->assertInertia(fn ($page) => $page
+                ->component('ContentCreation/Show')
+                ->where('variant', 'business_reels')
+                ->where('seo.canonicalUrl', route('business-reels.show'))
+                ->where('seo.noindex', false));
+
+        $this->get(route('sitemap'))
+            ->assertOk()
+            ->assertSee(route('business-reels.show'), false);
+    }
+
+    public function test_home_and_all_service_funnels_expose_contextual_distinct_seo(): void
+    {
+        $expectedTitles = [
+            'home' => 'Más de 200 piezas audiovisuales producidas por Lapsique',
+            'content-creation.show' => 'Creación de contenido para redes en Riviera Maya',
+            'business-reels.show' => 'Reels para negocios y anuncios en Riviera Maya',
+            'food-reels.show' => 'Reels de comida para restaurantes en Riviera Maya',
+            'djset.show' => 'Grabación cinematográfica de DJ sets en Riviera Maya',
+            'electronic-event-coverage.show' => 'Cobertura de eventos de música electrónica en Riviera Maya',
+            'multi-camera.show' => 'Producción multicámara para DJ sets, clubes y eventos',
+            'drone-sessions.show' => 'Vuelos con dron para propiedades y campañas en Riviera Maya',
+            'construction-progress.show' => 'Avances de obra con dron, foto y video en Riviera Maya',
+        ];
+        $ogImages = [];
+
+        foreach ($expectedTitles as $routeName => $expectedTitle) {
+            $response = $this->withCookie('locale', 'es')->get(route($routeName))->assertOk();
+            $seo = $response->inertiaProps('seo');
+
+            $this->assertSame($expectedTitle, $seo['title'], "{$routeName} has the wrong SEO title.");
+            $this->assertSame(route($routeName), $seo['canonicalUrl']);
+            $this->assertFalse($seo['noindex']);
+            $this->assertNotEmpty($seo['description']);
+            $this->assertNotEmpty($seo['ogImage']);
+            $this->assertNotEmpty($seo['ogImageAlt']);
+            $this->assertStringNotContainsString('sesiones exitosas', mb_strtolower($seo['title'].' '.$seo['description']));
+            $this->assertStringNotContainsString('trascendental', mb_strtolower($seo['ogImage']));
+
+            $ogImages[] = $seo['ogImage'];
+        }
+
+        $this->assertCount(count($expectedTitles), array_unique($ogImages));
     }
 
     public function test_electronic_event_coverage_landing_is_canonical_and_in_sitemap(): void

@@ -1,46 +1,44 @@
 import { useEffect, useMemo } from 'react';
 import { usePage } from '@inertiajs/react';
 import {
-    ArrowRight,
     CalendarDays,
-    Camera,
-    Check,
-    Drone,
-    Film,
-    MapPin,
-    MessageCircle,
 } from 'lucide-react';
 import SiteLayout from '@/layouts/SiteLayout';
 import { AutoplayVideo } from '@/components/lapsique/AutoplayVideo';
 import { BookingCtaButton } from '@/components/lapsique/BookingCtaButton';
 import { BookingWidget, type BookingWidgetProduct } from '@/components/lapsique/BookingWidget';
-import { PaymentTrustOrTestMode } from '@/components/lapsique/PaymentTrustPanel';
 import { SeoHead } from '@/components/lapsique/SeoHead';
-import { SpecBadge } from '@/components/lapsique/SpecBadge';
-import { Button } from '@/components/ui/button';
+import {
+    ServiceFunnelDeliverables,
+    ServiceFunnelFaq,
+    ServiceFunnelFinalCta,
+    ServiceFunnelHeading,
+    ServiceFunnelHero,
+    ServiceFunnelProcess,
+    ServiceFunnelSection,
+    ServicePortfolioShowcase,
+    ServiceProofBand,
+    ServiceWhatsAppButton,
+    serviceFunnelPrimaryActionClass,
+} from '@/components/lapsique/ServiceFunnel';
 import { trackBookingEvent } from '@/hooks/useBookingAnalytics';
 import { useSectionEvent } from '@/hooks/useSectionEvent';
 import { useTranslations } from '@/hooks/useTranslations';
-import { formatMxn } from '@/lib/utils';
-import type { BookingSlot, PageProps, PortfolioItemData, ReelLibraryEntry } from '@/types';
+import type {
+    BookingSlot,
+    PageProps,
+    PortfolioItemData,
+    ServicePortfolioBundle,
+    ServicePortfolioMedia,
+} from '@/types';
 
 interface EventCoverageShowProps {
     price: number;
     slots: BookingSlot[];
     portfolioItems: PortfolioItemData[];
-    eventReels: ReelLibraryEntry[];
+    servicePortfolio: ServicePortfolioBundle;
     errors?: Record<string, string>;
 }
-
-const HERO_REEL = {
-    src: '/videos/reels/2026-07-11-mtrx-dumas-a0794b89f7.mp4',
-    poster: '/images/portfolio/video-posters/2026-07-11-mtrx-dumas-a0794b89f7.jpg',
-};
-
-const AERIAL_REEL = {
-    src: '/videos/drone-sessions/djset.mp4',
-    poster: '/images/drone-sessions/djset.jpg',
-};
 
 const EVENT_COVERAGE_COPY = {
     es: {
@@ -53,12 +51,23 @@ const EVENT_COVERAGE_COPY = {
         bookCta: 'Apartar fecha',
         whatsappCta: 'Consultar por WhatsApp',
         proofEyebrow: 'Coberturas reales',
-        proofTitle: 'La noche, sin imágenes de stock.',
-        proofDescription: 'MTRX y Karen Echev: material real de pista, cabina, artistas y público. Estos extractos muestran cómo documentamos una fecha; el aftermovie final suma una narrativa completa del evento.',
+        proofTitle: 'Fechas distintas. Una cobertura que se reconoce como tuya.',
+        proofDescription: 'MTRX, Vatos Locos, Satoshi Tomiie, Pérgola, Proper y Traumer muestran el alcance real: artistas, venue, cabina, público y cierre en una misma narrativa.',
         reelLabel: 'Reel de cobertura',
         galleryEyebrow: 'Foto editorial',
-        galleryTitle: 'Artistas, cabina, luz y público.',
-        galleryDescription: 'La cobertura busca contar el evento desde dentro: contexto, detalles y el momento que la gente se lleva consigo.',
+        galleryTitle: 'Proyectos completos, no una colección de tomas sueltas.',
+        galleryDescription: 'Cada bloque reúne fotografía y video de una fecha real para que puedas revisar variedad de artistas, venues y públicos antes de reservar.',
+        portfolioCta: 'Apartar una fecha como estas',
+        storyEyebrow: 'El relato de la noche',
+        storyTitle: 'Cinco momentos construyen una cobertura que sí vuelve a sentirse.',
+        storyDescription: 'No grabamos únicamente la cabina. La entrega sigue el recorrido que vive tu audiencia y conserva el contexto necesario para volver a comunicar el evento.',
+        story: [
+            ['01', 'Llegada', 'Ubicación, accesos y primeros detalles que presentan la fecha.'],
+            ['02', 'Venue', 'Arquitectura, producción, luces y escala antes del punto más alto.'],
+            ['03', 'Cabina', 'Artistas, mezcla y momentos que identifican el sonido del evento.'],
+            ['04', 'Público', 'Reacción, energía y encuentros que hacen visible la comunidad.'],
+            ['05', 'Cierre', 'El plano final que convierte la noche en una pieza con memoria.'],
+        ],
         packageEyebrow: 'Una cobertura clara',
         packageTitle: 'Todo lo esencial para volver a vivir y comunicar la fecha.',
         packageDescription: 'Antes del evento alineamos horario, acceso, lineup y los momentos que importan. El dron se confirma por venue, clima y normativa.',
@@ -67,9 +76,6 @@ const EVENT_COVERAGE_COPY = {
             ['30 fotos editadas', 'Una selección desde distintos ángulos de artistas, cabina, público, producción y atmósfera.'],
             ['Tomas de dron viables', 'Contexto aéreo cuando la ubicación, el clima y la normativa lo permiten.'],
         ],
-        aerialEyebrow: 'Perspectiva aérea',
-        aerialTitle: 'Una capa más de contexto cuando el vuelo es viable.',
-        aerialDescription: 'El dron ayuda a leer el venue, la llegada y la escala. Esta toma es una referencia genérica de vuelo para DJ set; no corresponde a MTRX ni a Karen Echev.',
         processEyebrow: 'Cómo trabajamos',
         process: [
             ['01', 'Compartes la fecha', 'Venue, horario, lineup y los momentos que no pueden faltar.'],
@@ -109,12 +115,23 @@ const EVENT_COVERAGE_COPY = {
         bookCta: 'Reserve a date',
         whatsappCta: 'Ask on WhatsApp',
         proofEyebrow: 'Real coverage',
-        proofTitle: 'The night, without stock imagery.',
-        proofDescription: 'MTRX and Karen Echev: real material from the dancefloor, booth, artists, and crowd. These excerpts show how we document a date; the final aftermovie adds the event’s complete narrative.',
+        proofTitle: 'Different dates. Coverage that still feels unmistakably yours.',
+        proofDescription: 'MTRX, Vatos Locos, Satoshi Tomiie, Pérgola, Proper, and Traumer show the real range: artists, venue, booth, crowd, and closing within one narrative.',
         reelLabel: 'Coverage reel',
         galleryEyebrow: 'Editorial photography',
-        galleryTitle: 'Artists, booth, light, and crowd.',
-        galleryDescription: 'Coverage tells the event from inside it: context, details, and the moment people take away with them.',
+        galleryTitle: 'Complete projects, not a collection of disconnected shots.',
+        galleryDescription: 'Each block brings together photography and video from a real date so you can review a range of artists, venues, and crowds before booking.',
+        portfolioCta: 'Reserve a date like these',
+        storyEyebrow: 'The story of the night',
+        storyTitle: 'Five moments build coverage that can still be felt.',
+        storyDescription: 'We do not record only the booth. The delivery follows your audience’s journey and keeps the context needed to communicate the event again.',
+        story: [
+            ['01', 'Arrival', 'Location, access, and first details that introduce the date.'],
+            ['02', 'Venue', 'Architecture, production, lighting, and scale before the peak.'],
+            ['03', 'Booth', 'Artists, mixing, and moments that identify the event’s sound.'],
+            ['04', 'Crowd', 'Reaction, energy, and encounters that make the community visible.'],
+            ['05', 'Closing', 'The final frame that turns the night into a piece with memory.'],
+        ],
         packageEyebrow: 'One clear coverage package',
         packageTitle: 'Everything essential to relive and communicate the date.',
         packageDescription: 'Before the event, we align schedule, access, lineup, and the moments that matter. Drone coverage is confirmed based on venue, weather, and regulations.',
@@ -123,9 +140,6 @@ const EVENT_COVERAGE_COPY = {
             ['30 edited photos', 'A selection from different angles of artists, booth, crowd, production, and atmosphere.'],
             ['Viable drone footage', 'Aerial context when location, weather, and regulations allow it.'],
         ],
-        aerialEyebrow: 'Aerial perspective',
-        aerialTitle: 'Another layer of context when a flight is feasible.',
-        aerialDescription: 'Drone footage helps read the venue, arrival, and scale. This is a generic DJ-set flight reference; it does not correspond to MTRX or Karen Echev.',
         processEyebrow: 'How we work',
         process: [
             ['01', 'Share the date', 'Venue, schedule, lineup, and the moments that cannot be missed.'],
@@ -161,14 +175,13 @@ export default function EventCoverageShow({
     price,
     slots,
     portfolioItems,
-    eventReels,
+    servicePortfolio,
     errors,
 }: EventCoverageShowProps) {
     const { site } = usePage<PageProps>().props;
     const { locale } = useTranslations();
     const copy = EVENT_COVERAGE_COPY[locale === 'en' ? 'en' : 'es'];
-    const heroReel = eventReels[0] ?? HERO_REEL;
-    const proofReels = eventReels.slice(1);
+    const heroMedia = servicePortfolio.hero;
     const whatsappHref = useMemo(
         () => buildWhatsAppHref(site.whatsapp, copy.booking.unavailableWhatsApp),
         [copy.booking.unavailableWhatsApp, site.whatsapp],
@@ -193,7 +206,7 @@ export default function EventCoverageShow({
         currency: 'MXN',
         value: price,
     }), [copy.heroTitle, price]);
-    const portfolioSectionRef = useSectionEvent<HTMLElement>(
+    const portfolioSectionRef = useSectionEvent<HTMLDivElement>(
         'electronic_event_coverage_portfolio_engaged',
         { ...analyticsPayload, section: 'event_coverage_portfolio' },
     );
@@ -212,238 +225,194 @@ export default function EventCoverageShow({
             target: 'whatsapp',
         });
     };
+    const primaryAction = (source: string, label: string = copy.bookCta) => (
+        <BookingCtaButton
+            type="button"
+            opensBookingModal
+            bookingSource={`event_coverage_${source}`}
+            bookingAnalytics={{
+                analyticsEvent: 'electronic_event_coverage_booking_cta_clicked',
+                analyticsPayload,
+            }}
+            className={serviceFunnelPrimaryActionClass}
+        >
+            <CalendarDays className="size-5" aria-hidden />
+            {label}
+        </BookingCtaButton>
+    );
+    const secondaryAction = (source: string) => (
+        <ServiceWhatsAppButton
+            href={whatsappHref}
+            label={copy.whatsappCta}
+            onClick={() => trackWhatsApp(source)}
+        />
+    );
 
     return (
         <SiteLayout>
             <SeoHead />
 
-            <section className="relative left-1/2 w-screen -translate-x-1/2 overflow-hidden bg-[#050506] text-white">
-                <div className="absolute inset-0">
-                    <AutoplayVideo
-                        src={heroReel.src}
-                        poster={heroReel.poster}
-                        title={heroReel.title ?? 'MTRX event coverage reel'}
-                        eager
-                        pauseWhenOffscreen={false}
-                        className="h-full w-full"
-                        videoClassName="object-cover object-center opacity-80"
-                    />
-                    <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(5,5,6,0.97)_0%,rgba(5,5,6,0.76)_47%,rgba(5,5,6,0.20)_100%)]" />
-                    <div className="absolute inset-0 bg-[linear-gradient(0deg,#050506_0%,transparent_48%,rgba(5,5,6,0.38)_100%)]" />
-                </div>
-
-                <div className="relative mx-auto grid min-h-[min(820px,90svh)] max-w-6xl content-end gap-10 px-4 pb-14 pt-28 sm:px-6 lg:grid-cols-[minmax(0,1fr)_330px] lg:items-end lg:pb-20">
-                    <div className="max-w-4xl">
-                        <p className="alpha-kicker text-primary">{copy.eyebrow}</p>
-                        <h1 className="mt-5 max-w-4xl font-display text-5xl font-bold leading-[0.9] tracking-tight text-white drop-shadow-[0_12px_42px_rgba(0,0,0,0.72)] sm:text-6xl md:text-8xl">
-                            {copy.heroTitle}
-                        </h1>
-                        <p className="mt-6 max-w-2xl text-base leading-relaxed text-white/80 sm:text-lg md:text-xl">
-                            {copy.heroDescription}
-                        </p>
-                        <p className="mt-4 flex items-center gap-2 text-sm text-white/70">
-                            <MapPin className="size-4 text-primary" aria-hidden />
-                            {copy.location}
-                        </p>
-
-                        <div className="mt-7 flex flex-wrap gap-2">
-                            <SpecBadge highlight className="border-primary/40 bg-black/50 text-primary"><Film className="size-3.5" /> Aftermovie</SpecBadge>
-                            <SpecBadge className="border-white/20 bg-black/45 text-white"><Camera className="size-3.5" /> 30 {locale === 'en' ? 'edited photos' : 'fotos editadas'}</SpecBadge>
-                            <SpecBadge className="border-white/20 bg-black/45 text-white"><Drone className="size-3.5" /> {locale === 'en' ? 'Drone footage*' : 'Tomas de dron*'}</SpecBadge>
-                        </div>
-                    </div>
-
-                    <div className="border border-white/20 bg-black/55 p-5 shadow-2xl backdrop-blur-md">
-                        <p className="alpha-kicker text-primary">{copy.priceLabel}</p>
-                        <p className="mt-3 font-mono-tabular text-5xl font-bold tracking-tight text-white">{formatMxn(price)}</p>
-                        <p className="mt-2 text-sm leading-relaxed text-white/65">{copy.priceNote}</p>
-                        <PaymentTrustOrTestMode variant="stripe" layout="compact" onDark className="mt-4" />
-                        <div className="mt-6 grid gap-3">
-                            <BookingCtaButton
-                                type="button"
-                                className="w-full rounded-none"
-                                opensBookingModal
-                                bookingSource="event_coverage_hero"
-                                bookingAnalytics={{ analyticsEvent: 'electronic_event_coverage_booking_cta_clicked', analyticsPayload }}
-                            >
-                                <CalendarDays className="size-5" />
-                                {copy.bookCta}
-                            </BookingCtaButton>
-                            <Button variant="default" size="xl" className="w-full rounded-none border border-[#25D366] bg-[#25D366] text-[#04150a] hover:bg-[#1ebe5d] hover:text-[#04150a]" asChild>
-                                <a href={whatsappHref} target="_blank" rel="noopener noreferrer" onClick={() => trackWhatsApp('hero')}>
-                                    <MessageCircle className="size-5" />
-                                    {copy.whatsappCta}
-                                </a>
-                            </Button>
-                        </div>
-                    </div>
-                </div>
-            </section>
-
-            <section className="mx-auto max-w-6xl px-4 py-16 sm:px-6 md:py-24">
-                <SectionHeading eyebrow={copy.proofEyebrow} title={copy.proofTitle} description={copy.proofDescription} />
-                <div className="mt-8 grid gap-3 md:grid-cols-[1.1fr_0.9fr]">
-                    <figure className="group relative aspect-video overflow-hidden bg-black">
-                        <AutoplayVideo src={heroReel.src} poster={heroReel.poster} title={heroReel.title} className="absolute inset-0 h-full w-full" videoClassName="transition duration-700 group-hover:scale-[1.02]" />
-                        <figcaption className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/90 to-transparent px-5 pb-5 pt-16 text-sm text-white/80">
-                            <span className="alpha-kicker text-primary">{copy.reelLabel}</span>
-                            <span className="mt-2 block font-medium">{heroReel.title ?? 'Dumas en MTRX'}</span>
-                        </figcaption>
-                    </figure>
-                    <div className="grid grid-cols-2 gap-3">
-                        {proofReels.map((reel) => <CoverageReel key={reel.id} reel={reel} label={copy.reelLabel} />)}
-                        {proofReels.length < 2 ? <CoverageReel reel={eventReels[0] ?? HERO_REEL} label={copy.reelLabel} /> : null}
-                    </div>
-                </div>
-            </section>
-
-            <section ref={portfolioSectionRef} className="relative left-1/2 w-screen -translate-x-1/2 overflow-hidden bg-[#101114] py-16 text-white md:py-24">
-                <div className="mx-auto grid max-w-6xl gap-10 px-4 sm:px-6 lg:grid-cols-[0.62fr_1fr] lg:items-start">
-                    <SectionHeading eyebrow={copy.galleryEyebrow} title={copy.galleryTitle} description={copy.galleryDescription} inverse />
-                    <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
-                        {portfolioItems.slice(0, 6).map((item, index) => <CoveragePhoto key={item.id} item={item} priority={index < 2} />)}
-                    </div>
-                </div>
-            </section>
-
-            <section className="mx-auto grid max-w-6xl gap-10 px-4 py-16 sm:px-6 md:py-24 lg:grid-cols-[0.72fr_1.28fr] lg:items-start">
-                <SectionHeading eyebrow={copy.packageEyebrow} title={copy.packageTitle} description={copy.packageDescription} />
-                <div className="divide-y divide-border/70 border-y border-border/70">
-                    {copy.includes.map(([title, description], index) => {
-                        const Icon = [Film, Camera, Drone][index] ?? Check;
-
-                        return (
-                            <div key={title} className="grid gap-4 py-5 sm:grid-cols-[2.4rem_minmax(0,0.8fr)_1.2fr] sm:items-start">
-                                <Icon className="size-5 text-primary" aria-hidden />
-                                <h3 className="font-display text-2xl font-bold leading-none text-foreground">{title}</h3>
-                                <p className="text-sm leading-relaxed text-muted-foreground">{description}</p>
-                            </div>
-                        );
-                    })}
-                    <p className="py-4 text-xs leading-relaxed text-muted-foreground">* {locale === 'en' ? 'Drone shots are subject to venue access, weather, regulations, and flight safety.' : 'Las tomas de dron dependen de acceso al venue, clima, normativa y seguridad de vuelo.'}</p>
-                </div>
-            </section>
-
-            <section className="relative left-1/2 w-screen -translate-x-1/2 overflow-hidden bg-[#070809] py-16 text-white md:py-24">
-                <div className="mx-auto grid max-w-6xl gap-8 px-4 sm:px-6 lg:grid-cols-[0.86fr_1.14fr] lg:items-center">
-                    <div className="relative aspect-video overflow-hidden border border-white/15 bg-black">
-                        <AutoplayVideo src={AERIAL_REEL.src} poster={AERIAL_REEL.poster} title="Generic aerial DJ set reference" className="absolute inset-0 h-full w-full" />
-                        <span className="absolute left-4 top-4 bg-black/70 px-3 py-1.5 font-mono text-[10px] uppercase tracking-[0.14em] text-white/80">
-                            {locale === 'en' ? 'DJ set / aerial reference' : 'DJ set / referencia aérea'}
-                        </span>
-                    </div>
-                    <SectionHeading eyebrow={copy.aerialEyebrow} title={copy.aerialTitle} description={copy.aerialDescription} inverse />
-                </div>
-            </section>
-
-            <section className="mx-auto max-w-6xl px-4 py-16 sm:px-6 md:py-24">
-                <p className="alpha-kicker text-primary">{copy.processEyebrow}</p>
-                <div className="mt-6 grid gap-5 border-t border-border/70 pt-5 md:grid-cols-3">
-                    {copy.process.map(([number, title, description]) => (
-                        <article key={number} className="border-t border-border/70 pt-4 md:border-t-0">
-                            <p className="font-mono text-sm text-primary">{number}</p>
-                            <h2 className="mt-4 font-display text-2xl font-bold text-foreground">{title}</h2>
-                            <p className="mt-3 text-sm leading-relaxed text-muted-foreground">{description}</p>
-                        </article>
-                    ))}
-                </div>
-            </section>
-
-            <BookingWidget
-                slots={slots}
+            <ServiceFunnelHero
+                eyebrow={copy.eyebrow}
+                title={copy.heroTitle}
+                description={copy.heroDescription}
+                locations={copy.location}
                 price={price}
-                whatsapp={site.whatsapp}
-                errors={errors}
-                className="mx-auto max-w-6xl"
-                checkoutRoute="electronic-event-coverage.checkout"
-                paymentProvider="stripe"
-                product={bookingProduct}
-                popupVariant="eventCoverage"
-                popupPortfolioItems={portfolioItems}
-                popupHeroProofVideo={{
-                    title: heroReel.title ?? null,
-                    media_type: 'video',
-                    embed_url: null,
-                    playback_url: heroReel.src,
-                    poster_url: heroReel.poster ?? null,
-                }}
-                highlight
-                analyticsPayload={analyticsPayload}
-                analyticsOpenEvent="electronic_event_coverage_booking_opened"
+                priceLabel={copy.priceLabel}
+                priceNote={copy.priceNote}
+                primaryAction={primaryAction('hero')}
+                secondaryAction={secondaryAction('hero')}
+                media={<ServiceHeroMedia media={heroMedia} />}
+                mediaLabel={copy.reelLabel}
+                mediaCaption={heroMedia.projectLabel}
             />
 
-            <section className="mx-auto grid max-w-6xl gap-10 px-4 py-16 sm:px-6 md:py-24 lg:grid-cols-[0.72fr_1.28fr]">
-                <div><p className="alpha-kicker text-primary">{copy.faqEyebrow}</p></div>
-                <div className="divide-y divide-border/70 border-y border-border/70">
-                    {copy.faqs.map(([question, answer]) => <Faq key={question} question={question} answer={answer} />)}
-                </div>
-            </section>
+            <ServiceFunnelSection innerClassName="py-0 sm:py-0 lg:py-0">
+                <ServiceProofBand
+                    portfolio={servicePortfolio}
+                    eyebrow={copy.proofEyebrow}
+                    title={copy.proofTitle}
+                    description={copy.proofDescription}
+                />
+            </ServiceFunnelSection>
 
-            <section className="relative left-1/2 mb-0 w-screen -translate-x-1/2 overflow-hidden bg-primary py-14 text-white md:py-20">
-                <div className="mx-auto grid max-w-6xl gap-8 px-4 sm:px-6 lg:grid-cols-[1fr_auto] lg:items-end">
-                    <div className="max-w-3xl">
-                        <h2 className="font-display text-4xl font-bold leading-[0.94] tracking-tight md:text-6xl">{copy.finalTitle}</h2>
-                        <p className="mt-5 text-base leading-relaxed text-white/84 md:text-lg">{copy.finalDescription}</p>
-                    </div>
-                    <div className="grid gap-3 sm:grid-cols-2 lg:min-w-[440px]">
-                        <BookingCtaButton type="button" variant="glass" className="w-full rounded-none border-white/40 bg-black/15 text-white hover:bg-white hover:text-black" opensBookingModal bookingSource="event_coverage_final" bookingAnalytics={{ analyticsEvent: 'electronic_event_coverage_booking_cta_clicked', analyticsPayload }}>
-                            <CalendarDays className="size-5" />
-                            {copy.bookCta}
-                        </BookingCtaButton>
-                        <Button variant="default" size="xl" className="w-full rounded-none border border-[#25D366] bg-[#25D366] text-[#04150a] hover:bg-[#1ebe5d] hover:text-[#04150a]" asChild>
-                            <a href={whatsappHref} target="_blank" rel="noopener noreferrer" onClick={() => trackWhatsApp('final')}><MessageCircle className="size-5" />{copy.whatsappCta}</a>
-                        </Button>
+            <div ref={portfolioSectionRef}>
+                <ServicePortfolioShowcase
+                    portfolio={servicePortfolio}
+                    eyebrow={copy.galleryEyebrow}
+                    title={copy.galleryTitle}
+                    description={copy.galleryDescription}
+                    className="relative left-1/2 w-screen -translate-x-1/2"
+                    action={(
+                        <div className="grid w-full gap-3 sm:max-w-2xl sm:grid-cols-2">
+                            {primaryAction('portfolio', copy.portfolioCta)}
+                            {secondaryAction('portfolio')}
+                        </div>
+                    )}
+                />
+            </div>
+
+            <ServiceFunnelSection>
+                <ServiceFunnelHeading
+                    eyebrow={copy.storyEyebrow}
+                    title={copy.storyTitle}
+                    description={copy.storyDescription}
+                />
+                <ol className="mt-10 grid gap-x-5 gap-y-8 border-t border-border pt-6 sm:grid-cols-2 lg:grid-cols-5">
+                    {copy.story.map(([number, title, description]) => (
+                        <li key={number} className="grid grid-cols-[2rem_1fr] gap-3 lg:block">
+                            <span className="font-mono text-xs tabular-nums text-primary" aria-hidden>{number}</span>
+                            <div>
+                                <h3 className="text-balance font-display text-2xl font-bold leading-[1.05] text-foreground lg:mt-6">
+                                    {title}
+                                </h3>
+                                <p className="mt-3 text-pretty text-sm leading-[1.6] text-muted-foreground">
+                                    {description}
+                                </p>
+                            </div>
+                        </li>
+                    ))}
+                </ol>
+            </ServiceFunnelSection>
+
+            <ServiceFunnelSection tone="dark">
+                <div className="grid gap-10 lg:grid-cols-[0.72fr_1.28fr] lg:items-start">
+                    <ServiceFunnelHeading eyebrow={copy.packageEyebrow} title={copy.packageTitle} description={copy.packageDescription} inverse />
+                    <div>
+                        <ServiceFunnelDeliverables
+                            items={copy.includes.map(([title, description]) => ({ title, description }))}
+                            inverse
+                        />
+                        <p className="mt-6 text-xs leading-relaxed text-white/52">
+                            * {locale === 'en'
+                                ? 'Drone shots are subject to venue access, weather, regulations, and flight safety.'
+                                : 'Las tomas de dron dependen de acceso al venue, clima, normativa y seguridad de vuelo.'}
+                        </p>
                     </div>
                 </div>
-            </section>
+            </ServiceFunnelSection>
+
+            <ServiceFunnelSection>
+                <ServiceFunnelHeading
+                    eyebrow={copy.processEyebrow}
+                    title={locale === 'en' ? 'From date to final delivery.' : 'De la fecha a la entrega final.'}
+                />
+                <div className="mt-10">
+                    <ServiceFunnelProcess
+                        items={copy.process.map(([, title, description]) => ({ title, description }))}
+                    />
+                </div>
+            </ServiceFunnelSection>
+
+            <ServiceFunnelSection tone="soft">
+                <ServiceFunnelHeading
+                    eyebrow={copy.priceLabel}
+                    title={copy.booking.headerTitle}
+                    description={copy.booking.headerDescription}
+                />
+                <div className="mt-10">
+                    <BookingWidget
+                        slots={slots}
+                        price={price}
+                        whatsapp={site.whatsapp}
+                        errors={errors}
+                        checkoutRoute="electronic-event-coverage.checkout"
+                        paymentProvider="stripe"
+                        product={bookingProduct}
+                        popupVariant="eventCoverage"
+                        popupPortfolioItems={portfolioItems}
+                        popupHeroProofVideo={heroMedia.kind === 'video' ? {
+                            title: heroMedia.projectLabel,
+                            media_type: 'video',
+                            embed_url: null,
+                            playback_url: heroMedia.src,
+                            poster_url: heroMedia.poster ?? null,
+                        } : null}
+                        highlight
+                        analyticsPayload={analyticsPayload}
+                        analyticsOpenEvent="electronic_event_coverage_booking_opened"
+                    />
+                </div>
+            </ServiceFunnelSection>
+
+            <ServiceFunnelSection>
+                <div className="grid gap-10 lg:grid-cols-[0.72fr_1.28fr]">
+                    <ServiceFunnelHeading eyebrow={copy.faqEyebrow} title={locale === 'en' ? 'Questions before booking' : 'Preguntas antes de reservar'} />
+                    <ServiceFunnelFaq
+                        items={copy.faqs.map(([question, answer]) => ({ question, answer }))}
+                    />
+                </div>
+            </ServiceFunnelSection>
+
+            <ServiceFunnelFinalCta
+                eyebrow={copy.eyebrow}
+                title={copy.finalTitle}
+                description={copy.finalDescription}
+                primaryAction={primaryAction('final')}
+                secondaryAction={secondaryAction('final')}
+            />
         </SiteLayout>
     );
 }
 
-function SectionHeading({ eyebrow, title, description, inverse = false }: { eyebrow: string; title: string; description: string; inverse?: boolean }) {
+function ServiceHeroMedia({ media }: { media: ServicePortfolioMedia }) {
     return (
-        <div>
-            <p className="alpha-kicker text-primary">{eyebrow}</p>
-            <h2 className={`mt-4 font-display text-4xl font-bold leading-[0.94] tracking-tight md:text-5xl ${inverse ? 'text-white' : 'text-foreground'}`}>{title}</h2>
-            <p className={`mt-5 max-w-2xl text-sm leading-relaxed md:text-base ${inverse ? 'text-white/65' : 'text-muted-foreground'}`}>{description}</p>
-        </div>
-    );
-}
-
-function CoverageReel({ reel, label }: { reel: ReelLibraryEntry; label: string }) {
-    return (
-        <figure className="group relative aspect-[9/16] overflow-hidden bg-black">
-            <AutoplayVideo src={reel.src} poster={reel.poster} title={reel.title} className="absolute inset-0 h-full w-full" videoClassName="transition duration-700 group-hover:scale-[1.03]" />
-            <figcaption className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/90 to-transparent px-4 pb-4 pt-12 text-xs text-white/80">
-                <span className="font-mono uppercase tracking-[0.12em] text-primary">{label}</span>
-                <span className="mt-1 block">{reel.title}</span>
-            </figcaption>
-        </figure>
-    );
-}
-
-function CoveragePhoto({ item, priority }: { item: PortfolioItemData; priority: boolean }) {
-    const image = item.asset_url ?? item.poster_url;
-
-    if (!image) return null;
-
-    return (
-        <figure className={`group relative overflow-hidden bg-black ${item.orientation === 'vertical' ? 'row-span-2 aspect-[3/4]' : 'aspect-[4/3]'}`}>
-            <img src={image} alt={item.caption ?? item.title ?? 'Electronic event coverage by Lapsique Media'} loading={priority ? 'eager' : 'lazy'} className="h-full w-full object-cover transition duration-700 group-hover:scale-[1.03]" />
-            <figcaption className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 to-transparent px-3 pb-3 pt-12 text-xs text-white/75">{item.title}</figcaption>
-        </figure>
-    );
-}
-
-function Faq({ question, answer }: { question: string; answer: string }) {
-    return (
-        <details className="group py-5">
-            <summary className="flex cursor-pointer list-none items-start justify-between gap-6 font-display text-xl font-bold text-foreground marker:hidden">
-                {question}
-                <ArrowRight className="mt-1 size-5 shrink-0 text-primary transition group-open:rotate-90" aria-hidden />
-            </summary>
-            <p className="mt-4 max-w-2xl text-sm leading-relaxed text-muted-foreground">{answer}</p>
-        </details>
+        media.kind === 'video' ? (
+            <AutoplayVideo
+                src={media.src}
+                poster={media.poster}
+                title={media.alt}
+                eager
+                pauseWhenOffscreen
+            />
+        ) : (
+            <img
+                src={media.src}
+                alt={media.alt}
+                fetchPriority="high"
+                className="h-full w-full object-cover"
+            />
+        )
     );
 }
 

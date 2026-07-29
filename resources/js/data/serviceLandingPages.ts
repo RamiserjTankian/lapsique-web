@@ -306,9 +306,9 @@ export const SERVICE_LANDING_CONFIGS: Record<LandingServiceKey, LandingConfig> =
             es: 'Foto y video aéreo para mostrar ubicación, arquitectura, escala y entorno en redes, web y presentaciones.',
             en: 'Aerial photo and video to show location, architecture, scale, and surroundings across social, web, and presentations.',
         },
-        primaryCta: { es: 'Cotizar sesion de dron', en: 'Quote drone session' },
+        primaryCta: { es: 'Cotizar sesión de dron', en: 'Quote drone session' },
         finalCta: { es: 'Cotizar dron', en: 'Quote drone' },
-        whatsappMessage: { es: 'Hola, quiero cotizar una sesion de dron para un proyecto en [ciudad/zona].', en: 'Hi, I want to quote a drone session for a project in [city/area].' },
+        whatsappMessage: { es: 'Hola, quiero cotizar una sesión de dron para un proyecto en [ciudad/zona].', en: 'Hi, I want to quote a drone session for a project in [city/area].' },
         problemTitle: { es: 'Muestra la escala y el entorno desde el aire.', en: 'Show scale and surroundings from the air.' },
         problem: [
             { es: 'Una toma aérea explica en segundos la ubicación, los accesos y la relación del proyecto con su entorno.', en: 'An aerial shot can explain location, access, and the project’s relationship with its surroundings in seconds.' },
@@ -331,7 +331,7 @@ export const SERVICE_LANDING_CONFIGS: Record<LandingServiceKey, LandingConfig> =
             { es: 'Inmobiliarias y desarrollos', en: 'Real estate teams and developments' },
             { es: 'Eventos y experiencias turísticas', en: 'Events and tourist experiences' },
         ],
-        deliverablesTitle: { es: 'Que podemos grabar', en: 'What we can capture' },
+        deliverablesTitle: { es: 'Qué podemos grabar', en: 'What we can capture' },
         deliverables: [
             { es: 'Fachada y acceso', en: 'Facade and access' },
             { es: 'Ubicación y entorno', en: 'Location and surroundings' },
@@ -340,12 +340,12 @@ export const SERVICE_LANDING_CONFIGS: Record<LandingServiceKey, LandingConfig> =
             { es: 'Propiedades y terrenos', en: 'Properties and lots' },
         ],
         packages: [
-            { name: { es: 'Dron Express', en: 'Express drone' }, priceLabel: { es: 'Cotizacion segun ubicacion', en: 'Quote by location' }, description: { es: 'Tomas aereas rapidas para negocios o propiedades.', en: 'Quick aerial shots for businesses or properties.' }, includes: [{ es: 'Sesion de dron', en: 'Drone session' }, { es: 'Tomas seleccionadas', en: 'Selected shots' }, { es: 'Video corto vertical', en: 'Short vertical video' }, { es: 'Fotos aereas editadas', en: 'Edited aerial photos' }] },
-            { name: { es: 'Dron Comercial', en: 'Commercial drone' }, priceLabel: { es: 'Cotizacion segun proyecto', en: 'Project quote' }, description: { es: 'Para hoteles, villas, restaurantes y propiedades.', en: 'For hotels, villas, restaurants, and properties.' }, includes: [{ es: 'Planeacion de tomas', en: 'Shot planning' }, { es: 'Video vertical y horizontal', en: 'Vertical and horizontal video' }, { es: 'Fotos aereas', en: 'Aerial photos' }, { es: 'Material para web y redes', en: 'Web and social material' }] },
-            { name: { es: 'Dron Premium / Proyecto', en: 'Premium / Project drone' }, priceLabel: { es: 'Cotizacion personalizada', en: 'Custom quote' }, description: { es: 'Para desarrollos, campanas, eventos o proyectos con logistica.', en: 'For developments, campaigns, events, or logistics-heavy projects.' }, includes: [{ es: 'Produccion planificada', en: 'Planned production' }, { es: 'Dron + camara en tierra si aplica', en: 'Drone + ground camera if needed' }, { es: 'Video hero y reels', en: 'Hero video and reels' }, { es: 'Material para presentacion o campana', en: 'Presentation or campaign material' }] },
+            { name: { es: 'Dron Express', en: 'Express drone' }, priceLabel: { es: 'Cotización según ubicación', en: 'Quote by location' }, description: { es: 'Tomas aéreas rápidas para negocios o propiedades.', en: 'Quick aerial shots for businesses or properties.' }, includes: [{ es: 'Sesión de dron', en: 'Drone session' }, { es: 'Tomas seleccionadas', en: 'Selected shots' }, { es: 'Video corto vertical', en: 'Short vertical video' }, { es: 'Fotos aéreas editadas', en: 'Edited aerial photos' }] },
+            { name: { es: 'Dron Comercial', en: 'Commercial drone' }, priceLabel: { es: 'Cotización según proyecto', en: 'Project quote' }, description: { es: 'Para hoteles, villas, restaurantes y propiedades.', en: 'For hotels, villas, restaurants, and properties.' }, includes: [{ es: 'Planeación de tomas', en: 'Shot planning' }, { es: 'Video vertical y horizontal', en: 'Vertical and horizontal video' }, { es: 'Fotos aéreas', en: 'Aerial photos' }, { es: 'Material para web y redes', en: 'Web and social material' }] },
+            { name: { es: 'Dron Premium / Proyecto', en: 'Premium / Project drone' }, priceLabel: { es: 'Cotización personalizada', en: 'Custom quote' }, description: { es: 'Para desarrollos, campañas, eventos o proyectos con logística.', en: 'For developments, campaigns, events, or logistics-heavy projects.' }, includes: [{ es: 'Producción planificada', en: 'Planned production' }, { es: 'Dron + cámara en tierra si aplica', en: 'Drone + ground camera if needed' }, { es: 'Video hero y reels', en: 'Hero video and reels' }, { es: 'Material para presentación o campaña', en: 'Presentation or campaign material' }] },
         ],
         process: [
-            { title: { es: 'Cuentanos el proyecto', en: 'Tell us the project' }, description: { es: 'Tipo de lugar, ubicacion, objetivo y fecha tentativa.', en: 'Place type, location, goal, and tentative date.' } },
+            { title: { es: 'Cuéntanos el proyecto', en: 'Tell us the project' }, description: { es: 'Tipo de lugar, ubicación, objetivo y fecha tentativa.', en: 'Place type, location, goal, and tentative date.' } },
             { title: { es: 'Revisamos viabilidad', en: 'Review viability' }, description: { es: 'Validamos clima, zona, horarios y seguridad.', en: 'We check weather, area, timing, and safety.' } },
             { title: { es: 'Grabamos las tomas', en: 'Capture the shots' }, description: { es: 'Realizamos vuelo y produccion segun objetivo visual.', en: 'We fly and produce according to the visual goal.' } },
             { title: { es: 'Editamos y entregamos', en: 'Edit and deliver' }, description: { es: 'Recibes material listo para redes, web, anuncios o ventas.', en: 'You receive material ready for social, web, ads, or sales.' } },
@@ -362,7 +362,7 @@ export const SERVICE_LANDING_CONFIGS: Record<LandingServiceKey, LandingConfig> =
             needOptions: [
                 { es: 'Video vertical', en: 'Vertical video' },
                 { es: 'Video horizontal', en: 'Horizontal video' },
-                { es: 'Fotos aereas', en: 'Aerial photos' },
+                { es: 'Fotos aéreas', en: 'Aerial photos' },
                 { es: 'Paquete completo', en: 'Full package' },
             ],
         },
@@ -400,7 +400,7 @@ export const SERVICE_LANDING_CONFIGS: Record<LandingServiceKey, LandingConfig> =
             { es: 'Project managers', en: 'Project managers' },
             { es: 'Inversionistas y dueños de obra', en: 'Investors and owners' },
         ],
-        deliverablesTitle: { es: 'Que documentamos', en: 'What we document' },
+        deliverablesTitle: { es: 'Qué documentamos', en: 'What we document' },
         deliverables: [
             { es: 'Avance general de obra', en: 'General construction progress' },
             { es: 'Estructura, fachada e interiores', en: 'Structure, facade, and interiors' },
@@ -415,7 +415,7 @@ export const SERVICE_LANDING_CONFIGS: Record<LandingServiceKey, LandingConfig> =
             { name: { es: 'Plan Comercial de Obra', en: 'Commercial construction plan' }, priceLabel: { es: 'Cotizacion personalizada', en: 'Custom quote' }, description: { es: 'Para proyectos en preventa o desarrollo comercial.', en: 'For presale projects or commercial developments.' }, includes: [{ es: 'Calendario personalizado', en: 'Custom calendar' }, { es: 'Avance semanal si aplica', en: 'Weekly progress if needed' }, { es: 'Video horizontal y reels', en: 'Horizontal video and reels' }, { es: 'Material para inversionistas', en: 'Investor material' }] },
         ],
         process: [
-            { title: { es: 'Revisamos el proyecto', en: 'Review the project' }, description: { es: 'Ubicacion, etapa de obra, objetivo y frecuencia requerida.', en: 'Location, construction stage, goal, and required frequency.' } },
+            { title: { es: 'Revisamos el proyecto', en: 'Review the project' }, description: { es: 'Ubicación, etapa de obra, objetivo y frecuencia requerida.', en: 'Location, construction stage, goal, and required frequency.' } },
             { title: { es: 'Definimos calendario', en: 'Set the calendar' }, description: { es: 'Acordamos visitas mensuales, quincenales o semanales.', en: 'We agree monthly, biweekly, or weekly visits.' } },
             { title: { es: 'Documentamos avance', en: 'Document progress' }, description: { es: 'Grabamos foto, video y dron segun viabilidad y etapa.', en: 'We capture photo, video, and drone according to viability and stage.' } },
             { title: { es: 'Entregamos organizado', en: 'Deliver organized material' }, description: { es: 'Recibes carpeta por fecha con contenido listo para reportes, redes y ventas.', en: 'You receive folders by date with content ready for reports, social, and sales.' } },

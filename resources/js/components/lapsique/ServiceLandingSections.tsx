@@ -29,6 +29,7 @@ interface ServiceLandingSectionsProps {
     showOutcomes?: boolean;
     emphasizeForm?: boolean;
     faqAccordion?: boolean;
+    showBreadcrumbs?: boolean;
 }
 
 type LeadState = 'idle' | 'submitting' | 'success' | 'error';
@@ -62,6 +63,7 @@ export function ServiceLandingSections({
     showOutcomes = true,
     emphasizeForm = false,
     faqAccordion = false,
+    showBreadcrumbs = true,
 }: ServiceLandingSectionsProps) {
     const { locale, ziggy } = usePage<PageProps>().props;
     const config = SERVICE_LANDING_CONFIGS[serviceKey];
@@ -70,7 +72,7 @@ export function ServiceLandingSections({
 
     return (
         <div className={cn('mx-auto flex max-w-6xl flex-col gap-12 px-4 py-12 sm:px-6', className)}>
-            <Breadcrumbs config={config} locale={locale} />
+            {showBreadcrumbs ? <Breadcrumbs config={config} locale={locale} /> : null}
 
             {!compact ? <section className="grid gap-8 border-y border-border/70 py-8 lg:grid-cols-2 lg:gap-14">
                 <div>

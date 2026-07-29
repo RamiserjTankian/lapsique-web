@@ -1,331 +1,158 @@
 import { useEffect, useMemo, useState } from 'react';
 import { usePage } from '@inertiajs/react';
-import {
-    ArrowRight,
-    CalendarDays,
-    MessageCircle,
-    Play,
-} from 'lucide-react';
+import { ArrowRight, CalendarDays } from 'lucide-react';
 import SiteLayout from '@/layouts/SiteLayout';
-import { AutoplayVideo } from '@/components/lapsique/AutoplayVideo';
 import { BookingCtaButton } from '@/components/lapsique/BookingCtaButton';
 import { BookingWidget, type BookingWidgetProduct } from '@/components/lapsique/BookingWidget';
-import { PaymentTrustOrTestMode } from '@/components/lapsique/PaymentTrustPanel';
+import { EditorialVideoPlayer } from '@/components/lapsique/EditorialVideoPlayer';
+import { PortfolioLightbox } from '@/components/lapsique/PortfolioLightbox';
 import { SeoHead } from '@/components/lapsique/SeoHead';
-import { ServiceLandingSections } from '@/components/lapsique/ServiceLandingSections';
-import { Button } from '@/components/ui/button';
+import {
+    ServiceFunnelDeliverables,
+    ServiceFunnelFaq,
+    ServiceFunnelFinalCta,
+    ServiceFunnelHeading,
+    ServiceFunnelHero,
+    ServiceFunnelProcess,
+    ServiceFunnelSection,
+    ServicePortfolioShowcase,
+    ServiceProofBand,
+    ServiceWhatsAppButton,
+    serviceFunnelPrimaryActionClass,
+} from '@/components/lapsique/ServiceFunnel';
+import { localized, SERVICE_LANDING_CONFIGS } from '@/data/serviceLandingPages';
 import { trackBookingEvent } from '@/hooks/useBookingAnalytics';
-import { useIsMobileViewport } from '@/hooks/useMediaQuery';
 import { useTranslations } from '@/hooks/useTranslations';
 import { openBookingModal } from '@/lib/openBookingModal';
-import { cn, formatMxn } from '@/lib/utils';
-import type { BookingSlot, PageProps } from '@/types';
+import { cn } from '@/lib/utils';
+import type {
+    BookingSlot,
+    PageProps,
+    PortfolioItemData,
+    ServicePortfolioBundle,
+    ServicePortfolioMedia,
+} from '@/types';
 
 interface FoodReelsShowProps {
     price: number;
     slots: BookingSlot[];
+    servicePortfolio: ServicePortfolioBundle;
     errors?: Record<string, string>;
 }
-
-type FoodReel = {
-    id: string;
-    title: string;
-    caption: string;
-    src: string;
-    poster: string;
-};
-
-type FoodPhoto = {
-    id: string;
-    title: string;
-    caption: string;
-    src: string;
-    orientation: 'portrait' | 'square' | 'landscape';
-    layout?: 'large' | 'wide' | 'tall';
-};
-
-const FOOD_REELS: FoodReel[] = [
-    {
-        id: 'day-sushi',
-        title: 'SushiClub día',
-        caption: 'Mesa, rollos y manos en acción para promo vertical.',
-        src: '/videos/food-reels/sushiclub-day-sushi-promo.mp4',
-        poster: '/images/food-reels/sushiclub-day-sushi-promo-poster.jpg',
-    },
-    {
-        id: 'night-food',
-        title: 'SushiClub noche',
-        caption: 'Servicio nocturno, drinks y platos entrando a mesa.',
-        src: '/videos/food-reels/sushiclub-night-food.mp4',
-        poster: '/images/food-reels/sushiclub-night-food-poster.jpg',
-    },
-    {
-        id: 'day-plates',
-        title: 'Platos de día',
-        caption: 'Producto claro para menú, stories y anuncios.',
-        src: '/videos/food-reels/sushiclub-day-plates.mp4',
-        poster: '/images/food-reels/sushiclub-day-plates-poster.jpg',
-    },
-    {
-        id: 'destilados',
-        title: 'Drinks y destilados',
-        caption: 'Movimiento de barra para consumo y nightlife.',
-        src: '/videos/food-reels/sushiclub-destilados.mp4',
-        poster: '/images/food-reels/sushiclub-destilados-poster.jpg',
-    },
-];
-
-const PRODUCT_PHOTOS: FoodPhoto[] = [
-    {
-        id: 'sushiclub-table-reels',
-        title: 'Mesa de sushi',
-        caption: 'Plato, manos y mesa con lectura clara de experiencia.',
-        src: '/images/food-reels/sushiclub-table-reels.webp',
-        orientation: 'portrait',
-        layout: 'large',
-    },
-    {
-        id: 'santino-charcuterie-overhead',
-        title: 'Mesa completa',
-        caption: 'Composición cenital para enseñar variedad y abundancia.',
-        src: '/images/food-reels/food-santino-charcuterie-overhead.webp',
-        orientation: 'landscape',
-        layout: 'wide',
-    },
-    {
-        id: 'roof-loaded-potatoes-close',
-        title: 'Platillo cargado',
-        caption: 'Close-up de comida con contraste, textura y color.',
-        src: '/images/food-reels/food-roof-loaded-potatoes-close.webp',
-        orientation: 'portrait',
-        layout: 'tall',
-    },
-    {
-        id: 'tanuki-shrimp-rice',
-        title: 'Arroz con camarón',
-        caption: 'Producto vertical con proteína, color y foco claro.',
-        src: '/images/food-reels/food-tanuki-shrimp-rice.webp',
-        orientation: 'portrait',
-    },
-    {
-        id: 'santino-burger-fries',
-        title: 'Hamburguesa con papas',
-        caption: 'Burger nocturna con textura, salsa y antojo inmediato.',
-        src: '/images/food-reels/food-santino-burger-fries.webp',
-        orientation: 'portrait',
-    },
-    {
-        id: 'sushiclub-salmon-plate',
-        title: 'Plato principal',
-        caption: 'Producto servido con luz cálida y acabado editorial.',
-        src: '/images/food-reels/sushiclub-salmon-plate.webp',
-        orientation: 'portrait',
-    },
-    {
-        id: 'roof-sauce-pour',
-        title: 'Salsa en acción',
-        caption: 'Movimiento de producto con buen contraste y foco.',
-        src: '/images/food-reels/food-roof-sauce-pour.webp',
-        orientation: 'portrait',
-    },
-    {
-        id: 'santino-octopus-overhead',
-        title: 'Pulpo servido',
-        caption: 'Plato cenital con styling de mesa y detalles de servicio.',
-        src: '/images/food-reels/food-santino-octopus-overhead.webp',
-        orientation: 'landscape',
-        layout: 'wide',
-    },
-    {
-        id: 'tanuki-octopus-rice',
-        title: 'Arroz con pulpo',
-        caption: 'Close-up de producto para menú, pauta e historias.',
-        src: '/images/food-reels/food-tanuki-octopus-rice.webp',
-        orientation: 'portrait',
-    },
-    {
-        id: 'sushiclub-drinks',
-        title: 'Cócteles en mesa',
-        caption: 'Bebidas con atmósfera para elevar ticket promedio.',
-        src: '/images/food-reels/sushiclub-drinks.webp',
-        orientation: 'portrait',
-    },
-    {
-        id: 'santino-steak-bowl',
-        title: 'Steak con guarnición',
-        caption: 'Plato de carne con luz de restaurante y contraste.',
-        src: '/images/food-reels/food-santino-steak-bowl.webp',
-        orientation: 'portrait',
-    },
-    {
-        id: 'roof-caesar',
-        title: 'Ensalada de menú',
-        caption: 'Foto limpia de platillo para menú y redes.',
-        src: '/images/food-reels/food-roof-caesar.webp',
-        orientation: 'portrait',
-    },
-    {
-        id: 'tanuki-grill-rice',
-        title: 'Arroz con proteína',
-        caption: 'Foto cálida y directa para menú digital.',
-        src: '/images/food-reels/food-tanuki-grill-rice.webp',
-        orientation: 'portrait',
-    },
-    {
-        id: 'santino-cocktail',
-        title: 'Cóctel de barra',
-        caption: 'Bebida con textura y luz nocturna para elevar ticket.',
-        src: '/images/food-reels/food-santino-cocktail.webp',
-        orientation: 'portrait',
-    },
-    {
-        id: 'roof-fork-action',
-        title: 'Mesa en movimiento',
-        caption: 'Manos, cubiertos y comida en una escena activa.',
-        src: '/images/food-reels/food-roof-fork-action.webp',
-        orientation: 'portrait',
-    },
-    {
-        id: 'santino-pancakes',
-        title: 'Pancakes con berries',
-        caption: 'Desayuno dulce con syrup, color y fondo cálido.',
-        src: '/images/food-reels/food-santino-pancakes.webp',
-        orientation: 'portrait',
-    },
-];
-
-const ACTIVATION_PHOTOS: FoodPhoto[] = [
-    {
-        id: 'roof-models-toast',
-        title: 'Mesa con modelos',
-        caption: 'Comida, drinks y personas con luz cálida.',
-        src: '/images/food-reels/food-roof-models-toast-clean.webp',
-        orientation: 'portrait',
-    },
-    {
-        id: 'santino-couple-burger',
-        title: 'Hamburguesa con modelos',
-        caption: 'Escena social con comida al centro y gesto natural.',
-        src: '/images/food-reels/food-santino-couple-burger.webp',
-        orientation: 'portrait',
-    },
-    {
-        id: 'roof-guacamole-models',
-        title: 'Mesa social',
-        caption: 'Escena de consumo con modelos, comida y color.',
-        src: '/images/food-reels/food-roof-guacamole-models.webp',
-        orientation: 'portrait',
-    },
-];
 
 const FOOD_PAGE_COPY = {
     es: {
         analyticsName: 'Landing de reels de comida',
+        heroEyebrow: 'Contenido gastronómico / Riviera Maya',
         heroTitle: 'Reels de comida para restaurantes en Riviera Maya',
-        heroDescription: 'Reels y fotos de platillos, barra y ambiente para redes, Google y campañas de Meta Ads.',
-        heroPrimary: 'Cotizar reels para mi restaurante',
-        heroSecondary: 'Ver prueba real',
+        heroDescription: 'Reels y fotografías que muestran platillos, servicio y ambiente como una experiencia que vale la pena reservar.',
+        heroPrimary: 'Reservar sesión',
         whatsappCta: 'Cotizar por WhatsApp',
-        reelSectionTitle: 'Reels para restaurantes',
-        photoSectionTitle: 'Fotografía de producto',
-        activationTitle: 'Activaciones con modelos',
-        activationDescription: 'Personas, mesa y ambiente para mostrar cómo se vive el restaurante.',
-        packageTitle: 'Paquete de producción gastronómica',
-        packageDescription: '10 fotos, 2 reels y 3 tomas de dron para hasta 5 platillos.',
-        packageCta: 'Reservar fecha',
-        packageCards: [
-            {
-                title: '10 fotos',
-                copy: 'Producto limpio para menú, redes y anuncios.',
-                items: ['Máximo 5 platillos', 'Fotos editadas', 'Uso comercial'],
-            },
-            {
-                title: '2 reels',
-                copy: 'Activación de comida sin modelos, enfocada en producto.',
-                items: ['Movimiento de platos', 'Drinks y servicio', 'Formato vertical'],
-            },
-            {
-                title: '3 tomas de dron',
-                copy: 'Recursos del espacio para elevar la percepción del restaurante.',
-                items: ['DJI Air 3', 'Vertical 4K', 'Exterior o interior viable'],
-            },
+        proofTitle: 'Restaurantes reales. Piezas listas para publicar y pautar.',
+        proofDescription: 'La evidencia se organiza por restaurante para que puedas revisar variedad, acabado y consistencia antes de reservar.',
+        reelEyebrow: 'Reels / SushiClub',
+        reelTitle: 'Movimiento, servicio y producto en cuatro cortes reales.',
+        reelDescription: 'Cada reel conserva el ritmo del restaurante y deja claro qué se sirve, cómo llega a la mesa y qué ambiente acompaña la visita.',
+        productEyebrow: 'Fotografía de producto',
+        productTitle: 'Platillos que se entienden antes de leer el menú.',
+        productDescription: 'Santino, SushiClub y Tanuki muestran producto, textura y presentación sin convertir la página en una cuadrícula interminable.',
+        activationEyebrow: 'Experiencia / The Roof',
+        activationTitle: 'Personas, mesa y ambiente completan la decisión.',
+        activationDescription: 'Cuando el restaurante también vende una experiencia, dirigimos escenas de consumo que se sienten naturales y habitadas.',
+        deliverablesEyebrow: 'Una sesión, un sistema',
+        deliverablesTitle: 'Contenido útil para cada punto de venta.',
+        deliverablesDescription: 'Definimos un shot list breve y salimos con piezas que pueden convivir en redes, anuncios, menú digital y Google.',
+        deliverables: [
+            { title: 'Reels verticales', description: 'Preparación, servicio, barra y platillos editados para captar atención desde el primer segundo.' },
+            { title: 'Fotografía de producto', description: 'Imágenes limpias para menú, redes, campañas y actualizaciones de temporada.' },
+            { title: 'Experiencia con personas', description: 'Escenas dirigidas para mostrar la mesa, el ambiente y el tipo de visita que ofreces.' },
+            { title: 'Recursos del espacio', description: 'Entrada, barra, terraza y tomas de contexto para ubicar la experiencia completa.' },
         ],
+        bookingEyebrow: 'Elige una fecha',
         bookingTitle: 'Agenda la sesión y definimos el shot list.',
-        bookingDescription: 'Antes de grabar confirmamos platillos, horario, tomas de dron y piezas finales.',
+        bookingDescription: 'Antes de grabar confirmamos platillos, horario, espacios y piezas prioritarias. Llegas a la sesión con un plan claro.',
+        finalTitle: 'Haz que tu restaurante provoque una visita.',
+        finalDescription: 'Comparte tu concepto y la fecha tentativa. Te respondemos con disponibilidad y un alcance claro.',
+        finalPrimary: 'Reservar sesión',
         finalWhatsApp: 'Preguntar por WhatsApp',
         bookingProduct: {
             checkoutLabel: 'Producción gastronómica',
             headerTitle: 'Agenda tu sesión de comida',
             headerDescription: 'Selecciona fecha, comparte el concepto del restaurante y confirma la producción.',
             summaryTitle: 'Sesión de contenido para restaurante',
-            summaryDescription: '10 fotos, 2 reels sin modelos y 3 tomas verticales de dron para vender comida.',
-            lines: ['Máximo 5 platillos prioritarios', 'Contenido vertical para redes y pauta', 'Entrega lista para publicar'],
+            summaryDescription: 'Reels y fotografías dirigidos para mostrar producto, servicio y ambiente.',
+            lines: ['Platillos y espacios prioritarios', 'Contenido vertical para redes y pauta', 'Entrega lista para publicar'],
             cartService: 'Reels y fotos de comida',
             cartDuration: 'Sesión dirigida en restaurante',
-            perks: ['10 fotos de producto', '2 reels sin modelos', '3 tomas de dron DJI Air 3', 'Uso para anuncios y menú digital', 'Pago seguro con tarjeta'],
-            terms: ['La fecha queda sujeta a disponibilidad.', 'El alcance final se confirma según platos, locación y modelo.', 'Puedes reprogramar con aviso previo según disponibilidad.', 'El material puede usarse en portafolio salvo acuerdo distinto.'],
-            unavailableWhatsApp: 'Hola, quiero una sesión de reels de comida para mi restaurante.',
+            perks: ['Reels de producto y servicio', 'Fotografías editadas', 'Shot list previo', 'Uso comercial', 'Pago seguro con tarjeta'],
+            terms: ['La fecha queda sujeta a disponibilidad.', 'El alcance final se confirma según platillos, locación y necesidades de producción.', 'Puedes reprogramar con aviso previo según disponibilidad.', 'El material puede usarse en portafolio salvo acuerdo distinto.'],
+            unavailableWhatsApp: 'Hola, quiero una sesión de reels y fotos para mi restaurante.',
         },
-        whatsappPrefill: 'Hola, quiero cotizar reels de comida y fotos para mi restaurante.',
+        whatsappPrefill: 'Hola, quiero cotizar reels y fotografías para mi restaurante.',
     },
     en: {
         analyticsName: 'Food reels landing page',
+        heroEyebrow: 'Food content / Riviera Maya',
         heroTitle: 'Food reels for restaurants in Riviera Maya',
-        heroDescription: 'Reels and photos of dishes, bar service, and atmosphere for social media, Google, and Meta Ads.',
-        heroPrimary: 'Quote reels for my restaurant',
-        heroSecondary: 'View real proof',
+        heroDescription: 'Reels and photography that present dishes, service, and atmosphere as an experience worth booking.',
+        heroPrimary: 'Book session',
         whatsappCta: 'Quote on WhatsApp',
-        reelSectionTitle: 'Restaurant reels',
-        photoSectionTitle: 'Product photography',
-        activationTitle: 'Model activations',
-        activationDescription: 'People, table, and atmosphere to show what the restaurant feels like.',
-        packageTitle: 'Food production package',
-        packageDescription: '10 photos, 2 reels, and 3 drone shots for up to 5 dishes.',
-        packageCta: 'Reserve date',
-        packageCards: [
-            {
-                title: '10 photos',
-                copy: 'Clean product imagery for menus, social, and ads.',
-                items: ['Up to 5 dishes', 'Edited photos', 'Commercial use'],
-            },
-            {
-                title: '2 reels',
-                copy: 'Food activation without models, focused on product.',
-                items: ['Plates in motion', 'Drinks and service', 'Vertical format'],
-            },
-            {
-                title: '3 drone shots',
-                copy: 'Space footage that raises the perceived value of the restaurant.',
-                items: ['DJI Air 3', 'Vertical 4K', 'Viable exterior or interior'],
-            },
+        proofTitle: 'Real restaurants. Assets ready to publish and promote.',
+        proofDescription: 'Evidence is grouped by restaurant so you can review variety, finish, and consistency before booking.',
+        reelEyebrow: 'Reels / SushiClub',
+        reelTitle: 'Movement, service, and product across four real edits.',
+        reelDescription: 'Each reel keeps the restaurant rhythm clear: what is served, how it reaches the table, and the atmosphere around the visit.',
+        productEyebrow: 'Product photography',
+        productTitle: 'Dishes people understand before reading the menu.',
+        productDescription: 'Santino, SushiClub, and Tanuki show product, texture, and presentation without turning the page into an endless grid.',
+        activationEyebrow: 'Experience / The Roof',
+        activationTitle: 'People, table, and atmosphere complete the decision.',
+        activationDescription: 'When the restaurant also sells an experience, we direct natural scenes that feel lived in.',
+        deliverablesEyebrow: 'One session, one system',
+        deliverablesTitle: 'Useful content for every sales surface.',
+        deliverablesDescription: 'We define a concise shot list and leave with assets that work across social, ads, digital menus, and Google.',
+        deliverables: [
+            { title: 'Vertical reels', description: 'Preparation, service, bar, and dishes edited to earn attention from the first second.' },
+            { title: 'Product photography', description: 'Clean images for menus, social media, campaigns, and seasonal updates.' },
+            { title: 'Experience with people', description: 'Directed scenes that show the table, atmosphere, and kind of visit you offer.' },
+            { title: 'Space details', description: 'Entrance, bar, terrace, and context shots that locate the complete experience.' },
         ],
+        bookingEyebrow: 'Choose a date',
         bookingTitle: 'Book the session and define the shot list.',
-        bookingDescription: 'Before production, we confirm dishes, timing, drone shots, and final pieces.',
+        bookingDescription: 'Before production, we confirm dishes, timing, spaces, and priority pieces. You arrive with a clear plan.',
+        finalTitle: 'Make your restaurant worth the visit.',
+        finalDescription: 'Share your concept and tentative date. We will reply with availability and a clear scope.',
+        finalPrimary: 'Book session',
         finalWhatsApp: 'Ask on WhatsApp',
         bookingProduct: {
             checkoutLabel: 'Food production',
             headerTitle: 'Book your food session',
             headerDescription: 'Choose a date, share the restaurant concept, and confirm production.',
             summaryTitle: 'Restaurant content session',
-            summaryDescription: '10 photos, 2 model-free reels, and 3 vertical drone shots built to sell food.',
-            lines: ['Up to 5 priority dishes', 'Vertical content for social and ads', 'Delivery ready to publish'],
+            summaryDescription: 'Directed reels and photography built to show product, service, and atmosphere.',
+            lines: ['Priority dishes and spaces', 'Vertical content for social and ads', 'Delivery ready to publish'],
             cartService: 'Food reels and photos',
             cartDuration: 'Directed restaurant session',
-            perks: ['10 product photos', '2 model-free reels', '3 DJI Air 3 drone shots', 'Use for ads and digital menus', 'Secure card payment'],
-            terms: ['Dates depend on availability.', 'Final scope is confirmed by dishes, location, and model needs.', 'You can reschedule with prior notice depending on availability.', 'Material may be used in portfolio unless agreed otherwise.'],
-            unavailableWhatsApp: 'Hi, I want a food reels session for my restaurant.',
+            perks: ['Product and service reels', 'Edited photography', 'Preproduction shot list', 'Commercial use', 'Secure card payment'],
+            terms: ['Dates depend on availability.', 'Final scope is confirmed according to dishes, location, and production needs.', 'You can reschedule with prior notice depending on availability.', 'Material may be used in portfolio unless agreed otherwise.'],
+            unavailableWhatsApp: 'Hi, I want a food reels and photography session for my restaurant.',
         },
-        whatsappPrefill: 'Hi, I want to quote food reels and photos for my restaurant.',
+        whatsappPrefill: 'Hi, I want to quote reels and photography for my restaurant.',
     },
 } as const;
 
-export default function FoodReelsShow({ price, slots, errors }: FoodReelsShowProps) {
+export default function FoodReelsShow({
+    price,
+    slots,
+    servicePortfolio,
+    errors,
+}: FoodReelsShowProps) {
     const { site } = usePage<PageProps>().props;
     const { locale } = useTranslations();
-    const isMobileViewport = useIsMobileViewport();
-    const copy = FOOD_PAGE_COPY[locale === 'en' ? 'en' : 'es'];
-    const [activeReelId, setActiveReelId] = useState(FOOD_REELS[0].id);
-    const activeReel = FOOD_REELS.find((reel) => reel.id === activeReelId) ?? FOOD_REELS[0];
+    const en = locale === 'en';
+    const copy = FOOD_PAGE_COPY[en ? 'en' : 'es'];
+    const landingConfig = SERVICE_LANDING_CONFIGS.reels_de_comida;
+    const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
     const whatsappHref = useMemo(
         () => buildWhatsAppHref(site.whatsapp, copy.whatsappPrefill),
         [copy.whatsappPrefill, site.whatsapp],
@@ -342,12 +169,12 @@ export default function FoodReelsShow({ price, slots, errors }: FoodReelsShowPro
             cartDuration: copy.bookingProduct.cartDuration,
             summaryPerks: [...copy.bookingProduct.perks],
             terms: [...copy.bookingProduct.terms],
-            paymentCopy: locale === 'en'
+            paymentCopy: en
                 ? 'Secure card payment powered by Stripe.'
                 : 'Pago seguro con tarjeta procesado por Stripe.',
             unavailableWhatsApp: copy.bookingProduct.unavailableWhatsApp,
         }),
-        [copy, locale],
+        [copy, en],
     );
     const analyticsPayload = useMemo(
         () => ({
@@ -359,6 +186,35 @@ export default function FoodReelsShow({ price, slots, errors }: FoodReelsShowPro
         }),
         [copy.analyticsName, price],
     );
+    const foodVideos = useMemo(
+        () => filterPortfolio(
+            servicePortfolio,
+            (media) => media.kind === 'video' && media.id !== servicePortfolio.hero.id,
+        ),
+        [servicePortfolio],
+    );
+    const popupProofMedia = useMemo(
+        () => pickDistinctPopupMedia(servicePortfolio),
+        [servicePortfolio],
+    );
+    const selectedPhotos = useMemo(() => {
+        const photos = uniqueMedia(servicePortfolio.projects.flatMap((project) => project.media))
+            .filter((media) => media.kind === 'image' && media.id !== servicePortfolio.hero.id);
+        const activations = photos.filter(isActivationMedia).slice(0, 4);
+        const activationIds = new Set(activations.map((media) => media.id));
+        const products = photos.filter((media) => !activationIds.has(media.id)).slice(0, 12);
+
+        return {
+            products,
+            activations,
+            all: [...products, ...activations].slice(0, 16),
+        };
+    }, [servicePortfolio]);
+    const lightboxItems = useMemo(
+        () => selectedPhotos.all.map(toPortfolioItem),
+        [selectedPhotos.all],
+    );
+    const productPhotoCount = selectedPhotos.products.length;
 
     useEffect(() => {
         trackBookingEvent('food_reels_page_viewed', {
@@ -371,10 +227,7 @@ export default function FoodReelsShow({ price, slots, errors }: FoodReelsShowPro
         openBookingModal({
             source,
             analyticsEvent: 'food_reels_booking_cta_clicked',
-            analyticsPayload: {
-                ...analyticsPayload,
-                source,
-            },
+            analyticsPayload: { ...analyticsPayload, source },
         });
     };
 
@@ -386,332 +239,387 @@ export default function FoodReelsShow({ price, slots, errors }: FoodReelsShowPro
         });
     };
 
+    const primaryAction = (source: string, compact = false) => (
+        <BookingCtaButton
+            type="button"
+            className={cn(serviceFunnelPrimaryActionClass, compact && 'sm:w-auto')}
+            onClick={() => openBooking(source)}
+        >
+            <CalendarDays className="size-5" aria-hidden="true" />
+            {source === 'final' ? copy.finalPrimary : copy.heroPrimary}
+            <ArrowRight className="size-4" aria-hidden="true" />
+        </BookingCtaButton>
+    );
+    const whatsappAction = (source: string, compact = false) => (
+        <ServiceWhatsAppButton
+            href={whatsappHref}
+            label={source === 'final' ? copy.finalWhatsApp : copy.whatsappCta}
+            onClick={() => trackWhatsApp(source)}
+            className={compact ? 'sm:w-auto' : undefined}
+        />
+    );
+
     return (
         <SiteLayout>
             <SeoHead />
 
-            <section className="relative left-1/2 w-screen -translate-x-1/2 overflow-hidden bg-[#070706] text-white">
-                <div className="absolute inset-0 bg-[radial-gradient(circle_at_74%_20%,rgb(206_58_42/0.22),transparent_30%),linear-gradient(180deg,#070706_0%,#0d0b09_64%,var(--background)_100%)]" />
-                <div className="relative mx-auto grid min-h-[min(760px,82svh)] max-w-6xl gap-8 px-4 pb-10 pt-12 sm:px-6 lg:grid-cols-[minmax(0,1fr)_minmax(320px,0.58fr)] lg:items-center lg:gap-10 lg:pb-12">
-                    <div className="flex max-w-3xl flex-col gap-6">
-                        <div className="flex flex-col gap-4">
-                            <h1 className="max-w-4xl text-wrap font-display text-[2.2rem] font-bold leading-[0.98] tracking-tight text-white drop-shadow-[0_10px_34px_rgb(0_0_0/0.45)] sm:text-5xl sm:leading-[0.96] lg:text-6xl xl:text-7xl">
-                                {copy.heroTitle}
-                            </h1>
-                            <p className="max-w-2xl text-wrap text-base leading-relaxed text-white/78 sm:text-lg">
-                                {copy.heroDescription}
-                            </p>
-                            <p className="max-w-2xl text-sm font-semibold text-primary">
-                                Playa del Carmen · Tulum · Cancún · Riviera Maya
-                            </p>
-                        </div>
+            <ServiceFunnelHero
+                eyebrow={copy.heroEyebrow}
+                title={copy.heroTitle}
+                description={copy.heroDescription}
+                locations="Playa del Carmen · Tulum · Cancún · Riviera Maya"
+                price={price}
+                priceLabel={en ? 'From' : 'Desde'}
+                priceNote={en ? 'Directed production for restaurants.' : 'Producción dirigida para restaurantes.'}
+                primaryAction={primaryAction('hero')}
+                secondaryAction={whatsappAction('hero')}
+                media={<HeroMedia media={servicePortfolio.hero} />}
+                mediaLabel={servicePortfolio.hero.projectLabel}
+                mediaCaption={servicePortfolio.hero.sessionLabel ?? copy.reelEyebrow}
+            />
 
-                        <div className="w-full max-w-xl">
-                            <div className="grid gap-3 sm:grid-cols-2">
-                            <BookingCtaButton
-                                type="button"
-                                className="min-h-12 w-full min-w-0 rounded-none px-4 text-sm whitespace-normal sm:text-base"
-                                onClick={() => openBooking('hero')}
-                            >
-                                <CalendarDays data-icon="inline-start" />
-                                {copy.heroPrimary}
-                            </BookingCtaButton>
-                            <Button
-                                variant="default"
-                                size="xl"
-                                className="min-h-12 w-full min-w-0 rounded-none border border-[#25D366] bg-[#25D366] px-4 text-sm text-[#04150a] whitespace-normal hover:bg-[#1ebe5d] hover:text-[#04150a] sm:text-base"
-                                asChild
-                            >
-                                <a href={whatsappHref} target="_blank" rel="noopener noreferrer" onClick={() => trackWhatsApp('hero')}>
-                                    <MessageCircle data-icon="inline-start" />
-                                    {copy.whatsappCta}
-                                </a>
-                            </Button>
-                            </div>
-                            <a href="#prueba-real" className="mt-4 inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.16em] text-white/70 transition hover:text-primary">
-                                <Play className="size-4" />
-                                {copy.heroSecondary}
-                            </a>
-                        </div>
-                    </div>
-
-                    <div className="relative mx-auto w-full max-w-[370px]">
-                        <div className="relative overflow-hidden border border-white/18 bg-black p-2">
-                            <AutoplayVideo
-                                key={activeReel.id}
-                                src={activeReel.src}
-                                poster={activeReel.poster}
-                                title={activeReel.title}
-                                eager={!isMobileViewport}
-                                pauseWhenOffscreen={isMobileViewport}
-                                className="aspect-[9/16] rounded-none"
-                            />
-                        </div>
-                    </div>
-                </div>
-            </section>
-
-            <section id="prueba-real" className="mx-auto flex max-w-6xl flex-col gap-5 px-4 pt-16 sm:px-6 lg:pt-20">
-                <SectionHeader
-                    title={copy.reelSectionTitle}
+            <ServiceFunnelSection innerClassName="py-0 sm:py-0 lg:py-0">
+                <ServiceProofBand
+                    portfolio={servicePortfolio}
+                    eyebrow={en ? 'Verified food portfolio' : 'Portafolio gastronómico verificado'}
+                    title={copy.proofTitle}
+                    description={copy.proofDescription}
                 />
-                <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-                    {FOOD_REELS.map((reel, index) => (
-                        <div key={reel.id} className={cn(index > 1 && 'max-sm:hidden')}>
-                        <ReelSelector
-                            key={reel.id}
-                            reel={reel}
-                            selected={reel.id === activeReel.id}
-                            onSelect={() => setActiveReelId(reel.id)}
-                        />
-                        </div>
-                    ))}
-                </div>
-            </section>
+            </ServiceFunnelSection>
 
-            <section className="relative left-1/2 w-screen -translate-x-1/2 overflow-hidden bg-[#0b0908] py-12 text-white">
-                <div className="absolute inset-0 bg-[linear-gradient(90deg,rgb(216_60_45/0.12),transparent_38%),radial-gradient(circle_at_78%_34%,rgb(119_146_76/0.18),transparent_30%)]" />
-                <div className="relative mx-auto grid max-w-6xl gap-8 px-4 sm:px-6 lg:grid-cols-[0.42fr_1fr] lg:items-center">
-                    <SectionHeader
+            {foodVideos.stats.mediaCount > 0 ? (
+                <ServicePortfolioShowcase
+                    portfolio={foodVideos}
+                    eyebrow={copy.reelEyebrow}
+                    title={copy.reelTitle}
+                    description={copy.reelDescription}
+                    action={(
+                        <>
+                            {primaryAction('food_portfolio', true)}
+                            {whatsappAction('food_portfolio', true)}
+                        </>
+                    )}
+                />
+            ) : null}
+
+            {selectedPhotos.products.length > 0 ? (
+                <ServiceFunnelSection id="fotografia-producto">
+                    <ServiceFunnelHeading
+                        eyebrow={copy.productEyebrow}
+                        title={copy.productTitle}
+                        description={copy.productDescription}
+                    />
+                    <PhotoMosaic
+                        items={selectedPhotos.products}
+                        onOpen={(index) => setLightboxIndex(index)}
+                    />
+                </ServiceFunnelSection>
+            ) : null}
+
+            {selectedPhotos.activations.length > 0 ? (
+                <ServiceFunnelSection tone="dark" id="experiencia-restaurante">
+                    <ServiceFunnelHeading
+                        eyebrow={copy.activationEyebrow}
                         title={copy.activationTitle}
                         description={copy.activationDescription}
-                        inverted
+                        inverse
                     />
-                    <div className="grid gap-3 md:grid-cols-3">
-                        {ACTIVATION_PHOTOS.map((photo, index) => (
-                            <MediaPhoto key={photo.id} photo={photo} dark className={cn(index > 1 && 'max-sm:hidden')} />
-                        ))}
-                    </div>
-                </div>
-            </section>
+                    <PhotoStrip
+                        items={selectedPhotos.activations}
+                        onOpen={(index) => setLightboxIndex(productPhotoCount + index)}
+                    />
+                </ServiceFunnelSection>
+            ) : null}
 
-            <section className="mx-auto flex max-w-6xl flex-col gap-6 px-4 py-12 sm:px-6">
-                <SectionHeader
-                    title={copy.photoSectionTitle}
-                    className="max-w-3xl"
+            <ServiceFunnelSection>
+                <ServiceFunnelHeading
+                    eyebrow={copy.deliverablesEyebrow}
+                    title={copy.deliverablesTitle}
+                    description={copy.deliverablesDescription}
                 />
-                <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-                    {PRODUCT_PHOTOS.slice(0, 6).map((photo, index) => (
-                        <MediaPhoto key={photo.id} photo={photo} dense className={cn(index > 5 && 'max-sm:hidden')} />
-                    ))}
+                <div className="mt-10">
+                    <ServiceFunnelDeliverables items={[...copy.deliverables]} />
                 </div>
-            </section>
+            </ServiceFunnelSection>
 
-            <ServiceLandingSections
-                serviceKey="reels_de_comida"
-                onBook={openBooking}
-                className="pt-4"
-                showOutcomes={false}
-                emphasizeForm
-                faqAccordion
-            />
-
-            <BookingWidget
-                slots={slots}
-                price={price}
-                whatsapp={site.whatsapp}
-                errors={errors}
-                className="mx-auto mt-4 w-full max-w-6xl"
-                checkoutRoute="booking.checkout"
-                paymentProvider="stripe"
-                product={product}
-                popupVariant="home"
-                popupHeroProofVideo={{
-                    title: activeReel.title,
-                    media_type: 'video',
-                    embed_url: null,
-                    playback_url: activeReel.src,
-                    poster_url: activeReel.poster,
-                }}
-                highlight
-                analyticsPayload={analyticsPayload}
-            />
-
-            <section className="mx-auto grid max-w-6xl gap-7 border-t border-border/70 px-4 py-12 sm:px-6 lg:grid-cols-[0.62fr_1fr]">
-                <div>
-                    <SectionHeader
-                        title={copy.packageTitle}
-                        description={copy.packageDescription}
+            <ServiceFunnelSection tone="soft">
+                <ServiceFunnelHeading
+                    eyebrow={en ? 'Production flow' : 'Proceso de producción'}
+                    title={en ? 'A clear route from shot list to delivery.' : 'Una ruta clara del shot list a la entrega.'}
+                    description={en
+                        ? 'Three decisions keep the session focused; the rest is production.'
+                        : 'Tres decisiones mantienen la sesión enfocada; el resto es producción.'}
+                />
+                <div className="mt-10">
+                    <ServiceFunnelProcess
+                        items={landingConfig.process.slice(1, 4).map((step) => ({
+                            title: localized(step.title, locale),
+                            description: localized(step.description, locale),
+                        }))}
                     />
-                    <div className="mt-5 flex flex-wrap items-end gap-3">
-                        <p className="font-mono-tabular text-4xl font-bold text-primary">
-                            {formatMxn(price)}
-                        </p>
-                        <PaymentTrustOrTestMode variant="stripe" layout="compact" className="pb-1" />
-                    </div>
                 </div>
+            </ServiceFunnelSection>
 
-                <div className="space-y-6">
-                    <div className="grid gap-4 sm:grid-cols-3">
-                        {copy.packageCards.map((card) => (
-                            <div key={card.title} className="border-t border-border/70 pt-4">
-                                <h3 className="font-display text-xl font-bold text-foreground">{card.title}</h3>
-                                <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{card.copy}</p>
-                                <p className="mt-3 text-sm text-foreground">{card.items.join(' · ')}</p>
-                            </div>
-                        ))}
-                    </div>
+            <ServiceFunnelSection id="reservar">
+                <ServiceFunnelHeading
+                    eyebrow={copy.bookingEyebrow}
+                    title={copy.bookingTitle}
+                    description={copy.bookingDescription}
+                />
+                <BookingWidget
+                    slots={slots}
+                    price={price}
+                    whatsapp={site.whatsapp}
+                    errors={errors}
+                    className="mt-10"
+                    checkoutRoute="booking.checkout"
+                    paymentProvider="stripe"
+                    product={product}
+                    popupVariant="foodReels"
+                    popupHeroProofVideo={popupProofMedia ? toHeroProofVideo(popupProofMedia) : null}
+                    highlight
+                    analyticsPayload={analyticsPayload}
+                />
+            </ServiceFunnelSection>
 
-                    <div className="flex flex-col gap-4 border-t border-border/70 pt-5 lg:flex-row lg:items-center lg:justify-between">
-                        <div className="max-w-2xl min-w-0">
-                            <h2 className="font-display text-2xl font-bold text-foreground">
-                                {copy.bookingTitle}
-                            </h2>
-                            <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
-                                {copy.bookingDescription}
-                            </p>
-                        </div>
-                        <div className="grid w-full min-w-0 gap-3 sm:grid-cols-2 lg:w-auto lg:min-w-[430px]">
-                            <Button
-                                variant="default"
-                                size="xl"
-                                className="min-h-13 w-full rounded-none bg-[#25D366] px-5 text-[#04150a] hover:bg-[#1ebe5d] hover:text-[#04150a]"
-                                asChild
-                            >
-                                <a
-                                    href={whatsappHref}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    onClick={() => trackWhatsApp('package')}
-                                >
-                                    <MessageCircle data-icon="inline-start" />
-                                    {copy.finalWhatsApp}
-                                </a>
-                            </Button>
-                            <BookingCtaButton
-                                type="button"
-                                className="min-h-13 w-full rounded-none px-5"
-                                onClick={() => openBooking('package')}
-                            >
-                                {copy.packageCta}
-                                <ArrowRight data-icon="inline-end" />
-                            </BookingCtaButton>
-                        </div>
-                    </div>
+            <ServiceFunnelSection tone="soft">
+                <ServiceFunnelHeading
+                    eyebrow={en ? 'Before booking' : 'Antes de reservar'}
+                    title={en ? 'Direct answers for the production.' : 'Respuestas directas para la producción.'}
+                    description={en
+                        ? 'Scope, timing, and final formats are confirmed before the session.'
+                        : 'El alcance, el horario y los formatos finales se confirman antes de la sesión.'}
+                />
+                <div className="mt-10">
+                    <ServiceFunnelFaq
+                        items={landingConfig.faqs.map((faq) => ({
+                            question: localized(faq.question, locale),
+                            answer: localized(faq.answer, locale),
+                        }))}
+                    />
                 </div>
-            </section>
+            </ServiceFunnelSection>
+
+            <ServiceFunnelFinalCta
+                eyebrow={en ? 'Lapsique Media / Food' : 'Lapsique Media / Gastronomía'}
+                title={copy.finalTitle}
+                description={copy.finalDescription}
+                primaryAction={primaryAction('final')}
+                secondaryAction={whatsappAction('final')}
+            />
+
+            <PortfolioLightbox
+                items={lightboxItems}
+                activeIndex={lightboxIndex}
+                onClose={() => setLightboxIndex(null)}
+                onNavigate={setLightboxIndex}
+            />
         </SiteLayout>
     );
 }
 
-function SectionHeader({
-    title,
-    description,
-    className,
-    inverted = false,
+function HeroMedia({ media }: { media: ServicePortfolioMedia }) {
+    if (media.kind === 'video') {
+        return (
+            <EditorialVideoPlayer
+                src={media.src}
+                poster={media.poster}
+                title={media.alt}
+                preload="metadata"
+                autoPlay={false}
+                muted={false}
+                hasAudio={media.hasAudio ?? false}
+                className="h-full w-full"
+                videoClassName="h-full w-full object-cover"
+            />
+        );
+    }
+
+    return (
+        <img
+            src={media.src}
+            alt={media.alt}
+            className="h-full w-full object-cover"
+            loading="eager"
+            decoding="async"
+            fetchPriority="high"
+        />
+    );
+}
+
+function PhotoMosaic({
+    items,
+    onOpen,
 }: {
-    title: string;
-    description?: string;
-    className?: string;
-    inverted?: boolean;
+    items: ServicePortfolioMedia[];
+    onOpen: (index: number) => void;
 }) {
     return (
-        <div className={cn('flex flex-col gap-3', className)}>
-            <div>
-                <h2 className={cn(
-                    'font-display text-3xl font-bold leading-tight md:text-4xl',
-                    inverted ? 'text-white' : 'text-foreground',
-                )}>
-                    {title}
-                </h2>
-                {description ? (
-                    <p className={cn(
-                        'mt-3 text-sm leading-relaxed md:text-base',
-                        inverted ? 'text-white/72' : 'text-muted-foreground',
-                    )}>
-                        {description}
-                    </p>
-                ) : null}
-            </div>
+        <div className="mt-10 grid auto-rows-[11rem] grid-cols-2 gap-3 sm:auto-rows-[14rem] md:grid-cols-4">
+            {items.map((item, index) => (
+                <PhotoButton
+                    key={item.id}
+                    item={item}
+                    onClick={() => onOpen(index)}
+                    className={cn(
+                        index === 0 && 'col-span-2 row-span-2',
+                        index === 3 && 'md:col-span-2',
+                        index === 6 && 'md:row-span-2',
+                    )}
+                />
+            ))}
         </div>
     );
 }
 
-function ReelSelector({
-    reel,
-    selected,
-    onSelect,
+function PhotoStrip({
+    items,
+    onOpen,
 }: {
-    reel: FoodReel;
-    selected: boolean;
-    onSelect: () => void;
+    items: ServicePortfolioMedia[];
+    onOpen: (index: number) => void;
+}) {
+    return (
+        <div className="mt-10 grid grid-cols-2 gap-3 md:grid-cols-4">
+            {items.map((item, index) => (
+                <PhotoButton
+                    key={item.id}
+                    item={item}
+                    onClick={() => onOpen(index)}
+                    className="aspect-[4/5]"
+                    inverse
+                />
+            ))}
+        </div>
+    );
+}
+
+function PhotoButton({
+    item,
+    onClick,
+    className,
+    inverse = false,
+}: {
+    item: ServicePortfolioMedia;
+    onClick: () => void;
+    className?: string;
+    inverse?: boolean;
 }) {
     return (
         <button
             type="button"
-            onClick={onSelect}
+            onClick={onClick}
             className={cn(
-                'group overflow-hidden border bg-card text-left transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
-                selected
-                    ? 'border-primary'
-                    : 'border-border/70 hover:border-primary/60',
+                'group relative min-h-0 overflow-hidden bg-black text-start outline outline-1 -outline-offset-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary',
+                inverse ? 'outline-white/15' : 'outline-black/10',
+                className,
             )}
-            aria-pressed={selected}
-            aria-label={reel.title}
+            aria-label={item.alt}
         >
-            <div className="relative aspect-[9/14] overflow-hidden bg-black">
-                <img
-                    src={reel.poster}
-                    alt={reel.title}
-                    className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
-                    loading="lazy"
-                    decoding="async"
-                />
-                <div className="absolute inset-0 bg-[linear-gradient(180deg,transparent_52%,rgb(0_0_0/0.45)_100%)]" />
-            </div>
+            <img
+                src={item.src}
+                alt={item.alt}
+                loading="lazy"
+                decoding="async"
+                className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-[1.02] motion-reduce:transition-none"
+            />
+            <span className="pointer-events-none absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/78 to-transparent px-3 pb-3 pt-10 font-mono text-[0.62rem] uppercase tracking-[0.12em] text-white/82">
+                {item.projectLabel}
+            </span>
         </button>
     );
 }
 
-function MediaPhoto({
-    photo,
-    className,
-    compact = false,
-    dark = false,
-    mosaic = false,
-    dense = false,
-}: {
-    photo: FoodPhoto;
-    className?: string;
-    compact?: boolean;
-    dark?: boolean;
-    mosaic?: boolean;
-    dense?: boolean;
-}) {
-    const aspectClass = mosaic
-        ? 'h-full'
-        : dense
-          ? 'aspect-[4/5]'
-        : compact
-        ? photo.orientation === 'landscape'
-          ? 'aspect-[4/3]'
-          : 'aspect-[3/4]'
-        : photo.orientation === 'landscape'
-          ? 'aspect-[16/10]'
-          : photo.orientation === 'square'
-            ? 'aspect-square'
-            : 'aspect-[4/5]';
+function filterPortfolio(
+    portfolio: ServicePortfolioBundle,
+    predicate: (media: ServicePortfolioMedia) => boolean,
+): ServicePortfolioBundle {
+    const projects = portfolio.projects
+        .map((project) => ({
+            ...project,
+            media: uniqueMedia(project.media.filter(predicate)),
+        }))
+        .filter((project) => project.media.length > 0);
+    const media = projects.flatMap((project) => project.media);
 
-    return (
-        <figure className={cn(
-            'group overflow-hidden border',
-            dark ? 'border-white/14 bg-white/6' : 'border-border/70 bg-card',
-            mosaic && 'min-h-0',
-            mosaic && photo.layout === 'large' && 'sm:col-span-2 sm:row-span-2',
-            mosaic && photo.layout === 'wide' && 'sm:col-span-2',
-            mosaic && photo.layout === 'tall' && 'sm:row-span-2',
-            className,
-        )}>
-            <div className={cn('overflow-hidden bg-black', aspectClass)}>
-                <img
-                    src={photo.src}
-                    alt={photo.title}
-                    className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
-                    loading={compact || mosaic || dense ? 'eager' : 'lazy'}
-                />
-            </div>
-        </figure>
+    return {
+        ...portfolio,
+        projects,
+        stats: {
+            mediaCount: media.length,
+            projectCount: projects.length,
+            imageCount: media.filter((item) => item.kind === 'image').length,
+            videoCount: media.filter((item) => item.kind === 'video').length,
+        },
+    };
+}
+
+function uniqueMedia(items: ServicePortfolioMedia[]): ServicePortfolioMedia[] {
+    const seen = new Set<string>();
+
+    return items.filter((item) => {
+        const key = `${item.id}:${item.src}`;
+        if (seen.has(key)) return false;
+        seen.add(key);
+        return true;
+    });
+}
+
+function isActivationMedia(media: ServicePortfolioMedia): boolean {
+    const haystack = `${media.projectKey} ${media.projectLabel} ${media.sessionLabel ?? ''} ${media.alt}`.toLowerCase();
+
+    return ['the-roof', 'roof', 'activation', 'model', 'couple', 'toast', 'experience']
+        .some((keyword) => haystack.includes(keyword));
+}
+
+function toPortfolioItem(media: ServicePortfolioMedia, index: number): PortfolioItemData {
+    return {
+        id: index + 1,
+        title: media.alt,
+        slug: null,
+        type: 'food_reels',
+        source: 'service-curation',
+        caption: media.sessionLabel ?? media.location ?? null,
+        tags: [media.projectKey],
+        asset_url: media.src,
+        poster_url: null,
+        playback_url: null,
+        embed_url: null,
+        youtube_id: null,
+        youtube_url: null,
+        media_type: 'image',
+        is_featured: index === 0,
+        orientation: media.orientation,
+    };
+}
+
+function toHeroProofVideo(media: ServicePortfolioMedia) {
+    return {
+        title: media.alt,
+        media_type: media.kind,
+        embed_url: null,
+        playback_url: media.kind === 'video' ? media.src : null,
+        poster_url: media.poster ?? (media.kind === 'image' ? media.src : null),
+    } as const;
+}
+
+function pickDistinctPopupMedia(
+    portfolio: ServicePortfolioBundle,
+): ServicePortfolioMedia | null {
+    const media = uniqueMedia(
+        portfolio.projects.flatMap((project) => project.media),
+    ).filter(
+        (item) =>
+            item.id !== portfolio.hero.id
+            && item.src !== portfolio.hero.src,
     );
+
+    return media.find(
+        (item) => item.kind === 'video' && Boolean(item.poster),
+    )
+        ?? media.find((item) => item.kind === 'image')
+        ?? media[0]
+        ?? null;
 }
 
 function buildWhatsAppHref(phone: string | undefined, text: string): string {

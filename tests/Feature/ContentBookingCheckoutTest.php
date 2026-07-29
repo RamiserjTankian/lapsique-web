@@ -307,7 +307,7 @@ class ContentBookingCheckoutTest extends TestCase
     {
         $this->createAvailableSlot();
 
-        Video::create([
+        $video = Video::create([
             'title' => 'Psique DJ set',
             'slug' => 'psique-dj-set',
             'youtube_id' => 'yt-dj-set',
@@ -325,11 +325,12 @@ class ContentBookingCheckoutTest extends TestCase
             'is_active' => true,
         ]);
 
-        Dj::create([
+        $dj = Dj::create([
             'name' => 'DJ Proof',
             'slug' => 'dj-proof',
             'is_featured' => true,
         ]);
+        $dj->videos()->attach($video);
 
         $this->get(route('djset.show'))
             ->assertOk()
@@ -339,7 +340,7 @@ class ContentBookingCheckoutTest extends TestCase
                 ->has('slots', 1)
                 ->has('originals', 1)
                 ->has('portfolioItems')
-                ->has('djSetReels')
+                ->has('servicePortfolio.projects')
                 ->has('djs', 1)
             );
     }

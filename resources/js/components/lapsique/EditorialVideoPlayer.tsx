@@ -12,7 +12,9 @@ interface EditorialVideoPlayerProps {
     preload?: 'none' | 'metadata' | 'auto';
     autoPlay?: boolean;
     muted?: boolean;
+    hasAudio?: boolean;
     onReady?: () => void;
+    onPlay?: () => void;
 }
 
 function formatTime(value: number): string {
@@ -35,16 +37,29 @@ export function EditorialVideoPlayer({
     preload = 'none',
     autoPlay = false,
     muted = false,
+    hasAudio = true,
     onReady,
+    onPlay,
 }: EditorialVideoPlayerProps) {
     const { locale } = useTranslations();
     const videoRef = useRef<HTMLVideoElement>(null);
     const frameRef = useRef<HTMLDivElement>(null);
     const [playing, setPlaying] = useState(false);
-    const [isMuted, setIsMuted] = useState(muted);
+    const [isMuted, setIsMuted] = useState(muted || !hasAudio);
     const [currentTime, setCurrentTime] = useState(0);
     const [duration, setDuration] = useState(0);
     const en = locale === 'en';
+
+    useEffect(() => {
+        const video = videoRef.current;
+        const shouldMute = muted || !hasAudio;
+
+        if (video) {
+            video.muted = shouldMute;
+        }
+
+        setIsMuted(shouldMute);
+    }, [hasAudio, muted, src]);
 
     useEffect(() => {
         const video = videoRef.current;
@@ -116,7 +131,7 @@ export function EditorialVideoPlayer({
                 poster={poster ?? undefined}
                 preload={preload}
                 playsInline
-                muted={muted}
+                muted={muted || !hasAudio}
                 controls={false}
                 aria-label={title}
                 onClick={() => void togglePlayback()}
@@ -126,7 +141,10 @@ export function EditorialVideoPlayer({
                     onReady?.();
                 }}
                 onCanPlay={onReady}
-                onPlay={() => setPlaying(true)}
+                onPlay={() => {
+                    setPlaying(true);
+                    onPlay?.();
+                }}
                 onPause={() => setPlaying(false)}
                 onEnded={() => setPlaying(false)}
                 onTimeUpdate={(event) => setCurrentTime(event.currentTarget.currentTime)}
@@ -174,14 +192,16 @@ export function EditorialVideoPlayer({
                     >
                         {playing ? <Pause className="size-4" aria-hidden="true" /> : <Play className="size-4 fill-current" aria-hidden="true" />}
                     </button>
-                    <button
-                        type="button"
-                        onClick={toggleMute}
-                        className="flex size-11 items-center justify-center border border-white/25 bg-black/55 text-white transition-[background-color,border-color,transform] duration-150 hover:border-primary hover:bg-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary active:scale-[0.96] motion-reduce:transition-none"
-                        aria-label={isMuted ? (en ? 'Unmute' : 'Activar audio') : (en ? 'Mute' : 'Silenciar')}
-                    >
-                        {isMuted ? <VolumeX className="size-4" aria-hidden="true" /> : <Volume2 className="size-4" aria-hidden="true" />}
-                    </button>
+                    {hasAudio ? (
+                        <button
+                            type="button"
+                            onClick={toggleMute}
+                            className="flex size-11 items-center justify-center border border-white/25 bg-black/55 text-white transition-[background-color,border-color,transform] duration-150 hover:border-primary hover:bg-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary active:scale-[0.96] motion-reduce:transition-none"
+                            aria-label={isMuted ? (en ? 'Unmute' : 'Activar audio') : (en ? 'Mute' : 'Silenciar')}
+                        >
+                            {isMuted ? <VolumeX className="size-4" aria-hidden="true" /> : <Volume2 className="size-4" aria-hidden="true" />}
+                        </button>
+                    ) : null}
                     <span className="ml-1 font-mono text-[0.65rem] tabular-nums tracking-[0.08em] text-white/75">
                         {formatTime(currentTime)} / {formatTime(duration)}
                     </span>

@@ -88,6 +88,14 @@ class PortfolioCuration
     ];
 
     /**
+     * @return array<string, mixed>
+     */
+    public static function forService(string $serviceKey): array
+    {
+        return ServicePortfolioCatalog::forService($serviceKey);
+    }
+
+    /**
      * @return Collection<int, PortfolioItem>
      */
     public static function forHome(int $limit = 12): Collection

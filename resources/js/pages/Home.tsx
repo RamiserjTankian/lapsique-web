@@ -1,5 +1,10 @@
 import { Link, usePage } from '@inertiajs/react';
-import { ArrowRight, ChevronLeft, ChevronRight } from 'lucide-react';
+import {
+    ArrowRight,
+    ChevronLeft,
+    ChevronRight,
+    MessageCircle,
+} from 'lucide-react';
 import { useEffect, useMemo, useState, type ReactNode } from 'react';
 import { SeoHead } from '@/components/lapsique/SeoHead';
 import SiteLayout from '@/layouts/SiteLayout';
@@ -11,6 +16,7 @@ import { ReelPlayerProvider } from '@/hooks/useReelPlayerModal';
 import { openBookingModal } from '@/lib/openBookingModal';
 import { route } from '@/lib/route';
 import { AutoplayVideo } from '@/components/lapsique/AutoplayVideo';
+import { EditorialVideoPlayer } from '@/components/lapsique/EditorialVideoPlayer';
 import { FunnelFAQ } from '@/components/lapsique/funnel/FunnelFAQ';
 import { PaymentTrustOrTestMode } from '@/components/lapsique/PaymentTrustPanel';
 import { BookingCtaButton } from '@/components/lapsique/BookingCtaButton';
@@ -25,11 +31,13 @@ import type {
     EventItem,
     HeroBackgroundImageData,
     HeroProofVideoData,
+    HomePortfolioOverview,
     LandingVideoEntry,
     LandingVideosProps,
     PageProps,
     PortfolioItemData,
-    ReelLibraryEntry,
+    ServicePortfolioKey,
+    ServicePortfolioMedia,
     VideoItem,
 } from '@/types';
 
@@ -42,11 +50,11 @@ interface HomeProps {
     heroBackgroundImage: HeroBackgroundImageData | null;
     landingVideos: LandingVideosProps | null;
     heroProofVideo: HeroProofVideoData | null;
-    reelLibraryPreview: ReelLibraryEntry[];
     sceneDjs: DjItem[];
     sceneVideos: VideoItem[];
     sceneEvents: EventItem[];
     sceneMedia: PortfolioItemData[];
+    portfolioOverview?: HomePortfolioOverview | null;
     errors?: Record<string, string>;
 }
 
@@ -110,6 +118,7 @@ export default function Home({
     sceneVideos,
     sceneEvents,
     sceneMedia,
+    portfolioOverview = null,
     errors,
 }: HomeProps) {
     const { site } = usePage<PageProps>().props;
@@ -148,22 +157,31 @@ export default function Home({
                 landingHero={landingVideos?.hero ?? null}
                 heroProofVideo={heroProofVideo}
                 portfolioItems={portfolioItems}
+                portfolioOverview={portfolioOverview}
+                whatsapp={site.whatsapp}
                 onBook={openBooking}
             />
 
-            <AlphaEquipmentStrip />
+            <ServiceLandingLinks portfolioOverview={portfolioOverview} />
 
-            <ServiceLandingLinks />
-
-            <FeaturedReel
-                videos={[
-                    landingVideos?.pauta ?? null,
-                    landingVideos?.package ?? landingVideos?.gear ?? null,
-                    landingVideos?.floats?.[0] ?? null,
-                ]}
-                fallbackPool={featuredReelFallbackPool}
-                bookingSource="featured_reel_proof"
+            <HomePortfolioProof
+                portfolioOverview={portfolioOverview}
+                portfolioItems={portfolioItems}
+                landingVideos={landingVideos}
+                onBook={openBooking}
             />
+
+            {!portfolioOverview ? (
+                <FeaturedReel
+                    videos={[
+                        landingVideos?.pauta ?? null,
+                        landingVideos?.package ?? landingVideos?.gear ?? null,
+                        landingVideos?.floats?.[0] ?? null,
+                    ]}
+                    fallbackPool={featuredReelFallbackPool}
+                    bookingSource="featured_reel_proof"
+                />
+            ) : null}
 
             <BookingWidget
                 slots={slots}
@@ -409,81 +427,554 @@ function formatEventDate(value: string | null, locale: string): string {
     return new Intl.DateTimeFormat(locale === 'en' ? 'en-US' : 'es-MX', { day: '2-digit', month: 'short', year: 'numeric' }).format(new Date(value));
 }
 
-function ServiceLandingLinks() {
+type HomeServiceDefinition = {
+    key: ServicePortfolioKey;
+    href: string;
+    es: {
+        title: string;
+        copy: string;
+    };
+    en: {
+        title: string;
+        copy: string;
+    };
+};
+
+const HOME_SERVICE_DEFINITIONS: HomeServiceDefinition[] = [
+    {
+        key: 'content_creation',
+        href: '/creacion-de-contenido-riviera-maya',
+        es: {
+            title: 'Contenido para redes',
+            copy: 'Reels y fotografía para Instagram, TikTok y anuncios.',
+        },
+        en: {
+            title: 'Social content',
+            copy: 'Reels and photography for Instagram, TikTok, and ads.',
+        },
+    },
+    {
+        key: 'business_reels',
+        href: '/reels-para-negocios',
+        es: {
+            title: 'Reels para negocios',
+            copy: 'Contenido comercial pensado para anuncios.',
+        },
+        en: {
+            title: 'Business reels',
+            copy: 'Commercial content designed for ads.',
+        },
+    },
+    {
+        key: 'food_reels',
+        href: '/reels-de-comida',
+        es: {
+            title: 'Reels para restaurantes',
+            copy: 'Comida, ambiente y servicio listos para vender.',
+        },
+        en: {
+            title: 'Restaurant reels',
+            copy: 'Food, atmosphere, and service ready to sell.',
+        },
+    },
+    {
+        key: 'dj_set',
+        href: '/dj-set',
+        es: {
+            title: 'Grabar un DJ set',
+            copy: 'Registro cinematográfico de tu set, listo para publicar.',
+        },
+        en: {
+            title: 'Record a DJ set',
+            copy: 'A cinematic record of your set, ready to publish.',
+        },
+    },
+    {
+        key: 'event_coverage',
+        href: '/cobertura-eventos-electronica',
+        es: {
+            title: 'Cobertura de eventos electrónicos',
+            copy: 'Aftermovie, tomas de dron y fotografía editada.',
+        },
+        en: {
+            title: 'Electronic event coverage',
+            copy: 'Aftermovie, drone footage, and edited photography.',
+        },
+    },
+    {
+        key: 'multi_camera',
+        href: '/multicamara',
+        es: {
+            title: 'Producción multicámara',
+            copy: 'Drops, video continuo en Log, audio y fotos del evento.',
+        },
+        en: {
+            title: 'Multi-camera production',
+            copy: 'Drops, continuous Log video, audio, and event photography.',
+        },
+    },
+    {
+        key: 'drone_sessions',
+        href: '/sesiones-de-dron',
+        es: {
+            title: 'Vuelos con dron',
+            copy: 'Tomas aéreas para propiedades, venues y campañas.',
+        },
+        en: {
+            title: 'Drone flights',
+            copy: 'Aerial footage for properties, venues, and campaigns.',
+        },
+    },
+    {
+        key: 'construction_progress',
+        href: '/avances-de-obra',
+        es: {
+            title: 'Avances de obra',
+            copy: 'Reportes de avance con foto, video y dron.',
+        },
+        en: {
+            title: 'Construction progress',
+            copy: 'Progress reports with photography, video, and drone.',
+        },
+    },
+];
+
+function ServiceLandingLinks({
+    portfolioOverview,
+}: {
+    portfolioOverview: HomePortfolioOverview | null;
+}) {
     const { locale } = useTranslations();
     const isEnglish = locale === 'en';
-    const services = isEnglish
-        ? [
-            {
-                href: '/reels-de-comida',
-                title: 'Food reels for restaurants',
-                copy: 'Visual content for dishes, drinks, and restaurant experience without making every post feel improvised.',
-            },
-            {
-                href: '/sesiones-de-dron',
-                title: 'Drone sessions for hotels and properties',
-                copy: 'Aerial footage that explains location, scale, architecture, and surroundings.',
-            },
-            {
-                href: '/avances-de-obra',
-                title: 'Construction progress with photo, video, and drone',
-                copy: 'Professional progress evidence for reports, sales, investors, and project records.',
-            },
-        ]
-        : [
-            {
-                href: '/reels-de-comida',
-                title: 'Reels de comida para restaurantes',
-                copy: 'Contenido visual para platillos, bebidas y experiencia sin improvisar cada publicación.',
-            },
-            {
-                href: '/sesiones-de-dron',
-                title: 'Sesiones de dron para hoteles y propiedades',
-                copy: 'Tomas aéreas para explicar ubicación, escala, arquitectura y entorno.',
-            },
-            {
-                href: '/avances-de-obra',
-                title: 'Avances de obra con foto, video y dron',
-                copy: 'Evidencia profesional de progreso para reportes, ventas, inversionistas y archivo de obra.',
-            },
-        ];
+    const previewByService = new Map(
+        (portfolioOverview?.servicePreviews ?? []).map((preview) => [
+            preview.serviceKey,
+            preview,
+        ]),
+    );
+    const services = HOME_SERVICE_DEFINITIONS.map((definition) => {
+        const preview = previewByService.get(definition.key);
+        const localized = isEnglish ? definition.en : definition.es;
+
+        return {
+            ...definition,
+            href: preview?.href || definition.href,
+            title: preview?.label[isEnglish ? 'en' : 'es'] || localized.title,
+            copy: localized.copy,
+            media: preview?.media,
+            stats: preview?.stats,
+        };
+    });
 
     return (
-        <section id="servicios" className="mx-auto w-full max-w-6xl scroll-mt-24 px-4 sm:px-6">
-            <div className="grid gap-8 border-y border-border/70 py-8 lg:grid-cols-[0.52fr_1fr] lg:items-start">
-                <div>
-                    <h2 className="font-display text-3xl font-bold leading-tight text-foreground md:text-4xl">
-                        {isEnglish ? 'Audiovisual services for businesses in Riviera Maya' : 'Servicios audiovisuales para negocios en Riviera Maya'}
-                    </h2>
-                    <p className="mt-3 text-sm leading-relaxed text-muted-foreground md:text-base">
+        <section
+            id="servicios"
+            className="relative left-1/2 w-screen -translate-x-1/2 scroll-mt-24 bg-background"
+            data-analytics-section="home_service_portfolio"
+        >
+            <div className="mx-auto max-w-6xl px-4 py-14 sm:px-6 md:py-20">
+                <div className="grid gap-6 border-t border-foreground/20 pt-6 lg:grid-cols-[0.48fr_1fr] lg:items-end">
+                    <div>
+                        <p className="alpha-kicker text-primary">Lapsique / {isEnglish ? 'Services' : 'Servicios'}</p>
+                        <h2 className="mt-4 max-w-3xl text-4xl font-semibold leading-[0.92] text-foreground text-balance md:text-6xl">
+                            {isEnglish ? 'Eight ways to turn real work into useful content.' : 'Ocho formas de convertir trabajo real en contenido útil.'}
+                        </h2>
+                    </div>
+                    <p className="max-w-xl text-base leading-relaxed text-muted-foreground text-pretty lg:justify-self-end">
                         {isEnglish
-                            ? 'Content for restaurants, hotels, properties, events, real estate projects, and construction progress.'
-                            : 'Contenido para restaurantes, hoteles, propiedades, eventos, proyectos inmobiliarios y avances de obra.'}
+                            ? 'Choose the production that matches your objective. Each service opens a focused page with its own portfolio, deliverables, and booking flow.'
+                            : 'Elige la producción que coincide con tu objetivo. Cada servicio abre una página enfocada con portafolio, entregables y reserva propios.'}
                     </p>
                 </div>
-                <div className="divide-y divide-border/70">
-                    {services.map((service) => (
+
+                <div className="-mx-4 mt-9 grid snap-x snap-mandatory auto-cols-[minmax(17rem,84vw)] grid-flow-col gap-3 overflow-x-auto px-4 pb-3 sm:-mx-6 sm:px-6 lg:mx-0 lg:grid-flow-row lg:grid-cols-4 lg:overflow-visible lg:px-0 lg:pb-0">
+                    {services.map((service, index) => (
                         <Link
-                            key={service.href}
+                            key={service.key}
                             href={service.href}
-                            className="group grid gap-2 py-4 transition first:pt-0 last:pb-0 md:grid-cols-[0.42fr_1fr_auto] md:items-start md:gap-5"
+                            data-no-lightbox="true"
+                            className="group/card flex min-w-0 snap-start flex-col overflow-hidden bg-secondary/60 outline outline-1 -outline-offset-1 outline-foreground/12 transition-[background-color,transform] duration-150 hover:bg-secondary active:scale-[0.96] motion-reduce:transition-none"
+                            onClick={() => trackBookingEvent('portfolio_project_selected', {
+                                section: 'home_service_portfolio',
+                                service: service.key,
+                                target: service.href,
+                            })}
                         >
-                            <h3 className="text-base font-bold leading-snug text-foreground group-hover:text-primary">
-                                {service.title}
-                            </h3>
-                            <p className="text-sm leading-relaxed text-muted-foreground">
-                                {service.copy}
-                            </p>
-                            <span className="inline-flex items-center gap-2 text-sm font-semibold text-primary">
-                                {isEnglish ? 'Quote' : 'Cotizar'}
-                                <ArrowRight className="size-4 transition group-hover:translate-x-0.5" />
-                            </span>
+                            <div className="relative aspect-[4/3] overflow-hidden bg-[#080a0c]">
+                                {service.media ? (
+                                    service.media.kind === 'image' || service.media.poster ? (
+                                        <img
+                                            src={service.media.kind === 'image' ? service.media.src : service.media.poster ?? ''}
+                                            alt={service.media.alt}
+                                            loading="lazy"
+                                            data-no-lightbox="true"
+                                            className="h-full w-full object-cover opacity-85 outline outline-1 -outline-offset-1 outline-black/10 transition-[opacity,scale] duration-300 group-hover/card:scale-[1.025] group-hover/card:opacity-100 motion-reduce:transition-none"
+                                        />
+                                    ) : (
+                                        <video
+                                            src={service.media.src}
+                                            aria-label={service.media.alt}
+                                            muted
+                                            playsInline
+                                            preload="none"
+                                            data-no-lightbox="true"
+                                            className="h-full w-full object-cover opacity-85"
+                                        />
+                                    )
+                                ) : (
+                                    <div className="absolute inset-0 bg-[linear-gradient(135deg,oklch(0.2_0_0),oklch(0.12_0_0))]" />
+                                )}
+                                <span className="absolute left-3 top-3 bg-black/72 px-2.5 py-1.5 font-mono text-[0.62rem] uppercase tracking-[0.16em] text-white">
+                                    {String(index + 1).padStart(2, '0')} / 08
+                                </span>
+                            </div>
+                            <div className="flex flex-1 flex-col p-5">
+                                <h3 className="text-xl font-semibold leading-[1.05] text-foreground text-balance transition-[color] group-hover/card:text-primary">
+                                    {service.title}
+                                </h3>
+                                <p className="mt-3 text-sm leading-relaxed text-muted-foreground text-pretty">
+                                    {service.copy}
+                                </p>
+                                <div className="mt-auto flex items-end justify-between gap-3 pt-6">
+                                    <span className="font-ui-display text-xs font-bold uppercase tracking-[0.08em] text-primary">
+                                        {isEnglish ? 'View service' : 'Ver servicio'}
+                                    </span>
+                                    {service.stats?.projectCount ? (
+                                        <span className="font-mono text-[0.62rem] uppercase tracking-[0.12em] text-muted-foreground tabular-nums">
+                                            {service.stats.projectCount} {isEnglish ? 'projects' : 'proyectos'}
+                                        </span>
+                                    ) : (
+                                        <ArrowRight className="size-4 text-primary transition-transform group-hover/card:translate-x-0.5" />
+                                    )}
+                                </div>
+                            </div>
                         </Link>
                     ))}
                 </div>
             </div>
         </section>
     );
+}
+
+function HomePortfolioProof({
+    portfolioOverview,
+    portfolioItems,
+    landingVideos,
+    onBook,
+}: {
+    portfolioOverview: HomePortfolioOverview | null;
+    portfolioItems: PortfolioItemData[];
+    landingVideos: LandingVideosProps | null;
+    onBook: () => void;
+}) {
+    const { locale } = useTranslations();
+    const en = locale === 'en';
+    const featuredMedia = useMemo(
+        () => resolveHomeFeaturedMedia(portfolioOverview, portfolioItems, landingVideos),
+        [landingVideos, portfolioItems, portfolioOverview],
+    );
+    const photos = featuredMedia.filter((item) => item.kind === 'image').slice(0, 8);
+    const videos = featuredMedia.filter((item) => item.kind === 'video').slice(0, 6);
+    const archiveCount = portfolioOverview?.archiveMediaCount ?? 0;
+    const projectCount = countDistinctProjects([...photos, ...videos]);
+    const sectionRef = useSectionEvent<HTMLElement>('service_portfolio_viewed', {
+        section: 'home_portfolio_overview',
+        media_count: featuredMedia.length,
+        project_count: projectCount,
+    });
+
+    if (featuredMedia.length === 0) {
+        return null;
+    }
+
+    const title = archiveCount >= 200
+        ? en
+            ? 'More than 200 audiovisual pieces produced by Lapsique.'
+            : 'Más de 200 piezas audiovisuales producidas por Lapsique.'
+        : archiveCount > 0
+            ? en
+                ? `${archiveCount} audiovisual pieces in the Lapsique archive.`
+                : `${archiveCount} piezas audiovisuales en el archivo de Lapsique.`
+            : en
+                ? 'A living audiovisual archive made by Lapsique.'
+                : 'Un archivo audiovisual vivo producido por Lapsique.';
+
+    const approvedCopy = en
+        ? 'A real archive of photography and video for restaurants, brands, artists, events, properties, and developments—created from Riviera Maya and Mérida to sell, document, and endure.'
+        : 'Un archivo real de fotografía y video para restaurantes, marcas, artistas, eventos, propiedades y desarrollos, creado desde Riviera Maya y Mérida para vender, documentar y permanecer.';
+
+    return (
+        <section
+            ref={sectionRef}
+            className="relative left-1/2 w-screen -translate-x-1/2 overflow-hidden bg-[#07090b] text-white"
+            data-analytics-section="home_portfolio_overview"
+        >
+            <div className="mx-auto max-w-6xl px-4 py-16 sm:px-6 md:py-24">
+                <header className="grid gap-8 border-t border-white/20 pt-6 lg:grid-cols-[0.7fr_0.3fr] lg:items-end">
+                    <div>
+                        <p className="alpha-kicker text-primary">Lapsique / {en ? 'Real archive' : 'Archivo real'}</p>
+                        <h2 className="mt-5 max-w-5xl text-5xl font-semibold leading-[0.88] text-white text-balance sm:text-6xl md:text-8xl">
+                            {title}
+                        </h2>
+                    </div>
+                    <div className="lg:justify-self-end">
+                        <p className="max-w-md text-base leading-relaxed text-white/68 text-pretty">
+                            {approvedCopy}
+                        </p>
+                        <dl className="mt-7 grid grid-cols-2 gap-5 border-t border-white/20 pt-5">
+                            <div>
+                                <dt className="font-mono text-[0.62rem] uppercase tracking-[0.16em] text-white/45">
+                                    {en ? 'Archive' : 'Archivo'}
+                                </dt>
+                                <dd className="mt-2 text-3xl font-semibold text-primary tabular-nums">
+                                    {archiveCount > 0 ? `${archiveCount}+` : featuredMedia.length}
+                                </dd>
+                            </div>
+                            <div>
+                                <dt className="font-mono text-[0.62rem] uppercase tracking-[0.16em] text-white/45">
+                                    {en ? 'Projects shown' : 'Proyectos visibles'}
+                                </dt>
+                                <dd className="mt-2 text-3xl font-semibold text-white tabular-nums">
+                                    {projectCount}
+                                </dd>
+                            </div>
+                        </dl>
+                    </div>
+                </header>
+
+                {photos.length > 0 ? (
+                    <div className="mt-12">
+                        <div className="mb-5 flex items-end justify-between gap-4">
+                            <div>
+                                <p className="alpha-kicker text-white/45">{en ? 'Selected photography' : 'Fotografía seleccionada'}</p>
+                                <h3 className="mt-2 text-3xl font-semibold leading-none text-white md:text-4xl">
+                                    {en ? 'Different briefs. One visual standard.' : 'Proyectos distintos. Un mismo estándar visual.'}
+                                </h3>
+                            </div>
+                            <span className="hidden font-mono text-[0.65rem] uppercase tracking-[0.14em] text-white/45 sm:block">
+                                {photos.length} {en ? 'photographs' : 'fotografías'}
+                            </span>
+                        </div>
+                        <div className="grid grid-flow-row-dense auto-rows-[9.5rem] grid-cols-2 gap-2 sm:auto-rows-[12rem] md:grid-cols-4">
+                            {photos.map((item, index) => (
+                                <button
+                                    key={item.id}
+                                    type="button"
+                                    data-lightbox-trigger="true"
+                                    className={cn(
+                                        'group/photo relative min-w-0 overflow-hidden bg-black text-left outline outline-1 -outline-offset-1 outline-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary active:scale-[0.96] motion-reduce:transition-none',
+                                        index === 0 && 'col-span-2 row-span-2',
+                                        index === 3 && 'row-span-2',
+                                        index === 6 && 'col-span-2',
+                                    )}
+                                    onClick={() => trackBookingEvent('portfolio_project_selected', {
+                                        section: 'home_portfolio_overview',
+                                        project: item.projectKey,
+                                        media_id: item.id,
+                                    })}
+                                >
+                                    <img
+                                        src={item.src}
+                                        alt={item.alt}
+                                        loading="lazy"
+                                        className="h-full w-full object-cover opacity-82 outline outline-1 -outline-offset-1 outline-white/10 transition-[opacity,scale] duration-300 group-hover/photo:scale-[1.025] group-hover/photo:opacity-100 motion-reduce:transition-none"
+                                    />
+                                    <span className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/85 to-transparent px-3 pb-3 pt-12 font-ui-display text-xs font-bold uppercase tracking-[0.08em] text-white">
+                                        {item.projectLabel}
+                                    </span>
+                                </button>
+                            ))}
+                        </div>
+                    </div>
+                ) : null}
+
+                {videos.length > 0 ? (
+                    <div className="mt-16">
+                        <div className="mb-6 grid gap-4 border-t border-white/20 pt-5 md:grid-cols-[1fr_auto] md:items-end">
+                            <div>
+                                <p className="alpha-kicker text-white/45">{en ? 'Motion archive' : 'Archivo en movimiento'}</p>
+                                <h3 className="mt-3 max-w-4xl text-4xl font-semibold leading-[0.92] text-white text-balance md:text-6xl">
+                                    {en ? 'Six real productions. Play only what interests you.' : 'Seis producciones reales. Reproduce solo lo que te interese.'}
+                                </h3>
+                            </div>
+                            <p className="max-w-sm text-sm leading-relaxed text-white/55 text-pretty">
+                                {en ? 'Players load on interaction and preserve the original audio.' : 'Los reproductores cargan al interactuar y conservan el audio original.'}
+                            </p>
+                        </div>
+                        <div className="-mx-4 grid snap-x snap-mandatory auto-cols-[minmax(18rem,86vw)] grid-flow-col gap-3 overflow-x-auto px-4 pb-3 sm:-mx-6 sm:px-6 lg:mx-0 lg:grid-flow-row lg:grid-cols-3 lg:overflow-visible lg:px-0 lg:pb-0">
+                            {videos.map((item) => (
+                                <article key={item.id} className="min-w-0 snap-start bg-black outline outline-1 -outline-offset-1 outline-white/15">
+                                    <div>
+                                        <EditorialVideoPlayer
+                                            src={item.src}
+                                            poster={item.poster}
+                                            title={item.alt}
+                                            preload="none"
+                                            autoPlay={false}
+                                            muted={false}
+                                            hasAudio={item.hasAudio ?? false}
+                                            onPlay={() => trackBookingEvent('portfolio_media_played', {
+                                                section: 'home_portfolio_overview',
+                                                project: item.projectKey,
+                                                media_id: item.id,
+                                            })}
+                                            className={cn(
+                                                'w-full',
+                                                item.orientation === 'vertical' ? 'aspect-[9/16]' : 'aspect-video',
+                                            )}
+                                            videoClassName="h-full w-full object-cover"
+                                        />
+                                    </div>
+                                    <div className="border-t border-white/15 p-4">
+                                        <p className="alpha-kicker text-primary">{item.sessionLabel || item.location || (en ? 'Real production' : 'Producción real')}</p>
+                                        <h4 className="mt-2 text-xl font-semibold leading-tight text-white text-balance">{item.projectLabel}</h4>
+                                    </div>
+                                </article>
+                            ))}
+                        </div>
+                    </div>
+                ) : null}
+
+                <div className="mt-16 grid gap-8 border-t border-white/20 pt-8 md:grid-cols-[1fr_auto] md:items-center">
+                    <p className="max-w-2xl text-2xl font-semibold leading-tight text-white text-balance md:text-3xl">
+                        {en
+                            ? 'Your project can be the next real case in this archive.'
+                            : 'Tu proyecto puede ser el siguiente caso real de este archivo.'}
+                    </p>
+                    <div className="grid gap-3 sm:grid-cols-2">
+                        <Link
+                            href="/portafolio"
+                            className="inline-flex min-h-13 items-center justify-center border border-white/35 px-6 font-ui-display text-sm font-bold uppercase tracking-[0.08em] text-white transition-[background-color,border-color,color,transform] hover:border-white hover:bg-white hover:text-black active:scale-[0.96] motion-reduce:transition-none"
+                            onClick={() => trackBookingEvent('portfolio_cta_clicked', {
+                                section: 'home_portfolio_overview',
+                                target: '/portafolio',
+                            })}
+                        >
+                            {en ? 'View full portfolio' : 'Ver portafolio completo'}
+                        </Link>
+                        <button
+                            type="button"
+                            onClick={() => {
+                                trackBookingEvent('portfolio_cta_clicked', {
+                                    section: 'home_portfolio_overview',
+                                    target: 'booking',
+                                });
+                                onBook();
+                            }}
+                            className="inline-flex min-h-13 items-center justify-center gap-2 bg-primary px-6 font-ui-display text-sm font-bold uppercase tracking-[0.08em] text-white transition-[background-color,color,transform] hover:bg-white hover:text-black active:scale-[0.96] motion-reduce:transition-none"
+                        >
+                            {en ? 'Plan my production' : 'Planear mi producción'}
+                            <ArrowRight className="size-4" />
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
+    );
+}
+
+function resolveHomeFeaturedMedia(
+    portfolioOverview: HomePortfolioOverview | null,
+    portfolioItems: PortfolioItemData[],
+    landingVideos: LandingVideosProps | null,
+): ServicePortfolioMedia[] {
+    if (portfolioOverview) {
+        const overviewPool = uniqueServiceMedia([
+            ...(portfolioOverview.featuredMedia ?? []),
+            ...(portfolioOverview.servicePreviews ?? []).map((preview) => preview.media),
+            ...(portfolioOverview.projects ?? []).flatMap((project) => project.media),
+        ]);
+        const photos = selectDiverseMedia(overviewPool, 'image', 8);
+        const videos = selectDiverseMedia(overviewPool, 'video', 6);
+
+        return [...photos, ...videos];
+    }
+
+    const fallbackPhotos = portfolioItems
+        .filter((item) => item.media_type === 'image' && Boolean(item.asset_url || item.poster_url))
+        .map<ServicePortfolioMedia>((item) => ({
+            id: `legacy-photo-${item.id}`,
+            projectKey: item.slug || `portfolio-${item.id}`,
+            projectLabel: item.title || 'Lapsique Media',
+            kind: 'image',
+            src: item.asset_url || item.poster_url || '',
+            orientation: item.orientation === 'horizontal' ? 'horizontal' : 'vertical',
+            alt: item.title || 'Producción audiovisual de Lapsique Media',
+            site: 'lapsique',
+            services: [],
+        }));
+    const fallbackVideos = buildFeaturedReelFallbackPool(landingVideos)
+        .filter(isPlayableLandingVideo)
+        .map<ServicePortfolioMedia>((item, index) => ({
+            id: `legacy-video-${index}`,
+            projectKey: `video-${index + 1}`,
+            projectLabel: item.title || 'Lapsique Media',
+            kind: 'video',
+            src: item.src,
+            poster: item.poster,
+            orientation: 'vertical',
+            alt: item.title || 'Video producido por Lapsique Media',
+            site: 'lapsique',
+            services: [],
+        }));
+
+    return uniqueServiceMedia([...fallbackPhotos, ...fallbackVideos]);
+}
+
+function uniqueServiceMedia(items: ServicePortfolioMedia[]): ServicePortfolioMedia[] {
+    const seen = new Set<string>();
+
+    return items.filter((item) => {
+        if (!item.src || seen.has(item.src)) {
+            return false;
+        }
+
+        seen.add(item.src);
+        return true;
+    });
+}
+
+function countDistinctProjects(items: ServicePortfolioMedia[]): number {
+    return new Set(items.map((item) => item.projectKey).filter(Boolean)).size;
+}
+
+function selectDiverseMedia(
+    items: ServicePortfolioMedia[],
+    kind: ServicePortfolioMedia['kind'],
+    limit: number,
+): ServicePortfolioMedia[] {
+    const candidates = items.filter((item) => item.kind === kind);
+    const selected: ServicePortfolioMedia[] = [];
+    const selectedIds = new Set<string>();
+    const seenProjects = new Set<string>();
+
+    for (const item of candidates) {
+        if (seenProjects.has(item.projectKey)) {
+            continue;
+        }
+
+        selected.push(item);
+        selectedIds.add(item.id);
+        seenProjects.add(item.projectKey);
+
+        if (selected.length >= limit) {
+            return selected;
+        }
+    }
+
+    for (const item of candidates) {
+        if (selectedIds.has(item.id)) {
+            continue;
+        }
+
+        selected.push(item);
+
+        if (selected.length >= limit) {
+            break;
+        }
+    }
+
+    return selected;
 }
 
 function FeaturedReel({
@@ -545,6 +1036,8 @@ function BusinessHero({
     landingHero,
     heroProofVideo,
     portfolioItems,
+    portfolioOverview,
+    whatsapp,
     onBook,
 }: {
     title: string;
@@ -554,24 +1047,33 @@ function BusinessHero({
     landingHero: LandingVideoEntry | null;
     heroProofVideo: HeroProofVideoData | null;
     portfolioItems: PortfolioItemData[];
+    portfolioOverview: HomePortfolioOverview | null;
+    whatsapp: string;
     onBook: () => void;
 }) {
     const { t, locale } = useTranslations();
+    const en = locale === 'en';
+    const whatsappUrl = `https://wa.me/${whatsapp.replace(/\D/g, '')}?text=${encodeURIComponent(
+        en
+            ? 'Hi, I want to plan a photo and video production for my business with Lapsique Media.'
+            : 'Hola, quiero planear una producción de foto y video para mi negocio con Lapsique Media.',
+    )}`;
+
     return (
         <section className="relative left-1/2 w-screen -translate-x-1/2 border-b border-foreground/20 bg-background">
             <div className="mx-auto grid max-w-[1440px] lg:min-h-[calc(100svh-4.5rem)] lg:grid-cols-[minmax(360px,0.72fr)_minmax(0,1.28fr)]">
                 <div className="flex min-w-0 flex-col justify-center border-r border-foreground/15 px-5 py-12 sm:px-8 lg:px-12 lg:py-16">
-                    <h1 className="max-w-2xl text-[3.15rem] font-semibold leading-[0.88] text-foreground sm:text-[3.55rem] lg:text-[3.8rem] xl:text-[4rem]">
+                    <h1 className="max-w-2xl break-normal text-balance text-[clamp(2.25rem,11.25vw,4rem)] font-semibold leading-[0.9] text-foreground [overflow-wrap:normal] [word-break:normal] hyphens-none sm:text-[3.55rem] lg:text-[3.8rem] xl:text-[4rem]">
                         {title}
                     </h1>
-                    <p className="mt-7 max-w-xl text-base leading-relaxed text-muted-foreground lg:text-lg">
+                    <p className="mt-7 max-w-xl text-base leading-relaxed text-muted-foreground text-pretty lg:text-lg">
                         {subtitle}
                     </p>
                     <div className="mt-8 border-y border-foreground/15 py-5">
                         <div className="flex items-end justify-between gap-5">
                             <div>
                                 <p className="text-sm font-medium text-muted-foreground">
-                                    {locale === 'en' ? 'From' : 'Desde'}
+                                    {en ? 'From' : 'Desde'}
                                 </p>
                                 <p className="mt-2 font-mono-tabular text-4xl font-semibold text-foreground">{formatMxn(price)}</p>
                             </div>
@@ -579,15 +1081,32 @@ function BusinessHero({
                         </div>
                         <PaymentTrustOrTestMode variant="stripe" layout="compact" className="mt-3" />
                     </div>
-                    <BookingCtaButton
-                        type="button"
-                        className="mt-6 min-h-14 w-full rounded-none bg-foreground text-background shadow-none hover:bg-primary hover:text-white"
-                        data-analytics-cta="hero_booking"
-                        onClick={onBook}
-                    >
-                        {t('common.cta.book_now')}
-                        <ArrowRight className="h-5 w-5" />
-                    </BookingCtaButton>
+                    <div className="mt-6 grid gap-3 sm:grid-cols-2">
+                        <BookingCtaButton
+                            type="button"
+                            className="min-h-14 w-full rounded-none bg-foreground px-4 text-background shadow-none hover:bg-primary hover:text-white"
+                            data-analytics-cta="hero_booking"
+                            onClick={onBook}
+                        >
+                            {t('common.cta.book_now')}
+                            <ArrowRight className="h-5 w-5" aria-hidden="true" />
+                        </BookingCtaButton>
+                        <a
+                            href={whatsappUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            data-analytics-cta="home_hero_whatsapp"
+                            className="inline-flex min-h-14 items-center justify-center gap-2 bg-[#25D366] px-4 text-center font-ui-display text-sm font-bold uppercase tracking-[0.07em] text-[#061a0f] transition-[background-color,color,transform] hover:bg-[#1fbd5a] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#25D366] focus-visible:ring-offset-2 active:scale-[0.96] motion-reduce:transition-none"
+                            onClick={() => trackBookingEvent('content_creation_whatsapp_cta_clicked', {
+                                section: 'home_hero',
+                                source: 'home_hero',
+                                service: 'content_creation',
+                            })}
+                        >
+                            <MessageCircle className="size-5" aria-hidden="true" />
+                            {en ? 'Talk on WhatsApp' : 'Hablar por WhatsApp'}
+                        </a>
+                    </div>
                 </div>
 
                 <HeroMediaCarousel
@@ -596,6 +1115,7 @@ function BusinessHero({
                     landingHero={landingHero}
                     heroProofVideo={heroProofVideo}
                     portfolioItems={portfolioItems}
+                    heroMedia={portfolioOverview?.heroMedia ?? []}
                 />
             </div>
         </section>
@@ -616,12 +1136,14 @@ function HeroMediaCarousel({
     landingHero,
     heroProofVideo,
     portfolioItems,
+    heroMedia,
 }: {
     title: string;
     heroBackgroundImage: HeroBackgroundImageData | null;
     landingHero: LandingVideoEntry | null;
     heroProofVideo: HeroProofVideoData | null;
     portfolioItems: PortfolioItemData[];
+    heroMedia: ServicePortfolioMedia[];
 }) {
     const media = useMemo<HeroMediaItem[]>(() => {
         const items: HeroMediaItem[] = [];
@@ -632,52 +1154,68 @@ function HeroMediaCarousel({
             items.push(item);
         };
 
-        if (heroBackgroundImage?.url) {
-            add({
-                id: 'hero-image',
-                kind: 'image',
-                src: heroBackgroundImage.url,
-                alt: heroBackgroundImage.alt || title,
-            });
-        }
-
-        if (isPlayableLandingVideo(landingHero)) {
-            add({
-                id: 'hero-video',
-                kind: 'video',
-                src: landingHero.src,
-                poster: landingHero.poster,
-                alt: landingHero.title || title,
-            });
-        }
-
-        if (heroProofVideo?.playback_url) {
-            add({
-                id: 'proof-video',
-                kind: 'video',
-                src: heroProofVideo.playback_url,
-                poster: heroProofVideo.poster_url,
-                alt: heroProofVideo.title || title,
-            });
-        }
-
-        portfolioItems
-            .filter((item) => item.media_type === 'image' && Boolean(item.asset_url || item.poster_url))
-            .slice(0, 3)
-            .forEach((item) => add({
-                id: `portfolio-${item.id}`,
-                kind: 'image',
-                src: item.asset_url || item.poster_url || '',
-                alt: item.title || 'Producción audiovisual de Lapsique Media',
+        if (heroMedia.length > 0) {
+            heroMedia.slice(0, 3).forEach((item) => add({
+                id: `overview-${item.id}`,
+                kind: item.kind,
+                src: item.src,
+                poster: item.poster,
+                alt: item.alt,
             }));
+        } else {
+            if (heroBackgroundImage?.url) {
+                add({
+                    id: 'hero-image',
+                    kind: 'image',
+                    src: heroBackgroundImage.url,
+                    alt: heroBackgroundImage.alt || title,
+                });
+            }
+
+            if (isPlayableLandingVideo(landingHero)) {
+                add({
+                    id: 'hero-video',
+                    kind: 'video',
+                    src: landingHero.src,
+                    poster: landingHero.poster,
+                    alt: landingHero.title || title,
+                });
+            }
+
+            if (heroProofVideo?.playback_url) {
+                add({
+                    id: 'proof-video',
+                    kind: 'video',
+                    src: heroProofVideo.playback_url,
+                    poster: heroProofVideo.poster_url,
+                    alt: heroProofVideo.title || title,
+                });
+            }
+
+            portfolioItems
+                .filter((item) => item.media_type === 'image' && Boolean(item.asset_url || item.poster_url))
+                .slice(0, 3)
+                .forEach((item) => add({
+                    id: `portfolio-${item.id}`,
+                    kind: 'image',
+                    src: item.asset_url || item.poster_url || '',
+                    alt: item.title || 'Producción audiovisual de Lapsique Media',
+                }));
+        }
 
         return items;
-    }, [heroBackgroundImage, heroProofVideo, landingHero, portfolioItems, title]);
+    }, [heroBackgroundImage, heroMedia, heroProofVideo, landingHero, portfolioItems, title]);
     const [activeIndex, setActiveIndex] = useState(0);
     const active = media[activeIndex] ?? media[0];
 
     useEffect(() => {
-        if (media.length < 2) return;
+        if (
+            media.length < 2
+            || window.matchMedia?.('(prefers-reduced-motion: reduce)').matches
+        ) {
+            return;
+        }
+
         const timer = window.setInterval(() => {
             setActiveIndex((current) => (current + 1) % media.length);
         }, 6500);
@@ -747,50 +1285,5 @@ function HeroMediaCarousel({
                 </div>
             ) : null}
         </div>
-    );
-}
-
-function AlphaEquipmentStrip() {
-    const { locale } = useTranslations();
-    const ref = useSectionEvent<HTMLElement>('equipment_viewed', {
-        section: 'alpha_equipment_strip',
-        equipment: ['sony_a7_v', 'sony_a7_iv', 'sony_a6700', 'dji_air'],
-    });
-    const equipment = [
-        { label: 'Sony α7 V', format: 'Full frame · 10-bit', image: '/images/equipment/official/sony-a7v.webp', newest: true },
-        { label: 'Sony α7 IV', format: 'Full frame · 4K', image: '/images/equipment/official/sony-a7iv.webp', newest: false },
-        { label: 'Sony α6700', format: 'APS-C · 4K 120p', image: '/images/equipment/official/sony-a6700.webp', newest: false },
-        { label: 'DJI Air 3', format: locale === 'en' ? 'Aerial footage · 4K' : 'Tomas aéreas · 4K', image: '/images/equipment/official/dji-air-3.png', newest: false },
-    ];
-
-    return (
-        <section ref={ref} data-analytics-section="alpha_equipment" className="border-b border-foreground/15 bg-secondary/55">
-            <div className="grid lg:grid-cols-[230px_1fr]">
-                <div className="border-b border-foreground/15 p-6 lg:border-b-0 lg:border-r lg:p-8">
-                    <h2 className="text-3xl font-semibold leading-none">
-                        {locale === 'en' ? 'Sony Alpha production kit.' : 'Equipo de producción Sony Alpha.'}
-                    </h2>
-                    <p className="mt-4 text-sm leading-relaxed text-muted-foreground">
-                        {locale === 'en' ? 'Full-frame and APS-C cameras with DJI Air 3.' : 'Cámaras full frame y APS-C con dron DJI Air 3.'}
-                    </p>
-                </div>
-                <div className="grid grid-cols-2 md:grid-cols-4">
-                    {equipment.map((item) => (
-                        <article key={item.label} className="relative border-b border-r border-foreground/15 p-4 last:border-r-0 md:border-b-0 md:p-5">
-                            {item.newest ? (
-                                <span className="absolute right-3 top-3 z-10 bg-foreground px-2.5 py-1 font-mono text-[9px] font-semibold uppercase tracking-[0.13em] text-background">
-                                    {locale === 'en' ? 'Newest camera' : 'Cámara más nueva'}
-                                </span>
-                            ) : null}
-                            <div className="flex aspect-[4/3] items-center justify-center overflow-hidden bg-background">
-                                <img src={item.image} alt={`${item.label} — ${locale === 'en' ? 'Lapsique Media production kit' : 'equipo de producción Lapsique Media'}`} className="h-full w-full object-contain p-3" loading="lazy" />
-                            </div>
-                            <h3 className="mt-4 text-xl font-semibold normal-case">{item.label}</h3>
-                            <p className="mt-1 font-mono text-xs text-muted-foreground">{item.format}</p>
-                        </article>
-                    ))}
-                </div>
-            </div>
-        </section>
     );
 }

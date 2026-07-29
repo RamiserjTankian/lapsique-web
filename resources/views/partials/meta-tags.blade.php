@@ -3,6 +3,13 @@
     $ogImage = $meta->ogImage ?: \App\Support\PageMeta::defaultOgImageUrl();
     $twitterImage = $ogImage;
     $ogImageAlt = $meta->ogImageAlt ?: $meta->metaTitle;
+    $ogImageExtension = strtolower(pathinfo((string) parse_url($ogImage, PHP_URL_PATH), PATHINFO_EXTENSION));
+    $ogImageType = match ($ogImageExtension) {
+        'jpg', 'jpeg' => 'image/jpeg',
+        'png' => 'image/png',
+        'webp' => 'image/webp',
+        default => null,
+    };
     $isTrascendental = str_contains($meta->metaTitle, 'Trascendental') || str_contains($meta->canonicalUrl, 'trascendentalby');
     $siteName = $isTrascendental ? 'Trascendentalby' : 'Lapsique Media';
     $metaAppId = config('meta.marketing_api.app_id');
@@ -29,9 +36,9 @@
 <meta data-inertia="og-image" property="og:image" content="{{ $ogImage }}">
 <meta data-inertia="og-image-url" property="og:image:url" content="{{ $ogImage }}">
 <meta data-inertia="og-image-secure-url" property="og:image:secure_url" content="{{ $ogImage }}">
-<meta data-inertia="og-image-width" property="og:image:width" content="1200">
-<meta data-inertia="og-image-height" property="og:image:height" content="630">
-<meta data-inertia="og-image-type" property="og:image:type" content="image/jpeg">
+@if ($ogImageType)
+    <meta data-inertia="og-image-type" property="og:image:type" content="{{ $ogImageType }}">
+@endif
 <meta data-inertia="og-image-alt" property="og:image:alt" content="{{ $ogImageAlt }}">
 <meta data-inertia="og-site-name" property="og:site_name" content="{{ $siteName }}">
 <meta data-inertia="og-locale" property="og:locale" content="{{ app()->getLocale() === 'en' ? 'en_US' : 'es_MX' }}">

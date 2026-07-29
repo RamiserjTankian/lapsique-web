@@ -59,6 +59,7 @@ Route::get('/sesion-de-contenido', function () {
     return redirect()->to(route('home').'#agenda', 302);
 })->name('booking.show');
 Route::get('/creacion-de-contenido-riviera-maya', ContentCreationController::class)->name('content-creation.show');
+Route::get('/reels-para-negocios', ContentCreationController::class)->name('business-reels.show');
 Route::post('/sesion-de-contenido/checkout', [ContentBookingController::class, 'checkout'])->name('booking.checkout');
 Route::get('/sesion-de-contenido/{publicId}/confirm', [ContentBookingController::class, 'confirm'])->middleware(NoIndexRobots::class)->name('booking.confirm');
 Route::get('/sesion-de-contenido/{publicId}/pending', [ContentBookingController::class, 'pending'])->middleware(NoIndexRobots::class)->name('booking.pending');

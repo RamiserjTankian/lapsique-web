@@ -1,35 +1,38 @@
-import { useEffect, useMemo, type ReactNode } from 'react';
-import { usePage } from '@inertiajs/react';
-import {
-    ArrowRight,
-    CalendarDays,
-    Camera,
-    Clock3,
-    Drone,
-    Film,
-    Headphones,
-    MessageCircle,
-    Video,
-} from 'lucide-react';
+import { useEffect, useMemo, useState } from 'react';
+import { Link, usePage } from '@inertiajs/react';
+import { ArrowRight, CalendarDays } from 'lucide-react';
 import SiteLayout from '@/layouts/SiteLayout';
-import { SeoHead } from '@/components/lapsique/SeoHead';
-import { BookingWidget } from '@/components/lapsique/BookingWidget';
 import { BookingCtaButton } from '@/components/lapsique/BookingCtaButton';
-import { GlassSection } from '@/components/lapsique/GlassSection';
-import { PaymentTrustOrTestMode } from '@/components/lapsique/PaymentTrustPanel';
-import { SpecBadge } from '@/components/lapsique/SpecBadge';
-import { Button } from '@/components/ui/button';
-import { useTranslations } from '@/hooks/useTranslations';
+import { BookingWidget } from '@/components/lapsique/BookingWidget';
+import { EditorialVideoPlayer } from '@/components/lapsique/EditorialVideoPlayer';
+import { PortfolioLightbox } from '@/components/lapsique/PortfolioLightbox';
+import { SeoHead } from '@/components/lapsique/SeoHead';
+import {
+    ServiceFunnelDeliverables,
+    ServiceFunnelFaq,
+    ServiceFunnelFinalCta,
+    ServiceFunnelHeading,
+    ServiceFunnelHero,
+    ServiceFunnelProcess,
+    ServiceFunnelSection,
+    ServicePortfolioShowcase,
+    ServiceProofBand,
+    ServiceWhatsAppButton,
+    serviceFunnelPrimaryActionClass,
+} from '@/components/lapsique/ServiceFunnel';
 import { trackBookingEvent } from '@/hooks/useBookingAnalytics';
+import { useTranslations } from '@/hooks/useTranslations';
 import { openBookingModal } from '@/lib/openBookingModal';
-import { formatMxn } from '@/lib/utils';
 import { getDjSetProduct } from '@/lib/bookingProducts';
+import { route } from '@/lib/route';
+import { cn } from '@/lib/utils';
 import type {
     BookingSlot,
     DjItem,
     PageProps,
     PortfolioItemData,
-    ReelLibraryEntry,
+    ServicePortfolioBundle,
+    ServicePortfolioMedia,
     VideoItem,
 } from '@/types';
 
@@ -38,31 +41,111 @@ interface DjSetShowProps {
     slots: BookingSlot[];
     originals: VideoItem[];
     portfolioItems: PortfolioItemData[];
-    djSetReels: ReelLibraryEntry[];
     djs: DjItem[];
+    servicePortfolio: ServicePortfolioBundle;
     errors?: Record<string, string>;
 }
 
-const HERO_IMAGE_KEYWORDS = [
-    'proper-collective',
-    'fotos-proper',
-    'rebolledo',
-    'santino-on-heaven-22-de-marzo',
-    'santino-22-de-marzo',
-    'traumer-shonky',
-    'umi',
-];
+const DJ_SET_COPY = {
+    es: {
+        proofTitle: 'Sets, drops y fotografía agrupados por sesión real.',
+        proofDescription: 'La evidencia se presenta por fecha, venue o artista para mostrar que una sola grabación puede seguir trabajando después de la noche.',
+        sessionEyebrow: 'Sets documentados',
+        sessionTitle: 'Mira cómo se sostiene la energía de una sesión real.',
+        sessionDescription: 'Revisa encuadre, movimiento y sonido con un reproductor propio, sin controles nativos ni videos de otra marca.',
+        dropsEyebrow: 'Drops editados',
+        dropsTitle: 'Drops listos para mantener el set en circulación.',
+        dropsDescription: 'Piezas breves de Danzahaus, MTRX y otras sesiones reales para reels, anuncios y recap de la fecha.',
+        galleryEyebrow: 'Fotografía nightlife',
+        galleryTitle: 'Cabina, público y venue cuentan la misma noche.',
+        galleryDescription: 'Una selección contenida de fotografías para prensa, flyers, redes y archivo del artista.',
+        artistsEyebrow: 'Artistas documentados',
+        artistsTitle: 'DJs que ya pasaron frente a las cámaras de Lapsique.',
+        artistsDescription: 'Explora perfiles y sesiones relacionadas dentro del archivo editorial de Lapsique.',
+        productionEyebrow: 'La entrega',
+        productionTitle: 'Un set completo. Varias piezas para moverlo.',
+        productionDescription: 'La producción se diseña alrededor del estreno, la promoción y las siguientes fechas del artista.',
+        deliverables: [
+            { title: 'Set continuo', description: 'Una pieza horizontal editada para YouTube, promotores, venues y archivo del artista.' },
+            { title: 'Drops para redes', description: 'Cortes breves listos para reels, anuncios y publicaciones posteriores al evento.' },
+            { title: 'Audio sincronizado', description: 'Señal de mixer y ambiente alineados para conservar presencia, público y dinámica.' },
+            { title: 'Fotografía editorial', description: 'Cabina, artista, público y espacio en una selección lista para comunicar la fecha.' },
+        ],
+        processTitle: 'Del venue al estreno, sin pasos innecesarios.',
+        processDescription: 'Confirmamos tres decisiones antes de grabar; el resto es producción.',
+        process: [
+            { title: 'Alineamos la sesión', description: 'Confirmamos venue, horario, accesos, duración y referencias visuales.' },
+            { title: 'Grabamos el set', description: 'Documentamos la presentación y capturamos el audio durante la misma sesión.' },
+            { title: 'Editamos para publicar', description: 'Entregamos la pieza principal, los cortes y las fotografías acordadas.' },
+        ],
+        bookingEyebrow: 'Elige una fecha',
+        bookingTitle: 'Reserva la producción de tu DJ set.',
+        bookingDescription: 'Comparte venue, horario y duración. Confirmamos disponibilidad y construimos el plan de grabación.',
+        faqEyebrow: 'Antes de reservar',
+        faqTitle: 'Respuestas directas para producir el set.',
+        faqDescription: 'El alcance, los accesos y los formatos finales quedan definidos antes de la fecha.',
+        finalTitle: 'Tu set merece seguir circulando después de la noche.',
+        finalDescription: 'Comparte la fecha y el venue. Te respondemos con disponibilidad y un alcance claro.',
+        heroMediaCaption: 'Sesión real documentada por Lapsique Media.',
+    },
+    en: {
+        proofTitle: 'Sets, cutdowns, and photography grouped by real session.',
+        proofDescription: 'Evidence is presented by date, venue, or artist to show how one recording keeps working after the night ends.',
+        sessionEyebrow: 'Documented sets',
+        sessionTitle: 'See how the energy holds across a real session.',
+        sessionDescription: 'Review framing, movement, and sound with a custom player—no native controls and no media from another brand.',
+        dropsEyebrow: 'Edited drops',
+        dropsTitle: 'Cutdowns built to keep the set in circulation.',
+        dropsDescription: 'Short pieces from Danzahaus, MTRX, and other real sessions for reels, ads, and post-event recaps.',
+        galleryEyebrow: 'Nightlife photography',
+        galleryTitle: 'Booth, crowd, and venue tell the same night.',
+        galleryDescription: 'A contained photography selection for press, flyers, social media, and the artist archive.',
+        artistsEyebrow: 'Documented artists',
+        artistsTitle: 'DJs who have already performed in front of Lapsique cameras.',
+        artistsDescription: 'Explore related profiles and sessions inside the Lapsique editorial archive.',
+        productionEyebrow: 'The delivery',
+        productionTitle: 'One complete set. Several assets to move it.',
+        productionDescription: 'Production is designed around release, promotion, and the artist’s next dates.',
+        deliverables: [
+            { title: 'Continuous set', description: 'A horizontal edit for YouTube, promoters, venues, and the artist archive.' },
+            { title: 'Social cutdowns', description: 'Short pieces ready for reels, ads, and posts after the event.' },
+            { title: 'Synchronized audio', description: 'Mixer signal and room ambience aligned to preserve presence, crowd, and dynamics.' },
+            { title: 'Editorial photography', description: 'Booth, artist, crowd, and venue in a selection ready to communicate the date.' },
+        ],
+        processTitle: 'From venue to release, without unnecessary steps.',
+        processDescription: 'We confirm three decisions before recording; the rest is production.',
+        process: [
+            { title: 'Align the session', description: 'We confirm venue, schedule, access, duration, and visual references.' },
+            { title: 'Record the set', description: 'We document the performance and capture audio during the same session.' },
+            { title: 'Edit for release', description: 'We deliver the main piece, cutdowns, and agreed photographs.' },
+        ],
+        bookingEyebrow: 'Choose a date',
+        bookingTitle: 'Book your DJ set production.',
+        bookingDescription: 'Share the venue, schedule, and duration. We confirm availability and build the recording plan.',
+        faqEyebrow: 'Before booking',
+        faqTitle: 'Direct answers for producing the set.',
+        faqDescription: 'Scope, access, and final formats are defined before the date.',
+        finalTitle: 'Your set should keep circulating after the night.',
+        finalDescription: 'Share the date and venue. We will reply with availability and a clear scope.',
+        heroMediaCaption: 'A real session documented by Lapsique Media.',
+    },
+} as const;
 
 export default function DjSetShow({
     price,
     slots,
     originals,
     portfolioItems,
+    djs,
+    servicePortfolio,
     errors,
 }: DjSetShowProps) {
-    const { site } = usePage<PageProps>().props;
+    const { site, locale, ziggy } = usePage<PageProps>().props;
     const { t } = useTranslations();
-    const djSetProduct = useMemo(() => getDjSetProduct(t), [t]);
+    const en = locale === 'en';
+    const copy = DJ_SET_COPY[en ? 'en' : 'es'];
+    const product = useMemo(() => getDjSetProduct(t), [t]);
+    const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
     const whatsappHref = useMemo(
         () => buildWhatsAppHref(site.whatsapp, t('funnel.whatsapp.prefill_djset')),
         [site.whatsapp, t],
@@ -77,25 +160,61 @@ export default function DjSetShow({
         }),
         [price, t],
     );
+    const partitionedPortfolio = useMemo(() => {
+        const bundleMedia = uniqueMedia(servicePortfolio.projects.flatMap((project) => project.media));
+        const availableVideos = bundleMedia.filter(
+            (media) => media.kind === 'video' && media.id !== servicePortfolio.hero.id,
+        );
+        const bundledDrops = availableVideos.filter(isDropMedia).slice(0, 6);
+        const dropIds = new Set(bundledDrops.map((media) => media.id));
+        const sessionMedia = availableVideos
+            .filter((media) => !dropIds.has(media.id))
+            .slice(0, 3);
+
+        return {
+            sessions: buildPortfolio(servicePortfolio, sessionMedia),
+            drops: buildPortfolio(servicePortfolio, bundledDrops.slice(0, 10)),
+        };
+    }, [servicePortfolio]);
+    const popupProofMedia = useMemo(
+        () => pickDistinctPopupMedia(servicePortfolio),
+        [servicePortfolio],
+    );
+    const galleryImages = useMemo(
+        () => uniqueMedia(servicePortfolio.projects.flatMap((project) => project.media))
+            .filter((media) => media.kind === 'image' && media.id !== servicePortfolio.hero.id)
+            .slice(0, 10),
+        [servicePortfolio],
+    );
+    const galleryItems = useMemo(
+        () => galleryImages.map(toPortfolioItem),
+        [galleryImages],
+    );
+    const relatedArtists = useMemo(
+        () => djs
+            .filter(isLapsiqueArtist)
+            .filter((dj) => Boolean(dj.avatar_url || dj.cover_url))
+            .slice(0, 6),
+        [djs],
+    );
+    const faq = [
+        { question: t('pages.djset.faq_video_duration_q'), answer: t('pages.djset.faq_video_duration_a') },
+        { question: t('pages.djset.faq_drone_q'), answer: t('pages.djset.faq_drone_a') },
+        { question: t('pages.djset.faq_calendar_q'), answer: t('pages.djset.faq_calendar_a') },
+        { question: t('pages.djset.faq_location_q'), answer: t('pages.djset.faq_location_a') },
+    ];
 
     useEffect(() => {
-        trackBookingEvent('djset_page_viewed', {
-            ...analyticsPayload,
-            section: 'dj_set',
-        });
+        trackBookingEvent('djset_page_viewed', { ...analyticsPayload, section: 'dj_set' });
     }, [analyticsPayload]);
 
     const openBooking = (source = 'djset') => {
         openBookingModal({
             source,
             analyticsEvent: 'djset_booking_cta_clicked',
-            analyticsPayload: {
-                ...analyticsPayload,
-                source,
-            },
+            analyticsPayload: { ...analyticsPayload, source },
         });
     };
-
     const trackWhatsApp = (source: string) => {
         trackBookingEvent('djset_whatsapp_cta_clicked', {
             ...analyticsPayload,
@@ -103,401 +222,378 @@ export default function DjSetShow({
             target: 'whatsapp',
         });
     };
-
-    const portfolioImages = portfolioItems.filter((item) => (
-        item.media_type === 'image' && Boolean(item.asset_url || item.poster_url)
-    ));
-    const heroImage = pickHeroImage(portfolioImages);
-    const proofImages = portfolioImages.filter((item) => item.id !== heroImage?.id);
+    const primaryAction = (source: string, compact = false) => (
+        <BookingCtaButton
+            type="button"
+            className={cn(serviceFunnelPrimaryActionClass, compact && 'sm:w-auto')}
+            onClick={() => openBooking(source)}
+        >
+            <CalendarDays className="size-5" aria-hidden="true" />
+            {t('booking.djset.cta_book_production')}
+            <ArrowRight className="size-4" aria-hidden="true" />
+        </BookingCtaButton>
+    );
+    const whatsappAction = (source: string, compact = false) => (
+        <ServiceWhatsAppButton
+            href={whatsappHref}
+            label={t('pages.djset.cta_whatsapp')}
+            onClick={() => trackWhatsApp(source)}
+            className={compact ? 'sm:w-auto' : undefined}
+        />
+    );
 
     return (
         <SiteLayout>
             <SeoHead />
 
-            <section className="relative left-1/2 w-screen -translate-x-1/2 overflow-hidden">
-                <div className="absolute inset-0 bg-background">
-                    {heroImage && (
-                        <img
-                            src={imageUrl(heroImage)}
-                            alt=""
-                            className="h-full w-full object-cover object-center"
-                        />
-                    )}
-                    <div className="absolute inset-0 bg-[linear-gradient(90deg,oklch(0.10_0.02_280/0.98)_0%,oklch(0.10_0.02_280/0.82)_52%,oklch(0.10_0.02_280/0.40)_100%)]" />
-                    <div className="absolute inset-0 bg-[linear-gradient(180deg,oklch(0.08_0.01_280/0.16)_0%,oklch(0.08_0.01_280/0.42)_58%,var(--background)_100%)]" />
-                </div>
-
-                <div className="relative mx-auto grid min-h-[min(820px,92svh)] max-w-6xl content-end gap-8 px-4 pb-28 pt-24 sm:px-6 lg:grid-cols-[minmax(0,1fr)_360px] lg:items-end">
-                    <div className="max-w-4xl">
-                        <p className="text-xs font-semibold uppercase tracking-[0.24em] text-primary">
-                            {t('pages.djset.hero_eyebrow')}
-                        </p>
-                        <h1 className="mt-4 max-w-4xl font-display text-4xl font-bold leading-[0.98] tracking-tight text-white drop-shadow-[0_3px_28px_rgb(0_0_0/0.55)] sm:text-5xl md:text-7xl">
-                            {t('pages.djset.hero_title')}
-                        </h1>
-                        <p className="mt-5 max-w-2xl text-base leading-relaxed text-white/82 md:text-xl">
-                            {t('pages.djset.hero_subtitle')}
-                        </p>
-
-                        <div className="mt-7 flex flex-wrap gap-2">
-                            <SpecBadge highlight>
-                                <Camera className="h-3.5 w-3.5" />
-                                {t('pages.djset.spec_cameras')}
-                            </SpecBadge>
-                            <SpecBadge>
-                                <Drone className="h-3.5 w-3.5" />
-                                {t('pages.djset.spec_drone')}
-                            </SpecBadge>
-                            <SpecBadge>
-                                <Headphones className="h-3.5 w-3.5" />
-                                {t('pages.djset.spec_audio')}
-                            </SpecBadge>
-                            <SpecBadge>
-                                <Film className="h-3.5 w-3.5" />
-                                {t('pages.djset.spec_final_video')}
-                            </SpecBadge>
-                        </div>
-
-                        <div className="mt-8 grid gap-4 sm:grid-cols-[minmax(0,0.88fr)_minmax(260px,0.7fr)] sm:items-end">
-                            <div className="rounded-2xl border border-primary/35 bg-black/70 px-5 py-4 shadow-[0_16px_48px_rgb(0_0_0/0.45)] backdrop-blur-md">
-                                <p className="text-xs font-semibold uppercase tracking-[0.2em] text-primary">
-                                    {t('pages.djset.hero_price_label')}
-                                </p>
-                                <p className="mt-2 font-mono-tabular text-4xl font-bold text-primary md:text-5xl">
-                                    {formatMxn(price)}
-                                </p>
-                                <p className="mt-2 text-sm text-white/70">{t('booking.djset.price_note')}</p>
-                                <PaymentTrustOrTestMode
-                                    variant="stripe"
-                                    layout="compact"
-                                    onDark
-                                    className="mt-3"
-                                />
-                            </div>
-
-                            <div className="space-y-3">
-                                <Button
-                                    variant="outline"
-                                    size="xl"
-                                    className="h-auto min-h-14 w-full gap-2 rounded-none border border-primary bg-black/55 px-5 text-center text-sm font-bold leading-tight text-white shadow-none hover:bg-primary hover:text-white sm:text-base"
-                                    asChild
-                                >
-                                    <a
-                                        href={whatsappHref}
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                        onClick={() => trackWhatsApp('hero')}
-                                    >
-                                        <WhatsAppIcon className="size-5 fill-current" />
-                                        <span className="min-w-0">{t('pages.djset.cta_whatsapp')}</span>
-                                    </a>
-                                </Button>
-                                <BookingCtaButton
-                                    type="button"
-                                    variant="glass"
-                                    className="w-full"
-                                    onClick={() => openBooking('hero_agenda')}
-                                >
-                                    <CalendarDays className="h-5 w-5" />
-                                    {t('booking.djset.cta_book_production')}
-                                </BookingCtaButton>
-                            </div>
-                        </div>
-                    </div>
-
-                    <aside className="rounded-xl border border-white/15 bg-black/42 p-4 text-white shadow-2xl backdrop-blur-md">
-                        <p className="text-[10px] font-semibold uppercase tracking-[0.24em] text-primary">
-                            {t('pages.djset.sidebar_badge')}
-                        </p>
-                        <p className="mt-3 font-display text-2xl font-bold">{t('pages.djset.sidebar_title')}</p>
-                        <p className="mt-2 text-sm leading-relaxed text-white/70">
-                            {t('pages.djset.sidebar_description')}
-                        </p>
-                        <div className="mt-4 grid gap-2">
-                            <MiniSpec icon={<Clock3 className="h-4 w-4" />} text={t('pages.djset.sidebar_spec_recording')} />
-                            <MiniSpec icon={<Film className="h-4 w-4" />} text={t('pages.djset.sidebar_spec_edit')} />
-                            <MiniSpec icon={<Headphones className="h-4 w-4" />} text={t('pages.djset.sidebar_spec_audio')} />
-                        </div>
-                        <Button
-                            variant="glass"
-                            className="mt-5 w-full justify-between"
-                            asChild
-                        >
-                            <a href="#sets">
-                                {t('booking.djset.cta_view_sets')}
-                                <ArrowRight className="h-4 w-4 text-primary" />
-                            </a>
-                        </Button>
-                    </aside>
-                </div>
-            </section>
-
-            <div className="flex flex-col gap-6 pt-6 md:gap-8 md:pt-8">
-            <GlassSection
-                eyebrow={t('pages.djset.showcase_eyebrow')}
-                title={t('pages.djset.showcase_title')}
-                description={t('pages.djset.showcase_description')}
-            >
-                <MediaSalesBoard
-                    images={portfolioImages}
-                    videos={originals}
-                    price={price}
-                    whatsappHref={whatsappHref}
-                    onWhatsApp={() => trackWhatsApp('showcase')}
-                    onBook={() => openBooking('showcase')}
-                />
-            </GlassSection>
-
-            <BookingWidget
-                slots={slots}
+            <ServiceFunnelHero
+                eyebrow={t('pages.djset.hero_eyebrow')}
+                title={t('pages.djset.hero_title')}
+                description={t('pages.djset.hero_subtitle')}
+                locations={en ? 'Riviera Maya · Mérida · destination sets' : 'Riviera Maya · Mérida · sets en destino'}
                 price={price}
-                whatsapp={site.whatsapp}
-                errors={errors}
-                checkoutRoute="djset.checkout"
-                paymentProvider="stripe"
-                product={djSetProduct}
-                popupVariant="djset"
-                popupPortfolioItems={portfolioItems}
-                popupOriginals={originals}
-                highlight
+                priceLabel={t('pages.djset.hero_price_label')}
+                priceNote={t('booking.djset.price_note')}
+                media={<HeroMedia media={servicePortfolio.hero} />}
+                mediaLabel={servicePortfolio.hero.projectLabel}
+                mediaCaption={servicePortfolio.hero.sessionLabel ?? copy.heroMediaCaption}
+                primaryAction={primaryAction('hero')}
+                secondaryAction={whatsappAction('hero')}
             />
 
-            <GlassSection
-                eyebrow={t('pages.djset.faq_eyebrow')}
-                title={t('pages.djset.faq_title')}
-                description={t('pages.djset.faq_description')}
-            >
-                <div className="grid gap-3 md:grid-cols-2">
-                    <Faq answer={t('pages.djset.faq_video_duration_a')} question={t('pages.djset.faq_video_duration_q')} />
-                    <Faq answer={t('pages.djset.faq_pay_on_book_a')} question={t('pages.djset.faq_pay_on_book_q')} />
-                    <Faq answer={t('pages.djset.faq_no_session_a')} question={t('pages.djset.faq_no_session_q')} />
-                    <Faq answer={t('pages.djset.faq_drone_a')} question={t('pages.djset.faq_drone_q')} />
-                    <Faq answer={t('pages.djset.faq_calendar_a')} question={t('pages.djset.faq_calendar_q')} />
-                    <Faq answer={t('pages.djset.faq_location_a')} question={t('pages.djset.faq_location_q')} />
-                </div>
-            </GlassSection>
+            <ServiceFunnelSection innerClassName="py-0 sm:py-0 lg:py-0">
+                <ServiceProofBand
+                    portfolio={servicePortfolio}
+                    eyebrow="Lapsique Originals"
+                    title={copy.proofTitle}
+                    description={copy.proofDescription}
+                />
+            </ServiceFunnelSection>
 
-            <GlassSection
-                showHeader={false}
-                title={t('pages.djset.final_cta_title')}
-                className="text-center"
-            >
-                <div className="mx-auto flex max-w-2xl flex-col items-center gap-4 text-center">
-                    <h2 className="font-display text-2xl font-bold tracking-tight text-foreground md:text-3xl">
-                        {t('pages.djset.final_cta_title')}
-                    </h2>
-                    <p className="text-sm leading-relaxed text-muted-foreground md:text-base">
-                        {t('pages.djset.final_cta_description')}
-                    </p>
-                    <div className="grid w-full gap-3 sm:max-w-2xl sm:grid-cols-2">
-                        <Button variant="outline" size="xl" className="h-auto min-h-12 w-full min-w-0 rounded-none border-primary bg-transparent px-4 py-3 text-center text-sm leading-tight text-foreground hover:bg-primary hover:text-white md:px-6 md:text-base" asChild>
-                            <a
-                                href={whatsappHref}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                onClick={() => trackWhatsApp('final')}
+            {partitionedPortfolio.sessions.stats.mediaCount > 0 ? (
+                <ServicePortfolioShowcase
+                    portfolio={partitionedPortfolio.sessions}
+                    eyebrow={copy.sessionEyebrow}
+                    title={copy.sessionTitle}
+                    description={copy.sessionDescription}
+                    action={(
+                        <>
+                            {primaryAction('session_proof', true)}
+                            {whatsappAction('session_proof', true)}
+                        </>
+                    )}
+                />
+            ) : null}
+
+            {partitionedPortfolio.drops.stats.mediaCount > 0 ? (
+                <ServicePortfolioShowcase
+                    portfolio={partitionedPortfolio.drops}
+                    eyebrow={copy.dropsEyebrow}
+                    title={copy.dropsTitle}
+                    description={copy.dropsDescription}
+                    className="border-t border-white/12"
+                />
+            ) : null}
+
+            {galleryImages.length > 0 ? (
+                <ServiceFunnelSection id="fotografia-nightlife">
+                    <ServiceFunnelHeading
+                        eyebrow={copy.galleryEyebrow}
+                        title={copy.galleryTitle}
+                        description={copy.galleryDescription}
+                    />
+                    <NightlifeGallery
+                        items={galleryImages}
+                        onOpen={setLightboxIndex}
+                    />
+                </ServiceFunnelSection>
+            ) : null}
+
+            {relatedArtists.length > 0 ? (
+                <ServiceFunnelSection tone="soft" id="artistas-relacionados">
+                    <ServiceFunnelHeading
+                        eyebrow={copy.artistsEyebrow}
+                        title={copy.artistsTitle}
+                        description={copy.artistsDescription}
+                    />
+                    <div className="mt-10 grid grid-cols-2 gap-px bg-border md:grid-cols-3 lg:grid-cols-6">
+                        {relatedArtists.map((dj) => (
+                            <Link
+                                key={dj.id}
+                                href={route('djs.show', { dj: dj.slug }, false, ziggy)}
+                                className="group min-w-0 bg-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary"
                             >
-                                <MessageCircle className="h-5 w-5" />
-                                {t('pages.djset.cta_whatsapp')}
-                            </a>
-                        </Button>
-                        <BookingCtaButton type="button" className="w-full min-w-0 rounded-none px-4 text-sm leading-tight md:px-6 md:text-base" onClick={() => openBooking('final')}>
-                            <CalendarDays className="h-5 w-5" />
-                            {t('booking.djset.cta_open_calendar')}
-                        </BookingCtaButton>
+                                <div className="aspect-[3/4] overflow-hidden bg-black">
+                                    <img
+                                        src={dj.cover_url || dj.avatar_url || ''}
+                                        alt={dj.name}
+                                        loading="lazy"
+                                        decoding="async"
+                                        className="h-full w-full object-cover grayscale transition-[filter,transform] duration-300 group-hover:scale-[1.02] group-hover:grayscale-0 motion-reduce:transition-none"
+                                    />
+                                </div>
+                                <div className="border-t border-border px-3 py-4">
+                                    <h3 className="text-balance font-display text-lg font-bold leading-[1.05] sm:text-xl">
+                                        {dj.name}
+                                    </h3>
+                                    <p className="mt-2 font-mono text-[0.6rem] uppercase tracking-[0.12em] text-primary">
+                                        {en ? 'Open artist profile' : 'Abrir perfil del artista'}
+                                    </p>
+                                </div>
+                            </Link>
+                        ))}
                     </div>
+                </ServiceFunnelSection>
+            ) : null}
+
+            <ServiceFunnelSection>
+                <ServiceFunnelHeading
+                    eyebrow={copy.productionEyebrow}
+                    title={copy.productionTitle}
+                    description={copy.productionDescription}
+                />
+                <div className="mt-10">
+                    <ServiceFunnelDeliverables items={[...copy.deliverables]} />
                 </div>
-            </GlassSection>
-            </div>
+            </ServiceFunnelSection>
+
+            <ServiceFunnelSection tone="soft">
+                <ServiceFunnelHeading
+                    eyebrow={en ? 'Production flow' : 'Proceso de producción'}
+                    title={copy.processTitle}
+                    description={copy.processDescription}
+                />
+                <div className="mt-10">
+                    <ServiceFunnelProcess items={[...copy.process]} />
+                </div>
+            </ServiceFunnelSection>
+
+            <ServiceFunnelSection id="reservar">
+                <ServiceFunnelHeading
+                    eyebrow={copy.bookingEyebrow}
+                    title={copy.bookingTitle}
+                    description={copy.bookingDescription}
+                />
+                <BookingWidget
+                    slots={slots}
+                    price={price}
+                    whatsapp={site.whatsapp}
+                    errors={errors}
+                    className="mt-10"
+                    checkoutRoute="djset.checkout"
+                    paymentProvider="stripe"
+                    product={product}
+                    popupVariant="djset"
+                    popupPortfolioItems={portfolioItems}
+                    popupHeroProofVideo={popupProofMedia ? toPopupProofVideo(popupProofMedia) : null}
+                    popupOriginals={originals}
+                    highlight
+                    analyticsPayload={analyticsPayload}
+                />
+            </ServiceFunnelSection>
+
+            <ServiceFunnelSection tone="soft">
+                <ServiceFunnelHeading
+                    eyebrow={copy.faqEyebrow}
+                    title={copy.faqTitle}
+                    description={copy.faqDescription}
+                />
+                <div className="mt-10">
+                    <ServiceFunnelFaq items={faq} />
+                </div>
+            </ServiceFunnelSection>
+
+            <ServiceFunnelFinalCta
+                eyebrow="Lapsique Originals"
+                title={copy.finalTitle}
+                description={copy.finalDescription}
+                primaryAction={primaryAction('final')}
+                secondaryAction={whatsappAction('final')}
+            />
+
+            <PortfolioLightbox
+                items={galleryItems}
+                activeIndex={lightboxIndex}
+                onClose={() => setLightboxIndex(null)}
+                onNavigate={setLightboxIndex}
+            />
         </SiteLayout>
     );
 }
 
-function MiniSpec({ icon, text }: { icon: ReactNode; text: string }) {
+function HeroMedia({ media }: { media: ServicePortfolioMedia }) {
+    if (media.kind === 'video') {
+        return (
+            <EditorialVideoPlayer
+                src={media.src}
+                poster={media.poster}
+                title={media.alt}
+                preload="metadata"
+                autoPlay={false}
+                muted={false}
+                hasAudio={media.hasAudio ?? false}
+                className="h-full w-full"
+                videoClassName="h-full w-full object-cover"
+            />
+        );
+    }
+
     return (
-        <div className="flex items-start gap-2 rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm text-white/75">
-            <span className="mt-0.5 text-primary">{icon}</span>
-            <span>{text}</span>
+        <img
+            src={media.src}
+            alt={media.alt}
+            className="h-full w-full object-cover"
+            loading="eager"
+            decoding="async"
+            fetchPriority="high"
+        />
+    );
+}
+
+function NightlifeGallery({
+    items,
+    onOpen,
+}: {
+    items: ServicePortfolioMedia[];
+    onOpen: (index: number) => void;
+}) {
+    return (
+        <div className="mt-10 grid auto-rows-[11rem] grid-cols-2 gap-3 sm:auto-rows-[14rem] md:grid-cols-5">
+            {items.map((item, index) => (
+                <button
+                    key={item.id}
+                    type="button"
+                    onClick={() => onOpen(index)}
+                    className={cn(
+                        'group relative min-h-0 overflow-hidden bg-black text-start outline outline-1 -outline-offset-1 outline-black/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary',
+                        index === 0 && 'col-span-2 row-span-2',
+                        index === 3 && 'md:col-span-2',
+                        index === 6 && 'md:row-span-2',
+                    )}
+                    aria-label={item.alt}
+                >
+                    <img
+                        src={item.src}
+                        alt={item.alt}
+                        loading="lazy"
+                        decoding="async"
+                        className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-[1.02] motion-reduce:transition-none"
+                    />
+                    <span className="pointer-events-none absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/78 to-transparent px-3 pb-3 pt-10 font-mono text-[0.62rem] uppercase tracking-[0.12em] text-white/82">
+                        {item.projectLabel}
+                    </span>
+                </button>
+            ))}
         </div>
     );
 }
 
-function Faq({ question, answer }: { question: string; answer: string }) {
-    return (
-        <details className="rounded-xl border border-border/70 bg-secondary p-5 open:border-primary/30">
-            <summary className="cursor-pointer list-none font-semibold text-foreground">{question}</summary>
-            <p className="mt-3 text-sm leading-relaxed text-muted-foreground">{answer}</p>
-        </details>
+function buildPortfolio(
+    base: ServicePortfolioBundle,
+    media: ServicePortfolioMedia[],
+): ServicePortfolioBundle {
+    const grouped = new Map<string, ServicePortfolioMedia[]>();
+
+    uniqueMedia(media).forEach((item) => {
+        grouped.set(item.projectKey, [...(grouped.get(item.projectKey) ?? []), item]);
+    });
+
+    const projects = [...grouped.entries()].map(([key, projectMedia]) => ({
+        key,
+        label: projectMedia[0]?.projectLabel ?? key,
+        media: projectMedia,
+    }));
+    const allMedia = projects.flatMap((project) => project.media);
+
+    return {
+        ...base,
+        projects,
+        stats: {
+            mediaCount: allMedia.length,
+            projectCount: projects.length,
+            imageCount: allMedia.filter((item) => item.kind === 'image').length,
+            videoCount: allMedia.filter((item) => item.kind === 'video').length,
+        },
+    };
+}
+
+function uniqueMedia(items: ServicePortfolioMedia[]): ServicePortfolioMedia[] {
+    const seen = new Set<string>();
+
+    return items.filter((item) => {
+        const key = `${item.id}:${item.src}`;
+        if (seen.has(key)) return false;
+        seen.add(key);
+        return true;
+    });
+}
+
+function isDropMedia(media: ServicePortfolioMedia): boolean {
+    const haystack = [
+        media.id,
+        media.projectKey,
+        media.projectLabel,
+        media.sessionLabel ?? '',
+        media.src,
+    ].join(' ').toLowerCase();
+
+    return media.projectKey === 'danzahaus' || haystack.includes('drop');
+}
+
+function isLapsiqueArtist(dj: DjItem): boolean {
+    const haystack = `${dj.slug} ${(dj.tags ?? []).join(' ')}`.toLowerCase();
+
+    return !haystack.includes('trascendental');
+}
+
+function toPortfolioItem(media: ServicePortfolioMedia, index: number): PortfolioItemData {
+    return {
+        id: index + 1,
+        title: media.alt,
+        slug: null,
+        type: 'dj_set',
+        source: 'service-curation',
+        caption: media.sessionLabel ?? media.location ?? null,
+        tags: [media.projectKey],
+        asset_url: media.src,
+        poster_url: null,
+        playback_url: null,
+        embed_url: null,
+        youtube_id: null,
+        youtube_url: null,
+        media_type: 'image',
+        is_featured: index === 0,
+        orientation: media.orientation,
+    };
+}
+
+function pickDistinctPopupMedia(
+    portfolio: ServicePortfolioBundle,
+): ServicePortfolioMedia | null {
+    const media = uniqueMedia(
+        portfolio.projects.flatMap((project) => project.media),
+    ).filter(
+        (item) =>
+            item.id !== portfolio.hero.id
+            && item.src !== portfolio.hero.src,
     );
+
+    return media.find(
+        (item) => item.kind === 'video' && Boolean(item.poster),
+    )
+        ?? media.find((item) => item.kind === 'image')
+        ?? media[0]
+        ?? null;
 }
 
-function MediaSalesBoard({
-    images,
-    videos,
-    price,
-    whatsappHref,
-    onWhatsApp,
-    onBook,
-}: {
-    images: PortfolioItemData[];
-    videos: VideoItem[];
-    price: number;
-    whatsappHref: string;
-    onWhatsApp: () => void;
-    onBook: () => void;
-}) {
-    const { t } = useTranslations();
-    const featuredVideo = videos.find((video) => getYoutubeId(video)) ?? videos.find((video) => video.thumbnail_url) ?? videos[0];
-    const supportingVideos = videos
-        .filter((video) => video.id !== featuredVideo?.id && Boolean(getYoutubeId(video)))
-        .slice(0, 2);
-
-    return (
-        <div className="grid gap-3 lg:grid-cols-[minmax(0,1.2fr)_minmax(320px,0.8fr)]">
-            <article className="group relative min-h-[440px] overflow-hidden rounded-xl border border-border/70 bg-black text-white">
-                {featuredVideo?.thumbnail_url ? (
-                    <img
-                        src={featuredVideo.thumbnail_url}
-                        alt=""
-                        className="absolute inset-0 h-full w-full object-cover opacity-85 transition duration-700 group-hover:scale-[1.03]"
-                        loading="lazy"
-                    />
-                ) : null}
-                <div className="absolute inset-0 bg-gradient-to-t from-black via-black/45 to-black/10" />
-                <div className="relative flex min-h-[440px] flex-col justify-between p-5 md:p-7">
-                    <div className="flex flex-wrap items-center justify-between gap-3">
-                        <span className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-black/35 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.24em] backdrop-blur">
-                            <Film className="h-3.5 w-3.5 text-primary" />
-                            {t('pages.djset.sales_reference_badge')}
-                        </span>
-                        <span className="rounded-full border border-primary/35 bg-primary/15 px-3 py-1 font-mono-tabular text-xs font-semibold text-primary backdrop-blur">
-                            {formatMxn(price)}
-                        </span>
-                    </div>
-
-                    <div className="max-w-2xl">
-                        <h3 className="font-display text-3xl font-bold leading-tight md:text-4xl">
-                            {t('pages.djset.sales_headline')}
-                        </h3>
-                        <p className="mt-3 text-sm leading-relaxed text-white/70 md:text-base">
-                            {featuredVideo?.title ?? t('pages.djset.sales_fallback_title')}
-                        </p>
-                        <div className="mt-5 grid gap-3 sm:grid-cols-2">
-                            <Button
-                                variant="outline"
-                                className="h-12 w-full rounded-none border-primary bg-black/45 px-4 text-sm font-bold text-white shadow-none hover:bg-primary hover:text-white"
-                                asChild
-                            >
-                                <a
-                                    href={whatsappHref}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    onClick={onWhatsApp}
-                                >
-                                    <WhatsAppIcon className="size-4 fill-current" />
-                                    {t('pages.djset.cta_whatsapp_short')}
-                                </a>
-                            </Button>
-                            <BookingCtaButton
-                                type="button"
-                                variant="default"
-                                className="h-12 w-full rounded-xl border border-white/70 bg-white px-4 text-sm font-bold text-foreground shadow-[0_14px_34px_rgb(0_0_0/0.22)] hover:bg-white/90 hover:text-foreground"
-                                onClick={onBook}
-                            >
-                                <CalendarDays className="h-4 w-4" />
-                                {t('booking.djset.cta_reserve_recording')}
-                            </BookingCtaButton>
-                        </div>
-                    </div>
-                </div>
-            </article>
-
-            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-1">
-                <div className="grid grid-cols-2 gap-3">
-                    {images.slice(0, 2).map((image, index) => (
-                        <PortfolioFrame key={image.id} image={image} className="min-h-[198px]" priority={index === 0} />
-                    ))}
-                </div>
-
-                {supportingVideos.length > 0 && (
-                    <div className="grid gap-3 sm:col-span-2 sm:grid-cols-2 lg:col-span-1">
-                        {supportingVideos.map((video) => (
-                            <OriginalReferenceCard key={video.id} video={video} />
-                        ))}
-                    </div>
-                )}
-            </div>
-        </div>
-    );
-}
-
-function OriginalReferenceCard({ video }: { video: VideoItem }) {
-    return (
-        <a
-            href="#sets"
-            className="group overflow-hidden rounded-xl border border-border/70 bg-secondary transition hover:border-primary/35 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
-        >
-            <span className="relative block aspect-video overflow-hidden bg-black">
-                {video.thumbnail_url && (
-                    <img
-                        src={video.thumbnail_url}
-                        alt=""
-                        className="absolute inset-0 h-full w-full object-cover opacity-90 transition duration-500 group-hover:scale-[1.04]"
-                        loading="lazy"
-                    />
-                )}
-                <span className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/10 to-transparent" />
-                <span className="absolute bottom-3 left-3 right-3 line-clamp-2 text-sm font-semibold leading-tight text-white">
-                    {video.title}
-                </span>
-            </span>
-        </a>
-    );
-}
-
-function PortfolioFrame({
-    image,
-    className = '',
-    priority = false,
-}: {
-    image: PortfolioItemData;
-    className?: string;
-    priority?: boolean;
-}) {
-    const { t } = useTranslations();
-
-    return (
-        <figure className={`group relative overflow-hidden rounded-xl border border-border/70 bg-secondary ${className}`}>
-            {(image.asset_url || image.poster_url) && (
-                <img
-                    src={imageUrl(image)}
-                    alt={image.title ?? t('pages.djset.portfolio_nightlife_alt')}
-                    className="h-full w-full object-cover transition duration-700 group-hover:scale-[1.03]"
-                    loading={priority ? 'eager' : 'lazy'}
-                />
-            )}
-        </figure>
-    );
-}
-
-function imageUrl(item: PortfolioItemData): string {
-    return item.asset_url ?? item.poster_url ?? '';
-}
-
-function pickHeroImage(images: PortfolioItemData[]): PortfolioItemData | undefined {
-    return images.find((item) => {
-        const haystack = `${item.slug ?? ''} ${item.asset_url ?? ''} ${item.poster_url ?? ''}`.toLowerCase();
-
-        return HERO_IMAGE_KEYWORDS.some((keyword) => haystack.includes(keyword));
-    }) ?? images.find((item) => item.is_featured) ?? images[0];
-}
-
-function WhatsAppIcon({ className }: { className?: string }) {
-    return (
-        <svg viewBox="0 0 24 24" className={className} aria-hidden>
-            <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.435 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z" />
-        </svg>
-    );
+function toPopupProofVideo(media: ServicePortfolioMedia) {
+    return {
+        title: media.alt,
+        media_type: media.kind,
+        embed_url: null,
+        playback_url: media.kind === 'video' ? media.src : null,
+        poster_url: media.poster ?? (media.kind === 'image' ? media.src : null),
+    } as const;
 }
 
 function buildWhatsAppHref(number: string | undefined, message: string): string {
@@ -506,14 +602,4 @@ function buildWhatsAppHref(number: string | undefined, message: string): string 
     }
 
     return `https://wa.me/${number}?text=${encodeURIComponent(message)}`;
-}
-
-function getYoutubeId(video: VideoItem) {
-    if (video.youtube_id) {
-        return video.youtube_id;
-    }
-
-    const match = video.youtube_url?.match(/(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|embed\/))([^?&/]+)/);
-
-    return match?.[1] ?? null;
 }

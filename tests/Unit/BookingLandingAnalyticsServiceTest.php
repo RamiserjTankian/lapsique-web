@@ -28,8 +28,12 @@ class BookingLandingAnalyticsServiceTest extends TestCase
         $this->assertContains('service_landing_lead_form_submitted', $events);
         $this->assertContains('newsletter_form_submitted', $events);
         $this->assertContains('booking_payment_info_added', $events);
+        $this->assertContains('content_creation_page_viewed', $events);
         $this->assertContains('content_creation_booking_cta_clicked', $events);
         $this->assertContains('content_creation_whatsapp_cta_clicked', $events);
+        $this->assertContains('business_reels_page_viewed', $events);
+        $this->assertContains('business_reels_booking_cta_clicked', $events);
+        $this->assertContains('business_reels_whatsapp_cta_clicked', $events);
         $this->assertContains('electronic_event_coverage_portfolio_engaged', $events);
         $this->assertContains('electronic_event_coverage_booking_opened', $events);
         $this->assertContains('electronic_event_coverage_booking_cta_clicked', $events);
@@ -42,10 +46,30 @@ class BookingLandingAnalyticsServiceTest extends TestCase
         $this->assertContains('multi_camera_video_completed', $events);
         $this->assertContains('multi_camera_gear_viewed', $events);
         $this->assertContains('multi_camera_package_viewed', $events);
+        $this->assertContains('service_portfolio_viewed', $events);
+        $this->assertContains('portfolio_project_selected', $events);
+        $this->assertContains('portfolio_media_played', $events);
+        $this->assertContains('portfolio_cta_clicked', $events);
 
         foreach (BookingLandingAnalyticsService::contactEventNames() as $contactEvent) {
             $this->assertContains($contactEvent, $events);
         }
+    }
+
+    public function test_portfolio_browsing_events_are_not_classified_as_contact_events(): void
+    {
+        $contacts = BookingLandingAnalyticsService::contactEventNames();
+
+        $this->assertNotContains('service_portfolio_viewed', $contacts);
+        $this->assertNotContains('portfolio_project_selected', $contacts);
+        $this->assertNotContains('portfolio_media_played', $contacts);
+        $this->assertNotContains('portfolio_cta_clicked', $contacts);
+        $this->assertContains('content_creation_whatsapp_cta_clicked', $contacts);
+        $this->assertContains('business_reels_whatsapp_cta_clicked', $contacts);
+        $this->assertNotContains('content_creation_page_viewed', $contacts);
+        $this->assertNotContains('business_reels_page_viewed', $contacts);
+        $this->assertNotContains('content_creation_booking_cta_clicked', $contacts);
+        $this->assertNotContains('business_reels_booking_cta_clicked', $contacts);
     }
 
     public function test_stage_definitions_include_reel_funnel_stages(): void
@@ -63,6 +87,7 @@ class BookingLandingAnalyticsServiceTest extends TestCase
         $this->assertSame([
             '/',
             '/creacion-de-contenido-riviera-maya',
+            '/reels-para-negocios',
             '/cobertura-eventos-electronica',
             '/reels-de-comida',
             '/dj-set',

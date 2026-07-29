@@ -1,390 +1,211 @@
-import { useEffect, useMemo, useState, type ReactNode } from 'react';
-import { usePage } from '@inertiajs/react';
-import {
-    ArrowRight,
-    CalendarDays,
-    Camera,
-    Clock3,
-    CreditCard,
-    Drone,
-    Film,
-    MapPin,
-    MessageCircle,
-    Palette,
-    Ruler,
-    ShieldCheck,
-    Video,
-    ChevronLeft,
-    ChevronRight,
-} from 'lucide-react';
-import SiteLayout from '@/layouts/SiteLayout';
+import { useEffect, useMemo, useState } from 'react';
+import { Link, usePage } from '@inertiajs/react';
+import { ArrowRight, CalendarDays } from 'lucide-react';
 import { AutoplayVideo } from '@/components/lapsique/AutoplayVideo';
 import { BookingCtaButton } from '@/components/lapsique/BookingCtaButton';
 import { BookingWidget } from '@/components/lapsique/BookingWidget';
-import { GlassSection } from '@/components/lapsique/GlassSection';
-import { PaymentTrustOrTestMode } from '@/components/lapsique/PaymentTrustPanel';
 import { SeoHead } from '@/components/lapsique/SeoHead';
-import { Button } from '@/components/ui/button';
 import {
-    DRONE_SESSION_BOOKING_CLIP,
-    DRONE_SESSION_CLIPS,
-    DRONE_SESSION_CONSTRUCTION_CLIPS,
-    DRONE_SESSION_HERO_CLIP,
-    type DroneSessionClip,
-} from '@/data/droneSessions';
+    ServiceFunnelDeliverables,
+    ServiceFunnelFaq,
+    ServiceFunnelFinalCta,
+    ServiceFunnelHeading,
+    ServiceFunnelHero,
+    ServiceFunnelProcess,
+    ServiceFunnelSection,
+    ServicePortfolioShowcase,
+    ServiceProofBand,
+    ServiceWhatsAppButton,
+    serviceFunnelPrimaryActionClass,
+} from '@/components/lapsique/ServiceFunnel';
+import { DRONE_SESSION_BOOKING_CLIP } from '@/data/droneSessions';
+import { localized, SERVICE_LANDING_CONFIGS } from '@/data/serviceLandingPages';
 import { trackBookingEvent } from '@/hooks/useBookingAnalytics';
 import { useTranslations } from '@/hooks/useTranslations';
+import SiteLayout from '@/layouts/SiteLayout';
 import { getDroneSessionProduct } from '@/lib/bookingProducts';
 import { openBookingModal } from '@/lib/openBookingModal';
-import { formatMxn } from '@/lib/utils';
-import type { BookingSlot, PageProps } from '@/types';
+import type {
+    BookingSlot,
+    PageProps,
+    ServicePortfolioBundle,
+    ServicePortfolioMedia,
+} from '@/types';
 
 interface DroneSessionsShowProps {
     price: number;
     slots: BookingSlot[];
+    servicePortfolio: ServicePortfolioBundle;
     errors?: Record<string, string>;
 }
 
-const DRONE_PAGE_COPY = {
+type DroneCategory = 'hospitality' | 'yachts' | 'land' | 'events' | 'construction';
+
+const CATEGORY_PROJECTS: Record<Exclude<DroneCategory, 'construction'>, string[]> = {
+    hospitality: ['hospitality-property'],
+    yachts: ['yacht-charter'],
+    land: ['coast-and-lot'],
+    events: ['electronic-event-aerial', 'dj-set-aerial'],
+};
+
+const COPY = {
     es: {
-        locations: ['Cancún', 'Playa del Carmen', 'Tulum'],
-        analyticsName: 'Sesión de vuelo con dron DJI Air 3',
-        heroTitle: 'Video y foto con dron en Riviera Maya',
-        heroTagline: 'Ubicación, escala y arquitectura desde el aire.',
-        heroDescription: '15 clips y hasta 10 fotos aéreas listos para anuncios, redes, web y presentaciones.',
+        analyticsName: 'Sesión de vuelo con dron',
+        eyebrow: 'Producción aérea · Riviera Maya',
+        title: 'Video y foto con dron para vender mejor tu espacio',
+        description: 'Ubicamos el proyecto, mostramos su escala y conectamos arquitectura y entorno en una pieza clara para ventas.',
+        locations: 'Cancún · Playa del Carmen · Tulum · Mérida',
         priceLabel: 'Sesión completa',
-        priceNote: '1 hora de vuelo · agenda online · pago seguro con tarjeta.',
+        priceNote: 'Una producción dirigida, entrega editada y reserva segura.',
+        bookingCta: 'Reservar sesión de dron',
         whatsappCta: 'Cotizar por WhatsApp',
-        bookingCta: 'Cotizar sesión de dron',
-        metrics: [
-            { value: '15', label: 'tomas' },
-            { value: '30 s', label: 'máx.' },
-            { value: '10', label: 'fotos max.' },
-        ],
-        rangeNote: '*Altura y distancia máximas de referencia. El vuelo real se ajusta a normativa, permisos, clima, señal, batería y seguridad.',
-        materialEyebrow: 'Material real',
-        materialTitle: 'Clips seleccionados desde vuelos de dron',
-        materialDescription: 'Vuelos reales para propiedades, obra, eventos, yates y hospitalidad.',
-        packageEyebrow: 'Paquete',
-        packageTitle: 'Qué incluye la sesión de $3,000 MXN',
-        packageDescription: 'Un paquete directo para vender propiedades, experiencias y avances con material aéreo limpio.',
-        packageCta: 'Agendar',
-        packageColumns: ['Incluye', 'Detalle'],
-        packageRows: [
-            {
-                label: 'Vuelo dirigido',
-                detail: '1 hora con DJI Air 3 para capturar ubicación, escala, accesos y tomas prioritarias.',
+        proofEyebrow: 'Archivo aéreo real',
+        proofTitle: 'Propiedades, mar y experiencias vistas en contexto',
+        proofDescription: 'Explora vuelos entregados para hospitalidad, navegación, terrenos y eventos. La selección cambia según lo que necesitas vender.',
+        portfolioEyebrow: 'Selecciona un tipo de proyecto',
+        portfolioTitle: 'Cada vuelo responde a una pregunta comercial distinta',
+        categories: {
+            hospitality: {
+                label: 'Propiedades y hospitality',
+                title: 'Ubicación, fachada y amenidades en una sola lectura',
+                description: 'Tomas para hoteles, villas y propiedades que necesitan explicar acceso, arquitectura, playa y valor de estancia.',
             },
-            {
-                label: 'Video',
-                detail: '15 tomas aéreas de hasta 30 seg seleccionadas para reels, landings, anuncios, presentaciones y recap comercial.',
+            yachts: {
+                label: 'Yates',
+                title: 'La experiencia comienza antes de zarpar',
+                description: 'Mostramos embarcación, marina, navegación y entorno para vender una experiencia premium completa.',
             },
-            {
-                label: 'Fotografía',
-                detail: 'Hasta 10 fotos aéreas para listings, brochure, redes, preventa y reportes ejecutivos.',
+            land: {
+                label: 'Terrenos',
+                title: 'Dimensión, accesos y relación con el entorno',
+                description: 'Planos que ayudan a entender el predio y su ubicación sin depender de mapas o fotografías aisladas.',
             },
-            {
-                label: 'Color',
-                detail: 'Captura en Rec.709 y D-Log para entrega rápida o colorización controlada en DaVinci Resolve.',
-            },
-            {
-                label: 'Cobertura',
-                detail: 'Cancún, Playa del Carmen y Tulum con agenda online y vuelo ajustado a permisos, clima y seguridad.',
-            },
-        ],
-        constructionEyebrow: 'Avances de obra',
-        constructionTitle: 'Avances de obra con dron para vender progreso real.',
-        constructionDescription: 'Cada obra reúne sus clips en un solo carrusel para revisar avance, detalle y contexto sin repetir tarjetas.',
-        constructionPills: ['Reportes para inversionistas', 'Preventas y avances', 'Comparables por etapa'],
-        technicalEyebrow: 'Técnico',
-        technicalTitle: 'Captura pensada para edición y color',
-        technicalDescription: 'Se entrega material con suficiente margen para usarlo en reels, videos comerciales, presentaciones o edición posterior.',
-        specs: ['DJI Air 3', '1 hora de vuelo', '15 tomas de hasta 30 seg', 'Hasta 10 fotos', 'Rec.709 + D-Log', '500 m / 2 km*'],
-        finalEyebrow: 'Listo para despegar',
-        finalTitle: 'Aparta la fecha y definimos el plan de vuelo.',
-        finalDescription: 'Al reservar revisamos ubicación, objetivo visual, permisos, clima y restricciones de vuelo para capturar el material más útil para tu proyecto.',
-        finalPayCta: 'Pagar y agendar',
-        finalWhatsappCta: 'Preguntar por WhatsApp',
-        clips: {
-            hero: {
-                title: 'Goba editado desde dron',
-                caption: 'Obra, vegetación y costa en una toma limpia para vender contexto.',
-                useCase: 'Avances de obra',
-            },
-            yacht: {
-                title: 'Yates y lifestyle',
-                caption: 'Planos amplios para presentar navegación, club, marina o servicio premium.',
-                useCase: 'Yates',
+            events: {
+                label: 'Eventos',
+                title: 'El venue y su escala desde el aire',
+                description: 'Aperturas que ubican la experiencia antes de entrar a pista, cabina o cobertura en tierra.',
             },
             construction: {
-                title: 'Avances de obra',
-                caption: 'Goba editado para reportes, inversionistas y comunicación de progreso.',
-                useCase: 'Obra',
-            },
-            lot: {
-                title: 'Terrenos y lotes',
-                caption: 'Lectura clara de entorno, accesos, colindancias y dimensión del predio.',
-                useCase: 'Terrenos',
-            },
-            event: {
-                title: 'Eventos sociales',
-                caption: 'Tomas de ubicación y ambiente para aftermovie, invitación o recap comercial.',
-                useCase: 'Eventos',
-            },
-            condo: {
-                title: 'Condominios, Airbnb y hotelería',
-                caption: 'Una sola toma para vender fachada, amenidades, playa cercana y estancia.',
-                useCase: 'Condominios + Airbnb',
-            },
-            djset: {
-                title: 'DJ sets y experiencias',
-                caption: 'Toma aérea para ubicar venue, ambiente y tamaño real del evento.',
-                useCase: 'DJ set',
-            },
-            'goba-construction': {
-                title: 'Goba / The Reserve',
-                caption: 'Video editado con color final para presentar avance, escala y contexto de zona.',
-                useCase: 'Obra editada',
-            },
-            'okom-construction': {
-                title: 'OKOM Living Tulum',
-                caption: 'Avance reciente normalizado desde material D-Log para revisión de progreso.',
-                useCase: 'Obra reciente',
-            },
-            'construction-goba-aerial': {
-                title: 'Goba',
-                caption: 'Plano superior con cuadrilla y estructura para mostrar progreso real, actividad y escala.',
-                useCase: 'Avance aéreo',
-                location: 'The Reserve · Riviera Maya',
-            },
-            'construction-goba-detail': {
-                title: 'Goba',
-                caption: 'Material editado de trabajo en sitio para reforzar que el reporte muestra avance tangible.',
-                useCase: 'Detalle de obra',
-                location: 'The Reserve · obra en sitio',
-            },
-            'construction-goba-wide': {
-                title: 'Goba',
-                caption: 'Vista amplia para explicar ubicación, accesos, entorno verde y dimensión del proyecto.',
-                useCase: 'Contexto de zona',
-                location: 'The Reserve · entorno',
-            },
-            'construction-okom-nov-aerial': {
-                title: 'OKOM',
-                caption: 'Vista superior de etapa inicial para documentar progreso y comparar visitas con precisión.',
-                useCase: 'Avance temprano',
-                location: 'Tulum · noviembre 2024',
-            },
-            'construction-okom-nov-site': {
-                title: 'OKOM',
-                caption: 'Recorrido de cuadrilla y estructura para dar contexto técnico al reporte de avance.',
-                useCase: 'Obra en sitio',
-                location: 'Tulum · noviembre 2024',
-            },
-            'construction-okom-jun-interior': {
-                title: 'OKOM',
-                caption: 'Material reciente para mostrar avances interiores, instalaciones y detalles terminados.',
-                useCase: 'Interiores e instalaciones',
-                location: 'Tulum · junio 2026',
-            },
-            'construction-okom-jun-context': {
-                title: 'OKOM',
-                caption: 'Plano de contexto para conectar avance, ubicación y dimensión actual del desarrollo.',
-                useCase: 'Contexto reciente',
-                location: 'Tulum · junio 2026',
+                label: 'Obra',
+                title: 'El avance de obra tiene su propio archivo',
+                description: 'La documentación recurrente necesita comparación por fecha, cámara en sitio y un recorrido consistente.',
             },
         },
+        constructionLink: 'Ver avances de obra',
+        visualEyebrow: 'Cómo se construye el vuelo',
+        visualTitle: 'Tres ángulos que convierten el espacio en información útil',
+        visualDescription: 'No volamos por acumular planos. Cada movimiento responde a una duda concreta de quien evalúa el lugar.',
+        visualHeaders: ['Lo que debe entender', 'Cómo lo mostramos', 'Dónde aporta valor'],
+        visualAngles: [
+            ['Ubicación', 'Una apertura conecta el proyecto con costa, vialidad, marina o zona.', 'Hero web y presentación'],
+            ['Escala', 'Una órbita o reveal incorpora una referencia humana, arquitectónica o natural.', 'Anuncios y listings'],
+            ['Acceso', 'El recorrido sigue la llegada hasta la entrada o el punto principal.', 'Ventas y reservaciones'],
+        ],
+        packageEyebrow: 'Entrega comercial',
+        packageTitle: 'Material listo para presentar, publicar o vender',
+        packageDescription: 'Definimos primero dónde se usará el contenido y después trazamos el vuelo.',
+        deliverables: [
+            ['Ruta dirigida', 'Planeamos ubicación, orientación y movimientos a partir del objetivo comercial.'],
+            ['Clips editados', 'Entregamos tomas verticales y horizontales seleccionadas, estabilizadas y colorizadas.'],
+            ['Fotografías aéreas', 'Stills en alta resolución para listings, campañas, presentaciones y web.'],
+            ['Archivo ordenado', 'Material identificado por proyecto y uso para que tu equipo encuentre cada pieza.'],
+        ],
+        processEyebrow: 'Del objetivo a la entrega',
+        bookingEyebrow: 'Reserva',
+        bookingTitle: 'Elige una fecha para volar',
+        bookingDescription: 'Después de reservar revisamos ubicación, permisos, clima, seguridad y las tomas prioritarias.',
+        faqEyebrow: 'Antes de volar',
+        faqTitle: 'Preguntas sobre la sesión',
+        finalEyebrow: 'Producción aérea',
+        finalTitle: 'Muestra el lugar completo.',
+        finalDescription: 'Reserva una sesión puntual o cuéntanos el proyecto para preparar una ruta de tomas.',
     },
     en: {
-        locations: ['Cancun', 'Playa del Carmen', 'Tulum'],
-        analyticsName: 'DJI Air 3 drone flight session',
-        heroTitle: 'Drone video and photography in Riviera Maya',
-        heroTagline: 'Location, scale, and architecture from the air.',
-        heroDescription: '15 clips and up to 10 aerial photos ready for ads, social, web, and presentations.',
+        analyticsName: 'Drone flight session',
+        eyebrow: 'Aerial production · Riviera Maya',
+        title: 'Drone video and photography that sells your space',
+        description: 'We locate the project, show its scale, and connect architecture with its surroundings in a clear sales asset.',
+        locations: 'Cancun · Playa del Carmen · Tulum · Merida',
         priceLabel: 'Complete session',
-        priceNote: '1-hour flight · online booking · secure card payment.',
+        priceNote: 'Directed production, edited delivery, and secure booking.',
+        bookingCta: 'Book a drone session',
         whatsappCta: 'Quote on WhatsApp',
-        bookingCta: 'Quote drone session',
-        metrics: [
-            { value: '15', label: 'shots' },
-            { value: '30 s', label: 'max.' },
-            { value: '10', label: 'photos max.' },
-        ],
-        rangeNote: '*Reference maximum altitude and distance. Actual flight follows regulation, permits, weather, signal, battery, and safety.',
-        materialEyebrow: 'Real material',
-        materialTitle: 'Selected clips from drone flights',
-        materialDescription: 'Real flights for properties, construction, events, yachts, and hospitality.',
-        packageEyebrow: 'Package',
-        packageTitle: 'What the $3,000 MXN session includes',
-        packageDescription: 'A direct package to sell properties, experiences, and progress with clean aerial material.',
-        packageCta: 'Book',
-        packageColumns: ['Included', 'Detail'],
-        packageRows: [
-            {
-                label: 'Directed flight',
-                detail: '1 hour with DJI Air 3 to capture location, scale, access, and priority shots.',
+        proofEyebrow: 'Real aerial archive',
+        proofTitle: 'Properties, sea, and experiences shown in context',
+        proofDescription: 'Explore delivered flights for hospitality, navigation, lots, and events. The selection changes around what you need to sell.',
+        portfolioEyebrow: 'Choose a project type',
+        portfolioTitle: 'Each flight answers a different commercial question',
+        categories: {
+            hospitality: {
+                label: 'Properties and hospitality',
+                title: 'Location, facade, and amenities in one view',
+                description: 'Footage for hotels, villas, and properties that need to explain access, architecture, beach, and stay value.',
             },
-            {
-                label: 'Video',
-                detail: '15 selected aerial shots up to 30 sec each for reels, landing pages, ads, presentations, and commercial recaps.',
+            yachts: {
+                label: 'Yachts',
+                title: 'The experience starts before departure',
+                description: 'We show the vessel, marina, navigation, and surroundings to sell a complete premium experience.',
             },
-            {
-                label: 'Photography',
-                detail: 'Up to 10 aerial photos for listings, brochures, social, presales, and executive reports.',
+            land: {
+                label: 'Lots',
+                title: 'Scale, access, and relationship to the surroundings',
+                description: 'Shots that make the property and its location clear without relying on maps or isolated photographs.',
             },
-            {
-                label: 'Color',
-                detail: 'Rec.709 and D-Log capture for fast delivery or controlled color in DaVinci Resolve.',
-            },
-            {
-                label: 'Coverage',
-                detail: 'Cancun, Playa del Carmen, and Tulum with online booking and flights adjusted to permits, weather, and safety.',
-            },
-        ],
-        constructionEyebrow: 'Construction progress',
-        constructionTitle: 'Drone construction progress that sells real progress.',
-        constructionDescription: 'Each project keeps its clips in one carousel to review progress, details, and context without repeated cards.',
-        constructionPills: ['Investor reports', 'Presales and updates', 'Stage comparisons'],
-        technicalEyebrow: 'Technical',
-        technicalTitle: 'Captured for editing and color',
-        technicalDescription: 'Material is captured with enough latitude to use in reels, commercial videos, presentations, or later editing.',
-        specs: ['DJI Air 3', '1-hour flight', '15 shots up to 30 sec', 'Up to 10 photos', 'Rec.709 + D-Log', '500 m / 2 km*'],
-        finalEyebrow: 'Ready to fly',
-        finalTitle: 'Reserve the date and we define the flight plan.',
-        finalDescription: 'After booking, we review location, visual objective, permits, weather, and flight restrictions to capture the most useful material for your project.',
-        finalPayCta: 'Pay and book',
-        finalWhatsappCta: 'Ask on WhatsApp',
-        clips: {
-            hero: {
-                title: 'Edited Goba drone clip',
-                caption: 'Construction, green surroundings, and coastline in one clean context shot.',
-                useCase: 'Construction progress',
-            },
-            yacht: {
-                title: 'Yachts and lifestyle',
-                caption: 'Wide shots to present navigation, club, marina, or premium service.',
-                useCase: 'Yachts',
+            events: {
+                label: 'Events',
+                title: 'The venue and its scale from the air',
+                description: 'Opening shots that establish the experience before moving into the dancefloor, booth, or ground coverage.',
             },
             construction: {
-                title: 'Construction progress',
-                caption: 'Edited Goba footage for reports, investors, and progress communication.',
-                useCase: 'Construction',
-            },
-            lot: {
-                title: 'Land and lots',
-                caption: 'Clear reading of surroundings, access, boundaries, and property dimension.',
-                useCase: 'Lots',
-            },
-            event: {
-                title: 'Social events',
-                caption: 'Location and atmosphere shots for aftermovies, invitations, or commercial recaps.',
-                useCase: 'Events',
-            },
-            condo: {
-                title: 'Condos, Airbnb, and hospitality',
-                caption: 'One shot to sell facade, amenities, nearby beach, and guest value.',
-                useCase: 'Condos + Airbnb',
-            },
-            djset: {
-                title: 'DJ sets and experiences',
-                caption: 'Aerial context to show venue, atmosphere, and true event scale.',
-                useCase: 'DJ set',
-            },
-            'goba-construction': {
-                title: 'Goba / The Reserve',
-                caption: 'Edited color footage to present progress, scale, and area context.',
-                useCase: 'Edited construction',
-            },
-            'okom-construction': {
-                title: 'OKOM Living Tulum',
-                caption: 'Recent progress material normalized from D-Log for stage review.',
-                useCase: 'Recent progress',
-            },
-            'construction-goba-aerial': {
-                title: 'Goba',
-                caption: 'Top-down view with crew and structure to show real progress, activity, and scale.',
-                useCase: 'Aerial progress',
-                location: 'The Reserve · Riviera Maya',
-            },
-            'construction-goba-detail': {
-                title: 'Goba',
-                caption: 'Edited on-site work material to reinforce that the report shows tangible progress.',
-                useCase: 'Site detail',
-                location: 'The Reserve · active site',
-            },
-            'construction-goba-wide': {
-                title: 'Goba',
-                caption: 'Wide view to explain location, access, green surroundings, and project dimension.',
-                useCase: 'Area context',
-                location: 'The Reserve · surroundings',
-            },
-            'construction-okom-nov-aerial': {
-                title: 'OKOM',
-                caption: 'Top view of the initial stage to document progress and compare visits with precision.',
-                useCase: 'Early progress',
-                location: 'Tulum · November 2024',
-            },
-            'construction-okom-nov-site': {
-                title: 'OKOM',
-                caption: 'Crew and structure pass to give technical context to the progress report.',
-                useCase: 'Active site',
-                location: 'Tulum · November 2024',
-            },
-            'construction-okom-jun-interior': {
-                title: 'OKOM',
-                caption: 'Recent material to show interior progress, installations, and finished details.',
-                useCase: 'Interiors and installs',
-                location: 'Tulum · June 2026',
-            },
-            'construction-okom-jun-context': {
-                title: 'OKOM',
-                caption: 'Context shot to connect progress, location, and the current development scale.',
-                useCase: 'Recent context',
-                location: 'Tulum · June 2026',
+                label: 'Construction',
+                title: 'Construction progress has its own archive',
+                description: 'Recurring documentation needs date comparisons, on-site camera work, and a consistent route.',
             },
         },
+        constructionLink: 'View construction progress',
+        visualEyebrow: 'How the flight is built',
+        visualTitle: 'Three angles that turn the space into useful information',
+        visualDescription: 'We do not fly to collect random shots. Every movement answers a concrete question from someone evaluating the location.',
+        visualHeaders: ['What must be understood', 'How we show it', 'Where it adds value'],
+        visualAngles: [
+            ['Location', 'An opening shot connects the project to the coast, road, marina, or district.', 'Web hero and presentation'],
+            ['Scale', 'An orbit or reveal includes a human, architectural, or natural reference.', 'Ads and listings'],
+            ['Access', 'The route follows arrival through the entrance or primary point.', 'Sales and bookings'],
+        ],
+        packageEyebrow: 'Commercial delivery',
+        packageTitle: 'Material ready to present, publish, or sell',
+        packageDescription: 'We define where the content will be used before mapping the flight.',
+        deliverables: [
+            ['Directed route', 'We plan location, orientation, and movement around the commercial objective.'],
+            ['Edited clips', 'Selected, stabilized, and colorized vertical and horizontal shots.'],
+            ['Aerial photography', 'High-resolution stills for listings, campaigns, presentations, and web.'],
+            ['Organized archive', 'Material identified by project and use so your team can find every asset.'],
+        ],
+        processEyebrow: 'From objective to delivery',
+        bookingEyebrow: 'Booking',
+        bookingTitle: 'Choose a date to fly',
+        bookingDescription: 'After booking, we review location, permits, weather, safety, and priority shots.',
+        faqEyebrow: 'Before the flight',
+        faqTitle: 'Session questions',
+        finalEyebrow: 'Aerial production',
+        finalTitle: 'Show the complete location.',
+        finalDescription: 'Book a single session or tell us about the project so we can prepare a shot route.',
     },
 } as const;
 
-const SPEC_ICONS = [Drone, Clock3, Video, Camera, Palette, Ruler] as const;
-
-type ClipCopy = {
-    title: string;
-    caption: string;
-    useCase: string;
-    location?: string;
-};
-
-function resolveClipCopy(
-    copy: typeof DRONE_PAGE_COPY.es.clips | typeof DRONE_PAGE_COPY.en.clips,
-    clip: DroneSessionClip,
-): ClipCopy {
-    return (copy as Partial<Record<string, ClipCopy>>)[clip.id] ?? {
-        title: clip.title,
-        caption: clip.caption,
-        useCase: clip.useCase,
-    };
-}
-
-export default function DroneSessionsShow({ price, slots, errors }: DroneSessionsShowProps) {
+export default function DroneSessionsShow({
+    price,
+    slots,
+    servicePortfolio,
+    errors,
+}: DroneSessionsShowProps) {
     const { site } = usePage<PageProps>().props;
     const { t, locale } = useTranslations();
-    const copy = DRONE_PAGE_COPY[locale === 'en' ? 'en' : 'es'];
+    const language = locale === 'en' ? 'en' : 'es';
+    const copy = COPY[language];
+    const landingConfig = SERVICE_LANDING_CONFIGS.sesiones_de_dron;
+    const [activeCategory, setActiveCategory] = useState<DroneCategory>('hospitality');
     const product = useMemo(() => getDroneSessionProduct(t), [t]);
-    const specs = useMemo(
-        () => copy.specs.map((label, index) => ({ label, icon: SPEC_ICONS[index] ?? Drone })),
-        [copy],
-    );
-    const materialClips = useMemo(
-        () => DRONE_SESSION_CLIPS.filter((clip) => clip.id !== 'hero'),
-        [],
-    );
-    const heroPreviewClips = useMemo(
-        () => DRONE_SESSION_CLIPS.filter((clip) => ['yacht', 'construction', 'condo', 'djset'].includes(clip.id)),
-        [],
-    );
-    const [heroPreviewIndex, setHeroPreviewIndex] = useState(0);
-    const heroPreviewClip = heroPreviewClips[heroPreviewIndex] ?? heroPreviewClips[0] ?? DRONE_SESSION_HERO_CLIP;
     const analyticsPayload = useMemo(
         () => ({
             content_name: copy.analyticsName,
@@ -399,6 +220,30 @@ export default function DroneSessionsShow({ price, slots, errors }: DroneSession
         () => buildWhatsAppHref(site.whatsapp, t('funnel.whatsapp.prefill_drone')),
         [site.whatsapp, t],
     );
+    const inlinePortfolio = useMemo(
+        () => excludeHeroFromPortfolio(servicePortfolio),
+        [servicePortfolio],
+    );
+    const selectedPortfolio = useMemo(
+        () => activeCategory === 'construction'
+            ? null
+            : filterPortfolio(inlinePortfolio, CATEGORY_PROJECTS[activeCategory]),
+        [activeCategory, inlinePortfolio],
+    );
+    const bookingProofVideo = useMemo(
+        () => selectDistinctBookingVideo(servicePortfolio, CATEGORY_PROJECTS.hospitality),
+        [servicePortfolio],
+    );
+    const process = landingConfig.process.slice(0, 3).map((item) => ({
+        title: localized(item.title, locale),
+        description: localized(item.description, locale),
+    }));
+    const faqs = landingConfig.faqs.map((item) => ({
+        question: localized(item.question, locale),
+        answer: localized(item.answer, locale),
+    }));
+    const deliverables = copy.deliverables.map(([title, description]) => ({ title, description }));
+    const activeCopy = copy.categories[activeCategory];
 
     useEffect(() => {
         trackBookingEvent('drone_session_page_viewed', {
@@ -408,26 +253,11 @@ export default function DroneSessionsShow({ price, slots, errors }: DroneSession
         });
     }, [analyticsPayload, copy.locations]);
 
-    useEffect(() => {
-        if (heroPreviewClips.length < 2) {
-            return;
-        }
-
-        const timer = window.setInterval(() => {
-            setHeroPreviewIndex((current) => (current + 1) % heroPreviewClips.length);
-        }, 5200);
-
-        return () => window.clearInterval(timer);
-    }, [heroPreviewClips.length]);
-
     const openBooking = (source: string) => {
         openBookingModal({
             source,
             analyticsEvent: 'drone_session_booking_cta_clicked',
-            analyticsPayload: {
-                ...analyticsPayload,
-                source,
-            },
+            analyticsPayload: { ...analyticsPayload, source },
         });
     };
 
@@ -439,411 +269,340 @@ export default function DroneSessionsShow({ price, slots, errors }: DroneSession
         });
     };
 
+    const selectCategory = (category: DroneCategory) => {
+        setActiveCategory(category);
+        trackBookingEvent('portfolio_project_selected', {
+            service_type: 'drone_session',
+            project_key: category,
+            source: 'drone_use_case_selector',
+        });
+    };
+
+    const primaryAction = (source: string) => (
+        <BookingCtaButton
+            type="button"
+            className={serviceFunnelPrimaryActionClass}
+            onClick={() => openBooking(source)}
+        >
+            <CalendarDays className="size-5" aria-hidden />
+            {copy.bookingCta}
+            <ArrowRight className="size-4" aria-hidden />
+        </BookingCtaButton>
+    );
+    const whatsappAction = (source: string) => (
+        <ServiceWhatsAppButton
+            href={whatsappHref}
+            label={copy.whatsappCta}
+            onClick={() => trackWhatsApp(source)}
+        />
+    );
+
     return (
         <SiteLayout>
             <SeoHead />
 
-            <section className="relative left-1/2 w-screen -translate-x-1/2 overflow-hidden">
-                <div className="absolute inset-0 bg-black">
-                    <img
-                        src={DRONE_SESSION_HERO_CLIP.poster}
-                        alt=""
-                        aria-hidden
-                        className="absolute inset-0 h-full w-full object-cover object-center"
-                    />
-                    <video
-                        src={DRONE_SESSION_HERO_CLIP.src}
-                        poster={DRONE_SESSION_HERO_CLIP.poster}
-                        className="absolute inset-0 h-full w-full object-cover object-center"
-                        autoPlay
-                        muted
-                        loop
-                        playsInline
-                        preload="auto"
-                        aria-label={copy.clips.hero.title}
-                    />
-                    <div className="absolute inset-0 bg-[linear-gradient(90deg,oklch(0.09_0.02_260/0.94)_0%,oklch(0.10_0.02_250/0.78)_45%,oklch(0.10_0.02_250/0.34)_100%)]" />
-                    <div className="absolute inset-0 bg-[linear-gradient(180deg,transparent_0%,oklch(0.08_0.01_250/0.25)_52%,var(--background)_100%)]" />
-                </div>
-
-                <div className="relative mx-auto grid min-h-[min(760px,82svh)] max-w-6xl content-end gap-6 px-4 pb-4 pt-12 sm:px-6 lg:grid-cols-[minmax(0,1fr)_380px] lg:items-end lg:gap-8 lg:pb-14 lg:pt-20">
-                    <div className="max-w-4xl">
-                        <p className="text-xs font-semibold uppercase tracking-[0.24em] text-primary">
-                            {copy.locations.join(' · ')}
-                        </p>
-                        <h1 className="mt-3 max-w-4xl font-display text-[2.05rem] font-bold leading-[0.98] tracking-tight text-white drop-shadow-[0_3px_28px_rgb(0_0_0/0.55)] sm:text-5xl md:text-5xl lg:mt-4">
-                            {copy.heroTitle}
-                        </h1>
-                        <p className="mt-3 text-base font-semibold text-primary md:text-xl">
-                            {copy.heroTagline}
-                        </p>
-                        <p className="mt-4 max-w-2xl text-sm leading-relaxed text-white/80 md:text-xl lg:mt-5">
-                            {copy.heroDescription}
-                        </p>
-
-                        <div className="mt-5 grid gap-3 sm:grid-cols-[minmax(0,0.9fr)_minmax(260px,0.72fr)] sm:items-end lg:mt-8 lg:gap-4">
-                            <div className="rounded-xl border border-primary/35 bg-black/70 px-5 py-4 shadow-[0_16px_48px_rgb(0_0_0/0.45)] backdrop-blur-md">
-                                <p className="text-xs font-semibold uppercase tracking-[0.2em] text-primary">
-                                    {copy.priceLabel}
-                                </p>
-                                <p className="mt-2 font-mono-tabular text-4xl font-bold text-primary md:text-5xl">
-                                    {formatMxn(price)}
-                                </p>
-                                <p className="mt-2 text-sm text-white/72">
-                                    {copy.priceNote}
-                                </p>
-                                <PaymentTrustOrTestMode
-                                    variant="stripe"
-                                    layout="compact"
-                                    onDark
-                                    className="mt-3"
-                                />
-                            </div>
-
-                            <div className="space-y-3">
-                                <Button
-                                    variant="default"
-                                    size="xl"
-                                    className="h-auto min-h-14 w-full gap-2 rounded-xl border border-[#25D366]/70 bg-[#25D366] px-5 text-center text-sm font-bold leading-tight text-[#04150a] shadow-[0_16px_42px_oklch(0.66_0.18_145/0.34)] transition-[background-color,color,transform,box-shadow] duration-150 hover:-translate-y-0.5 hover:bg-[#1EBE5D] hover:text-[#04150a] hover:shadow-[0_18px_52px_oklch(0.66_0.18_145/0.46)] focus-visible:ring-[#25D366]/45 motion-reduce:transition-none motion-safe:animate-[drone-whatsapp-cta_3.2s_ease-in-out_infinite] sm:text-base"
-                                    asChild
-                                >
-                                    <a
-                                        href={whatsappHref}
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                        onClick={() => trackWhatsApp('hero')}
-                                    >
-                                        <MessageCircle className="size-5" />
-                                        {copy.whatsappCta}
-                                    </a>
-                                </Button>
-                                <BookingCtaButton
-                                    type="button"
-                                    variant="glass"
-                                    className="w-full transition hover:-translate-y-0.5 motion-safe:animate-[drone-booking-cta_3s_ease-in-out_infinite]"
-                                    onClick={() => openBooking('hero_agenda')}
-                                >
-                                    <CalendarDays className="h-5 w-5" />
-                                    {copy.bookingCta}
-                                    <ArrowRight className="h-4 w-4" />
-                                </BookingCtaButton>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div className="hidden gap-3 lg:grid">
-                        <div className="rounded-xl border border-white/15 bg-black/55 p-3 text-white shadow-2xl backdrop-blur-md">
-                            <AutoplayVideo
-                                key={heroPreviewClip.id}
-                                src={heroPreviewClip.src}
-                                poster={heroPreviewClip.poster}
-                                title={resolveClipCopy(copy.clips, heroPreviewClip).title}
-                                eager
-                                className="aspect-video rounded-lg"
-                            />
-                            <div className="grid grid-cols-3 gap-2 pt-3 text-center">
-                                {copy.metrics.map((metric) => (
-                                    <MiniMetric key={metric.label} value={metric.value} label={metric.label} />
-                                ))}
-                            </div>
-                            <div className="mt-3 flex items-center justify-center gap-1.5">
-                                {heroPreviewClips.map((clip, index) => (
-                                    <span
-                                        key={clip.id}
-                                        className={index === heroPreviewIndex ? 'h-1.5 w-5 rounded-full bg-primary' : 'h-1.5 w-1.5 rounded-full bg-white/35'}
-                                        aria-hidden
-                                    />
-                                ))}
-                            </div>
-                        </div>
-                        <p className="hidden rounded-xl border border-white/15 bg-black/46 px-4 py-3 text-xs leading-relaxed text-white/72 backdrop-blur-md 2xl:block">
-                            {copy.rangeNote}
-                        </p>
-                    </div>
-                </div>
-            </section>
-
-            <BookingWidget
-                slots={slots}
+            <ServiceFunnelHero
+                eyebrow={copy.eyebrow}
+                title={copy.title}
+                description={copy.description}
+                locations={copy.locations}
                 price={price}
-                whatsapp={site.whatsapp}
-                errors={errors}
-                className="mt-8 lg:mt-10"
-                checkoutRoute="drone-sessions.checkout"
-                paymentProvider="stripe"
-                product={product}
-                popupVariant="drone"
-                popupHeroProofVideo={{
-                    title: copy.clips['goba-construction'].title,
-                    media_type: 'video',
-                    embed_url: null,
-                    playback_url: DRONE_SESSION_BOOKING_CLIP.src,
-                    poster_url: DRONE_SESSION_BOOKING_CLIP.poster,
-                }}
-                highlight
-                analyticsPayload={analyticsPayload}
+                priceLabel={copy.priceLabel}
+                priceNote={copy.priceNote}
+                media={<PortfolioHeroMedia media={servicePortfolio.hero} title={copy.title} />}
+                mediaLabel={servicePortfolio.hero.projectLabel}
+                mediaCaption={servicePortfolio.hero.location ?? servicePortfolio.hero.alt}
+                primaryAction={primaryAction('hero')}
+                secondaryAction={whatsappAction('hero')}
             />
 
-            <GlassSection
-                title={copy.materialTitle}
-                description={copy.materialDescription}
-                surface="solid"
-                className="mt-8 lg:mt-10"
-            >
-                <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                    {materialClips.map((clip) => (
-                        <ClipCard
-                            key={clip.id}
-                            clip={clip}
-                            copy={resolveClipCopy(copy.clips, clip)}
-                        />
-                    ))}
-                </div>
-            </GlassSection>
+            <ServiceFunnelSection innerClassName="py-0 sm:py-0 lg:py-0">
+                <ServiceProofBand
+                    portfolio={servicePortfolio}
+                    eyebrow={copy.proofEyebrow}
+                    title={copy.proofTitle}
+                    description={copy.proofDescription}
+                />
+            </ServiceFunnelSection>
 
-            <GlassSection
-                eyebrow={copy.packageEyebrow}
-                title={copy.packageTitle}
-                description={copy.packageDescription}
-                className="mt-8 lg:mt-10"
-                action={
-                    <BookingCtaButton
-                        type="button"
-                        variant="secondary"
-                        className="motion-safe:animate-[drone-booking-cta_3s_ease-in-out_infinite]"
-                        onClick={() => openBooking('package')}
-                    >
-                        {copy.packageCta}
-                    </BookingCtaButton>
-                }
-            >
-                <div className="overflow-hidden rounded-xl border border-border/75 bg-background/80 shadow-sm">
-                    <div className="overflow-x-auto">
-                        <table className="w-full min-w-[560px] border-collapse text-left text-sm">
-                            <thead>
-                                <tr className="border-b border-border/75 bg-muted/60">
-                                    {copy.packageColumns.map((column) => (
-                                        <th key={column} className="px-4 py-3 text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground">
-                                            {column}
-                                        </th>
-                                    ))}
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {copy.packageRows.map((row) => (
-                                    <tr key={row.label} className="border-b border-border/60 last:border-b-0">
-                                        <td className="w-[28%] px-4 py-4 align-top font-semibold text-foreground">
-                                            {row.label}
-                                        </td>
-                                        <td className="px-4 py-4 align-top leading-relaxed text-foreground">
-                                            {row.detail}
-                                        </td>
-                                    </tr>
-                                ))}
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </GlassSection>
+            <ServiceFunnelSection tone="dark">
+                <ServiceFunnelHeading
+                    eyebrow={copy.portfolioEyebrow}
+                    title={copy.portfolioTitle}
+                    description={copy.proofDescription}
+                    inverse
+                />
 
-            <section className="my-12 overflow-hidden rounded-xl border border-primary/25 bg-[linear-gradient(135deg,oklch(0.14_0.05_235),oklch(0.18_0.07_185))] text-white shadow-2xl shadow-black/25">
-                <div className="grid gap-0 lg:grid-cols-[0.95fr_1.05fr]">
-                    <div className="p-6 md:p-9">
-                        <p className="text-xs font-semibold uppercase tracking-[0.24em] text-primary">
-                            {copy.constructionEyebrow}
-                        </p>
-                        <h2 className="mt-3 font-display text-3xl font-bold leading-tight md:text-4xl">
-                            {copy.constructionTitle}
-                        </h2>
-                        <p className="mt-4 max-w-2xl text-sm leading-relaxed text-white/76 md:text-base">
-                            {copy.constructionDescription}
-                        </p>
-                        <div className="mt-6 grid gap-3 sm:grid-cols-3">
-                            <SpecPill icon={<Film className="h-4 w-4" />} label={copy.constructionPills[0]} />
-                            <SpecPill icon={<ShieldCheck className="h-4 w-4" />} label={copy.constructionPills[1]} />
-                            <SpecPill icon={<MapPin className="h-4 w-4" />} label={copy.constructionPills[2]} />
-                        </div>
-                    </div>
-                    <AutoplayVideo
-                        src={DRONE_SESSION_CONSTRUCTION_CLIPS[0].src}
-                        poster={DRONE_SESSION_CONSTRUCTION_CLIPS[0].poster}
-                        title={copy.clips['goba-construction'].title}
-                        className="min-h-[320px] lg:h-full"
-                    />
-                </div>
-                <div className="grid gap-4 border-t border-white/10 bg-black/12 p-4 md:grid-cols-2 md:p-5">
-                    <ProjectClipCarousel
-                        project="GOBA · THE RESERVE"
-                        clips={DRONE_SESSION_CONSTRUCTION_CLIPS.filter((clip) => clip.id.includes('goba'))}
-                        copy={copy.clips}
-                    />
-                    <ProjectClipCarousel
-                        project="OKOM · TULUM"
-                        clips={DRONE_SESSION_CONSTRUCTION_CLIPS.filter((clip) => clip.id.includes('okom'))}
-                        copy={copy.clips}
-                    />
-                </div>
-            </section>
+                <div className="mt-8 flex gap-2 overflow-x-auto pb-2" aria-label={copy.portfolioEyebrow}>
+                    {(Object.keys(copy.categories) as DroneCategory[]).map((category) => {
+                        const isActive = category === activeCategory;
 
-            <section className="my-12 overflow-hidden rounded-xl border border-white/10 bg-[linear-gradient(135deg,oklch(0.09_0.02_250),oklch(0.13_0.03_245))] p-6 text-white shadow-2xl shadow-black/20 md:p-8">
-                <div className="mb-7 max-w-3xl">
-                    <span className="inline-block rounded-full border border-primary/35 bg-primary/12 px-3 py-0.5 text-xs font-medium uppercase tracking-widest text-primary">
-                        {copy.technicalEyebrow}
-                    </span>
-                    <h2 className="mt-3 font-display text-2xl font-bold tracking-tight text-white md:text-3xl">
-                        {copy.technicalTitle}
-                    </h2>
-                    <p className="mt-2 max-w-2xl text-sm leading-relaxed text-white/68 md:text-base">
-                        {copy.technicalDescription}
-                    </p>
-                </div>
-                <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                    {specs.map((spec) => (
-                        <div key={spec.label} className="rounded-xl border border-white/10 bg-white/[0.055] p-5 shadow-inner shadow-white/5">
-                            <spec.icon className="h-6 w-6 text-primary" />
-                            <p className="mt-3 font-semibold text-white">{spec.label}</p>
-                        </div>
-                    ))}
-                </div>
-            </section>
-
-            <section className="my-12 rounded-xl border border-border/80 bg-background/80 p-6 shadow-xl shadow-black/5 md:p-8">
-                <div className="grid gap-6 md:grid-cols-[1fr_auto] md:items-center">
-                    <div>
-                        <p className="text-xs font-semibold uppercase tracking-[0.2em] text-primary">
-                            {copy.finalEyebrow}
-                        </p>
-                        <h2 className="mt-3 font-display text-2xl font-bold text-foreground md:text-3xl">
-                            {copy.finalTitle}
-                        </h2>
-                        <p className="mt-2 max-w-2xl text-sm leading-relaxed text-muted-foreground">
-                            {copy.finalDescription}
-                        </p>
-                    </div>
-                    <div className="grid gap-3 sm:grid-cols-2 md:grid-cols-1">
-                        <BookingCtaButton type="button" onClick={() => openBooking('final_cta')}>
-                            <CreditCard className="h-5 w-5" />
-                            {copy.finalPayCta}
-                        </BookingCtaButton>
-                        <Button variant="outline" className="h-12 rounded-xl" asChild>
-                            <a
-                                href={whatsappHref}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                onClick={() => trackWhatsApp('final_cta')}
+                        return (
+                            <button
+                                key={category}
+                                type="button"
+                                className={[
+                                    'min-h-11 shrink-0 border px-4 py-2 text-sm font-semibold transition-[background-color,border-color,color,transform] duration-150 active:scale-[0.96] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary motion-reduce:transition-none',
+                                    isActive
+                                        ? 'border-primary bg-primary text-primary-foreground'
+                                        : 'border-white/20 bg-white/[0.04] text-white hover:border-white/45 hover:bg-white/[0.08]',
+                                ].join(' ')}
+                                aria-pressed={isActive}
+                                onClick={() => selectCategory(category)}
                             >
-                                <MessageCircle className="h-4 w-4" />
-                                {copy.finalWhatsappCta}
-                            </a>
-                        </Button>
-                    </div>
+                                {copy.categories[category].label}
+                            </button>
+                        );
+                    })}
                 </div>
-            </section>
+                <p className="sr-only" role="status">
+                    {activeCopy.title}
+                </p>
+
+            </ServiceFunnelSection>
+
+            {selectedPortfolio ? (
+                <ServicePortfolioShowcase
+                    portfolio={selectedPortfolio}
+                    eyebrow={activeCopy.label}
+                    title={activeCopy.title}
+                    description={activeCopy.description}
+                    action={primaryAction(`portfolio_${activeCategory}`)}
+                />
+            ) : (
+                <ServiceFunnelSection tone="dark" innerClassName="pt-0 sm:pt-0 lg:pt-0">
+                    <article className="grid gap-8 bg-white/[0.05] p-6 sm:p-8 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-end">
+                        <div className="max-w-2xl">
+                            <p className="font-mono text-[0.7rem] uppercase tracking-[0.2em] text-primary">
+                                {activeCopy.label}
+                            </p>
+                            <h3 className="mt-4 text-balance font-display text-3xl font-bold leading-[1.05] text-white sm:text-4xl">
+                                {activeCopy.title}
+                            </h3>
+                            <p className="mt-4 max-w-xl text-pretty text-base leading-[1.6] text-white/64">
+                                {activeCopy.description}
+                            </p>
+                        </div>
+                        <Link
+                            href="/avances-de-obra"
+                            className="inline-flex min-h-12 items-center justify-center gap-2 border border-primary bg-primary px-5 py-3 text-sm font-bold text-primary-foreground transition-[background-color,color,transform] duration-150 hover:bg-primary/88 active:scale-[0.96] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary motion-reduce:transition-none"
+                        >
+                            {copy.constructionLink}
+                            <ArrowRight className="size-4" aria-hidden />
+                        </Link>
+                    </article>
+                </ServiceFunnelSection>
+            )}
+
+            <ServiceFunnelSection>
+                <ServiceFunnelHeading
+                    eyebrow={copy.visualEyebrow}
+                    title={copy.visualTitle}
+                    description={copy.visualDescription}
+                />
+                <div className="mt-10 border-y border-border">
+                    <div className="hidden grid-cols-[minmax(0,0.62fr)_2rem_minmax(0,1.15fr)_2rem_minmax(0,0.75fr)] gap-4 border-b border-border py-3 md:grid">
+                        <p className="font-mono text-[0.66rem] uppercase tracking-[0.16em] text-muted-foreground">
+                            {copy.visualHeaders[0]}
+                        </p>
+                        <span aria-hidden />
+                        <p className="font-mono text-[0.66rem] uppercase tracking-[0.16em] text-muted-foreground">
+                            {copy.visualHeaders[1]}
+                        </p>
+                        <span aria-hidden />
+                        <p className="font-mono text-[0.66rem] uppercase tracking-[0.16em] text-muted-foreground">
+                            {copy.visualHeaders[2]}
+                        </p>
+                    </div>
+                    <ol className="divide-y divide-border">
+                        {copy.visualAngles.map(([subject, shot, use], index) => (
+                            <li
+                                key={subject}
+                                className="grid gap-3 py-6 md:grid-cols-[minmax(0,0.62fr)_2rem_minmax(0,1.15fr)_2rem_minmax(0,0.75fr)] md:items-center md:gap-4"
+                            >
+                                <div>
+                                    <p className="font-mono text-[0.65rem] tabular-nums text-primary">
+                                        {String(index + 1).padStart(2, '0')}
+                                    </p>
+                                    <h3 className="mt-2 text-balance font-display text-2xl font-bold leading-[1.05]">
+                                        {subject}
+                                    </h3>
+                                </div>
+                                <ArrowRight className="size-5 rotate-90 text-primary md:rotate-0" aria-hidden />
+                                <p className="max-w-xl text-pretty text-sm leading-[1.65] text-muted-foreground">
+                                    {shot}
+                                </p>
+                                <ArrowRight className="size-5 rotate-90 text-primary md:rotate-0" aria-hidden />
+                                <p className="text-pretty text-sm font-semibold leading-[1.5] text-foreground">
+                                    {use}
+                                </p>
+                            </li>
+                        ))}
+                    </ol>
+                </div>
+            </ServiceFunnelSection>
+
+            <ServiceFunnelSection>
+                <ServiceFunnelHeading
+                    eyebrow={copy.packageEyebrow}
+                    title={copy.packageTitle}
+                    description={copy.packageDescription}
+                />
+                <div className="mt-10">
+                    <ServiceFunnelDeliverables items={deliverables} />
+                </div>
+            </ServiceFunnelSection>
+
+            <ServiceFunnelSection tone="soft">
+                <ServiceFunnelHeading
+                    eyebrow={copy.processEyebrow}
+                    title={localized(landingConfig.solutionTitle, locale)}
+                    description={localized(landingConfig.solution[0], locale)}
+                />
+                <div className="mt-10">
+                    <ServiceFunnelProcess items={process} />
+                </div>
+            </ServiceFunnelSection>
+
+            <ServiceFunnelSection id="reservar">
+                <ServiceFunnelHeading
+                    eyebrow={copy.bookingEyebrow}
+                    title={copy.bookingTitle}
+                    description={copy.bookingDescription}
+                />
+                <BookingWidget
+                    slots={slots}
+                    price={price}
+                    whatsapp={site.whatsapp}
+                    errors={errors}
+                    className="mt-10"
+                    checkoutRoute="drone-sessions.checkout"
+                    paymentProvider="stripe"
+                    product={product}
+                    popupVariant="drone"
+                    popupHeroProofVideo={{
+                        title: bookingProofVideo?.alt ?? copy.title,
+                        media_type: 'video',
+                        embed_url: null,
+                        playback_url: bookingProofVideo?.src ?? DRONE_SESSION_BOOKING_CLIP.src,
+                        poster_url: bookingProofVideo?.poster ?? DRONE_SESSION_BOOKING_CLIP.poster,
+                    }}
+                    highlight
+                    analyticsPayload={analyticsPayload}
+                />
+            </ServiceFunnelSection>
+
+            <ServiceFunnelSection tone="soft">
+                <ServiceFunnelHeading
+                    eyebrow={copy.faqEyebrow}
+                    title={copy.faqTitle}
+                />
+                <div className="mt-10">
+                    <ServiceFunnelFaq items={faqs} />
+                </div>
+            </ServiceFunnelSection>
+
+            <ServiceFunnelFinalCta
+                eyebrow={copy.finalEyebrow}
+                title={copy.finalTitle}
+                description={copy.finalDescription}
+                primaryAction={primaryAction('final')}
+                secondaryAction={whatsappAction('final')}
+            />
         </SiteLayout>
     );
 }
 
-function ClipCard({
-    clip,
-    copy,
+function PortfolioHeroMedia({
+    media,
+    title,
 }: {
-    clip: DroneSessionClip;
-    copy: ClipCopy;
+    media: ServicePortfolioMedia;
+    title: string;
 }) {
-    return (
-        <article className="group overflow-hidden rounded-xl border border-border/75 bg-background/80 shadow-lg shadow-black/5">
+    if (media.kind === 'video') {
+        return (
             <AutoplayVideo
-                src={clip.src}
-                poster={clip.poster}
-                title={copy.title}
-                className="aspect-video"
+                src={media.src}
+                poster={media.poster}
+                title={title}
+                eager
+                pauseWhenOffscreen={false}
+                preload="metadata"
             />
-            <div className="p-4">
-                <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-primary">
-                    {copy.useCase}
-                </p>
-                <h3 className="mt-2 text-base font-semibold text-foreground">{copy.title}</h3>
-                <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{copy.caption}</p>
-            </div>
-        </article>
+        );
+    }
+
+    return (
+        <img
+            src={media.src}
+            alt={media.alt}
+            className="h-full w-full object-cover"
+            loading="eager"
+            fetchPriority="high"
+        />
     );
 }
 
-function ProjectClipCarousel({
-    project,
-    clips,
-    copy,
-}: {
-    project: string;
-    clips: DroneSessionClip[];
-    copy: typeof DRONE_PAGE_COPY.es.clips | typeof DRONE_PAGE_COPY.en.clips;
-}) {
-    const [index, setIndex] = useState(0);
-    const clip = clips[index] ?? clips[0];
-    if (!clip) return null;
+function filterPortfolio(
+    portfolio: ServicePortfolioBundle,
+    projectKeys: string[],
+): ServicePortfolioBundle {
+    const projects = portfolio.projects.filter((project) => projectKeys.includes(project.key));
+    const media = projects.flatMap((project) => project.media);
 
-    const clipCopy = resolveClipCopy(copy, clip);
-    const navigate = (direction: number) => setIndex((current) => (current + direction + clips.length) % clips.length);
-
-    return (
-        <article className="overflow-hidden border border-white/15 bg-white/8 shadow-xl shadow-black/20">
-            <AutoplayVideo
-                key={clip.id}
-                src={clip.src}
-                poster={clip.poster}
-                title={clipCopy.title}
-                className="aspect-video rounded-none"
-            />
-            <div className="p-4">
-                <div className="flex items-center justify-between gap-4">
-                    <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-primary">{project}</p>
-                    <div className="flex items-center gap-1">
-                        <span className="mr-2 font-mono text-[10px] text-white/55">{index + 1} / {clips.length}</span>
-                        <Button type="button" size="icon" variant="outline" className="size-11 rounded-none border-white/20 bg-transparent text-white hover:bg-white hover:text-black" onClick={() => navigate(-1)} aria-label="Clip anterior">
-                            <ChevronLeft className="size-4" />
-                        </Button>
-                        <Button type="button" size="icon" variant="outline" className="size-11 rounded-none border-white/20 bg-transparent text-white hover:bg-white hover:text-black" onClick={() => navigate(1)} aria-label="Clip siguiente">
-                            <ChevronRight className="size-4" />
-                        </Button>
-                    </div>
-                </div>
-                <h3 className="mt-3 text-lg font-semibold text-white">{clipCopy.useCase}</h3>
-                <p className="mt-2 text-sm leading-relaxed text-white/72">{clipCopy.caption}</p>
-                <div className="mt-2 flex">
-                    {clips.map((item, itemIndex) => (
-                        <button
-                            key={item.id}
-                            type="button"
-                            className="group flex h-11 flex-1 items-center justify-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
-                            onClick={() => setIndex(itemIndex)}
-                            aria-label={`Ver clip ${itemIndex + 1} de ${project}`}
-                            aria-current={itemIndex === index ? 'true' : undefined}
-                        >
-                            <span className={itemIndex === index ? 'h-1.5 w-full bg-primary' : 'h-1.5 w-full bg-white/20 transition-[background-color] group-hover:bg-white/45'} />
-                        </button>
-                    ))}
-                </div>
-            </div>
-        </article>
-    );
+    return {
+        ...portfolio,
+        projects,
+        stats: {
+            mediaCount: media.length,
+            projectCount: projects.length,
+            imageCount: media.filter((item) => item.kind === 'image').length,
+            videoCount: media.filter((item) => item.kind === 'video').length,
+        },
+    };
 }
 
-function MiniMetric({ value, label }: { value: string; label: string }) {
-    return (
-        <div className="rounded-lg border border-white/15 bg-white/10 px-2 py-2">
-            <p className="font-mono-tabular text-lg font-bold text-primary">{value}</p>
-            <p className="text-[10px] uppercase tracking-[0.14em] text-white/62">{label}</p>
-        </div>
-    );
+function excludeHeroFromPortfolio(
+    portfolio: ServicePortfolioBundle,
+): ServicePortfolioBundle {
+    const projects = portfolio.projects
+        .map((project) => ({
+            ...project,
+            media: project.media.filter(
+                (item) => item.id !== portfolio.hero.id && item.src !== portfolio.hero.src,
+            ),
+        }))
+        .filter((project) => project.media.length > 0);
+    const media = projects.flatMap((project) => project.media);
+
+    return {
+        ...portfolio,
+        projects,
+        stats: {
+            mediaCount: media.length,
+            projectCount: projects.length,
+            imageCount: media.filter((item) => item.kind === 'image').length,
+            videoCount: media.filter((item) => item.kind === 'video').length,
+        },
+    };
 }
 
-function SpecPill({ icon, label }: { icon: ReactNode; label: string }) {
-    return (
-        <span className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-3 py-2 text-xs font-semibold text-white/80">
-            {icon}
-            {label}
-        </span>
-    );
+function selectDistinctBookingVideo(
+    portfolio: ServicePortfolioBundle,
+    avoidedProjectKeys: string[],
+): ServicePortfolioMedia | null {
+    const videos = portfolio.projects
+        .flatMap((project) => project.media)
+        .filter(
+            (item) => item.kind === 'video'
+                && item.id !== portfolio.hero.id
+                && item.src !== portfolio.hero.src,
+        );
+
+    return videos.find((item) => !avoidedProjectKeys.includes(item.projectKey))
+        ?? videos[0]
+        ?? null;
 }
 
 function buildWhatsAppHref(number: string, message: string): string {
