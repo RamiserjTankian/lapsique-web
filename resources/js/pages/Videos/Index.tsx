@@ -2,6 +2,7 @@ import { Link, usePage } from '@inertiajs/react';
 import { Play } from 'lucide-react';
 import { PaginationLinks } from '@/components/lapsique/PaginationLinks';
 import { SeoHead } from '@/components/lapsique/SeoHead';
+import { EditorialVideoPlayer } from '@/components/lapsique/EditorialVideoPlayer';
 import SiteLayout from '@/layouts/SiteLayout';
 import { useTranslations } from '@/hooks/useTranslations';
 import { route } from '@/lib/route';
@@ -69,7 +70,14 @@ export default function VideosIndex({ featuredVideo, videos, aftermovies }: Vide
                             {aftermovies.map((item) => (
                                 <article key={item.id} className="border border-white/20 bg-black">
                                     {item.playback_url ? (
-                                        <video src={item.playback_url} poster={item.poster_url ?? undefined} controls playsInline preload="none" className="aspect-video w-full object-cover" />
+                                        <EditorialVideoPlayer
+                                            src={item.playback_url}
+                                            poster={item.poster_url}
+                                            title={item.title || (en ? 'Lapsique aftermovie' : 'Aftermovie de Lapsique')}
+                                            className="aspect-video w-full"
+                                            videoClassName="aspect-video w-full object-cover"
+                                            preload="metadata"
+                                        />
                                     ) : item.poster_url || item.asset_url ? (
                                         <img src={item.poster_url || item.asset_url || ''} alt={item.title || 'Lapsique aftermovie'} loading="lazy" className="aspect-video w-full object-cover" />
                                     ) : null}

@@ -767,7 +767,7 @@ export function BookingWidget({
                                         ref={timeSectionRef}
                                         id="booking-step-horario"
                                         className={cn(
-                                            'scroll-mt-4 space-y-4 border bg-muted/40 p-4 transition-all',
+                                            'scroll-mt-4 space-y-4 border bg-muted/40 p-4 transition-[background-color,border-color,box-shadow,opacity]',
                                             isTimeStepAwaitingSelection
                                                 ? [
                                                     bookingStepActiveSectionClasses,
@@ -810,7 +810,7 @@ export function BookingWidget({
                                                             size="lg"
                                                             aria-pressed={isSelected}
                                                             className={cn(
-                                                                'h-12 justify-between rounded-xl px-4 text-base transition-all',
+                                                                'h-12 justify-between rounded-xl px-4 text-base transition-[background-color,color,border-color,box-shadow,transform]',
                                                                 isSelected
                                                                     ? bookingSlotSelectedClasses
                                                                     : isTimeStepAwaitingSelection

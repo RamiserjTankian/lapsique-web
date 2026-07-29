@@ -147,7 +147,7 @@ function Breadcrumbs({ config, locale }: { config: LandingConfig; locale: string
         <nav aria-label={locale === 'en' ? 'Breadcrumb' : 'Migas de pan'} className="text-sm text-muted-foreground">
             <ol className="flex flex-wrap items-center gap-2">
                 <li>
-                    <a href="/" className="transition hover:text-foreground">
+                    <a href="/" className="inline-flex min-h-11 items-center transition-[color] duration-150 hover:text-foreground motion-reduce:transition-none">
                         {locale === 'en' ? 'Home' : 'Inicio'}
                     </a>
                 </li>

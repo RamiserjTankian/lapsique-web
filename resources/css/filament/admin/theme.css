@@ -37,28 +37,27 @@ body.fi-body {
 body.fi-panel-admin .fi-logo {
     color: #050505;
     font-family: 'Gotham TDL', ui-sans-serif, system-ui, sans-serif;
-    font-size: clamp(1.45rem, 4vw, 2.35rem);
+    font-size: clamp(1.35rem, 4vw, 2.15rem);
     font-weight: 900;
-    letter-spacing: 0;
-    line-height: 0.9;
-    text-transform: uppercase;
+    letter-spacing: -0.045em;
+    line-height: 1;
 }
 
 body.fi-panel-admin .fi-simple-layout {
     min-height: 100vh;
     background:
-        linear-gradient(90deg, transparent 0, transparent calc(100% - 1px), rgba(0, 0, 0, 0.08) calc(100% - 1px)) 0 0 / 64px 64px,
+        linear-gradient(90deg, transparent 0, transparent calc(100% - 1px), rgba(0, 0, 0, 0.06) calc(100% - 1px)) 0 0 / 64px 64px,
         #f7f7f5;
 }
 
 body.fi-panel-admin .fi-simple-layout::before {
-    content: 'TRASCENDENTAL.';
+    content: 'LAPSIQUE MEDIA';
     position: fixed;
     left: clamp(1rem, 4vw, 3rem);
     top: clamp(1rem, 4vw, 3rem);
     z-index: 0;
     max-width: 92vw;
-    color: rgba(0, 0, 0, 0.045);
+    color: rgba(230, 92, 0, 0.07);
     font-size: clamp(4rem, 16vw, 16rem);
     font-weight: 900;
     line-height: 0.82;
@@ -75,7 +74,7 @@ body.fi-panel-admin .fi-simple-main {
     border: 1px solid #050505;
     border-radius: 0;
     background: rgba(247, 247, 245, 0.94);
-    box-shadow: 20px 20px 0 #050505;
+    box-shadow: 16px 16px 0 #050505;
 }
 
 body.fi-panel-admin .fi-simple-header {
@@ -113,11 +112,19 @@ body.fi-panel-admin .fi-select-input {
     min-height: 2.875rem;
     background: #ffffff;
     color: #050505;
+    font-size: 1rem;
+}
+
+@media (min-width: 768px) {
+    body.fi-panel-admin .fi-input,
+    body.fi-panel-admin .fi-select-input {
+        font-size: 0.875rem;
+    }
 }
 
 body.fi-panel-admin .fi-input-wrp:focus-within {
-    border-color: #050505;
-    box-shadow: 4px 4px 0 #050505 !important;
+    border-color: #e65c00;
+    box-shadow: 4px 4px 0 #e65c00 !important;
 }
 
 body.fi-panel-admin .fi-input::placeholder {
@@ -126,6 +133,8 @@ body.fi-panel-admin .fi-input::placeholder {
 
 body.fi-panel-admin .fi-input-wrp .fi-icon-btn {
     color: #050505;
+    min-height: 2.75rem;
+    min-width: 2.75rem;
 }
 
 body.fi-panel-admin .fi-fo-field-wrp-label span {
@@ -144,18 +153,18 @@ body.fi-panel-admin .fi-btn {
 }
 
 body.fi-panel-admin .fi-btn.fi-color-primary {
-    background: #050505;
+    background: #e65c00;
     color: #ffffff;
     box-shadow: none;
 }
 
 body.fi-panel-admin .fi-btn.fi-color-primary:hover {
-    background: #2b2b2b;
+    background: #b94800;
 }
 
 body.fi-panel-admin .fi-checkbox-input:checked {
-    background-color: #050505;
-    border-color: #050505;
+    background-color: #e65c00;
+    border-color: #e65c00;
 }
 
 body.fi-panel-admin .fi-sidebar,

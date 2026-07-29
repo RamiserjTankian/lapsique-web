@@ -88,7 +88,7 @@ export function StickyBookingBar({ whatsapp, className }: StickyBookingBarProps)
                     href={whatsappHref}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-[#25D366] text-white shadow-[0_12px_40px_oklch(0.55_0.18_145/0.45)] transition hover:scale-105 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#25D366] focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+                    className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-[#25D366] text-[#04150a] shadow-[0_12px_40px_oklch(0.55_0.18_145/0.45)] transition-[background-color,color,transform,box-shadow] duration-150 hover:scale-105 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#25D366] focus-visible:ring-offset-2 focus-visible:ring-offset-background motion-reduce:transition-none"
                     aria-label={t('common.whatsapp.open')}
                 >
                     <svg viewBox="0 0 24 24" className="h-7 w-7 fill-current" aria-hidden>

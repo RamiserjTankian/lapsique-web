@@ -110,7 +110,7 @@ export function WhatsAppFab() {
             target="_blank"
             rel="noopener noreferrer"
             onClick={trackClick}
-            className="fixed bottom-[calc(1rem+env(safe-area-inset-bottom,0px))] right-4 z-50 flex h-14 w-14 items-center justify-center rounded-full bg-[#25D366] text-white shadow-[0_12px_34px_oklch(0.55_0.18_145/0.32)] transition hover:scale-105 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#25D366] focus-visible:ring-offset-2 focus-visible:ring-offset-background sm:bottom-6 sm:right-6"
+            className="fixed bottom-[calc(1rem+env(safe-area-inset-bottom,0px))] right-4 z-50 flex h-14 w-14 items-center justify-center rounded-full bg-[#25D366] text-[#04150a] shadow-[0_12px_34px_oklch(0.55_0.18_145/0.32)] transition-[background-color,color,transform,box-shadow] duration-150 hover:scale-105 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#25D366] focus-visible:ring-offset-2 focus-visible:ring-offset-background motion-reduce:transition-none sm:bottom-6 sm:right-6"
             aria-label={isTrascendental ? t('trascendental.whatsapp.community_open') : t('common.whatsapp.open')}
         >
             <svg viewBox="0 0 24 24" className="h-7 w-7 fill-current" aria-hidden>

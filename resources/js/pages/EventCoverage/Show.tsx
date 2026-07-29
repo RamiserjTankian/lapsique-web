@@ -269,7 +269,7 @@ export default function EventCoverageShow({
                                 <CalendarDays className="size-5" />
                                 {copy.bookCta}
                             </BookingCtaButton>
-                            <Button variant="default" size="xl" className="w-full rounded-none border border-[#25D366] bg-[#25D366] text-white hover:bg-[#1ebe5d] hover:text-white" asChild>
+                            <Button variant="default" size="xl" className="w-full rounded-none border border-[#25D366] bg-[#25D366] text-[#04150a] hover:bg-[#1ebe5d] hover:text-[#04150a]" asChild>
                                 <a href={whatsappHref} target="_blank" rel="noopener noreferrer" onClick={() => trackWhatsApp('hero')}>
                                     <MessageCircle className="size-5" />
                                     {copy.whatsappCta}
@@ -390,7 +390,7 @@ export default function EventCoverageShow({
                             <CalendarDays className="size-5" />
                             {copy.bookCta}
                         </BookingCtaButton>
-                        <Button variant="default" size="xl" className="w-full rounded-none border border-[#25D366] bg-[#25D366] text-white hover:bg-[#1ebe5d] hover:text-white" asChild>
+                        <Button variant="default" size="xl" className="w-full rounded-none border border-[#25D366] bg-[#25D366] text-[#04150a] hover:bg-[#1ebe5d] hover:text-[#04150a]" asChild>
                             <a href={whatsappHref} target="_blank" rel="noopener noreferrer" onClick={() => trackWhatsApp('final')}><MessageCircle className="size-5" />{copy.whatsappCta}</a>
                         </Button>
                     </div>

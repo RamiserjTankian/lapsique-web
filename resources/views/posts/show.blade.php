@@ -63,7 +63,7 @@
 @endpush
 
     <div class="mb-6">
-        <a href="{{ route('posts.index') }}" class="inline-flex items-center gap-2 text-gray-400 hover:text-white transition-colors group">
+        <a href="{{ route('posts.index') }}" class="group inline-flex min-h-11 items-center gap-2 text-gray-400 transition-colors hover:text-primary">
             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 transition-transform group-hover:-translate-x-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
             </svg>
@@ -89,7 +89,7 @@
             <h1 class="text-3xl md:text-5xl font-bold text-white mb-4 leading-tight drop-shadow-lg">{{ $post->title }}</h1>
             <div class="flex flex-wrap items-center gap-3 md:gap-5">
                 <div class="flex items-center gap-2 bg-black/50 backdrop-blur-sm px-4 py-2 rounded-full">
-                    <div class="h-8 w-8 rounded-full bg-gradient-to-br from-primary-500 to-primary-700 flex items-center justify-center text-white text-xs font-bold">
+                    <div class="flex h-8 w-8 items-center justify-center bg-primary text-xs font-bold text-white">
                         {{ strtoupper(substr($post->author->name ?? 'A', 0, 1)) }}
                     </div>
                     <span class="text-sm font-medium text-white">{{ $post->author->name ?? 'Admin' }}</span>
@@ -113,7 +113,7 @@
 
     <article class="card p-8 space-y-6">
         @if ($post->excerpt)
-            <div class="text-xl text-gray-200 leading-relaxed font-semibold border-l-4 border-primary-500 pl-6 py-2 bg-primary-500/5 rounded-r-lg">
+            <div class="border-l-4 border-primary bg-primary/5 py-2 pl-6 text-xl font-semibold leading-relaxed text-gray-200">
                 {!! nl2br(e($post->excerpt)) !!}
             </div>
         @endif
@@ -121,11 +121,11 @@
         <div class="prose prose-invert prose-lg max-w-none 
                     prose-headings:text-white prose-headings:font-bold
                     prose-p:text-gray-300 prose-p:leading-relaxed
-                    prose-a:text-primary-400 prose-a:no-underline hover:prose-a:text-primary-300
+                    prose-a:text-primary prose-a:no-underline hover:prose-a:text-orange-300
                     prose-strong:text-white prose-strong:font-semibold
                     prose-ul:text-gray-300 prose-ol:text-gray-300
-                    prose-blockquote:border-l-primary-500 prose-blockquote:bg-primary-500/5 prose-blockquote:text-gray-200
-                    prose-code:text-primary-400 prose-code:bg-white/5 prose-code:px-1.5 prose-code:py-0.5 prose-code:rounded
+                    prose-blockquote:border-l-primary prose-blockquote:bg-primary/5 prose-blockquote:text-gray-200
+                    prose-code:text-primary prose-code:bg-white/5 prose-code:px-1.5 prose-code:py-0.5
                     prose-pre:bg-black/40 prose-pre:border prose-pre:border-white/10">
             {!! $post->content !!}
         </div>
@@ -166,7 +166,7 @@
                             @endif
                         </div>
                         <div class="px-5 py-4 space-y-3">
-                            <h3 class="text-lg font-bold text-white line-clamp-2 leading-tight group-hover:text-primary-400 transition-colors">
+                            <h3 class="text-lg font-bold text-white line-clamp-2 leading-tight transition-colors group-hover:text-primary">
                                 {{ $relatedPost->title }}
                             </h3>
                             <div class="flex items-center justify-between text-xs text-gray-400 pt-2 border-t border-white/5">

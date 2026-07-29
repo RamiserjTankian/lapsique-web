@@ -721,23 +721,26 @@ function HeroMediaCarousel({
 
             {media.length > 1 ? (
                 <div className="absolute inset-x-5 bottom-5 z-10 flex items-center justify-between gap-4 border-t border-white/25 pt-4 sm:bottom-8 sm:left-8 sm:right-24">
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center">
                         {media.map((item, index) => (
                             <button
                                 key={item.id}
                                 type="button"
-                                className={index === activeIndex ? 'h-1.5 w-8 bg-primary' : 'h-1.5 w-4 bg-white/45 transition hover:bg-white'}
+                                className="group flex h-11 w-7 items-center justify-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
                                 onClick={() => setActiveIndex(index)}
                                 aria-label={`Ver ${item.kind === 'video' ? 'video' : 'fotografía'} ${index + 1}`}
-                            />
+                                aria-current={index === activeIndex ? 'true' : undefined}
+                            >
+                                <span className={index === activeIndex ? 'h-1.5 w-5 bg-primary transition-[width,background-color]' : 'h-1.5 w-3 bg-white/45 transition-[width,background-color] group-hover:bg-white'} />
+                            </button>
                         ))}
                     </div>
                     <div className="flex items-center gap-2">
                         <span className="alpha-kicker mr-2 text-white/75">{active?.kind === 'video' ? 'VIDEO' : 'FOTO'} · {activeIndex + 1}/{media.length}</span>
-                        <button type="button" className="flex size-9 items-center justify-center border border-white/35 bg-black/45 text-white transition hover:border-primary hover:bg-primary" onClick={() => navigate(-1)} aria-label="Anterior">
+                        <button type="button" className="flex size-11 items-center justify-center border border-white/35 bg-black/45 text-white transition-[background-color,border-color,transform] hover:border-primary hover:bg-primary active:scale-[0.96] motion-reduce:transition-none" onClick={() => navigate(-1)} aria-label="Anterior">
                             <ChevronLeft className="size-4" />
                         </button>
-                        <button type="button" className="flex size-9 items-center justify-center border border-white/35 bg-black/45 text-white transition hover:border-primary hover:bg-primary" onClick={() => navigate(1)} aria-label="Siguiente">
+                        <button type="button" className="flex size-11 items-center justify-center border border-white/35 bg-black/45 text-white transition-[background-color,border-color,transform] hover:border-primary hover:bg-primary active:scale-[0.96] motion-reduce:transition-none" onClick={() => navigate(1)} aria-label="Siguiente">
                             <ChevronRight className="size-4" />
                         </button>
                     </div>

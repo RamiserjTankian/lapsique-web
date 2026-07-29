@@ -8,13 +8,14 @@ import './analytics';
 import './pixel';
 
 const appName = 'Lapsique Media';
+const standaloneBrands = [appName, 'Trascendentalby'];
 
 function formatDocumentTitle(title?: string): string {
     if (!title) {
         return appName;
     }
 
-    if (title.includes(appName)) {
+    if (standaloneBrands.some((brand) => title.includes(brand))) {
         return title;
     }
 

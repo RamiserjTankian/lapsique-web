@@ -348,7 +348,7 @@ export default function MultiCameraShow({
                             </BookingCtaButton>
                             <Button
                                 size="xl"
-                                className="h-14 rounded-none border border-[#25D366] bg-[#25D366] px-6 text-white hover:bg-[#1ebe5d] hover:text-white"
+                                className="h-14 rounded-none border border-[#25D366] bg-[#25D366] px-6 text-[#04150a] hover:bg-[#1ebe5d] hover:text-[#04150a]"
                                 asChild
                             >
                                 <a href={whatsappHref} target="_blank" rel="noopener noreferrer" onClick={() => trackWhatsApp('hero')}>
@@ -473,7 +473,7 @@ export default function MultiCameraShow({
                                 {copy.book}
                                 <ArrowRight className="size-5" />
                             </BookingCtaButton>
-                            <Button size="xl" className="h-14 w-full rounded-none border border-[#25D366] bg-[#25D366] text-white hover:bg-[#1ebe5d] hover:text-white" asChild>
+                            <Button size="xl" className="h-14 w-full rounded-none border border-[#25D366] bg-[#25D366] text-[#04150a] hover:bg-[#1ebe5d] hover:text-[#04150a]" asChild>
                                 <a href={whatsappHref} target="_blank" rel="noopener noreferrer" onClick={() => trackWhatsApp('package')}>
                                     <MessageCircle className="size-5" />
                                     {copy.whatsapp}
@@ -536,7 +536,7 @@ export default function MultiCameraShow({
                             <CalendarDays className="size-5" />
                             {copy.book}
                         </BookingCtaButton>
-                        <Button size="xl" className="h-14 w-full rounded-none border border-[#25D366] bg-[#25D366] text-white hover:bg-[#1ebe5d] hover:text-white" asChild>
+                        <Button size="xl" className="h-14 w-full rounded-none border border-[#25D366] bg-[#25D366] text-[#04150a] hover:bg-[#1ebe5d] hover:text-[#04150a]" asChild>
                             <a href={whatsappHref} target="_blank" rel="noopener noreferrer" onClick={() => trackWhatsApp('final')}>
                                 <MessageCircle className="size-5" />
                                 {copy.whatsapp}
@@ -941,7 +941,7 @@ function CustomVideoCarousel({
                         </div>
 
                         {videos.length > 1 ? (
-                            <div className="mt-4 flex items-center gap-2 overflow-x-auto pb-1" aria-label={copy.goToVideo}>
+                            <div className="mt-2 flex items-center overflow-x-auto" aria-label={copy.goToVideo}>
                                 {videos.map((video, index) => (
                                     <button
                                         key={video.id}
@@ -949,10 +949,14 @@ function CustomVideoCarousel({
                                         onClick={() => goTo(index, 'index')}
                                         aria-label={`${copy.goToVideo} ${index + 1}`}
                                         aria-current={index === activeIndex ? 'true' : undefined}
-                                        className={`h-1.5 min-w-8 flex-1 rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary ${
-                                            index === activeIndex ? 'bg-primary' : 'bg-white/25 hover:bg-white/55'
-                                        }`}
-                                    />
+                                        className="group flex h-11 min-w-10 flex-1 items-center justify-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                                    >
+                                        <span
+                                            className={`h-1.5 w-full rounded-full transition-[background-color] duration-150 ${
+                                                index === activeIndex ? 'bg-primary' : 'bg-white/25 group-hover:bg-white/55'
+                                            }`}
+                                        />
+                                    </button>
                                 ))}
                             </div>
                         ) : null}

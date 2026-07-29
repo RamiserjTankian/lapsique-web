@@ -192,6 +192,124 @@
 }
 
 @layer components {
+    /*
+     * Compatibility layer for the remaining Blade surfaces (blog, ticketing,
+     * guest list and customer portal). These classes intentionally mirror the
+     * flat Sony/editorial language used by the Inertia site.
+     */
+    .bg-ink {
+        background: #07090b;
+    }
+
+    .card {
+        border: 1px solid rgb(255 255 255 / 0.16);
+        border-radius: 0;
+        background: #111416;
+        color: rgb(255 255 255 / 0.92);
+        box-shadow: none;
+    }
+
+    .card-animated {
+        transition: border-color 160ms ease, background-color 160ms ease, transform 160ms ease;
+    }
+
+    .card-animated:hover,
+    .card-animated:focus-visible {
+        border-color: var(--primary);
+        background: #15191c;
+        transform: translateY(-2px);
+    }
+
+    .pill {
+        display: inline-flex;
+        width: max-content;
+        align-items: center;
+        font-family: var(--font-mono);
+        font-size: 0.68rem;
+        font-weight: 500;
+        letter-spacing: 0.18em;
+        text-transform: uppercase;
+        color: var(--primary);
+    }
+
+    .btn {
+        display: inline-flex;
+        min-height: 2.75rem;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+        border: 1px solid transparent;
+        border-radius: 0;
+        padding: 0.65rem 1rem;
+        font-family: var(--font-ui-display);
+        font-size: 0.75rem;
+        font-weight: 700;
+        letter-spacing: 0.08em;
+        line-height: 1;
+        text-transform: uppercase;
+        transition: border-color 150ms ease, background-color 150ms ease, color 150ms ease, transform 150ms ease;
+    }
+
+    .btn:hover {
+        transform: translateY(-1px);
+    }
+
+    .btn:active {
+        transform: scale(0.96);
+    }
+
+    .btn:focus-visible {
+        outline: 2px solid var(--primary);
+        outline-offset: 2px;
+    }
+
+    .btn-primary,
+    .btn-aggressive {
+        border-color: var(--primary);
+        background: var(--primary);
+        color: #fff;
+    }
+
+    .btn-primary:hover,
+    .btn-aggressive:hover {
+        border-color: #f0793b;
+        background: #f0793b;
+    }
+
+    .btn-outline {
+        border-color: rgb(255 255 255 / 0.32);
+        background: transparent;
+        color: rgb(255 255 255 / 0.9);
+    }
+
+    .btn-outline:hover {
+        border-color: var(--primary);
+        color: var(--primary);
+    }
+
+    .btn-ghost {
+        border-color: transparent;
+        background: transparent;
+        color: rgb(255 255 255 / 0.72);
+    }
+
+    .btn-ghost:hover {
+        color: var(--primary);
+    }
+
+    .nav-link {
+        display: inline-flex;
+        min-height: 2.75rem;
+        align-items: center;
+        color: rgb(255 255 255 / 0.68);
+        transition: color 150ms ease;
+    }
+
+    .nav-link:hover,
+    .nav-link:focus-visible {
+        color: var(--primary);
+    }
+
     .premium-modal-image {
         @apply object-cover transition-transform duration-700;
     }
@@ -200,6 +318,21 @@
         .group:hover .premium-modal-image,
         [data-slot='dialog-content']:focus-within .premium-modal-image {
             transform: scale(1.02);
+        }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        .card-animated,
+        .btn,
+        .nav-link {
+            transition: none;
+        }
+
+        .card-animated:hover,
+        .card-animated:focus-visible,
+        .btn:hover,
+        .btn:active {
+            transform: none;
         }
     }
 }
@@ -298,14 +431,14 @@
 .lapsique-site a[href*="wa.me"]:not([data-whatsapp-prompt="true"]) {
     border-color: #25d366 !important;
     background-color: #25d366 !important;
-    color: #ffffff !important;
+    color: #04150a !important;
     box-shadow: none !important;
 }
 
 .lapsique-site a[href*="wa.me"]:not([data-whatsapp-prompt="true"]):hover {
     border-color: #1ebe5d !important;
     background-color: #1ebe5d !important;
-    color: #ffffff !important;
+    color: #04150a !important;
 }
 
 .font-mono-tabular {
@@ -719,17 +852,23 @@ video[data-lapsique-autoplay]::-webkit-media-controls-play-button {
 }
 
 .multicam-video-control-range {
-    height: 0.25rem;
+    height: 2.75rem;
     cursor: pointer;
     appearance: none;
+    background: transparent;
+    accent-color: var(--primary);
+}
+
+.multicam-video-control-range::-webkit-slider-runnable-track {
+    height: 0.25rem;
     border-radius: 999px;
     background: linear-gradient(to right, var(--primary) 0%, var(--primary) var(--progress, 0%), rgb(255 255 255 / 0.28) var(--progress, 0%), rgb(255 255 255 / 0.28) 100%);
-    accent-color: var(--primary);
 }
 
 .multicam-video-control-range::-webkit-slider-thumb {
     width: 0.75rem;
     height: 0.75rem;
+    margin-top: -0.25rem;
     appearance: none;
     border: 2px solid #050607;
     border-radius: 999px;
@@ -744,6 +883,12 @@ video[data-lapsique-autoplay]::-webkit-media-controls-play-button {
     border-radius: 999px;
     background: var(--primary);
     box-shadow: 0 0 0 1px var(--primary);
+}
+
+.multicam-video-control-range::-moz-range-track {
+    height: 0.25rem;
+    border-radius: 999px;
+    background: linear-gradient(to right, var(--primary) 0%, var(--primary) var(--progress, 0%), rgb(255 255 255 / 0.28) var(--progress, 0%), rgb(255 255 255 / 0.28) 100%);
 }
 
 .multicam-video-control-range:disabled {

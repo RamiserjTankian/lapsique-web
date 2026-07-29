@@ -34,7 +34,7 @@ export function EventTeaser({ event, index = 0 }: EventTeaserProps) {
                 href={route('events.show', { event: event.slug }, false, ziggy)}
                 className={cn(
                     glassCardVariants(),
-                    'group flex gap-4 overflow-hidden p-3 transition-all duration-300',
+                    'group flex gap-4 overflow-hidden p-3 transition-[background-color,color,border-color,box-shadow,transform] duration-300',
                     'hover:shadow-[0_8px_32px_oklch(0_0_0/0.35)] hover:border-primary/20',
                 )}
             >

@@ -19,7 +19,7 @@ export function SeoHead({ seo: override }: SeoHeadProps) {
     const headKey = (key: string) => ({ 'head-key': key });
 
     return (
-        <Head title={seo.title}>
+        <Head title={seo.metaTitle || seo.title}>
             <meta {...headKey('meta-title')} name="title" content={seo.metaTitle} />
             <meta {...headKey('description')} name="description" content={seo.description} />
             <meta {...headKey('robots')} name="robots" content={seo.noindex ? 'noindex, nofollow' : 'index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1'} />

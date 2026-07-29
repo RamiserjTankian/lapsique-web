@@ -419,7 +419,7 @@ export default function FoodReelsShow({ price, slots, errors }: FoodReelsShowPro
                             <Button
                                 variant="default"
                                 size="xl"
-                                className="min-h-12 w-full min-w-0 rounded-none border border-[#25D366] bg-[#25D366] px-4 text-sm text-white whitespace-normal hover:bg-[#1ebe5d] hover:text-white sm:text-base"
+                                className="min-h-12 w-full min-w-0 rounded-none border border-[#25D366] bg-[#25D366] px-4 text-sm text-[#04150a] whitespace-normal hover:bg-[#1ebe5d] hover:text-[#04150a] sm:text-base"
                                 asChild
                             >
                                 <a href={whatsappHref} target="_blank" rel="noopener noreferrer" onClick={() => trackWhatsApp('hero')}>
@@ -565,7 +565,7 @@ export default function FoodReelsShow({ price, slots, errors }: FoodReelsShowPro
                             <Button
                                 variant="default"
                                 size="xl"
-                                className="min-h-13 w-full rounded-none bg-[#25D366] px-5 text-white hover:bg-[#1ebe5d] hover:text-white"
+                                className="min-h-13 w-full rounded-none bg-[#25D366] px-5 text-[#04150a] hover:bg-[#1ebe5d] hover:text-[#04150a]"
                                 asChild
                             >
                                 <a

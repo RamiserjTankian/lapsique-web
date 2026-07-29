@@ -254,7 +254,7 @@ export default function ContentCreationShow({
                 </div>
             </section>
 
-            <section id="agenda" className="scroll-mt-24 border-t border-border py-16 sm:py-20">
+            <section id="request" className="scroll-mt-24 border-t border-border py-16 sm:py-20">
                 <div className="mb-8 max-w-3xl">
                     <h2 className="font-display text-4xl font-bold leading-none text-foreground sm:text-5xl">{copy.bookingTitle}</h2>
                     <p className="mt-4 text-base leading-relaxed text-muted-foreground">{copy.bookingCopy}</p>

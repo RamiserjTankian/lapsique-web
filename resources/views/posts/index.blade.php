@@ -124,7 +124,7 @@
                         </div>
                     </div>
                     <div class="px-6 py-5 space-y-3 flex-1 flex flex-col">
-                        <h3 class="text-xl font-bold text-white line-clamp-2 leading-tight group-hover:text-primary-400 transition-colors">
+                        <h3 class="text-xl font-bold text-white line-clamp-2 leading-tight transition-colors group-hover:text-primary">
                             {{ $post->title }}
                         </h3>
                         @if ($post->excerpt)
@@ -132,7 +132,7 @@
                         @endif
                         <div class="pt-3 border-t border-white/5 flex items-center justify-between">
                             <div class="flex items-center gap-2">
-                                <div class="h-8 w-8 rounded-full bg-gradient-to-br from-primary-500 to-primary-700 flex items-center justify-center text-white text-xs font-bold">
+                                <div class="flex h-8 w-8 items-center justify-center bg-primary text-xs font-bold text-white">
                                     {{ strtoupper(substr($post->author->name ?? 'A', 0, 1)) }}
                                 </div>
                                 <div class="flex flex-col">
@@ -140,7 +140,7 @@
                                     <span class="text-xs text-gray-500">{{ optional($post->published_at)->format('d M Y') ?? 'Fecha' }}</span>
                                 </div>
                             </div>
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-600 group-hover:text-primary-400 transition-colors group-hover:translate-x-1 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-600 transition-[color,transform] group-hover:translate-x-1 group-hover:text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
                             </svg>
                         </div>

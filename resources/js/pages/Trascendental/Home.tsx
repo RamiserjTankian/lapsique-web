@@ -207,7 +207,11 @@ export default function Home({ tours, producedEvents }: HomeProps) {
                 <div className="relative px-4 pb-8 pt-7 sm:px-6 lg:px-8">
                     <div className="mx-auto grid min-h-[min(680px,calc(100svh-5rem))] max-w-[1500px] content-between gap-12">
                         <div className="flex items-center justify-end gap-4 border-b border-white/20 pb-4 text-[0.7rem] font-bold uppercase text-white/68">
-                            <button type="button" onClick={toggleSound} className="inline-flex items-center gap-2">
+                            <button
+                                type="button"
+                                onClick={toggleSound}
+                                className="inline-flex min-h-11 items-center gap-2 px-2 transition-[color,transform] duration-150 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white active:scale-[0.96] motion-reduce:transition-none"
+                            >
                                 {soundEnabled ? <Volume2 className="h-4 w-4" /> : <VolumeX className="h-4 w-4" />}
                                 {soundEnabled ? c.soundOn : c.soundOff}
                             </button>
@@ -515,7 +519,7 @@ function JoinListForm({ labels, mode }: { labels: Record<string, string>; mode: 
             </button>
             {status === 'success' ? (
                 <div
-                    className={`border border-black bg-white px-4 py-3 text-sm font-bold uppercase leading-relaxed text-black transition-all duration-700 ${successVisible ? 'translate-y-0 opacity-100' : 'translate-y-2 opacity-0'}`}
+                    className={`border border-black bg-white px-4 py-3 text-sm font-bold uppercase leading-relaxed text-black transition-[transform,opacity] duration-700 ${successVisible ? 'translate-y-0 opacity-100' : 'translate-y-2 opacity-0'}`}
                     aria-live="polite"
                 >
                     {typedSuccessMessage}

@@ -133,7 +133,7 @@ export function WhatsAppCaptureModal({
                 <div className="space-y-3">
                     <Button
                         asChild
-                        className="w-full bg-[#25D366] text-white hover:bg-[#20bd5a]"
+                        className="w-full bg-[#25D366] text-[#04150a] hover:bg-[#20bd5a] hover:text-[#04150a]"
                     >
                         <a
                             href={whatsappHref}

@@ -16,7 +16,7 @@ export function LanguageToggle({ className }: { className?: string }) {
     return (
         <div
             className={cn(
-                'inline-flex items-center rounded-lg border border-border/80 bg-muted/40 p-0.5 text-xs font-medium',
+                'inline-flex items-center border border-border/80 bg-muted/40 p-0.5 text-xs font-medium',
                 className,
             )}
             role="group"
@@ -31,7 +31,7 @@ export function LanguageToggle({ className }: { className?: string }) {
                         href={route('locale.switch', { locale: code }, false, ziggy)}
                         preserveScroll
                         className={cn(
-                            'min-w-[2rem] rounded-md px-2 py-1 text-center transition-colors',
+                            'inline-flex min-h-11 min-w-11 items-center justify-center px-2 text-center transition-[background-color,color,transform] duration-150 active:scale-[0.96] motion-reduce:transition-none',
                             active
                                 ? 'bg-background text-foreground shadow-sm'
                                 : 'text-muted-foreground hover:text-foreground',

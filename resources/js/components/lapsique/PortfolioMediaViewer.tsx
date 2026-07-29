@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { VideoLoadingCover } from '@/components/lapsique/VideoLoadingCover';
+import { EditorialVideoPlayer } from '@/components/lapsique/EditorialVideoPlayer';
 import { cn } from '@/lib/utils';
 import { useTranslations } from '@/hooks/useTranslations';
 import type { PortfolioItemData } from '@/types';
@@ -46,18 +47,15 @@ export function PortfolioMediaViewer({ item, className }: PortfolioMediaViewerPr
                         eager
                     />
                 )}
-                <video
+                <EditorialVideoPlayer
                     key={item.id}
                     src={item.playback_url}
-                    poster={item.poster_url ?? undefined}
-                    controls
+                    poster={item.poster_url}
+                    title={item.title ?? portfolioVideoTitle}
                     autoPlay
                     muted
-                    playsInline
                     preload="metadata"
-                    onLoadedData={() => setIsLoaded(true)}
-                    onCanPlay={() => setIsLoaded(true)}
-                    onPlaying={() => setIsLoaded(true)}
+                    onReady={() => setIsLoaded(true)}
                     className={cn(
                         className ?? 'max-h-[75vh] w-full rounded-xl bg-black',
                         isLoaded ? 'opacity-100' : 'opacity-0',

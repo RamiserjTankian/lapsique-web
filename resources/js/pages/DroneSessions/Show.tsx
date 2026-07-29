@@ -504,7 +504,7 @@ export default function DroneSessionsShow({ price, slots, errors }: DroneSession
                                 <Button
                                     variant="default"
                                     size="xl"
-                                    className="h-auto min-h-14 w-full gap-2 rounded-xl border border-[#25D366]/70 bg-[#25D366] px-5 text-center text-sm font-bold leading-tight text-white shadow-[0_16px_42px_oklch(0.66_0.18_145/0.34)] transition hover:-translate-y-0.5 hover:bg-[#1EBE5D] hover:text-white hover:shadow-[0_18px_52px_oklch(0.66_0.18_145/0.46)] focus-visible:ring-[#25D366]/45 motion-safe:animate-[drone-whatsapp-cta_3.2s_ease-in-out_infinite] sm:text-base"
+                                    className="h-auto min-h-14 w-full gap-2 rounded-xl border border-[#25D366]/70 bg-[#25D366] px-5 text-center text-sm font-bold leading-tight text-[#04150a] shadow-[0_16px_42px_oklch(0.66_0.18_145/0.34)] transition-[background-color,color,transform,box-shadow] duration-150 hover:-translate-y-0.5 hover:bg-[#1EBE5D] hover:text-[#04150a] hover:shadow-[0_18px_52px_oklch(0.66_0.18_145/0.46)] focus-visible:ring-[#25D366]/45 motion-reduce:transition-none motion-safe:animate-[drone-whatsapp-cta_3.2s_ease-in-out_infinite] sm:text-base"
                                     asChild
                                 >
                                     <a
@@ -799,25 +799,28 @@ function ProjectClipCarousel({
                     <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-primary">{project}</p>
                     <div className="flex items-center gap-1">
                         <span className="mr-2 font-mono text-[10px] text-white/55">{index + 1} / {clips.length}</span>
-                        <Button type="button" size="icon" variant="outline" className="size-8 rounded-none border-white/20 bg-transparent text-white hover:bg-white hover:text-black" onClick={() => navigate(-1)} aria-label="Clip anterior">
+                        <Button type="button" size="icon" variant="outline" className="size-11 rounded-none border-white/20 bg-transparent text-white hover:bg-white hover:text-black" onClick={() => navigate(-1)} aria-label="Clip anterior">
                             <ChevronLeft className="size-4" />
                         </Button>
-                        <Button type="button" size="icon" variant="outline" className="size-8 rounded-none border-white/20 bg-transparent text-white hover:bg-white hover:text-black" onClick={() => navigate(1)} aria-label="Clip siguiente">
+                        <Button type="button" size="icon" variant="outline" className="size-11 rounded-none border-white/20 bg-transparent text-white hover:bg-white hover:text-black" onClick={() => navigate(1)} aria-label="Clip siguiente">
                             <ChevronRight className="size-4" />
                         </Button>
                     </div>
                 </div>
                 <h3 className="mt-3 text-lg font-semibold text-white">{clipCopy.useCase}</h3>
                 <p className="mt-2 text-sm leading-relaxed text-white/72">{clipCopy.caption}</p>
-                <div className="mt-4 flex gap-1">
+                <div className="mt-2 flex">
                     {clips.map((item, itemIndex) => (
                         <button
                             key={item.id}
                             type="button"
-                            className={itemIndex === index ? 'h-1.5 flex-1 bg-primary' : 'h-1.5 flex-1 bg-white/20 hover:bg-white/45'}
+                            className="group flex h-11 flex-1 items-center justify-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
                             onClick={() => setIndex(itemIndex)}
                             aria-label={`Ver clip ${itemIndex + 1} de ${project}`}
-                        />
+                            aria-current={itemIndex === index ? 'true' : undefined}
+                        >
+                            <span className={itemIndex === index ? 'h-1.5 w-full bg-primary' : 'h-1.5 w-full bg-white/20 transition-[background-color] group-hover:bg-white/45'} />
+                        </button>
                     ))}
                 </div>
             </div>

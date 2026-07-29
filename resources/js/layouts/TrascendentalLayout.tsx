@@ -25,7 +25,7 @@ const navRoutes = [
 
 export function TrascendentalLayout({ children }: TrascendentalLayoutProps) {
     const { ziggy, site } = usePage<PageProps>().props;
-    const { t } = useTranslations();
+    const { t, locale } = useTranslations();
     const [open, setOpen] = useState(false);
     const isPreview = new URL(ziggy.location).pathname.startsWith('/trascendental');
     const homeHref = isPreview
@@ -35,6 +35,12 @@ export function TrascendentalLayout({ children }: TrascendentalLayoutProps) {
     return (
         <div className="trascendental-site min-h-screen bg-[#f5f5f2] text-black">
             <SeoHead />
+            <a
+                href="#trascendental-main"
+                className="fixed left-4 top-4 z-[100] -translate-y-24 border border-black bg-[#f5f5f2] px-4 py-3 text-sm font-bold uppercase text-black opacity-0 transition-[transform,opacity] duration-150 focus:translate-y-0 focus:opacity-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-black motion-reduce:transition-none"
+            >
+                {locale === 'en' ? 'Skip to main content' : 'Saltar al contenido principal'}
+            </a>
             <header className="sticky top-0 z-40 border-b border-black/15 bg-[#f5f5f2]/95">
                 <div className="mx-auto flex h-16 max-w-[1500px] items-center justify-between px-4 sm:px-6 lg:px-8">
                     <Link href={homeHref} className="text-[1.05rem] font-black uppercase tracking-normal">
@@ -67,7 +73,7 @@ export function TrascendentalLayout({ children }: TrascendentalLayoutProps) {
                         type="button"
                         variant="ghost"
                         size="icon"
-                        className="lg:hidden"
+                        className="size-11 rounded-none lg:hidden"
                         onClick={() => setOpen((value) => !value)}
                         aria-label={open ? t('trascendental.nav.close') : t('trascendental.nav.open')}
                     >
@@ -100,7 +106,7 @@ export function TrascendentalLayout({ children }: TrascendentalLayoutProps) {
                 </div>
             </header>
 
-            <main>{children}</main>
+            <main id="trascendental-main" tabIndex={-1} className="outline-none">{children}</main>
 
             <footer className="border-t border-black/15 px-4 py-10 sm:px-6 lg:px-8">
                 <div className="mx-auto flex max-w-[1500px] flex-col gap-6 text-sm sm:flex-row sm:items-end sm:justify-between">

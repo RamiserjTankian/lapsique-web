@@ -29,11 +29,11 @@ class AdminPanelProvider extends PanelProvider
             ->path('admin')
             ->viteTheme('resources/css/filament/admin/theme.css')
             ->login()
-            ->brandName('TRASCENDENTAL.')
+            ->brandName('Lapsique Media')
             ->sidebarCollapsibleOnDesktop()
             ->sidebarFullyCollapsibleOnDesktop()
             ->colors([
-                'primary' => Color::Gray,
+                'primary' => Color::Orange,
             ])
             ->navigationGroups([
                 'Eventos',

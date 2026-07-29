@@ -41,7 +41,7 @@ export function PaginationLinks({ links = [], className }: PaginationLinksProps)
                     return (
                         <span
                             key={`${link.label}-${index}`}
-                            className="rounded-lg border border-border/40 px-3 py-2 text-sm text-muted-foreground/50"
+                            className="inline-flex min-h-11 min-w-11 items-center justify-center rounded-lg border border-border/40 px-3 py-2 text-sm text-muted-foreground/50"
                         >
                             {paginationLabel(link.label, t)}
                         </span>
@@ -54,7 +54,7 @@ export function PaginationLinks({ links = [], className }: PaginationLinksProps)
                         href={link.url}
                         preserveScroll
                         className={cn(
-                            'rounded-lg border px-3 py-2 text-sm transition',
+                            'inline-flex min-h-11 min-w-11 items-center justify-center rounded-lg border px-3 py-2 text-sm transition-[background-color,border-color,color,transform] duration-150 active:scale-[0.96] motion-reduce:transition-none',
                             link.active
                                 ? 'border-primary/40 bg-primary/10 text-primary'
                                 : 'border-border/60 bg-secondary/50 text-muted-foreground hover:border-primary/30 hover:text-foreground',

@@ -33,7 +33,7 @@ export const bookingCheckboxSelectedClasses =
 
 /** Primary confirm / pay CTA inside the booking checkout form. */
 export const bookingConfirmButtonClasses =
-    'h-12 w-full rounded-xl border-0 bg-primary px-6 text-base font-bold tracking-[0.02em] text-primary-foreground shadow-[0_0_32px_oklch(0.78_0.14_75/0.35)] transition-all hover:bg-primary/90 hover:shadow-[0_0_48px_oklch(0.78_0.14_75/0.5)] active:scale-[0.99] disabled:pointer-events-none disabled:opacity-50 disabled:shadow-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-background';
+    'h-12 w-full rounded-xl border-0 bg-primary px-6 text-base font-bold tracking-[0.02em] text-primary-foreground shadow-[0_0_32px_oklch(0.78_0.14_75/0.35)] transition-[background-color,color,box-shadow,transform,opacity] duration-150 hover:bg-primary/90 hover:shadow-[0_0_48px_oklch(0.78_0.14_75/0.5)] active:scale-[0.96] motion-reduce:transition-none motion-reduce:active:scale-100 disabled:pointer-events-none disabled:opacity-50 disabled:shadow-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-background';
 
 export const bookingCheckoutPanelClasses =
     'rounded-2xl border border-border/70 bg-muted/30';

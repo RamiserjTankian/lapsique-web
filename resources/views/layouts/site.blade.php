@@ -207,29 +207,100 @@
 @endphp
 <body class="bg-ink text-gray-100 min-h-screen antialiased" data-page-type="{{ $pageType }}" data-route-name="{{ $routeName }}">
     <div class="bg-grid min-h-screen">
+        <a
+            href="#main-content"
+            class="fixed left-4 top-4 z-[100] -translate-y-24 border border-white/40 bg-black px-4 py-3 text-sm font-bold uppercase tracking-[0.08em] text-white opacity-0 transition-[transform,opacity] duration-150 focus:translate-y-0 focus:opacity-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-orange-500 focus-visible:ring-offset-2 focus-visible:ring-offset-black motion-reduce:transition-none"
+        >
+            {{ app()->getLocale() === 'en' ? 'Skip to main content' : 'Saltar al contenido principal' }}
+        </a>
         @if (! $hideNavbar)
-        <header class="sticky top-0 z-50 border-b border-white/10 bg-black/60 backdrop-blur">
-            <div class="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
-                <a href="{{ route('home') }}" class="text-sm font-semibold uppercase tracking-[0.3em] hover:text-white">
-                    {{ __('messages.site.brand') }}
+        <header class="sticky top-0 z-50 border-b border-white/10 bg-[#07090b]/95 backdrop-blur-xl">
+            <div class="mx-auto flex min-h-[4.5rem] max-w-7xl items-center justify-between gap-4 px-4 sm:px-6">
+                <a href="{{ route('home') }}" class="flex min-h-11 items-center gap-2.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary">
+                    <span class="flex size-9 items-center justify-center border border-white/15 bg-white/[0.04] text-lg font-bold text-primary" aria-hidden>Ι</span>
+                    <span class="leading-none">
+                        <span class="block font-display text-lg font-bold lowercase tracking-tight text-white">lapsique</span>
+                        <span class="mt-1 block font-mono text-[0.55rem] uppercase tracking-[0.35em] text-primary">media</span>
+                    </span>
                 </a>
-                <nav class="hidden items-center gap-6 text-xs uppercase tracking-[0.18em] md:flex">
-                    <a href="{{ route('home') }}" class="nav-link">{{ __('messages.site.nav.home') }}</a>
-                    <a href="{{ route('djs.index') }}" class="nav-link">{{ __('messages.site.nav.djs') }}</a>
-                    <a href="{{ route('events.index') }}" class="nav-link">{{ __('messages.site.nav.events') }}</a>
-                    <a href="{{ route('videos.index') }}" class="nav-link">{{ __('messages.site.nav.videos') }}</a>
-                    <a href="{{ route('portfolio.index') }}" class="nav-link">{{ __('messages.site.nav.portfolio') }}</a>
-                    <a href="{{ route('posts.index') }}" class="nav-link">Blog</a>
+                <nav class="hidden items-center gap-1 text-xs uppercase tracking-[0.14em] md:flex" aria-label="{{ app()->getLocale() === 'en' ? 'Primary navigation' : 'Navegación principal' }}">
+                    <a href="{{ route('portfolio.index') }}" class="nav-link px-3">{{ __('messages.site.nav.portfolio') }}</a>
+
+                    <details class="group relative">
+                        <summary role="button" aria-haspopup="menu" class="nav-link cursor-pointer list-none gap-2 px-3 [&::-webkit-details-marker]:hidden">
+                            {{ app()->getLocale() === 'en' ? 'Scene' : 'Escena' }}
+                            <span aria-hidden class="transition-transform group-open:rotate-45">+</span>
+                        </summary>
+                        <div class="absolute left-1/2 top-[calc(100%+0.75rem)] grid w-[21rem] -translate-x-1/2 divide-y divide-white/10 border border-white/15 bg-[#07090b] p-1 shadow-2xl">
+                            <a href="{{ route('djs.index') }}" class="group/menu-item px-4 py-3 hover:bg-white/[0.06]">
+                                <span class="block font-bold text-white group-hover/menu-item:text-primary">DJs</span>
+                                <span class="mt-1 block normal-case tracking-normal text-white/55">{{ app()->getLocale() === 'en' ? 'Artists documented by Lapsique.' : 'Artistas documentados por Lapsique.' }}</span>
+                            </a>
+                            <a href="{{ route('events.index') }}" class="group/menu-item px-4 py-3 hover:bg-white/[0.06]">
+                                <span class="block font-bold text-white group-hover/menu-item:text-primary">{{ __('messages.site.nav.events') }}</span>
+                                <span class="mt-1 block normal-case tracking-normal text-white/55">{{ app()->getLocale() === 'en' ? 'Shows, collaborations, and archive.' : 'Shows, colaboraciones y archivo.' }}</span>
+                            </a>
+                            <a href="{{ route('videos.index') }}" class="group/menu-item px-4 py-3 hover:bg-white/[0.06]">
+                                <span class="block font-bold text-white group-hover/menu-item:text-primary">Psique Sessions</span>
+                                <span class="mt-1 block normal-case tracking-normal text-white/55">{{ app()->getLocale() === 'en' ? 'Complete DJ sets produced by Lapsique.' : 'DJ sets completos producidos por Lapsique.' }}</span>
+                            </a>
+                            <a href="{{ route('videos.index') }}#aftermovies" class="group/menu-item px-4 py-3 hover:bg-white/[0.06]">
+                                <span class="block font-bold text-white group-hover/menu-item:text-primary">Aftermovies</span>
+                                <span class="mt-1 block normal-case tracking-normal text-white/55">{{ app()->getLocale() === 'en' ? 'Events and nightlife in motion.' : 'Eventos y nightlife en movimiento.' }}</span>
+                            </a>
+                            <a href="{{ route('posts.index') }}" class="group/menu-item px-4 py-3 hover:bg-white/[0.06]">
+                                <span class="block font-bold text-white group-hover/menu-item:text-primary">Blog</span>
+                                <span class="mt-1 block normal-case tracking-normal text-white/55">{{ app()->getLocale() === 'en' ? 'Editorial notes from the scene.' : 'Notas editoriales de la escena.' }}</span>
+                            </a>
+                        </div>
+                    </details>
+
+                    <details class="group relative">
+                        <summary role="button" aria-haspopup="menu" class="nav-link cursor-pointer list-none gap-2 px-3 [&::-webkit-details-marker]:hidden">
+                            {{ app()->getLocale() === 'en' ? 'Services' : 'Servicios' }}
+                            <span aria-hidden class="transition-transform group-open:rotate-45">+</span>
+                        </summary>
+                        <div class="absolute right-0 top-[calc(100%+0.75rem)] grid max-h-[calc(100vh-5.5rem)] w-[22rem] overflow-y-auto divide-y divide-white/10 border border-white/15 bg-[#07090b] p-1 shadow-2xl">
+                            <a href="{{ route('content-creation.show') }}" class="group/menu-item px-4 py-3 hover:bg-white/[0.06]">
+                                <span class="block font-bold text-white group-hover/menu-item:text-primary">{{ app()->getLocale() === 'en' ? 'Social media content' : 'Contenido para redes' }}</span>
+                                <span class="mt-1 block normal-case tracking-normal text-white/55">{{ app()->getLocale() === 'en' ? 'Reels and photography for social media and ads.' : 'Reels y fotografía para redes y anuncios.' }}</span>
+                            </a>
+                            <a href="{{ route('food-reels.show') }}" class="group/menu-item px-4 py-3 hover:bg-white/[0.06]">
+                                <span class="block font-bold text-white group-hover/menu-item:text-primary">{{ app()->getLocale() === 'en' ? 'Restaurant reels' : 'Reels para restaurantes' }}</span>
+                                <span class="mt-1 block normal-case tracking-normal text-white/55">{{ app()->getLocale() === 'en' ? 'Food, atmosphere, and service made to sell.' : 'Comida, ambiente y servicio listos para vender.' }}</span>
+                            </a>
+                            <a href="{{ route('djset.show') }}" class="group/menu-item px-4 py-3 hover:bg-white/[0.06]">
+                                <span class="block font-bold text-white group-hover/menu-item:text-primary">{{ app()->getLocale() === 'en' ? 'Record a DJ set' : 'Grabar un DJ set' }}</span>
+                                <span class="mt-1 block normal-case tracking-normal text-white/55">{{ app()->getLocale() === 'en' ? 'A cinematic record ready to publish.' : 'Un registro cinematográfico listo para publicar.' }}</span>
+                            </a>
+                            <a href="{{ route('electronic-event-coverage.show') }}" class="group/menu-item px-4 py-3 hover:bg-white/[0.06]">
+                                <span class="block font-bold text-white group-hover/menu-item:text-primary">{{ app()->getLocale() === 'en' ? 'Event coverage' : 'Cobertura de eventos' }}</span>
+                                <span class="mt-1 block normal-case tracking-normal text-white/55">{{ app()->getLocale() === 'en' ? 'Aftermovie, drone, and edited photography.' : 'Aftermovie, dron y fotografía editada.' }}</span>
+                            </a>
+                            <a href="{{ route('multi-camera.show') }}" class="group/menu-item px-4 py-3 hover:bg-white/[0.06]">
+                                <span class="block font-bold text-white group-hover/menu-item:text-primary">{{ app()->getLocale() === 'en' ? 'Multicamera production' : 'Producción multicámara' }}</span>
+                                <span class="mt-1 block normal-case tracking-normal text-white/55">{{ app()->getLocale() === 'en' ? 'Continuous Log video, drops, audio, and photos.' : 'Video continuo en Log, drops, audio y fotos.' }}</span>
+                            </a>
+                            <a href="{{ route('drone-sessions.show') }}" class="group/menu-item px-4 py-3 hover:bg-white/[0.06]">
+                                <span class="block font-bold text-white group-hover/menu-item:text-primary">{{ app()->getLocale() === 'en' ? 'Drone flights' : 'Vuelos con dron' }}</span>
+                                <span class="mt-1 block normal-case tracking-normal text-white/55">{{ app()->getLocale() === 'en' ? 'Aerial footage for properties and venues.' : 'Tomas aéreas para propiedades y venues.' }}</span>
+                            </a>
+                            <a href="{{ route('construction-progress.show') }}" class="group/menu-item px-4 py-3 hover:bg-white/[0.06]">
+                                <span class="block font-bold text-white group-hover/menu-item:text-primary">{{ app()->getLocale() === 'en' ? 'Construction progress' : 'Avances de obra' }}</span>
+                                <span class="mt-1 block normal-case tracking-normal text-white/55">{{ app()->getLocale() === 'en' ? 'Progress reports with photo, video, and drone.' : 'Reportes con foto, video y dron.' }}</span>
+                            </a>
+                        </div>
+                    </details>
                 </nav>
                 <div class="flex items-center gap-3">
                     @auth('customer')
-                        <a href="{{ route('customers.portal') }}" class="btn btn-ghost">Mi portal</a>
-                        <form method="POST" action="{{ route('customers.logout') }}">
+                        <a href="{{ route('customers.portal') }}" class="btn btn-ghost hidden md:inline-flex">Mi portal</a>
+                        <form method="POST" action="{{ route('customers.logout') }}" class="hidden md:block">
                             @csrf
                             <button type="submit" class="btn btn-ghost">Salir</button>
                         </form>
                     @else
-                        <a href="{{ route('customers.login') }}" class="btn btn-ghost">Mi portal</a>
+                        <a href="{{ route('customers.login') }}" class="btn btn-ghost hidden md:inline-flex">Mi portal</a>
                     @endauth
                     @php
                         $locale = app()->getLocale();
@@ -237,6 +308,34 @@
                         $langEmoji = $nextLocale === 'es' ? '🇲🇽' : '🇬🇧';
                     @endphp
                     <a href="{{ route('locale.switch', $nextLocale) }}" class="btn btn-ghost hidden md:inline-flex text-2xl leading-none" title="{{ $nextLocale === 'es' ? 'Cambiar a Español' : 'Switch to English' }}">{{ $langEmoji }}</a>
+                    <a href="{{ $bookingCtaUrl }}" class="btn btn-primary hidden lg:inline-flex">
+                        {{ app()->getLocale() === 'en' ? 'Book session' : 'Agendar sesión' }}
+                    </a>
+                    <details class="group relative md:hidden">
+                        <summary role="button" aria-haspopup="menu" class="btn btn-outline cursor-pointer list-none [&::-webkit-details-marker]:hidden">
+                            {{ app()->getLocale() === 'en' ? 'Menu' : 'Menú' }}
+                            <span aria-hidden class="transition-transform group-open:rotate-45">+</span>
+                        </summary>
+                        <nav
+                            class="absolute right-0 top-[calc(100%+0.75rem)] z-50 grid w-[min(82vw,19rem)] border border-white/20 bg-[#07090b] p-2 shadow-2xl"
+                            aria-label="{{ app()->getLocale() === 'en' ? 'Mobile navigation' : 'Navegación móvil' }}"
+                        >
+                            <a href="{{ route('home') }}" class="nav-link px-3">{{ __('messages.site.nav.home') }}</a>
+                            <a href="{{ route('djs.index') }}" class="nav-link px-3">{{ __('messages.site.nav.djs') }}</a>
+                            <a href="{{ route('events.index') }}" class="nav-link px-3">{{ __('messages.site.nav.events') }}</a>
+                            <a href="{{ route('videos.index') }}" class="nav-link px-3">{{ __('messages.site.nav.videos') }}</a>
+                            <a href="{{ route('portfolio.index') }}" class="nav-link px-3">{{ __('messages.site.nav.portfolio') }}</a>
+                            <a href="{{ route('posts.index') }}" class="nav-link px-3">Blog</a>
+                            @auth('customer')
+                                <a href="{{ route('customers.portal') }}" class="nav-link border-t border-white/15 px-3">Mi portal</a>
+                            @else
+                                <a href="{{ route('customers.login') }}" class="nav-link border-t border-white/15 px-3">Mi portal</a>
+                            @endauth
+                            <a href="{{ route('locale.switch', $nextLocale) }}" class="nav-link px-3">
+                                {{ $nextLocale === 'es' ? 'Español' : 'English' }}
+                            </a>
+                        </nav>
+                    </details>
                 </div>
             </div>
         </header>
@@ -250,7 +349,7 @@
             </div>
         @endif
 
-        <main class="@if ($contentFlush) w-full py-6 sm:py-8 @else mx-auto max-w-6xl px-6 py-10 space-y-14 @endif">
+        <main id="main-content" tabindex="-1" class="outline-none @if ($contentFlush) w-full py-6 sm:py-8 @else mx-auto max-w-6xl px-6 py-10 space-y-14 @endif">
             @yield('content')
         </main>
 
@@ -281,18 +380,18 @@
                     
                     {{-- Social Media Icons --}}
                     <div class="flex items-center gap-4">
-                        <a href="https://www.youtube.com/{{ config('lapsique.youtube_handle') }}" target="_blank" rel="noopener noreferrer" class="text-gray-400 transition hover:text-white" title="YouTube" aria-label="YouTube">
+                        <a href="https://www.youtube.com/{{ config('lapsique.youtube_handle') }}" target="_blank" rel="noopener noreferrer" class="inline-flex size-11 items-center justify-center text-gray-400 transition-[color,transform] duration-150 hover:text-white active:scale-[0.96] motion-reduce:transition-none" title="YouTube" aria-label="YouTube">
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" viewBox="0 0 24 24" fill="currentColor">
                                 <path d="M21.58 7.2c-.12-.86-.9-1.54-1.78-1.65C17.34 5.25 14 5.25 12 5.25s-5.34 0-7.8.3c-.88.11-1.66.79-1.78 1.65C2.25 8.77 2.25 10.13 2.25 12s0 3.23.17 4.8c.12.86.9 1.54 1.78 1.65 2.46.3 5.8.3 7.8.3s5.34 0 7.8-.3c.88-.11 1.66-.79 1.78-1.65.17-1.57.17-2.93.17-4.8s0-3.23-.17-4.8ZM10.5 14.7V9.3l4.1 2.7-4.1 2.7Z"/>
                             </svg>
                         </a>
-                        <a href="{{ config('lapsique.instagram_url') }}" target="_blank" rel="noopener noreferrer" class="text-gray-400 transition hover:text-white" title="Instagram" aria-label="Instagram">
+                        <a href="{{ config('lapsique.instagram_url') }}" target="_blank" rel="noopener noreferrer" class="inline-flex size-11 items-center justify-center text-gray-400 transition-[color,transform] duration-150 hover:text-white active:scale-[0.96] motion-reduce:transition-none" title="Instagram" aria-label="Instagram">
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" viewBox="0 0 24 24" fill="currentColor">
                                 <path d="M7.5 2h9A5.5 5.5 0 0122 7.5v9a5.5 5.5 0 01-5.5 5.5h-9A5.5 5.5 0 012 16.5v-9A5.5 5.5 0 017.5 2zm0 1.5A4 4 0 003.5 7.5v9a4 4 0 004 4h9a4 4 0 004-4v-9a4 4 0 00-4-4h-9zM17.25 6a1.25 1.25 0 110 2.5 1.25 1.25 0 010-2.5zM12 7.5a4.5 4.5 0 110 9 4.5 4.5 0 010-9zm0 1.5a3 3 0 100 6 3 3 0 000-6z"/>
                             </svg>
                         </a>
                         @if ($contactWhatsappUrl)
-                        <a href="{{ $contactWhatsappUrl }}" target="_blank" rel="noopener noreferrer" class="text-gray-400 transition hover:text-white" title="WhatsApp" aria-label="WhatsApp">
+                        <a href="{{ $contactWhatsappUrl }}" target="_blank" rel="noopener noreferrer" class="inline-flex size-11 items-center justify-center text-gray-400 transition-[color,transform] duration-150 hover:text-white active:scale-[0.96] motion-reduce:transition-none" title="WhatsApp" aria-label="WhatsApp">
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" viewBox="0 0 24 24" fill="currentColor">
                                 <path d="M12.04 2c-5.46 0-9.91 4.45-9.91 9.91 0 1.75.46 3.45 1.32 4.95L2.05 22l5.25-1.38c1.45.79 3.08 1.21 4.74 1.21 5.46 0 9.91-4.45 9.91-9.91 0-2.65-1.03-5.14-2.9-7.01A9.816 9.816 0 0012.04 2m.01 1.67c2.2 0 4.26.86 5.82 2.42a8.225 8.225 0 012.41 5.83c0 4.54-3.7 8.23-8.24 8.23-1.48 0-2.93-.39-4.19-1.15l-.3-.17-3.12.82.83-3.04-.2-.32a8.188 8.188 0 01-1.26-4.38c.01-4.54 3.7-8.24 8.25-8.24M8.53 7.33c-.16 0-.43.06-.66.31-.22.25-.87.85-.87 2.07 0 1.22.89 2.39 1 2.56.14.17 1.76 2.67 4.25 3.73.59.27 1.05.42 1.41.53.59.19 1.13.16 1.56.1.48-.07 1.46-.6 1.67-1.18.21-.58.21-1.07.15-1.18-.07-.1-.23-.16-.48-.27-.25-.14-1.47-.74-1.69-.82-.23-.08-.37-.12-.56.12-.16.25-.64.81-.78.97-.15.17-.29.19-.53.07-.26-.13-1.06-.39-2-1.23-.74-.66-1.23-1.47-1.38-1.72-.14-.25-.02-.39.11-.51.11-.11.25-.29.37-.44.13-.14.17-.25.25-.41.08-.17.04-.31-.02-.43-.06-.11-.56-1.35-.77-1.84-.2-.48-.4-.42-.56-.43-.14-.01-.3-.01-.47-.01z"/>
                             </svg>
