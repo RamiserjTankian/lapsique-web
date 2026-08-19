@@ -25,7 +25,9 @@ class SafeByVarunaLandingTest extends TestCase
         $this->assertStringContainsString('Haz tu prerregistro.', $landing);
         $this->assertStringContainsString("route('leads.capture'", $landing);
         $this->assertStringContainsString('safe-by-varuna-preregistration', $landing);
-        $this->assertStringContainsString('El prerregistro no aparta un boleto.', $landing);
+        $this->assertStringContainsString('Prerregistro gratuito · no requiere pago', $landing);
+        $this->assertStringContainsString('Solo te inscribe para recibir el aviso de apertura de venta.', $landing);
+        $this->assertStringNotContainsString('Prerregistro · $105 MXN', $landing);
         $this->assertStringContainsString('VenueGallery', $landing);
         $this->assertStringContainsString('KapiSetCarousel', $landing);
         $this->assertStringContainsString('<FeaturedSafeEvent events={sceneEvents} />', $home);
