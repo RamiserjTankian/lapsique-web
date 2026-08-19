@@ -162,9 +162,9 @@ export default function Home({
                 onBook={openBooking}
             />
 
-            <ServiceLandingLinks portfolioOverview={portfolioOverview} />
-
             <FeaturedSafeEvent events={sceneEvents} />
+
+            <ServiceLandingLinks portfolioOverview={portfolioOverview} />
 
             <HomePortfolioProof
                 portfolioOverview={portfolioOverview}

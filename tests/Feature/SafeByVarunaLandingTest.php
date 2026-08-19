@@ -19,7 +19,11 @@ class SafeByVarunaLandingTest extends TestCase
 
         $this->assertStringNotContainsString('<main id="main-content">', $landing);
         $this->assertStringNotContainsString('left-1/2 w-screen -translate-x-1/2', $landing);
-        $this->assertStringContainsString('Lapsique Originals /', $landing);
+        $this->assertStringNotContainsString('CHECKOUT DE PRUEBA', $landing);
+        $this->assertStringNotContainsString('Fase única · Testing', $landing);
+        $this->assertStringContainsString('Compra tu boleto.', $landing);
+        $this->assertStringContainsString('VenueGallery', $landing);
+        $this->assertStringContainsString('KapiSetCarousel', $landing);
         $this->assertStringContainsString('<FeaturedSafeEvent events={sceneEvents} />', $home);
         $this->assertStringContainsString("safe-by-varuna-1-edition", $home);
     }
