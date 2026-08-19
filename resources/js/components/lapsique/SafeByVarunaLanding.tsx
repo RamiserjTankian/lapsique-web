@@ -21,6 +21,8 @@ export function SafeByVarunaLanding({ event, viewContentEventId }: SafeByVarunaL
     const [interestOpen, setInterestOpen] = useState(false);
     const [checkoutOpen, setCheckoutOpen] = useState(false);
     const [paymentUnavailable, setPaymentUnavailable] = useState(false);
+    const [preregistered, setPreregistered] = useState(false);
+    const [preregisterError, setPreregisterError] = useState('');
     const viewTracked = useRef(false);
     const checkoutEventId = useRef(createCheckoutEventId());
 
@@ -54,7 +56,7 @@ export function SafeByVarunaLanding({ event, viewContentEventId }: SafeByVarunaL
         });
     }, [event.id, event.slug, event.title, product, viewContentEventId]);
 
-    const submit = (submitEvent: FormEvent<HTMLFormElement>) => {
+    const submit = async (submitEvent: FormEvent<HTMLFormElement>) => {
         if (!product || !contentPayload) {
             submitEvent.preventDefault();
             setInterestOpen(true);
@@ -63,7 +65,67 @@ export function SafeByVarunaLanding({ event, viewContentEventId }: SafeByVarunaL
 
         if (!checkoutReady) {
             submitEvent.preventDefault();
-            setPaymentUnavailable(true);
+            setSubmitting(true);
+            setPaymentUnavailable(false);
+            setPreregisterError('');
+
+            const form = new FormData(submitEvent.currentTarget);
+
+            try {
+                const response = await fetch(route('leads.capture', undefined, false, ziggy), {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        Accept: 'application/json',
+                        'X-CSRF-TOKEN': csrfToken(),
+                        'X-Requested-With': 'XMLHttpRequest',
+                    },
+                    credentials: 'same-origin',
+                    body: JSON.stringify({
+                        name: form.get('buyer_name'),
+                        email: form.get('buyer_email'),
+                        phone: form.get('buyer_whatsapp') || null,
+                        instagram_handle: form.get('buyer_instagram') || null,
+                        interests: ['events', 'safe-by-varuna-preregistration'],
+                        message: `Prerregistro Safe by Varuna 1 edition · cantidad prevista: ${quantity}`,
+                        marketing_consent: form.get('preregistration_consent') === '1',
+                        meta_marketing_consent: form.get('preregistration_consent') === '1',
+                        current_page: window.location.href,
+                        landing_page: 'safe_by_varuna_ads',
+                        landing_url: window.location.href,
+                        page_type: 'event_preregistration_landing',
+                        page_name: 'safe_by_varuna_1_edition',
+                        referrer: document.referrer,
+                        fbp: browserCookie('_fbp'),
+                        fbc: browserCookie('_fbc'),
+                        ...Object.fromEntries(trackingQueryFields()),
+                    }),
+                });
+                const data = await response.json().catch(() => ({}));
+
+                if (!response.ok || !data.success) {
+                    throw new Error(formatLeadError(data, en));
+                }
+
+                setPreregistered(true);
+                window.trackMetaPixel?.('Lead', {
+                    content_name: event.title,
+                    content_category: 'event_preregistration',
+                    currency: product.currency,
+                    value: totals.total,
+                }, { eventID: data.meta_event_id });
+                window.SiteTracker?.track('event_preregistration_completed', {
+                    event_id: event.id,
+                    event_slug: event.slug,
+                    quantity,
+                    value: totals.total,
+                    currency: product.currency,
+                });
+            } catch (error) {
+                setPreregisterError(error instanceof Error ? error.message : (en ? 'We could not save your preregistration. Try again.' : 'No pudimos guardar tu prerregistro. Inténtalo de nuevo.'));
+            } finally {
+                setSubmitting(false);
+            }
             return;
         }
 
@@ -90,6 +152,8 @@ export function SafeByVarunaLanding({ event, viewContentEventId }: SafeByVarunaL
             checkout_event_id: checkoutEventId.current,
         });
         setPaymentUnavailable(false);
+        setPreregisterError('');
+        setPreregistered(false);
         setCheckoutOpen(true);
     };
 
@@ -123,7 +187,9 @@ export function SafeByVarunaLanding({ event, viewContentEventId }: SafeByVarunaL
                             className="mt-8 inline-flex min-h-12 w-full items-center justify-center gap-3 bg-primary px-6 font-ui-display text-sm font-bold uppercase tracking-[0.1em] text-primary-foreground focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-primary motion-safe:transition-colors hover:bg-foreground hover:text-background sm:w-fit"
                         >
                             <Ticket aria-hidden="true" className="size-5" />
-                            {en ? 'Buy ticket · $105 MXN' : 'Comprar boleto · $105 MXN'}
+                            {checkoutReady
+                                ? (en ? 'Buy ticket · $105 MXN' : 'Comprar boleto · $105 MXN')
+                                : (en ? 'Preregister · $105 MXN' : 'Prerregistro · $105 MXN')}
                         </button>
                     </div>
 
@@ -169,16 +235,27 @@ export function SafeByVarunaLanding({ event, viewContentEventId }: SafeByVarunaL
                     <div className="grid lg:grid-cols-[0.72fr_1.28fr]">
                         <div className="border-b border-black/10 p-6 sm:p-8 lg:border-r lg:border-b-0">
                             <DialogTitle className="font-ui-display text-4xl font-bold uppercase leading-[0.92] tracking-[-0.035em] sm:text-5xl">
-                                {en ? 'Buy your ticket.' : 'Compra tu boleto.'}
+                                {checkoutReady
+                                    ? (en ? 'Buy your ticket.' : 'Compra tu boleto.')
+                                    : (en ? 'Preregister.' : 'Haz tu prerregistro.')}
                             </DialogTitle>
                             <DialogDescription className="mt-4 text-base leading-7 text-[#4f514b]">
-                                {en ? 'Complete your details and continue to secure payment with Mercado Pago.' : 'Completa tus datos y continúa al pago seguro con Mercado Pago.'}
+                                {checkoutReady
+                                    ? (en ? 'Complete your details and continue to secure payment with Mercado Pago.' : 'Completa tus datos y continúa al pago seguro con Mercado Pago.')
+                                    : (en ? 'Leave your details and we will notify you when ticket sales open.' : 'Déjanos tus datos y te avisaremos cuando se habilite la venta de boletos.')}
                             </DialogDescription>
                             <p className="mt-8 text-sm leading-6 text-[#62645e]">18+ · {en ? 'No refunds' : 'Sin reembolsos'} · Casa Luma</p>
                         </div>
 
                         {product ? (
-                            <form
+                            preregistered ? (
+                                <div className="flex min-h-[30rem] flex-col justify-center bg-white p-8" role="status" aria-live="polite">
+                                    <Check aria-hidden="true" className="size-10 text-primary" />
+                                    <h3 className="mt-6 font-ui-display text-3xl font-bold uppercase leading-none">{en ? 'You are preregistered.' : 'Tu prerregistro quedó listo.'}</h3>
+                                    <p className="mt-4 max-w-md text-base leading-7 text-[#565852]">{en ? 'We will contact you when payment opens. No charge was made and this does not reserve a ticket.' : 'Te contactaremos cuando se habilite el pago. No se realizó ningún cobro y esto todavía no aparta un boleto.'}</p>
+                                    <button type="button" onClick={() => setCheckoutOpen(false)} className="mt-8 inline-flex min-h-12 w-fit items-center bg-black px-6 font-semibold text-white focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-black">{en ? 'Close' : 'Cerrar'}</button>
+                                </div>
+                            ) : <form
                                 method="POST"
                                 action={route('tickets.checkout.store', { event: event.slug }, false, ziggy)}
                                 onSubmit={submit}
@@ -206,11 +283,11 @@ export function SafeByVarunaLanding({ event, viewContentEventId }: SafeByVarunaL
                                     <p className="text-4xl font-bold tabular-nums">${formatMoney(product.base_price)} <span className="text-sm font-medium text-[#62645e]">MXN</span></p>
                                 </div>
 
-                                {Object.keys(errors ?? {}).length > 0 || paymentUnavailable ? (
+                                {Object.keys(errors ?? {}).length > 0 || paymentUnavailable || preregisterError ? (
                                     <div className="mt-5 border border-amber-300 bg-amber-50 p-4 text-sm leading-6 text-amber-950" role="alert">
-                                        {paymentUnavailable
+                                        {preregisterError || (paymentUnavailable
                                             ? (en ? 'Payment is temporarily unavailable. No charge was made.' : 'El pago está temporalmente no disponible. No se realizó ningún cargo.')
-                                            : firstError(errors, en ? 'Check your information and try again.' : 'Revisa tus datos e inténtalo de nuevo.')}
+                                            : firstError(errors, en ? 'Check your information and try again.' : 'Revisa tus datos e inténtalo de nuevo.'))}
                                     </div>
                                 ) : null}
 
@@ -236,19 +313,27 @@ export function SafeByVarunaLanding({ event, viewContentEventId }: SafeByVarunaL
                                 </div>
 
                                 <label className="mt-6 flex cursor-pointer items-start gap-3 border border-black/10 bg-[#f4f0e7] p-4 text-sm leading-6 text-[#454741]">
-                                    <input type="checkbox" name="consent_terms" value="1" required className="mt-1 size-5 shrink-0 accent-black" />
+                                    <input type="checkbox" name={checkoutReady ? 'consent_terms' : 'preregistration_consent'} value="1" required className="mt-1 size-5 shrink-0 accent-black" />
                                     <span>
-                                        {en ? 'I confirm that I am 18 or older and accept the ' : 'Confirmo que tengo 18 años o más y acepto los '}
-                                        <Link href={route('legal.terms', undefined, false, ziggy)} target="_blank" className="font-semibold underline underline-offset-4">{en ? 'purchase terms' : 'términos de compra'}</Link>.{' '}
-                                        {en ? 'I understand that this event has no refunds.' : 'Entiendo que este evento no admite reembolsos.'}
+                                        {checkoutReady ? <>
+                                            {en ? 'I confirm that I am 18 or older and accept the ' : 'Confirmo que tengo 18 años o más y acepto los '}
+                                            <Link href={route('legal.terms', undefined, false, ziggy)} target="_blank" className="font-semibold underline underline-offset-4">{en ? 'purchase terms' : 'términos de compra'}</Link>.{' '}
+                                            {en ? 'I understand that this event has no refunds.' : 'Entiendo que este evento no admite reembolsos.'}
+                                        </> : (en
+                                            ? 'I am 18 or older and agree to receive event updates by email or WhatsApp. I can unsubscribe at any time.'
+                                            : 'Tengo 18 años o más y acepto recibir novedades del evento por email o WhatsApp. Puedo cancelar mi suscripción en cualquier momento.')}
                                     </span>
                                 </label>
 
                                 <button type="submit" disabled={submitting} className="mt-6 inline-flex min-h-14 w-full items-center justify-center gap-3 bg-primary px-6 font-ui-display text-sm font-bold uppercase tracking-[0.1em] text-primary-foreground focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-primary disabled:cursor-wait disabled:opacity-60 hover:bg-black hover:text-white">
                                     <ShieldCheck aria-hidden="true" className="size-5" />
-                                    {submitting ? (en ? 'Opening secure payment…' : 'Abriendo pago seguro…') : (en ? 'Pay with Mercado Pago · $' : 'Pagar con Mercado Pago · $') + formatMoney(totals.total)}
+                                    {submitting
+                                        ? (checkoutReady ? (en ? 'Opening secure payment…' : 'Abriendo pago seguro…') : (en ? 'Saving preregistration…' : 'Guardando prerregistro…'))
+                                        : (checkoutReady ? (en ? 'Pay with Mercado Pago · $' : 'Pagar con Mercado Pago · $') + formatMoney(totals.total) : (en ? 'Complete preregistration' : 'Completar prerregistro'))}
                                 </button>
-                                <p className="mt-4 text-center text-xs leading-5 text-[#676963]">{en ? 'Mercado Pago securely tokenizes your card. Lapsique does not store card data.' : 'Mercado Pago tokeniza tu tarjeta de forma segura. Lapsique no almacena datos de tarjeta.'}</p>
+                                <p className="mt-4 text-center text-xs leading-5 text-[#676963]">{checkoutReady
+                                    ? (en ? 'Mercado Pago securely tokenizes your card. Lapsique does not store card data.' : 'Mercado Pago tokeniza tu tarjeta de forma segura. Lapsique no almacena datos de tarjeta.')
+                                    : (en ? 'No charge will be made. Preregistration does not reserve a ticket.' : 'No se realizará ningún cobro. El prerregistro no aparta un boleto.')}</p>
                             </form>
                         ) : (
                             <div className="bg-white p-8">
@@ -392,4 +477,14 @@ function createCheckoutEventId() {
 
 function firstError(errors: Record<string, string>, fallback: string) {
     return Object.values(errors).find((value) => typeof value === 'string') ?? fallback;
+}
+
+function formatLeadError(data: { message?: string; errors?: Record<string, string[]> }, en: boolean) {
+    const validationError = data.errors
+        ? Object.values(data.errors).flat().find((value) => typeof value === 'string')
+        : null;
+
+    return validationError ?? data.message ?? (en
+        ? 'We could not save your preregistration. Check your details and try again.'
+        : 'No pudimos guardar tu prerregistro. Revisa tus datos e inténtalo de nuevo.');
 }
