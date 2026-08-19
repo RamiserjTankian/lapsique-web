@@ -164,6 +164,8 @@ export default function Home({
 
             <ServiceLandingLinks portfolioOverview={portfolioOverview} />
 
+            <FeaturedSafeEvent events={sceneEvents} />
+
             <HomePortfolioProof
                 portfolioOverview={portfolioOverview}
                 portfolioItems={portfolioItems}
@@ -208,6 +210,50 @@ export default function Home({
             <ReelPlayerModal />
             </ReelPlayerProvider>
         </SiteLayout>
+    );
+}
+
+function FeaturedSafeEvent({ events }: { events: EventItem[] }) {
+    const { ziggy } = usePage<PageProps>().props;
+    const { locale } = useTranslations();
+    const en = locale === 'en';
+    const event = events.find((item) => item.slug === 'safe-by-varuna-1-edition');
+
+    if (!event) return null;
+
+    const product = event.ticket_products?.[0] ?? null;
+    const eventUrl = route('events.show', { event: event.slug }, false, ziggy);
+
+    return (
+        <section className="border-y border-foreground/20 py-8 sm:py-10" aria-labelledby="home-safe-event-title">
+            <div className="grid gap-6 md:grid-cols-[12rem_minmax(0,1fr)_auto] md:items-center">
+                {event.cover_url ? (
+                    <Link href={eventUrl} className="block overflow-hidden bg-muted focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-primary">
+                        <img
+                            src={event.cover_url}
+                            alt={en ? 'Safe by Varuna 1st Edition event poster' : 'Cartel del evento Safe by Varuna 1 edition'}
+                            className="aspect-[16/10] w-full object-cover md:aspect-[4/3]"
+                        />
+                    </Link>
+                ) : null}
+                <div>
+                    <p className="alpha-kicker text-primary">Lapsique Originals / {en ? 'Next event' : 'Próximo evento'}</p>
+                    <h2 id="home-safe-event-title" className="mt-3 text-3xl font-semibold leading-tight sm:text-4xl">Safe by Varuna 1 edition</h2>
+                    <p className="mt-3 text-sm leading-6 text-muted-foreground">
+                        {en ? 'KAPI · August 27 · 10:00 p.m. · Casa Luma, CDMX' : 'KAPI · 27 de agosto · 10:00 p. m. · Casa Luma, CDMX'}
+                    </p>
+                </div>
+                <div className="md:text-right">
+                    {product ? <p className="mb-3 text-sm font-semibold tabular-nums">{formatMxn(product.total)} MXN</p> : null}
+                    <Link
+                        href={eventUrl}
+                        className="inline-flex min-h-12 w-full items-center justify-center gap-2 bg-foreground px-5 font-ui-display text-sm font-bold uppercase tracking-[0.08em] text-background focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-primary hover:bg-primary hover:text-primary-foreground md:w-auto"
+                    >
+                        {en ? 'View event' : 'Ver evento'} <ArrowRight className="size-4" aria-hidden="true" />
+                    </Link>
+                </div>
+            </div>
+        </section>
     );
 }
 
