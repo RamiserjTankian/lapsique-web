@@ -4,6 +4,7 @@
 @section('hide_navbar', '1')
 
 @section('content')
+    @php($testMode = data_get($attendee->product?->metadata, 'sales_mode') === 'testing')
     {{-- Barra mínima --}}
     <nav class="sticky top-0 z-50 flex items-center justify-between px-6 py-4 bg-[var(--beige-50)] border-b border-[var(--beige-300)]">
         <a href="{{ route('home') }}" class="text-[var(--ink)] font-semibold tracking-tight">{{ __('messages.site.brand') }}</a>
@@ -20,9 +21,15 @@
                     Tu pase digital
                 </h1>
                 <p class="mt-2 text-[var(--muted)] text-sm">
-                    Presenta este QR en la entrada.
+                    {{ $testMode ? 'Vista previa del flujo de acceso.' : 'Presenta este QR en la entrada.' }}
                 </p>
             </header>
+
+            @if ($testMode)
+                <div role="alert" class="mb-6 rounded-xl border-2 border-amber-500 bg-amber-50 px-4 py-4 text-sm font-semibold text-amber-950">
+                    PASE DE PRUEBA · NO VÁLIDO PARA INGRESO
+                </div>
+            @endif
 
             @if (session('success'))
                 <div class="mb-6 rounded-xl border border-[var(--marine-300)] bg-[var(--marine-50)] px-4 py-3 text-sm text-[var(--marine-800)]">
@@ -53,9 +60,9 @@
 
             {{-- QR + código manual --}}
             <div class="card p-6 text-center">
-                <h3 class="text-xs font-semibold uppercase tracking-[0.2em] text-[var(--marine-500)]">QR de acceso</h3>
+                <h3 class="text-xs font-semibold uppercase tracking-[0.2em] text-[var(--marine-500)]">{{ $testMode ? 'QR de prueba' : 'QR de acceso' }}</h3>
                 <div class="mt-4 inline-flex items-center justify-center rounded-2xl border-2 border-[var(--card-border)] bg-white p-4 shadow-sm">
-                    <img src="{{ $checkInQrUrl }}" alt="QR de acceso" class="h-52 w-52 rounded-xl" />
+                    <img src="{{ $checkInQrUrl }}" alt="{{ $testMode ? 'QR de prueba no válido para ingreso' : 'QR de acceso' }}" class="h-52 w-52 rounded-xl" />
                 </div>
                 <p class="mt-4 text-sm text-[var(--muted)]">
                     Código manual: <span class="font-semibold text-[var(--ink)]">{{ $checkInCode }}</span>

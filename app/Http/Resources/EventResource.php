@@ -4,6 +4,7 @@ namespace App\Http\Resources;
 
 use App\Models\Event;
 use App\Support\BrowserUrl;
+use App\Support\MercadoPagoEmbeddedCheckout;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
@@ -37,6 +38,7 @@ class EventResource extends JsonResource
             'slug' => $this->slug,
             'starts_at' => $this->starts_at?->toIso8601String(),
             'time_tba' => in_array('time_tba', is_array($this->tags) ? $this->tags : [], true),
+            'event_timezone' => $this->slug === 'safe-by-varuna-1-edition' ? 'America/Mexico_City' : config('app.timezone'),
             'cover_url' => BrowserUrl::normalize($this->getFirstMediaUrl('cover', 'cover_large')
                 ?: $this->getFirstMediaUrl('cover')
                 ?: ($this->public_image_path ? asset(ltrim($this->public_image_path, '/')) : null)),
@@ -49,6 +51,25 @@ class EventResource extends JsonResource
             'ticket_url' => $isUpcoming ? $this->ticket_url : null,
             'is_upcoming' => $isUpcoming,
             'has_tickets' => $isUpcoming && (filled($this->ticket_url) || $activeTicketProduct !== null),
+            'ticket_products' => $ticketProducts
+                ->filter(fn ($product) => $product->isOnSale($now))
+                ->map(fn ($product): array => [
+                    'id' => $product->id,
+                    'name' => $product->name,
+                    'description' => $product->description,
+                    'currency' => $product->currency,
+                    'base_price' => $product->base_price,
+                    'service_charge_pct' => (float) $product->service_charge_pct,
+                    'service_charge_amount' => $product->service_charge_amount,
+                    'total' => (float) $product->price,
+                    'available' => $product->availableStock(),
+                    'max_per_order' => $product->max_per_order,
+                    'sales_mode' => data_get($product->metadata, 'sales_mode'),
+                    'embedded_checkout_ready' => $this->slug === 'safe-by-varuna-1-edition'
+                        && MercadoPagoEmbeddedCheckout::configurationReady(),
+                ])
+                ->values()
+                ->all(),
             'guest_list_url' => $isUpcoming && $guestLink ? $guestLink->invite_url : null,
             'lineup' => $this->whenLoaded(
                 'djs',

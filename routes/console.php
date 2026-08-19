@@ -19,6 +19,11 @@ Schedule::command('analytics:send-booking-abandoned-events --minutes=90 --limit=
     ->withoutOverlapping()
     ->onOneServer();
 
+Schedule::command('tickets:expire-abandoned-reservations --minutes=30 --limit=200')
+    ->everyFiveMinutes()
+    ->withoutOverlapping()
+    ->onOneServer();
+
 Schedule::command('booking:ensure-slots')
     ->dailyAt('05:30')
     ->timezone(config('app.timezone'))

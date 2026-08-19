@@ -47,9 +47,13 @@
             font-size: 16px;
             letter-spacing: 2px;
         }
+        .test-banner { border: 2px solid #b66a00; background: #fff1cc; color: #7a3f00; padding: 12px; margin-bottom: 16px; font-weight: bold; text-align: center; }
     </style>
 </head>
 <body>
+    @if($testMode ?? false)
+        <div class="test-banner">PASE DE PRUEBA · NO VÁLIDO PARA INGRESO</div>
+    @endif
     <div class="card">
         <div class="title">Pase de acceso 🎟️</div>
         <div class="subtitle">{{ $event?->title ?? 'Evento' }}</div>
@@ -81,7 +85,7 @@
     <div class="card">
         <div class="label">Link de acceso</div>
         <div class="value">{{ $checkInUrl }}</div>
-        <p class="label">Presenta este pase en la entrada. Guarda este PDF en tu telefono.</p>
+        <p class="label">{{ ($testMode ?? false) ? 'Documento de prueba. No permite ingreso ni check-in.' : 'Presenta este pase en la entrada. Guarda este PDF en tu telefono.' }}</p>
     </div>
 </body>
 </html>

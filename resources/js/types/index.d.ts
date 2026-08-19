@@ -183,6 +183,7 @@ export interface EventItem {
     slug: string;
     starts_at: string | null;
     time_tba?: boolean;
+    event_timezone?: string;
     cover_url: string | null;
     location_name: string | null;
     venue?: string | null;
@@ -193,10 +194,26 @@ export interface EventItem {
     ticket_url?: string | null;
     is_upcoming?: boolean;
     has_tickets?: boolean;
+    ticket_products?: EventTicketProduct[];
     guest_list_url?: string | null;
     lineup?: DjItem[];
     gallery?: Array<{ id: number; url: string; thumb_url: string }>;
     venue_gallery?: Array<{ id: number; url: string; thumb_url: string }>;
+}
+
+export interface EventTicketProduct {
+    id: number;
+    name: string;
+    description?: string | null;
+    currency: string;
+    base_price: number;
+    service_charge_pct: number;
+    service_charge_amount: number;
+    total: number;
+    available: number | null;
+    max_per_order: number | null;
+    sales_mode?: string | null;
+    embedded_checkout_ready: boolean;
 }
 
 export interface ContentBookingDeliverableLink {

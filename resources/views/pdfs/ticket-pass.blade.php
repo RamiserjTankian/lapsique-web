@@ -415,6 +415,18 @@ html, body {
 .deep-copy strong {
     color: #ffffff;
 }
+.test-banner {
+    background: #fff1cc;
+    border: 2px solid #b66a00;
+    color: #7a3f00;
+    font-size: 12px;
+    font-weight: 800;
+    letter-spacing: 0.12em;
+    padding: 0.08in 0.14in;
+    text-align: center;
+    text-transform: uppercase;
+    margin-bottom: 0.08in;
+}
 
 </style>
 </head>
@@ -512,6 +524,9 @@ html, body {
 
             <div class="main">
                 <div class="main-wrap">
+                    @if($testMode ?? false)
+                        <div class="test-banner">Pase de prueba · No válido para ingreso</div>
+                    @endif
                     <div class="main-top">
                         <div class="main-title">
                             <div class="pass-label">Pase de acceso · Lapsique Media</div>
@@ -543,7 +558,7 @@ html, body {
                     </div>
 
                     <div class="qr-shell">
-                        <div class="scan-label">Escanear en entrada</div>
+                        <div class="scan-label">{{ ($testMode ?? false) ? 'QR de prueba' : 'Escanear en entrada' }}</div>
                         <img src="{{ $att['qrUrl'] }}" alt="QR de acceso">
                         <div class="code-label">Código de respaldo</div>
                         <div class="code-value">{{ $att['code'] }}</div>
@@ -600,8 +615,8 @@ html, body {
                             <div class="panel">
                                 <div class="panel-title">Indicaciones</div>
                                 <div class="info-copy">
-                                    <strong>Llega con tu PDF o QR listo.</strong><br>
-                                    Este acceso es personal y se valida contra el código mostrado en esta hoja.<br><br>
+                                    <strong>{{ ($testMode ?? false) ? 'Este documento prueba el flujo de entrega.' : 'Llega con tu PDF o QR listo.' }}</strong><br>
+                                    {{ ($testMode ?? false) ? 'No es válido para ingresar ni para realizar check-in.' : 'Este acceso es personal y se valida contra el código mostrado en esta hoja.' }}<br><br>
                                     {!! nl2br(e(\Illuminate\Support\Str::limit($descText ?: 'Una experiencia de música electrónica, visuales y comunidad curada por Lapsique Media.', 150))) !!}
                                 </div>
                             </div>

@@ -5,9 +5,11 @@ namespace App\Http\Controllers;
 use App\Http\Resources\EventResource;
 use App\Models\Event;
 use App\Services\TicketOrderService;
+use App\Services\Meta\MetaConversionsApiService;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
+use Illuminate\Support\Str;
 
 class EventController extends Controller
 {
@@ -46,8 +48,15 @@ class EventController extends Controller
                 ->orderByDesc('created_at'),
         ]);
 
+        $viewContentEventId = 'event_view_'.$event->id.'_'.Str::uuid();
+
+        if ($event->slug === 'safe-by-varuna-1-edition') {
+            app(MetaConversionsApiService::class)->sendViewContentForEvent($event, $request, $viewContentEventId);
+        }
+
         return Inertia::render('Events/Show', [
             'event' => (new EventResource($event))->resolve(),
+            'viewContentEventId' => $viewContentEventId,
         ]);
     }
 }

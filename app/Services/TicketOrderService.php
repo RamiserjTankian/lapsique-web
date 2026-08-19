@@ -14,6 +14,7 @@ use App\Models\TicketOrder;
 use App\Models\TicketOrderItem;
 use App\Models\TicketProduct;
 use App\Services\Meta\MetaConversionsApiService;
+use App\Support\PaymentAmount;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -155,11 +156,22 @@ class TicketOrderService
     public function syncPayment(TicketOrder $order, array $payment): TicketOrder
     {
         return DB::transaction(function () use ($order, $payment) {
-            $order->refresh();
+            $order = TicketOrder::query()->lockForUpdate()->findOrFail($order->getKey());
 
             $status = (string) data_get($payment, 'status');
+            $paymentId = trim((string) data_get($payment, 'id'));
+            $externalReference = trim((string) data_get($payment, 'external_reference'));
+
+            if ($paymentId === '' || $externalReference !== (string) $order->public_id) {
+                throw new RuntimeException('El pago de Mercado Pago no corresponde a esta orden.');
+            }
+
+            if (filled($order->mp_payment_id) && (string) $order->mp_payment_id !== $paymentId) {
+                throw new RuntimeException('La orden ya está vinculada a otro pago de Mercado Pago.');
+            }
+
             $payload = [
-                'mp_payment_id' => (string) data_get($payment, 'id'),
+                'mp_payment_id' => $paymentId,
                 'mp_status' => $status,
                 'mp_status_detail' => (string) data_get($payment, 'status_detail'),
                 'mp_payment_method' => (string) data_get($payment, 'payment_method_id'),
@@ -167,6 +179,28 @@ class TicketOrderService
                 'mp_external_reference' => (string) data_get($payment, 'external_reference'),
                 'payment_provider' => 'mercadopago',
             ];
+
+            $isRefundState = in_array($status, ['refunded', 'charged_back'], true);
+
+            if (($order->status === 'paid' && ! in_array($status, ['approved', 'refunded', 'charged_back'], true))
+                || (in_array($order->status, ['cancelled', 'refunded'], true) && ! $isRefundState)) {
+                return $order->fresh();
+            }
+
+            if ($status === 'approved') {
+                PaymentAmount::assertMercadoPago(
+                    $order,
+                    data_get($payment, 'transaction_amount'),
+                    data_get($payment, 'currency_id'),
+                );
+            }
+
+            if ($order->mp_payment_id === $payload['mp_payment_id']
+                && $order->mp_status === $payload['mp_status']
+                && $order->mp_status_detail === $payload['mp_status_detail']
+                && $order->mp_merchant_order_id === $payload['mp_merchant_order_id']) {
+                return $order->fresh();
+            }
 
             if ($status === 'approved') {
                 if ($order->status !== 'paid') {
@@ -381,6 +415,30 @@ class TicketOrderService
             $order->markAsCancelled(array_merge([
                 'payment_provider' => 'stripe',
             ], $payload));
+
+            return $order->fresh(['items']);
+        });
+    }
+
+    public function expireAbandonedReservation(TicketOrder $order): TicketOrder
+    {
+        return DB::transaction(function () use ($order): TicketOrder {
+            $order = TicketOrder::query()->lockForUpdate()->findOrFail($order->getKey());
+
+            if ($order->status !== 'pending'
+                || data_get($order->metadata, 'reservation_status') !== 'reserved'
+                || filled($order->mp_payment_id)
+                || filled($order->mp_preference_id)
+                || filled($order->stripe_session_id)) {
+                return $order->fresh(['items']);
+            }
+
+            $this->releaseReservation($order);
+            $metadata = $order->metadata ?? [];
+            $metadata['reservation_expired_at'] = now()->toIso8601String();
+            $order->markAsCancelled([
+                'metadata' => $metadata,
+            ]);
 
             return $order->fresh(['items']);
         });

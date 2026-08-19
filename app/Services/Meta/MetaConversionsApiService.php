@@ -4,8 +4,10 @@ namespace App\Services\Meta;
 
 use App\Models\ContentBooking;
 use App\Models\Customer;
+use App\Models\Event;
 use App\Models\TicketOrder;
 use App\Support\Meta;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 
@@ -107,17 +109,23 @@ class MetaConversionsApiService
 
     public function sendPurchaseForTicketOrder(TicketOrder $order): void
     {
-        if (! $this->isEnabled()) {
+        if (! $this->isEnabled() || data_get($order->metadata, 'capi_purchase_sent')) {
             return;
         }
 
-        $this->sendEvent(
+        $sent = $this->sendEvent(
             eventName: 'Purchase',
             eventId: 'ticket_order_'.$order->public_id,
             eventSourceUrl: (string) data_get($order->metadata, 'landing_url', config('app.url')),
             userData: $this->userDataFromTicketOrder($order),
             customData: $this->ticketOrderCustomData($order),
         );
+
+        if ($sent) {
+            $metadata = is_array($order->metadata) ? $order->metadata : [];
+            $metadata['capi_purchase_sent'] = true;
+            $order->forceFill(['metadata' => $metadata])->save();
+        }
     }
 
     public function sendInitiateCheckoutForTicketOrder(TicketOrder $order): void
@@ -132,6 +140,58 @@ class MetaConversionsApiService
             eventSourceUrl: (string) data_get($order->metadata, 'landing_url', config('app.url')),
             userData: $this->userDataFromTicketOrder($order),
             customData: $this->ticketOrderCustomData($order),
+        );
+    }
+
+    public function sendAddPaymentInfoForTicketOrder(TicketOrder $order): void
+    {
+        if (! $this->isEnabled() || data_get($order->metadata, 'capi_add_payment_info_sent')) {
+            return;
+        }
+
+        $sent = $this->sendEvent(
+            eventName: 'AddPaymentInfo',
+            eventId: 'ticket_payment_info_'.$order->public_id,
+            eventSourceUrl: (string) data_get($order->metadata, 'landing_url', config('app.url')),
+            userData: $this->userDataFromTicketOrder($order),
+            customData: $this->ticketOrderCustomData($order),
+        );
+
+        if ($sent) {
+            $metadata = is_array($order->metadata) ? $order->metadata : [];
+            $metadata['capi_add_payment_info_sent'] = true;
+            $order->forceFill(['metadata' => $metadata])->save();
+        }
+    }
+
+    public function sendViewContentForEvent(Event $event, Request $request, string $eventId): void
+    {
+        if (! $this->isEnabled()) {
+            return;
+        }
+
+        $event->loadMissing('ticketProducts');
+        $product = $event->ticketProducts
+            ->first(fn ($candidate): bool => $candidate->isOnSale() && ($candidate->availableStock() === null || $candidate->availableStock() > 0));
+
+        $this->sendEvent(
+            eventName: 'ViewContent',
+            eventId: $eventId,
+            eventSourceUrl: route('events.show', $event),
+            userData: array_filter([
+                'client_ip_address' => $request->ip(),
+                'client_user_agent' => $request->userAgent(),
+                'fbp' => $request->cookie('_fbp'),
+                'fbc' => $request->cookie('_fbc'),
+            ]),
+            customData: array_filter([
+                'currency' => $product?->currency ?: 'MXN',
+                'value' => $product ? (float) $product->price : null,
+                'content_type' => 'product',
+                'content_ids' => $product ? [(string) $product->id] : [(string) $event->id],
+                'content_name' => $event->title,
+                'content_category' => 'event_ticket',
+            ], static fn (mixed $value): bool => $value !== null),
         );
     }
 

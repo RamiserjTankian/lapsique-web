@@ -24,9 +24,12 @@ class TicketAccessEmail extends Mailable
     public function envelope(): Envelope
     {
         $eventTitle = $this->attendee->event?->title ?? 'Evento';
+        $prefix = data_get($this->attendee->product?->metadata, 'sales_mode') === 'testing'
+            ? '[PRUEBA] '
+            : '';
 
         return new Envelope(
-            subject: "🎟️ Tu acceso para {$eventTitle}",
+            subject: "{$prefix}🎟️ Tu acceso para {$eventTitle}",
         );
     }
 
@@ -51,6 +54,7 @@ class TicketAccessEmail extends Mailable
                 'unsubscribeUrl' => $this->attendee->email
                     ? route('customer.unsubscribe', ['email' => $this->attendee->email])
                     : route('customer.unsubscribe'),
+                'testMode' => data_get($this->attendee->product?->metadata, 'sales_mode') === 'testing',
             ],
         );
     }
@@ -65,6 +69,7 @@ class TicketAccessEmail extends Mailable
             'checkInUrl' => $this->attendee->getCheckInUrl(),
             'checkInQrUrl' => $this->attendee->getCheckInQrUrl(),
             'checkInCode' => $this->attendee->getCheckInCode(),
+            'testMode' => data_get($this->attendee->product?->metadata, 'sales_mode') === 'testing',
         ])->setOption('isRemoteEnabled', true);
 
         $filename = 'pase-' . $this->attendee->id . '.pdf';

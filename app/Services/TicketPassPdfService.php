@@ -94,6 +94,9 @@ class TicketPassPdfService
             'digitalAccessCopy' => 'Este QR funciona para acceso, relecturas y consumos permitidos del evento. Guardalo en tu telefono.',
             'usageCopy' => 'Presenta este pase en la entrada y conservalo para accesos, relecturas y consumos permitidos.',
             'summaryCopy' => 'Pase individual emitido para acceso y control de consumo en el evento.',
+            'testMode' => (bool) ($order?->items->contains(
+                fn ($item) => data_get($item->metadata, 'sales_mode') === 'testing'
+            ) || data_get($fallbackAttendee?->product?->metadata, 'sales_mode') === 'testing'),
         ];
     }
 
@@ -113,6 +116,7 @@ class TicketPassPdfService
             'digitalAccessCopy' => 'Este QR corresponde a una guest list. Solo permite el acceso al evento y no incluye consumo ni beneficios adicionales.',
             'usageCopy' => 'Presenta este pase en la entrada. Este QR es unicamente para acceso y no incluye consumo.',
             'summaryCopy' => 'Pase de guest list emitido unicamente para acceso al evento. No incluye consumo.',
+            'testMode' => false,
         ];
     }
 

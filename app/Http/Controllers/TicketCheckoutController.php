@@ -8,10 +8,12 @@ use App\Services\MercadoPagoService;
 use App\Services\Meta\MetaConversionsApiService;
 use App\Services\StripeService;
 use App\Services\TicketOrderService;
+use App\Support\MercadoPagoEmbeddedCheckout;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\URL;
 use Illuminate\View\View;
 
 class TicketCheckoutController extends Controller
@@ -52,6 +54,14 @@ class TicketCheckoutController extends Controller
 
         if (empty($items)) {
             return back()->withErrors(['items' => 'Selecciona al menos un ticket.'])->withInput();
+        }
+
+        if ($event->slug === 'safe-by-varuna-1-edition'
+            && ($validated['payment_provider'] ?? 'mercadopago') === 'mercadopago'
+            && ! MercadoPagoEmbeddedCheckout::configurationReady()) {
+            return back()
+                ->withErrors(['checkout' => 'El checkout de prueba está en preparación. No se creó ninguna orden ni reservación.'])
+                ->withInput();
         }
 
         $products = $event->ticketProducts()
@@ -176,6 +186,14 @@ class TicketCheckoutController extends Controller
                 return redirect()->away($checkoutUrl);
             }
 
+            if (MercadoPagoEmbeddedCheckout::isEligible($order)) {
+                return redirect()->to(URL::temporarySignedRoute(
+                    'tickets.mercadopago.embedded.show',
+                    now()->addMinutes(30),
+                    ['order' => $order],
+                ));
+            }
+
             $preference = $mercadoPago->createPreferenceForOrder($order->load('items'));
 
             $metadata = $order->metadata ?? [];
@@ -224,7 +242,7 @@ class TicketCheckoutController extends Controller
                     'error' => $exception->getMessage(),
                 ]);
             }
-        } elseif ($paymentId) {
+        } elseif ($paymentId && ! MercadoPagoEmbeddedCheckout::isEligible($order)) {
             try {
                 $payment = $mercadoPago->fetchPayment((string) $paymentId);
                 if ((string) data_get($payment, 'external_reference') === $order->public_id) {
@@ -298,6 +316,14 @@ class TicketCheckoutController extends Controller
                 ]);
 
                 return redirect()->away($checkoutUrl);
+            }
+
+            if (MercadoPagoEmbeddedCheckout::isEligible($order)) {
+                return redirect()->to(URL::temporarySignedRoute(
+                    'tickets.mercadopago.embedded.show',
+                    now()->addMinutes(30),
+                    ['order' => $order],
+                ));
             }
 
             $preference = $mercadoPago->createPreferenceForOrder($order);

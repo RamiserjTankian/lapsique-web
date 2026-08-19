@@ -54,7 +54,8 @@ class MercadoPagoWebhookController extends Controller
                 'error' => $exception->getMessage(),
             ]);
 
-            return response()->noContent();
+            return response('Provider temporarily unavailable', 503)
+                ->header('Retry-After', '30');
         }
 
         $externalReference = (string) data_get($payment, 'external_reference');
@@ -94,7 +95,17 @@ class MercadoPagoWebhookController extends Controller
             return response()->noContent();
         }
 
-        $orderService->syncPayment($order, $payment);
+        try {
+            $orderService->syncPayment($order, $payment);
+        } catch (\Throwable $exception) {
+            Log::warning('MercadoPago webhook payment verification failed', [
+                'payment_id' => $paymentId,
+                'order_id' => $order->id,
+                'error' => $exception->getMessage(),
+            ]);
+
+            return response('Payment verification failed', 422);
+        }
 
         return response()->noContent();
     }
@@ -121,7 +132,8 @@ class MercadoPagoWebhookController extends Controller
                 'error' => $exception->getMessage(),
             ]);
 
-            return response()->noContent();
+            return response('Provider temporarily unavailable', 503)
+                ->header('Retry-After', '30');
         }
 
         foreach (data_get($merchantOrder, 'payments', []) as $paymentRef) {

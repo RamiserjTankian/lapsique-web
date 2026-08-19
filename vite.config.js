@@ -11,6 +11,7 @@ export default defineConfig({
                 'resources/css/app.css',
                 'resources/css/filament/admin/theme.css',
                 'resources/js/app.js',
+                'resources/js/mercadopago-embedded.js',
                 'resources/js/app.tsx',
             ],
             refresh: true,

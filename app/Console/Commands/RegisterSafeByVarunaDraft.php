@@ -3,7 +3,11 @@
 namespace App\Console\Commands;
 
 use App\Models\Event;
+use App\Models\TicketProduct;
+use Carbon\CarbonImmutable;
 use Illuminate\Console\Command;
+use Illuminate\Support\Facades\DB;
+use RuntimeException;
 
 class RegisterSafeByVarunaDraft extends Command
 {
@@ -12,7 +16,8 @@ class RegisterSafeByVarunaDraft extends Command
     protected $signature = 'events:register-safe-by-varuna-draft
         {--write-draft : Create or update the internal, unpublished draft}
         {--publish-announcement : Publish the confirmed event announcement without tickets or sales}
-        {--confirm= : Must equal PUBLISH for --publish-announcement}
+        {--activate-testing : Activate the exact, single-phase Safe test catalog}
+        {--confirm= : Confirmation token required by publication or testing activation}
         {--unpublish-announcement : Soft-delete only the non-selling Safe by Varuna announcement}
         {--publish : Refused: publication is outside this draft-only command}
         {--sell : Refused: ticket selling is outside this draft-only command}';
@@ -27,6 +32,10 @@ class RegisterSafeByVarunaDraft extends Command
 
         $draft = Event::withTrashed()->where('slug', self::SLUG)->first();
 
+        if ($this->option('activate-testing')) {
+            return $this->activateTesting($draft);
+        }
+
         if ($this->option('unpublish-announcement')) {
             return $this->unpublishAnnouncement($draft);
         }
@@ -40,7 +49,8 @@ class RegisterSafeByVarunaDraft extends Command
             $this->line('Slug: ' . self::SLUG);
             $this->line('Existing draft: ' . ($draft?->trashed() ? 'soft-deleted draft' : ($draft ? 'active event (will be refused on write)' : 'none')));
             $this->line('Confirmed: August 27, 2026; KAPI; Casa Luma Cultural Space; Tonalá 145, CDMX.');
-            $this->line('Commercial state: disabled (no exact time, price, ticket URL, ticket products, publication, or selling).');
+            $this->line('Confirmed commercial facts: 22:00 CDMX; $100 MXN base; one phase; 350 tickets; 18+; no refunds.');
+            $this->line('Testing catalog remains disabled unless --activate-testing --confirm=ACTIVATE_TESTING is used.');
 
             return self::SUCCESS;
         }
@@ -140,7 +150,9 @@ class RegisterSafeByVarunaDraft extends Command
                 'Capacidad del venue: 350 pax. Cupo limitado.',
                 'Dress code: negro.',
                 '',
-                'Horario, precio, fases de venta y regla de edad por confirmar.',
+                'Inicio: 10:00 p. m. · Acceso para mayores de 18 años.',
+                'Boleto: $100 MXN + 5% de cargo de servicio. Total: $105 MXN.',
+                'Una sola fase. Sin reembolsos.',
             ]),
             'en' => implode("\n", [
                 'Confirmed date: August 27, 2026.',
@@ -150,7 +162,9 @@ class RegisterSafeByVarunaDraft extends Command
                 'Venue capacity: 350 guests. Limited capacity.',
                 'Dress code: black.',
                 '',
-                'Exact time, ticket price, sale phases and age policy are still to be confirmed.',
+                'Starts at 10:00 p.m. · Admission is restricted to guests aged 18 and over.',
+                'Ticket: MXN $100 + 5% service charge. Total: MXN $105.',
+                'Single sales phase. No refunds.',
             ]),
         ];
     }
@@ -172,12 +186,10 @@ class RegisterSafeByVarunaDraft extends Command
         $event ??= new Event();
         $event->fill([
             ...$this->draftAttributes(),
-            // Noon is an intentionally non-displayed date anchor. The
-            // time_tba tag makes every public formatter omit the clock until
-            // the exact event time is confirmed.
-            'starts_at' => '2026-08-27 12:00:00',
+            'starts_at' => CarbonImmutable::parse('2026-08-27 22:00:00', 'America/Mexico_City')
+                ->setTimezone((string) config('app.timezone')),
             'is_featured' => true,
-            'tags' => [...$this->draftAttributes()['tags'], 'time_tba'],
+            'tags' => [...$this->draftAttributes()['tags'], 'Inicio: 22:00 CDMX', 'Edad: 18+', 'Sin reembolsos'],
         ]);
         $event->save();
         if ($event->trashed()) {
@@ -185,7 +197,7 @@ class RegisterSafeByVarunaDraft extends Command
         }
 
         $this->info('Safe by Varuna public announcement published without sales.');
-        $this->line('Date: August 27, 2026. Exact time, price and ticket phases remain unannounced.');
+        $this->line('Date: August 27, 2026 at 22:00 CDMX. 18+ and no refunds. Sales remain disabled.');
         $this->line('No ticket product, provider call or payment URL was created.');
 
         return self::SUCCESS;
@@ -214,6 +226,107 @@ class RegisterSafeByVarunaDraft extends Command
         $event->delete();
         $this->info('Safe by Varuna announcement unpublished.');
         $this->line('Only the exact non-selling event slug was soft-deleted.');
+
+        return self::SUCCESS;
+    }
+
+    private function activateTesting(?Event $event): int
+    {
+        if ($this->option('confirm') !== 'ACTIVATE_TESTING') {
+            $this->error('Testing activation requires --confirm=ACTIVATE_TESTING.');
+
+            return self::FAILURE;
+        }
+
+        try {
+            DB::transaction(function () use ($event): void {
+                $event = $event
+                    ? Event::withTrashed()->lockForUpdate()->findOrFail($event->getKey())
+                    : new Event();
+
+                $existingProducts = $event->exists
+                    ? $event->ticketProducts()->withTrashed()->lockForUpdate()->get()
+                    : collect();
+
+                if ($existingProducts->contains(fn (TicketProduct $product): bool => $product->orderItems()->exists())) {
+                    throw new RuntimeException('Safe already has ticket orders. Refusing to rewrite its catalog.');
+                }
+
+                if ($existingProducts->count() > 1
+                    || ($existingProducts->first() && data_get($existingProducts->first()->metadata, 'catalog_contract') !== 'safe_single_testing_v1')) {
+                    throw new RuntimeException('Safe has an unowned ticket catalog. Review it manually before activation.');
+                }
+
+                $event->fill([
+                    ...$this->draftAttributes(),
+                    // 22:00 Mexico City equals 23:00 in the application timezone
+                    // (America/Cancun) on this date.
+                    'starts_at' => CarbonImmutable::parse('2026-08-27 22:00:00', 'America/Mexico_City')
+                        ->setTimezone((string) config('app.timezone')),
+                    'is_featured' => true,
+                    'tags' => [
+                        ...array_values(array_filter(
+                            $this->draftAttributes()['tags'],
+                            fn (string $tag): bool => $tag !== 'time_tba',
+                        )),
+                        'Inicio: 22:00 CDMX',
+                        'Edad: 18+',
+                        'Boleto base: 100 MXN',
+                        'Cargo de servicio: 5%',
+                        'Total testing: 105 MXN',
+                        'Una sola fase',
+                        'Sin reembolsos',
+                        'sales_testing',
+                    ],
+                ]);
+                $event->save();
+                if ($event->trashed()) {
+                    $event->restore();
+                }
+
+                $product = $existingProducts->first() ?? new TicketProduct();
+                $product->fill([
+                    'event_id' => $event->id,
+                    'name' => 'Acceso general · Testing',
+                    'description' => 'Acceso individual 18+ para Safe by Varuna. Modo testing; no válido para ingresar.',
+                    'category' => 'ticket',
+                    'currency' => 'MXN',
+                    // Ticket base is $100. The existing model stores gross.
+                    'price' => 105,
+                    'service_charge_pct' => 5,
+                    'access_units' => 1,
+                    'check_in_limit' => 1,
+                    'stock' => 350,
+                    'reserved_count' => 0,
+                    'sold_count' => 0,
+                    'max_per_order' => 6,
+                    'starts_at' => now(),
+                    'ends_at' => $event->starts_at,
+                    'is_active' => true,
+                    'metadata' => [
+                        'catalog_contract' => 'safe_single_testing_v1',
+                        'sales_mode' => 'testing',
+                        'phase' => 'single',
+                        'base_ticket_price' => 100,
+                        'service_charge_pct' => 5,
+                        'refund_policy' => 'no_refunds',
+                        'minimum_age' => 18,
+                    ],
+                ]);
+                $product->save();
+                if ($product->trashed()) {
+                    $product->restore();
+                }
+            });
+        } catch (\Throwable $exception) {
+            $this->error($exception->getMessage());
+
+            return self::FAILURE;
+        }
+
+        $this->info('Safe by Varuna testing catalog activated.');
+        $this->line('One phase · 350 tickets · $100 base + $5 service · $105 test total.');
+        $this->line('22:00 CDMX · 18+ · no refunds · no production charge enabled.');
 
         return self::SUCCESS;
     }

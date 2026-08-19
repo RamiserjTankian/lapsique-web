@@ -393,6 +393,65 @@ class MetaAdsIntegrationTest extends TestCase
         });
     }
 
+    public function test_ticket_add_payment_info_and_purchase_are_each_deduplicated(): void
+    {
+        $this->configureMetaCapi();
+        Http::fake([
+            'graph.facebook.com/*' => Http::response(['events_received' => 1]),
+        ]);
+
+        $event = Event::create([
+            'title' => 'Safe Meta',
+            'slug' => 'safe-meta',
+            'starts_at' => now()->addWeek(),
+        ]);
+        $product = TicketProduct::create([
+            'event_id' => $event->id,
+            'name' => 'General',
+            'price' => 105,
+            'currency' => 'MXN',
+            'stock' => 20,
+            'is_active' => true,
+        ]);
+        $order = TicketOrder::create([
+            'event_id' => $event->id,
+            'status' => 'pending',
+            'payment_provider' => 'mercadopago',
+            'currency' => 'MXN',
+            'subtotal' => 100,
+            'fee' => 5,
+            'total' => 105,
+            'items_quantity' => 1,
+            'attendees_expected' => 1,
+            'buyer_name' => 'Safe Buyer',
+            'buyer_email' => 'safe-meta@example.com',
+        ]);
+        TicketOrderItem::create([
+            'ticket_order_id' => $order->id,
+            'ticket_product_id' => $product->id,
+            'name' => $product->name,
+            'category' => 'ticket',
+            'quantity' => 1,
+            'unit_price' => 105,
+            'total_price' => 105,
+            'access_units' => 1,
+            'check_in_limit' => 1,
+        ]);
+
+        $service = app(MetaConversionsApiService::class);
+        $service->sendAddPaymentInfoForTicketOrder($order->fresh(['event', 'items']));
+        $service->sendAddPaymentInfoForTicketOrder($order->fresh(['event', 'items']));
+        $service->sendPurchaseForTicketOrder($order->fresh(['event', 'items']));
+        $service->sendPurchaseForTicketOrder($order->fresh(['event', 'items']));
+
+        $requests = Http::recorded();
+        $this->assertCount(2, $requests);
+        $this->assertSame('ticket_payment_info_'.$order->public_id, data_get($requests[0][0]->data(), 'data.0.event_id'));
+        $this->assertSame('ticket_order_'.$order->public_id, data_get($requests[1][0]->data(), 'data.0.event_id'));
+        $this->assertTrue((bool) data_get($order->fresh()->metadata, 'capi_add_payment_info_sent'));
+        $this->assertTrue((bool) data_get($order->fresh()->metadata, 'capi_purchase_sent'));
+    }
+
     public function test_conversions_api_sends_initiate_checkout_for_ticket_order_with_browser_event_id(): void
     {
         $this->configureMetaCapi();

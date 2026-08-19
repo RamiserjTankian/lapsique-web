@@ -6,6 +6,7 @@
 @section('content')
     @php
         $allRegistered = $order->attendees_registered >= $order->attendees_expected;
+        $testMode = $order->items->contains(fn ($item) => data_get($item->metadata, 'sales_mode') === 'testing');
     @endphp
 
     {{-- Barra mínima para página de confirmación --}}
@@ -27,6 +28,12 @@
                     {{ $allRegistered ? 'Los accesos registrados ya pueden usar su QR.' : 'Completa los datos de cada persona. Recibirán su QR al guardar.' }}
                 </p>
             </header>
+
+            @if ($testMode)
+                <div role="alert" class="mb-6 rounded-xl border-2 border-amber-500 bg-amber-50 px-4 py-4 text-sm font-semibold text-amber-950">
+                    COMPRA DE PRUEBA · El QR y PDF sirven para validar el workflow, pero no permiten ingresar al evento.
+                </div>
+            @endif
 
             @if (session('success'))
                 <div class="mb-6 rounded-xl border border-[var(--marine-300)] bg-[var(--marine-50)] px-4 py-3 text-sm text-[var(--marine-800)]">
@@ -68,7 +75,7 @@
                                         <div class="min-w-0">
                                             <h4 class="font-semibold text-[var(--ink)] truncate">{{ $attendee->name ?? ('Acceso ' . ($index + 1)) }}</h4>
                                             <p class="text-sm text-[var(--muted)] truncate">{{ $attendee->email }}</p>
-                                            <span class="inline-block mt-2 pill text-xs border-[var(--marine-300)] text-[var(--marine-600)] bg-[var(--marine-50)]">Activo</span>
+                                            <span class="inline-block mt-2 pill text-xs border-[var(--marine-300)] text-[var(--marine-600)] bg-[var(--marine-50)]">{{ $testMode ? 'Prueba' : 'Activo' }}</span>
                                         </div>
                                         <div class="flex flex-wrap gap-2 shrink-0">
                                             <a href="{{ $attendee->getCheckInUrl() }}" class="btn btn-primary text-sm py-2.5 px-4">

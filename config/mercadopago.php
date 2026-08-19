@@ -9,6 +9,19 @@ return [
     'statement_descriptor' => env('MERCADOPAGO_STATEMENT_DESCRIPTOR', 'LAPSIQUE'),
     'currency' => env('MERCADOPAGO_CURRENCY', 'MXN'),
     'sandbox' => env('MERCADOPAGO_SANDBOX', false),
+    'embedded' => [
+        // The Card Payment Brick remains fail-closed until both flags are
+        // enabled and TEST credentials are present. Production credentials
+        // are explicitly rejected while testing mode is active.
+        'enabled' => env('MERCADOPAGO_EMBEDDED_ENABLED', false),
+        'testing' => env('MERCADOPAGO_EMBEDDED_TESTING', true),
+        'authorized_event_slugs' => array_values(array_filter(array_map(
+            'trim',
+            explode(',', (string) env('MERCADOPAGO_EMBEDDED_EVENT_SLUGS', 'safe-by-varuna-1-edition')),
+        ))),
+        'sdk_url' => 'https://sdk.mercadopago.com/js/v2',
+        'payment_path' => '/v1/payments',
+    ],
     'redirect_uri' => env('MERCADOPAGO_REDIRECT_URI'),
     'api_base_url' => env('MERCADOPAGO_API_BASE_URL', 'https://api.mercadopago.com'),
     'oauth_authorize_url' => env('MERCADOPAGO_OAUTH_AUTHORIZE_URL', 'https://auth.mercadopago.com/authorization'),

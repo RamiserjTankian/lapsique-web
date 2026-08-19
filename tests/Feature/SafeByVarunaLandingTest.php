@@ -1,0 +1,60 @@
+<?php
+
+namespace Tests\Feature;
+
+use App\Models\Event;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Http;
+use Inertia\Testing\AssertableInertia as Assert;
+use Tests\TestCase;
+
+class SafeByVarunaLandingTest extends TestCase
+{
+    use RefreshDatabase;
+
+    public function test_lapsique_event_page_exposes_the_single_testing_catalog_and_shared_view_event_id(): void
+    {
+        config([
+            'meta.capi.enabled' => true,
+            'meta.pixel.id' => 'pixel-safe',
+            'meta.marketing_api.access_token' => 'meta-test-token',
+            'meta.marketing_api.api_version' => 'v21.0',
+            'mercadopago.embedded.enabled' => false,
+        ]);
+        Http::fake([
+            'graph.facebook.com/*' => Http::response(['events_received' => 1]),
+        ]);
+
+        $this->artisan('events:register-safe-by-varuna-draft', [
+            '--activate-testing' => true,
+            '--confirm' => 'ACTIVATE_TESTING',
+        ])->assertSuccessful();
+        $event = Event::where('slug', 'safe-by-varuna-1-edition')->firstOrFail();
+
+        $this->withCookie('_fbp', 'fb.1.123.456')
+            ->get(route('events.show', $event))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->component('Events/Show')
+                ->where('event.slug', 'safe-by-varuna-1-edition')
+                ->where('event.event_timezone', 'America/Mexico_City')
+                ->where('event.has_tickets', true)
+                ->has('event.ticket_products', 1)
+                ->where('event.ticket_products.0.base_price', 100)
+                ->where('event.ticket_products.0.service_charge_amount', 5)
+                ->where('event.ticket_products.0.total', 105)
+                ->where('event.ticket_products.0.available', 350)
+                ->where('event.ticket_products.0.sales_mode', 'testing')
+                ->where('event.ticket_products.0.embedded_checkout_ready', false)
+                ->where('event.ticket_products.0.max_per_order', 6)
+                ->where('viewContentEventId', fn ($value) => is_string($value) && str_starts_with($value, 'event_view_'.$event->id.'_'))
+            );
+
+        Http::assertSent(function ($request) use ($event) {
+            return data_get($request->data(), 'data.0.event_name') === 'ViewContent'
+                && str_starts_with((string) data_get($request->data(), 'data.0.event_id'), 'event_view_'.$event->id.'_')
+                && data_get($request->data(), 'data.0.custom_data.value') === 105.0
+                && data_get($request->data(), 'data.0.user_data.fbp') === 'fb.1.123.456';
+        });
+    }
+}

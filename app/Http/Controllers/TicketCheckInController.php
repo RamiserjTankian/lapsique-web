@@ -36,6 +36,11 @@ class TicketCheckInController extends Controller
             ->where('invite_token', $token)
             ->firstOrFail();
 
+        if (data_get($attendee->product?->metadata, 'sales_mode') === 'testing') {
+            return redirect($attendee->getCheckInUrl())
+                ->with('info', 'Este es un pase de prueba y no es válido para ingresar al evento.');
+        }
+
         if (! $attendee->canCheckIn()) {
             return redirect($attendee->getCheckInUrl())
                 ->with('info', 'Este pase ya agotó sus consumos permitidos.');

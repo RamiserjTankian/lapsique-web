@@ -16,6 +16,7 @@ use App\Http\Controllers\GuestListRegisterController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\LeadCaptureController;
 use App\Http\Controllers\MercadoPagoOAuthController;
+use App\Http\Controllers\MercadoPagoEmbeddedPaymentController;
 use App\Http\Controllers\MercadoPagoWebhookController;
 use App\Http\Controllers\PortfolioController;
 use App\Http\Controllers\PostController;
@@ -101,6 +102,15 @@ Route::get('/tickets/{order}/pending', [TicketCheckoutController::class, 'pendin
 Route::get('/tickets/{order}/failure', [TicketCheckoutController::class, 'failure'])->middleware(NoIndexRobots::class)->name('tickets.failure');
 Route::post('/tickets/{order}/retry', [TicketCheckoutController::class, 'retryPayment'])->name('tickets.retry');
 Route::post('/tickets/{order}/attendees', [TicketAttendeeController::class, 'store'])->name('tickets.attendees.store');
+Route::get('/tickets/{order}/mercadopago/card', [MercadoPagoEmbeddedPaymentController::class, 'show'])
+    ->middleware(['signed', NoIndexRobots::class])
+    ->name('tickets.mercadopago.embedded.show');
+Route::get('/tickets/{order}/mercadopago/embedded', [MercadoPagoEmbeddedPaymentController::class, 'configuration'])
+    ->middleware(['signed', NoIndexRobots::class])
+    ->name('tickets.mercadopago.embedded.configuration');
+Route::post('/tickets/{order}/mercadopago/embedded/payment', [MercadoPagoEmbeddedPaymentController::class, 'createPayment'])
+    ->middleware('signed')
+    ->name('tickets.mercadopago.embedded.payment');
 
 Route::get('/tickets/check-in/{token}', [TicketCheckInController::class, 'show'])
     ->middleware(['signed', NoIndexRobots::class])

@@ -5,8 +5,10 @@ namespace App\Services;
 use App\Models\ContentBooking;
 use App\Models\PaymentGatewayConnection;
 use App\Models\TicketOrder;
+use App\Support\MercadoPagoEmbeddedCheckout;
 use Illuminate\Http\Request;
 use Illuminate\Support\Arr;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Route;
@@ -283,6 +285,122 @@ class MercadoPagoService
         return (array) $response->json();
     }
 
+    /**
+     * Public, non-sensitive setup for Mercado Pago's Card Payment Brick.
+     *
+     * @return array{public_key:string,amount:float,currency:string,sdk_url:string,test_mode:bool}
+     */
+    public function embeddedConfigurationForOrder(TicketOrder $order): array
+    {
+        $order = $this->assertEmbeddedOrder($order);
+        $publicKey = trim((string) config('mercadopago.public_key', ''));
+
+        if (! str_starts_with($publicKey, 'TEST-')) {
+            throw new RuntimeException('El modo testing requiere una public key de Mercado Pago que comience con TEST-.');
+        }
+
+        // Resolve the access token here as part of preflight. It is never
+        // returned to the browser, but a missing/live token must fail before
+        // the Brick becomes available.
+        $this->requireEmbeddedTestAccessToken();
+
+        return [
+            'public_key' => $publicKey,
+            'amount' => round((float) $order->total, 2),
+            'currency' => strtoupper((string) $order->currency),
+            'sdk_url' => (string) config('mercadopago.embedded.sdk_url'),
+            'test_mode' => true,
+        ];
+    }
+
+    /**
+     * Creates a provider payment using only Mercado Pago's one-time token.
+     * A browser response never fulfils tickets; only the signed webhook may
+     * fetch and reconcile the provider payment.
+     *
+     * @param  array<string, mixed>  $browserPayload
+     * @return array{id:string,status:string,status_detail:?string}
+     */
+    public function createEmbeddedPayment(TicketOrder $order, array $browserPayload): array
+    {
+        $order = $this->assertEmbeddedOrder($order);
+        $attempt = $this->embeddedAttemptFor($order);
+
+        if ($attempt['payment_id'] !== null) {
+            return [
+                'id' => $attempt['payment_id'],
+                'status' => $attempt['status'],
+                'status_detail' => $attempt['status_detail'],
+            ];
+        }
+
+        $payerIdentification = Arr::only((array) data_get($browserPayload, 'payer.identification', []), ['type', 'number']);
+        $payload = array_filter([
+            'token' => (string) ($browserPayload['token'] ?? ''),
+            'transaction_amount' => round((float) $order->total, 2),
+            'installments' => (int) ($browserPayload['installments'] ?? 0),
+            'payment_method_id' => (string) ($browserPayload['payment_method_id'] ?? ''),
+            'issuer_id' => filled($browserPayload['issuer_id'] ?? null) ? (string) $browserPayload['issuer_id'] : null,
+            'payer' => array_filter([
+                'email' => (string) $order->buyer_email,
+                'identification' => array_filter($payerIdentification),
+            ]),
+            'description' => Str::limit('Acceso de prueba · '.$order->event()->value('title'), 250, ''),
+            'external_reference' => (string) $order->public_id,
+            'statement_descriptor' => config('mercadopago.statement_descriptor'),
+            'notification_url' => route('webhooks.mercadopago'),
+            'metadata' => [
+                'ticket_order_id' => (string) $order->getKey(),
+                'ticket_order_public_id' => (string) $order->public_id,
+                'checkout' => 'card_payment_brick',
+                'sales_mode' => 'testing',
+            ],
+        ], static fn (mixed $value): bool => $value !== null && $value !== '');
+
+        // Never log this request: it contains a single-use card token.
+        $response = $this->embeddedHttpClient()
+            ->withHeaders(['X-Idempotency-Key' => $attempt['idempotency_key']])
+            ->post((string) config('mercadopago.embedded.payment_path', '/v1/payments'), $payload);
+
+        if (! $response->successful()) {
+            throw new RuntimeException('No se pudo iniciar el pago de prueba con tarjeta.', $response->status());
+        }
+
+        $providerPayment = (array) $response->json();
+        $paymentId = trim((string) data_get($providerPayment, 'id'));
+        $status = trim((string) data_get($providerPayment, 'status'));
+
+        if ($paymentId === '' || $status === '') {
+            throw new RuntimeException('Mercado Pago no devolvió un estado de pago válido.');
+        }
+
+        $statusDetail = filled(data_get($providerPayment, 'status_detail'))
+            ? (string) data_get($providerPayment, 'status_detail')
+            : null;
+
+        DB::transaction(function () use ($order, $attempt, $paymentId, $status, $statusDetail): void {
+            $lockedOrder = TicketOrder::query()->lockForUpdate()->findOrFail($order->getKey());
+            $metadata = $lockedOrder->metadata ?? [];
+            $embeddedMetadata = (array) data_get($metadata, 'mercadopago_embedded', []);
+            $metadata['mercadopago_embedded'] = array_filter([
+                'idempotency_key' => $attempt['idempotency_key'],
+                'created_at' => $attempt['created_at'],
+                'payment_id' => $paymentId,
+                'status' => $status,
+                'status_detail' => $statusDetail,
+                'previous_payment_ids' => $embeddedMetadata['previous_payment_ids'] ?? null,
+            ], static fn (mixed $value): bool => $value !== null);
+
+            $lockedOrder->update([
+                'mp_payment_id' => $paymentId,
+                'mp_external_reference' => (string) $lockedOrder->public_id,
+                'metadata' => $metadata,
+            ]);
+        });
+
+        return ['id' => $paymentId, 'status' => $status, 'status_detail' => $statusDetail];
+    }
+
     public function createPreferenceForBooking(ContentBooking $booking): array
     {
         $slot = $booking->slot;
@@ -377,7 +495,9 @@ class MercadoPagoService
         $secret = (string) config('mercadopago.webhook_secret');
 
         if ($secret === '') {
-            return true;
+            // Legacy redirect checkouts keep their historical behavior, but
+            // the embedded flow must never acknowledge an unsigned webhook.
+            return ! (bool) config('mercadopago.embedded.enabled', false);
         }
 
         $signature = (string) $request->header('x-signature', '');
@@ -397,16 +517,42 @@ class MercadoPagoService
 
         $timestamp = $parts['ts'] ?? null;
         $hash = $parts['v1'] ?? null;
-        $dataId = data_get($request->all(), 'data.id');
+        $dataId = $this->webhookDataId($request);
 
         if (! $timestamp || ! $hash || ! $dataId) {
             return false;
+        }
+
+        if (preg_match('/^[A-Za-z0-9]+$/', $dataId) === 1) {
+            $dataId = strtolower($dataId);
         }
 
         $manifest = sprintf('id:%s;request-id:%s;ts:%s;', $dataId, $requestId, $timestamp);
         $calculated = hash_hmac('sha256', $manifest, $secret);
 
         return hash_equals($calculated, $hash);
+    }
+
+    protected function webhookDataId(Request $request): ?string
+    {
+        $query = $request->query();
+        $queryDataId = $query['data.id'] ?? $query['data_id'] ?? null;
+        $body = $request->json()->all();
+        if (! is_array($body) || $body === []) {
+            $body = $request->all();
+        }
+        $bodyDataId = is_array($body)
+            ? (data_get($body, 'data.id') ?? $body['data.id'] ?? $body['data_id'] ?? null)
+            : null;
+
+        if ($queryDataId !== null && $bodyDataId !== null
+            && (string) $queryDataId !== (string) $bodyDataId) {
+            return null;
+        }
+
+        return ($queryDataId ?? $bodyDataId) !== null
+            ? (string) ($queryDataId ?? $bodyDataId)
+            : null;
     }
 
     protected function storeConnectionTokens(array $payload, ?PaymentGatewayConnection $connection = null): PaymentGatewayConnection
@@ -525,6 +671,96 @@ class MercadoPagoService
         return Http::withToken($this->requireAccessToken())
             ->acceptJson()
             ->baseUrl(rtrim((string) config('mercadopago.api_base_url'), '/'));
+    }
+
+    protected function embeddedHttpClient()
+    {
+        return Http::withToken($this->requireEmbeddedTestAccessToken())
+            ->acceptJson()
+            ->baseUrl(rtrim((string) config('mercadopago.api_base_url'), '/'));
+    }
+
+    protected function requireEmbeddedTestAccessToken(): string
+    {
+        $token = trim((string) config('mercadopago.access_token', ''));
+
+        if (! (bool) config('mercadopago.embedded.testing', true)
+            || ! (bool) config('mercadopago.sandbox', false)
+            || ! str_starts_with($token, 'TEST-')) {
+            throw new RuntimeException('El Brick de prueba requiere MERCADOPAGO_SANDBOX=true y un access token TEST-.');
+        }
+
+        return $token;
+    }
+
+    private function assertEmbeddedOrder(TicketOrder $order): TicketOrder
+    {
+        $order = TicketOrder::query()->with(['event', 'items.product'])->find($order->getKey());
+
+        if (! $order || ! MercadoPagoEmbeddedCheckout::isEligible($order)) {
+            throw new RuntimeException('La orden no es elegible para pago embebido en testing.');
+        }
+
+        return $order;
+    }
+
+    /**
+     * @return array{idempotency_key:string,created_at:string,payment_id:?string,status:string,status_detail:?string}
+     */
+    private function embeddedAttemptFor(TicketOrder $order): array
+    {
+        return DB::transaction(function () use ($order): array {
+            $lockedOrder = TicketOrder::query()->lockForUpdate()->findOrFail($order->getKey());
+            $metadata = $lockedOrder->metadata ?? [];
+            $existing = (array) data_get($metadata, 'mercadopago_embedded', []);
+            $idempotencyKey = trim((string) ($existing['idempotency_key'] ?? ''));
+            $createdAt = trim((string) ($existing['created_at'] ?? ''));
+            $existingPaymentId = trim((string) ($existing['payment_id'] ?? ''));
+            $existingStatus = strtolower(trim((string) ($existing['status'] ?? 'pending')));
+
+            if ($existingPaymentId !== '' && in_array($existingStatus, ['rejected', 'cancelled'], true)) {
+                $previousPaymentIds = collect((array) ($existing['previous_payment_ids'] ?? []))
+                    ->map(fn (mixed $value): string => trim((string) $value))
+                    ->filter()
+                    ->push($existingPaymentId)
+                    ->unique()
+                    ->take(-10)
+                    ->values()
+                    ->all();
+                $idempotencyKey = (string) Str::uuid();
+                $createdAt = now()->toIso8601String();
+                $metadata['mercadopago_embedded'] = [
+                    'idempotency_key' => $idempotencyKey,
+                    'created_at' => $createdAt,
+                    'previous_payment_ids' => $previousPaymentIds,
+                ];
+                $lockedOrder->update([
+                    'mp_payment_id' => null,
+                    'mp_external_reference' => null,
+                    'metadata' => $metadata,
+                ]);
+                $existingPaymentId = '';
+                $existingStatus = 'pending';
+            }
+
+            if ($idempotencyKey === '') {
+                $idempotencyKey = (string) Str::uuid();
+                $createdAt = now()->toIso8601String();
+                $metadata['mercadopago_embedded'] = [
+                    'idempotency_key' => $idempotencyKey,
+                    'created_at' => $createdAt,
+                ];
+                $lockedOrder->update(['metadata' => $metadata]);
+            }
+
+            return [
+                'idempotency_key' => $idempotencyKey,
+                'created_at' => $createdAt,
+                'payment_id' => $existingPaymentId !== '' ? $existingPaymentId : null,
+                'status' => $existingStatus,
+                'status_detail' => filled($existing['status_detail'] ?? null) ? (string) $existing['status_detail'] : null,
+            ];
+        });
     }
 
     protected function requireAccessToken(): string

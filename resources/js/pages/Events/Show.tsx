@@ -3,6 +3,7 @@ import { CalendarDays, MapPin, Play, Ticket, Users } from 'lucide-react';
 import { useState } from 'react';
 import { SeoHead } from '@/components/lapsique/SeoHead';
 import { NewsletterCaptureModal } from '@/components/lapsique/NewsletterCaptureModal';
+import { SafeByVarunaLanding } from '@/components/lapsique/SafeByVarunaLanding';
 import SiteLayout from '@/layouts/SiteLayout';
 import { useTranslations } from '@/hooks/useTranslations';
 import { route } from '@/lib/route';
@@ -10,15 +11,25 @@ import type { EventItem, PageProps } from '@/types';
 
 interface EventsShowProps {
     event: EventItem;
+    viewContentEventId: string;
 }
 
-export default function EventsShow({ event }: EventsShowProps) {
+export default function EventsShow({ event, viewContentEventId }: EventsShowProps) {
     const { ziggy, site } = usePage<PageProps>().props;
     const { locale } = useTranslations();
     const en = locale === 'en';
     const eventLocation = event.location_name || event.venue || event.city || 'Riviera Maya';
     const [interestOpen, setInterestOpen] = useState(false);
     const whatsapp = `https://wa.me/${site.whatsapp}?text=${encodeURIComponent(en ? `Hi, I want to produce an event with Lapsique Media. Reference: ${event.title}` : `Hola, quiero producir un evento con Lapsique Media. Referencia: ${event.title}`)}`;
+
+    if (event.slug === 'safe-by-varuna-1-edition') {
+        return (
+            <SiteLayout>
+                <SeoHead />
+                <SafeByVarunaLanding event={event} viewContentEventId={viewContentEventId} />
+            </SiteLayout>
+        );
+    }
 
     return (
         <SiteLayout>
@@ -33,7 +44,7 @@ export default function EventsShow({ event }: EventsShowProps) {
                                 {event.headline ? <p className="mt-6 max-w-xl text-lg leading-relaxed text-white/65">{event.headline}</p> : null}
                             </div>
                             <div className="mt-14 grid gap-4 border-t border-white/20 pt-6 text-sm text-white/65 sm:grid-cols-2">
-                                <p className="flex items-center gap-3"><CalendarDays className="size-4 text-primary" /> {formatDate(event.starts_at, locale, event.time_tba)}</p>
+                                <p className="flex items-center gap-3"><CalendarDays className="size-4 text-primary" /> {formatDate(event.starts_at, locale, event.time_tba, event.event_timezone)}</p>
                                 <p className="flex items-center gap-3"><MapPin className="size-4 text-primary" /> {eventLocation}</p>
                             </div>
                         </div>
@@ -152,11 +163,11 @@ function youtubeId(url: string): string | null {
     return url.match(/(?:v=|youtu\.be\/|embed\/)([\w-]{11})/)?.[1] ?? null;
 }
 
-function formatDate(value: string | null, locale: string, timeTba = false): string {
+function formatDate(value: string | null, locale: string, timeTba = false, timeZone?: string): string {
     if (!value) return locale === 'en' ? 'Date to be announced' : 'Fecha por anunciar';
     return new Intl.DateTimeFormat(
         locale === 'en' ? 'en-US' : 'es-MX',
-        timeTba ? { dateStyle: 'long' } : { dateStyle: 'long', timeStyle: 'short' },
+        timeTba ? { dateStyle: 'long', timeZone } : { dateStyle: 'long', timeStyle: 'short', timeZone },
     ).format(new Date(value));
 }
 
