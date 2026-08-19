@@ -36,6 +36,7 @@ class EventResource extends JsonResource
             'title' => $this->title,
             'slug' => $this->slug,
             'starts_at' => $this->starts_at?->toIso8601String(),
+            'time_tba' => in_array('time_tba', is_array($this->tags) ? $this->tags : [], true),
             'cover_url' => BrowserUrl::normalize($this->getFirstMediaUrl('cover', 'cover_large')
                 ?: $this->getFirstMediaUrl('cover')
                 ?: ($this->public_image_path ? asset(ltrim($this->public_image_path, '/')) : null)),
@@ -43,7 +44,7 @@ class EventResource extends JsonResource
             'venue' => $this->venue,
             'city' => $this->city,
             'headline' => $this->headline,
-            'description' => $this->description,
+            'description' => $this->localizedDescription(app()->getLocale()),
             'youtube_url' => $this->youtube_url,
             'ticket_url' => $isUpcoming ? $this->ticket_url : null,
             'is_upcoming' => $isUpcoming,

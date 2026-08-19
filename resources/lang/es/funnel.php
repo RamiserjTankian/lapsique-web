@@ -278,7 +278,10 @@ return [
         'interests_label' => 'Intereses',
         'submit' => 'Suscribirme',
         'consent' => 'Al enviar aceptas recibir comunicaciones de marketing. Puedes darte de baja cuando quieras.',
+        'consent_required' => 'Acepta el consentimiento de marketing para continuar.',
         'success_default' => '¡Gracias! Te mantendremos informado de nuestros próximos eventos.',
+        'success_existing' => '¡Gracias! Ya estás suscrito y actualizamos tu información.',
+        'capture_error' => 'Ocurrió un error. Por favor intenta de nuevo.',
         'success_subtitle' => '¡Nos vemos en la pista!',
     ],
     'reel_player' => [

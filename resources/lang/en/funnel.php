@@ -278,7 +278,10 @@ return [
         'interests_label' => 'Interests',
         'submit' => 'Subscribe',
         'consent' => 'By submitting you agree to receive marketing communications. You can unsubscribe anytime.',
+        'consent_required' => 'Accept the marketing consent to continue.',
         'success_default' => "Thanks! We'll keep you posted on upcoming events.",
+        'success_existing' => "Thanks! You're already subscribed, and we've updated your information.",
+        'capture_error' => 'Something went wrong. Please try again.',
         'success_subtitle' => 'See you on the dance floor!',
     ],
     'reel_player' => [

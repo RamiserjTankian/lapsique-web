@@ -25,6 +25,8 @@ class LeadCaptureController extends Controller
             'message' => ['nullable', 'string', 'max:1000'],
             'interests' => ['nullable', 'array'],
             'interests.*' => ['string'],
+            'marketing_consent' => ['required', 'accepted'],
+            'meta_marketing_consent' => ['required', 'accepted'],
         ]);
         $filled = static fn ($value): bool => $value !== null && $value !== '';
 
@@ -56,6 +58,9 @@ class LeadCaptureController extends Controller
                     'analytics_session_id' => $request->input('analytics_session_id'),
                     'fbp' => $request->input('fbp'),
                     'fbc' => $request->input('fbc'),
+                    'marketing_consent' => true,
+                    'meta_marketing_consent' => true,
+                    'consented_at' => now()->toIso8601String(),
                     'captured_at' => now()->toIso8601String(),
                 ], $filled);
 
@@ -98,7 +103,7 @@ class LeadCaptureController extends Controller
 
                 return response()->json([
                     'success' => true,
-                    'message' => '¡Gracias! Ya estás suscrito. Hemos actualizado tu información.',
+                    'message' => trans('funnel.newsletter.success_existing'),
                     'new_customer' => false,
                     'meta_event_id' => $metaEventId,
                 ]);
@@ -142,6 +147,9 @@ class LeadCaptureController extends Controller
                     'analytics_session_id' => $request->input('analytics_session_id'),
                     'fbp' => $request->input('fbp'),
                     'fbc' => $request->input('fbc'),
+                    'marketing_consent' => true,
+                    'meta_marketing_consent' => true,
+                    'consented_at' => now()->toIso8601String(),
                 ],
             ]);
 
@@ -177,7 +185,7 @@ class LeadCaptureController extends Controller
 
             return response()->json([
                 'success' => true,
-                'message' => '¡Bienvenido! Revisa tu email para confirmar tu suscripción.',
+                'message' => trans('funnel.newsletter.success_default'),
                 'new_customer' => true,
                 'meta_event_id' => $metaEventId,
             ]);
@@ -189,7 +197,7 @@ class LeadCaptureController extends Controller
 
             return response()->json([
                 'success' => false,
-                'message' => 'Ocurrió un error. Por favor intenta de nuevo.',
+                'message' => trans('funnel.newsletter.capture_error'),
             ], 500);
         }
     }

@@ -32,6 +32,8 @@ interface NewsletterCaptureModalProps {
     heroProofVideo?: HeroProofVideoData | null;
     originals?: VideoItem[];
     source?: string;
+    imageUrl?: string | null;
+    imageAlt?: string;
 }
 
 function getTrackingPayload(): Record<string, string | null> {
@@ -64,20 +66,23 @@ export function NewsletterCaptureModal({
     heroProofVideo = null,
     originals = [],
     source = 'auto',
+    imageUrl = null,
+    imageAlt = '',
 }: NewsletterCaptureModalProps) {
     const { ziggy } = usePage<PageProps>().props;
     const { t } = useTranslations();
     const visual = useMemo(() => getPopupVisualCopy(t, variant, 'newsletter'), [t, variant]);
     const image = useMemo(
-        () =>
-            resolvePopupImage(t, {
+        () => imageUrl
+            ? { url: imageUrl, alt: imageAlt || visual.title }
+            : resolvePopupImage(t, {
                 variant,
                 purpose: 'newsletter',
                 portfolioItems,
                 heroProofVideo,
                 originals,
             }),
-        [t, variant, portfolioItems, heroProofVideo, originals],
+        [t, variant, portfolioItems, heroProofVideo, originals, imageUrl, imageAlt, visual.title],
     );
 
     const [name, setName] = useState('');
@@ -85,6 +90,7 @@ export function NewsletterCaptureModal({
     const [phone, setPhone] = useState('');
     const [instagramHandle, setInstagramHandle] = useState('');
     const [interests, setInterests] = useState<string[]>([]);
+    const [marketingConsent, setMarketingConsent] = useState(false);
     const [loading, setLoading] = useState(false);
     const [errorMessage, setErrorMessage] = useState('');
     const [submitted, setSubmitted] = useState(false);
@@ -118,6 +124,13 @@ export function NewsletterCaptureModal({
         setLoading(true);
         setErrorMessage('');
 
+        if (!marketingConsent) {
+            setErrorMessage(t('funnel.newsletter.consent_required'));
+            setLoading(false);
+
+            return;
+        }
+
         try {
             const token = document.querySelector<HTMLMetaElement>('meta[name="csrf-token"]')?.content;
 
@@ -142,6 +155,8 @@ export function NewsletterCaptureModal({
                     phone: phone || null,
                     instagram_handle: instagramHandle || null,
                     interests,
+                    marketing_consent: marketingConsent,
+                    meta_marketing_consent: marketingConsent,
                     ...getTrackingPayload(),
                 }),
             });
@@ -274,6 +289,17 @@ export function NewsletterCaptureModal({
                         </div>
                     </fieldset>
 
+                    <label className="flex cursor-pointer items-start gap-3 text-left text-xs leading-relaxed text-muted-foreground" htmlFor="newsletter-marketing-consent">
+                        <Checkbox
+                            id="newsletter-marketing-consent"
+                            name="marketing_consent"
+                            checked={marketingConsent}
+                            onCheckedChange={(checked) => setMarketingConsent(checked === true)}
+                            aria-required="true"
+                        />
+                        <span>{t('funnel.newsletter.consent')}</span>
+                    </label>
+
                     {errorMessage && (
                         <p className="rounded-xl border border-destructive/30 bg-destructive/10 px-3 py-2 text-sm text-destructive">
                             {errorMessage}
@@ -294,9 +320,6 @@ export function NewsletterCaptureModal({
                         )}
                     </Button>
 
-                    <p className="text-center text-xs text-muted-foreground">
-                        {t('funnel.newsletter.consent')}
-                    </p>
                 </form>
             )}
         </PremiumSplitDialog>

@@ -857,14 +857,15 @@ class PageMeta
         $location = $event->location?->name;
         $datePart = $event->starts_at?->translatedFormat('d M Y');
         $description = self::truncate(
-            collect([$event->description, $location, $datePart])
+            collect([$event->localizedDescription(app()->getLocale()), $location, $datePart])
                 ->filter()
                 ->implode(' · ')
                 ?: __('seo.event_fallback', ['title' => $event->title]),
         );
         $ogImage = self::absoluteImageUrl(
             $event->getFirstMediaUrl('cover', 'cover_large')
-                ?: $event->getFirstMediaUrl('cover'),
+                ?: $event->getFirstMediaUrl('cover')
+                ?: $event->public_image_path,
         );
 
         $jsonLd = $event->starts_at

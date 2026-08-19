@@ -24,6 +24,8 @@ class LeadCaptureTest extends TestCase
             'interests' => ['events', 'djs'],
             'current_page' => 'https://lapsique.media.test/',
             'utm_source' => 'meta',
+            'marketing_consent' => true,
+            'meta_marketing_consent' => true,
         ]);
 
         $response->assertOk()
@@ -59,6 +61,8 @@ class LeadCaptureTest extends TestCase
             'name' => 'Ana Actualizada',
             'email' => 'ana@example.com',
             'interests' => ['production'],
+            'marketing_consent' => true,
+            'meta_marketing_consent' => true,
         ]);
 
         $response->assertOk()
@@ -83,5 +87,32 @@ class LeadCaptureTest extends TestCase
         ]);
 
         $response->assertUnprocessable();
+    }
+
+    public function test_rejects_popup_capture_without_explicit_marketing_and_meta_consent(): void
+    {
+        $this->postJson(route('leads.capture'), [
+            'name' => 'Sin consentimiento',
+            'email' => 'sin-consentimiento@example.com',
+        ])->assertUnprocessable()
+            ->assertJsonValidationErrors(['marketing_consent', 'meta_marketing_consent']);
+
+        $this->assertDatabaseMissing('customers', [
+            'email' => 'sin-consentimiento@example.com',
+        ]);
+    }
+
+    public function test_localizes_popup_capture_success_message(): void
+    {
+        Bus::fake();
+        app()->setLocale('en');
+
+        $this->postJson(route('leads.capture'), [
+            'name' => 'English Subscriber',
+            'email' => 'english@example.com',
+            'marketing_consent' => true,
+            'meta_marketing_consent' => true,
+        ])->assertOk()
+            ->assertJsonPath('message', "Thanks! We'll keep you posted on upcoming events.");
     }
 }

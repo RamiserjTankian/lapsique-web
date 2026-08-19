@@ -2,6 +2,7 @@ import { Link, usePage } from '@inertiajs/react';
 import { CalendarDays, MapPin, Play, Ticket, Users } from 'lucide-react';
 import { useState } from 'react';
 import { SeoHead } from '@/components/lapsique/SeoHead';
+import { NewsletterCaptureModal } from '@/components/lapsique/NewsletterCaptureModal';
 import SiteLayout from '@/layouts/SiteLayout';
 import { useTranslations } from '@/hooks/useTranslations';
 import { route } from '@/lib/route';
@@ -16,6 +17,7 @@ export default function EventsShow({ event }: EventsShowProps) {
     const { locale } = useTranslations();
     const en = locale === 'en';
     const eventLocation = event.location_name || event.venue || event.city || 'Riviera Maya';
+    const [interestOpen, setInterestOpen] = useState(false);
     const whatsapp = `https://wa.me/${site.whatsapp}?text=${encodeURIComponent(en ? `Hi, I want to produce an event with Lapsique Media. Reference: ${event.title}` : `Hola, quiero producir un evento con Lapsique Media. Referencia: ${event.title}`)}`;
 
     return (
@@ -31,7 +33,7 @@ export default function EventsShow({ event }: EventsShowProps) {
                                 {event.headline ? <p className="mt-6 max-w-xl text-lg leading-relaxed text-white/65">{event.headline}</p> : null}
                             </div>
                             <div className="mt-14 grid gap-4 border-t border-white/20 pt-6 text-sm text-white/65 sm:grid-cols-2">
-                                <p className="flex items-center gap-3"><CalendarDays className="size-4 text-primary" /> {formatDate(event.starts_at, locale)}</p>
+                                <p className="flex items-center gap-3"><CalendarDays className="size-4 text-primary" /> {formatDate(event.starts_at, locale, event.time_tba)}</p>
                                 <p className="flex items-center gap-3"><MapPin className="size-4 text-primary" /> {eventLocation}</p>
                             </div>
                         </div>
@@ -97,9 +99,25 @@ export default function EventsShow({ event }: EventsShowProps) {
                             )
                         ) : null}
                         {event.guest_list_url ? <a href={event.guest_list_url} className={secondaryCta}><Users className="size-4" /> Guest list</a> : null}
-                        {!event.has_tickets && !event.guest_list_url ? <a href={whatsapp} target="_blank" rel="noopener noreferrer" className={primaryCta}>{en ? 'Produce an event' : 'Producir un evento'}</a> : null}
+                        {!event.has_tickets && !event.guest_list_url ? (
+                            event.is_upcoming ? (
+                                <button type="button" className={primaryCta} onClick={() => setInterestOpen(true)}>
+                                    {en ? 'Get access updates' : 'Recibir accesos'}
+                                </button>
+                            ) : (
+                                <a href={whatsapp} target="_blank" rel="noopener noreferrer" className={primaryCta}>{en ? 'Produce an event' : 'Producir un evento'}</a>
+                            )
+                        ) : null}
                     </div>
                 </section>
+                <NewsletterCaptureModal
+                    open={interestOpen}
+                    onOpenChange={setInterestOpen}
+                    variant="eventCoverage"
+                    source={`event:${event.slug}`}
+                    imageUrl={event.cover_url}
+                    imageAlt={event.title}
+                />
             </article>
         </SiteLayout>
     );
@@ -134,9 +152,12 @@ function youtubeId(url: string): string | null {
     return url.match(/(?:v=|youtu\.be\/|embed\/)([\w-]{11})/)?.[1] ?? null;
 }
 
-function formatDate(value: string | null, locale: string): string {
+function formatDate(value: string | null, locale: string, timeTba = false): string {
     if (!value) return locale === 'en' ? 'Date to be announced' : 'Fecha por anunciar';
-    return new Intl.DateTimeFormat(locale === 'en' ? 'en-US' : 'es-MX', { dateStyle: 'long', timeStyle: 'short' }).format(new Date(value));
+    return new Intl.DateTimeFormat(
+        locale === 'en' ? 'en-US' : 'es-MX',
+        timeTba ? { dateStyle: 'long' } : { dateStyle: 'long', timeStyle: 'short' },
+    ).format(new Date(value));
 }
 
 const primaryCta = 'inline-flex min-h-13 items-center justify-center gap-2 bg-foreground px-6 font-ui-display text-sm font-bold uppercase tracking-[0.08em] text-background hover:bg-primary hover:text-white';

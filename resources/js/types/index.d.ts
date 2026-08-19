@@ -182,6 +182,7 @@ export interface EventItem {
     title: string;
     slug: string;
     starts_at: string | null;
+    time_tba?: boolean;
     cover_url: string | null;
     location_name: string | null;
     venue?: string | null;

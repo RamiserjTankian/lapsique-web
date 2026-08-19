@@ -224,6 +224,25 @@ class Event extends Model implements HasMedia
         return 'slug';
     }
 
+    public function localizedDescription(?string $locale = null): ?string
+    {
+        $description = trim((string) $this->description);
+        if ($description === '') {
+            return null;
+        }
+
+        $localized = json_decode($description, true);
+        if (! is_array($localized) || array_is_list($localized)) {
+            return $description;
+        }
+
+        $locale = strtolower((string) ($locale ?: app()->getLocale()));
+        $locale = str_starts_with($locale, 'en') ? 'en' : 'es';
+        $copy = $localized[$locale] ?? $localized['es'] ?? $localized['en'] ?? null;
+
+        return is_string($copy) && trim($copy) !== '' ? trim($copy) : null;
+    }
+
     public function getSalesBalanceAttribute(): array
     {
         return [
