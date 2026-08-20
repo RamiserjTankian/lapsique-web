@@ -1,12 +1,11 @@
-import { useCallback, useEffect, useMemo, useRef, useState, type PointerEvent } from 'react';
-import { ChevronLeft, ChevronRight, ExternalLink, Pause, Play, SlidersHorizontal } from 'lucide-react';
+import { useCallback, useEffect, useRef, useState, type PointerEvent } from 'react';
+import { ChevronLeft, ChevronRight, Pause, Play, SlidersHorizontal } from 'lucide-react';
 import SiteLayout from '@/layouts/SiteLayout';
 import { SeoHead } from '@/components/lapsique/SeoHead';
 
 const DURATION = 8_751;
 const AUDIO_URL = '/audio/traumer-shonky/session.m4a';
 const PEAKS_URL = '/audio/traumer-shonky/peaks.json';
-const TRACKS_URL = '/audio/traumer-shonky/tracks.json';
 
 const BANDS = [
     { frequency: 60, label: '60 Hz' },
@@ -25,14 +24,6 @@ const PRESETS = {
 } as const;
 
 type PresetName = keyof typeof PRESETS;
-type Track = {
-    offset: number;
-    title: string;
-    artist: string;
-    url?: string;
-    cover?: string;
-    verifiedBy: 'Shazam';
-};
 
 const GALLERY = [
     { src: '/images/traumer-shonky/gallery/foto-157.webp', alt: 'Público frente a la cabina durante Traumer b2b Shonky', shape: 'wide' },
@@ -56,28 +47,22 @@ export default function TraumerShonkyRadio() {
     const filtersRef = useRef<BiquadFilterNode[]>([]);
     const gainRef = useRef<GainNode | null>(null);
     const [peaks, setPeaks] = useState<number[]>([]);
-    const [tracks, setTracks] = useState<Track[]>([]);
     const [playing, setPlaying] = useState(false);
     const [currentTime, setCurrentTime] = useState(0);
     const [volume, setVolume] = useState(0.85);
     const [eqEnabled, setEqEnabled] = useState(true);
     const [eqValues, setEqValues] = useState<number[]>([...PRESETS.Original]);
     const [activePreset, setActivePreset] = useState<PresetName | null>('Original');
-    const [dataError, setDataError] = useState(false);
     const [galleryIndex, setGalleryIndex] = useState(0);
     const [galleryPaused, setGalleryPaused] = useState(false);
     const [galleryInteracting, setGalleryInteracting] = useState(false);
 
     useEffect(() => {
         let mounted = true;
-        Promise.all([
-            fetch(PEAKS_URL).then((response) => response.ok ? response.json() : Promise.reject()),
-            fetch(TRACKS_URL).then((response) => response.ok ? response.json() : Promise.reject()),
-        ]).then(([nextPeaks, nextTracks]) => {
+        fetch(PEAKS_URL).then((response) => response.ok ? response.json() : Promise.reject()).then((nextPeaks) => {
             if (!mounted) return;
             setPeaks(nextPeaks);
-            setTracks(nextTracks);
-        }).catch(() => mounted && setDataError(true));
+        }).catch(() => mounted && setPeaks([]));
 
         return () => { mounted = false; };
     }, []);
@@ -85,34 +70,61 @@ export default function TraumerShonkyRadio() {
     useEffect(() => {
         const canvas = canvasRef.current;
         if (!canvas || peaks.length === 0) return;
+        const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+        let animationFrame = 0;
 
-        const draw = () => {
+        const draw = (timestamp = 0) => {
             const rect = canvas.getBoundingClientRect();
             const ratio = window.devicePixelRatio || 1;
-            canvas.width = Math.max(1, Math.floor(rect.width * ratio));
-            canvas.height = Math.max(1, Math.floor(rect.height * ratio));
+            const width = Math.max(1, Math.floor(rect.width * ratio));
+            const height = Math.max(1, Math.floor(rect.height * ratio));
+            if (canvas.width !== width || canvas.height !== height) {
+                canvas.width = width;
+                canvas.height = height;
+            }
             const context = canvas.getContext('2d');
             if (!context) return;
             context.setTransform(ratio, 0, 0, ratio, 0, 0);
             context.clearRect(0, 0, rect.width, rect.height);
-            context.fillStyle = 'rgb(255 255 255 / 0.58)';
             const center = rect.height / 2;
             const columns = Math.max(1, Math.floor(rect.width));
+            const amplitudes = new Float32Array(columns);
             for (let x = 0; x < columns; x += 1) {
                 const start = Math.floor((x / columns) * peaks.length);
                 const end = Math.max(start + 1, Math.floor(((x + 1) / columns) * peaks.length));
                 let peak = 0;
                 for (let index = start; index < end; index += 1) peak = Math.max(peak, peaks[index] ?? 0);
-                const amplitude = Math.max(1, peak * rect.height * 0.44);
+                amplitudes[x] = Math.max(1, peak * rect.height * 0.44);
+            }
+
+            context.fillStyle = 'rgb(255 255 255 / 0.24)';
+            for (let x = 0; x < columns; x += 1) {
+                const amplitude = amplitudes[x];
                 context.fillRect(x, center - amplitude, 1, amplitude * 2);
             }
+
+            const playedColumns = Math.min(columns, Math.ceil((currentTime / DURATION) * columns));
+            const pulse = playing && !reduceMotion ? 0.78 + Math.sin(timestamp / 220) * 0.16 : 0.9;
+            context.fillStyle = `rgb(231 112 45 / ${pulse})`;
+            context.shadowColor = 'rgb(231 112 45 / 0.65)';
+            context.shadowBlur = playing && !reduceMotion ? 10 + Math.sin(timestamp / 260) * 4 : 4;
+            for (let x = 0; x < playedColumns; x += 1) {
+                const amplitude = amplitudes[x];
+                context.fillRect(x, center - amplitude, 1, amplitude * 2);
+            }
+            context.shadowBlur = 0;
+
+            if (playing && !reduceMotion) animationFrame = window.requestAnimationFrame(draw);
         };
 
         draw();
-        const observer = new ResizeObserver(draw);
+        const observer = new ResizeObserver(() => draw());
         observer.observe(canvas);
-        return () => observer.disconnect();
-    }, [peaks]);
+        return () => {
+            observer.disconnect();
+            window.cancelAnimationFrame(animationFrame);
+        };
+    }, [currentTime, peaks, playing]);
 
     useEffect(() => {
         filtersRef.current.forEach((filter, index) => {
@@ -178,11 +190,6 @@ export default function TraumerShonkyRadio() {
         seek(((event.clientX - rect.left) / rect.width) * DURATION);
     };
 
-    const activeTrack = useMemo(
-        () => [...tracks].reverse().find((track) => track.offset <= currentTime),
-        [currentTime, tracks],
-    );
-
     const setPreset = (name: PresetName) => {
         setEqValues([...PRESETS[name]]);
         setActivePreset(name);
@@ -200,7 +207,7 @@ export default function TraumerShonkyRadio() {
                                 Traumer <span className="block text-primary">b2b Shonky</span>
                             </h1>
                             <p className="mt-8 max-w-2xl text-pretty text-base leading-relaxed text-white/72 sm:text-lg">
-                                Dos horas y veinticinco minutos recuperados de la toma estéreo de Zoom H4. Audio normalizado, ecualización en tiempo real y 24 tracks identificados durante la noche.
+                                Dos horas y veinticinco minutos recuperados de la toma estéreo de Zoom H4. Audio normalizado, ecualización en tiempo real y archivo fotográfico de la noche.
                             </p>
                         </div>
                         <dl className="grid grid-cols-2 gap-5 border-l border-white/15 pl-5 font-mono text-xs uppercase tracking-[0.12em] text-white/45 lg:grid-cols-1">
@@ -235,8 +242,11 @@ export default function TraumerShonkyRadio() {
                                 {playing ? <Pause className="size-7 fill-current" aria-hidden="true" /> : <Play className="ml-1 size-7 fill-current" aria-hidden="true" />}
                             </button>
                             <div className="min-w-0">
-                                <p className="font-mono text-[0.65rem] uppercase tracking-[0.16em] text-white/40">Ahora</p>
-                                <p className="mt-2 [overflow-wrap:anywhere] font-ui-display text-xl font-bold text-white sm:text-2xl">{activeTrack ? `${activeTrack.title} — ${activeTrack.artist}` : 'Traumer b2b Shonky'}</p>
+                                <p className="flex items-center gap-2 font-mono text-[0.65rem] font-semibold uppercase tracking-[0.16em] text-primary" role="status" aria-live="polite">
+                                    <span className={`size-2 rounded-full ${playing ? 'bg-primary shadow-[0_0_14px_rgb(231_112_45/0.9)]' : 'bg-white/30'}`} aria-hidden="true" />
+                                    {playing ? 'Reproduciendo' : currentTime > 0 ? 'En pausa' : 'Lista para reproducir'}
+                                </p>
+                                <p className="mt-2 [overflow-wrap:anywhere] font-ui-display text-xl font-bold text-white sm:text-2xl">Traumer b2b Shonky</p>
                                 <p className="mt-2 font-mono text-xs tabular-nums text-white/45">{formatTime(currentTime)} / {formatTime(DURATION)}</p>
                             </div>
                         </div>
@@ -250,9 +260,11 @@ export default function TraumerShonkyRadio() {
                                 else seek(currentTime + (event.key === 'ArrowRight' ? 10 : -10));
                             }} className="relative h-52 cursor-crosshair overflow-hidden border-y border-white/12 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary">
                                 <canvas ref={canvasRef} className="block h-full w-full" aria-hidden="true" />
-                                <div className="pointer-events-none absolute inset-y-0 left-0 border-r border-primary bg-gradient-to-r from-primary/20 to-transparent" style={{ width: `${(currentTime / DURATION) * 100}%` }} />
-                                <div className="pointer-events-none absolute inset-0" aria-hidden="true">
-                                    {tracks.map((track) => <span key={`${track.offset}-${track.title}`} className="absolute bottom-0 h-[22%] w-px bg-primary/55" style={{ left: `${(track.offset / DURATION) * 100}%` }} />)}
+                                <div className="pointer-events-none absolute inset-y-0 left-0 bg-gradient-to-r from-primary/12 via-primary/5 to-transparent transition-[width] duration-200 motion-reduce:transition-none" style={{ width: `${(currentTime / DURATION) * 100}%` }} aria-hidden="true" />
+                                <div className="pointer-events-none absolute inset-y-0 -translate-x-1/2 transition-[left] duration-200 motion-reduce:transition-none" style={{ left: `${(currentTime / DURATION) * 100}%` }} aria-hidden="true">
+                                    <span className="absolute inset-y-0 left-1/2 w-px -translate-x-1/2 bg-primary shadow-[0_0_18px_rgb(231_112_45/0.95)]" />
+                                    <span className="absolute left-1/2 top-1/2 size-3 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-[#0b0d0f] bg-primary shadow-[0_0_22px_rgb(231_112_45/1)]" />
+                                    {playing ? <span className="absolute left-1/2 top-1/2 size-8 -translate-x-1/2 -translate-y-1/2 animate-ping rounded-full border border-primary/70 motion-reduce:hidden" /> : null}
                                 </div>
                             </div>
                             <div className="mt-3 flex justify-between font-mono text-[0.62rem] tabular-nums text-white/35"><span>00:00</span><span>48:37</span><span>01:37:14</span><span>02:25:51</span></div>
@@ -260,7 +272,7 @@ export default function TraumerShonkyRadio() {
 
                         <div className="mt-8 flex flex-col gap-5 border-t border-white/12 pt-7 sm:flex-row sm:items-center sm:justify-between">
                             <label className="flex min-h-11 items-center gap-4 text-sm text-white/60"><span>Volumen</span><input type="range" min="0" max="1" step="0.01" value={volume} onChange={(event) => setVolume(Number(event.target.value))} className="w-44 accent-primary" aria-label="Volumen" /></label>
-                            <p className="font-mono text-[0.62rem] uppercase tracking-[0.14em] text-white/35">24 coincidencias verificadas con Shazam</p>
+                            <p className="font-mono text-[0.62rem] uppercase tracking-[0.14em] text-white/35">Waveform completa · desplazamiento preciso</p>
                         </div>
                     </div>
                 </section>
@@ -293,24 +305,8 @@ export default function TraumerShonkyRadio() {
                     <p className="mt-8 max-w-2xl text-sm leading-relaxed text-white/45">Los ajustes se aplican únicamente en tu navegador. El archivo original y la mezcla normalizada permanecen intactos.</p>
                 </section>
 
-                <section className="border-y border-white/12 bg-card" aria-labelledby="tracks-heading">
+                <section className="border-t border-white/12 bg-card" aria-labelledby="gallery-heading">
                     <div className="mx-auto max-w-6xl px-4 py-16 sm:px-6 sm:py-24">
-                        <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-                            <div><p className="font-mono text-[0.68rem] font-semibold uppercase tracking-[0.2em] text-primary">Timeline verificada</p><h2 id="tracks-heading" className="mt-3 font-display text-4xl font-black uppercase tracking-[-0.035em] text-white sm:text-6xl">Tracks de la noche</h2></div>
-                            <p role="status" className="font-mono text-xs uppercase tracking-[0.12em] text-white/40">{dataError ? 'No fue posible cargar la lista' : `${tracks.length} coincidencias`}</p>
-                        </div>
-                        <ol className="mt-10 grid gap-x-10 md:grid-cols-2">
-                            {tracks.map((track) => <li key={`${track.offset}-${track.title}`} className="grid grid-cols-[4.5rem_3.75rem_minmax(0,1fr)_2.75rem] items-center gap-3 border-t border-white/12 py-4">
-                                <button type="button" onClick={() => seek(track.offset)} className="min-h-11 text-left font-mono text-xs tabular-nums text-primary underline decoration-white/15 underline-offset-4 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary">{formatTime(track.offset)}</button>
-                                {track.cover ? <img src={track.cover} alt="" loading="lazy" decoding="async" className="size-[3.75rem] bg-white/5 object-cover outline outline-1 outline-white/12" /> : <span className="flex size-[3.75rem] items-center justify-center bg-primary/15 font-mono text-xs font-bold text-primary outline outline-1 outline-primary/25" aria-hidden="true">LR</span>}
-                                <div className="min-w-0"><p className="[overflow-wrap:anywhere] font-ui-display text-sm font-bold text-white">{track.title}</p><p className="mt-1 text-xs text-white/45">{track.artist}</p></div>
-                                {track.url ? <a href={track.url} target="_blank" rel="noreferrer" className="flex size-11 items-center justify-center text-white/45 hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary" aria-label={`Abrir ${track.title} en Shazam`}><ExternalLink className="size-4" aria-hidden="true" /></a> : null}
-                            </li>)}
-                        </ol>
-                    </div>
-                </section>
-
-                <section className="mx-auto max-w-6xl px-4 py-16 sm:px-6 sm:py-24" aria-labelledby="gallery-heading">
                     <p className="font-mono text-[0.68rem] font-semibold uppercase tracking-[0.2em] text-primary">Archivo fotográfico · Lapsique</p>
                     <h2 id="gallery-heading" className="mt-3 max-w-4xl text-balance font-display text-4xl font-black uppercase leading-[0.95] tracking-[-0.035em] text-white sm:text-7xl">Cabina, público y cierre de una misma noche.</h2>
                     <p className="mt-6 max-w-2xl text-pretty text-base leading-relaxed text-white/55">Una selección del archivo completo: luz de tarde, vinilos, transición a la noche y la pista llena.</p>
@@ -336,6 +332,7 @@ export default function TraumerShonkyRadio() {
                                 <button type="button" onClick={() => setGalleryIndex((index) => (index + 1) % GALLERY.length)} className="flex size-11 items-center justify-center border border-white/18 text-white transition-colors hover:border-primary hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary" aria-label="Fotografía siguiente"><ChevronRight className="size-5" aria-hidden="true" /></button>
                             </div>
                         </div>
+                    </div>
                     </div>
                 </section>
             </div>

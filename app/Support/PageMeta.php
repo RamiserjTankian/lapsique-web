@@ -191,8 +191,8 @@ class PageMeta
             'Traumer b2b Shonky — radio and night archive',
         );
         $description = self::localized(
-            'Escucha 2 horas y 25 minutos del set Traumer b2b Shonky con ecualizador web, timeline de tracks verificados y fotografía de la noche por Lapsique Media.',
-            'Listen to 2 hours and 25 minutes of Traumer b2b Shonky with a web equalizer, verified track timeline, and photography from the night by Lapsique Media.',
+            'Escucha 2 horas y 25 minutos del set Traumer b2b Shonky con waveform interactiva, ecualizador web y fotografía de la noche por Lapsique Media.',
+            'Listen to 2 hours and 25 minutes of Traumer b2b Shonky with an interactive waveform, web equalizer, and photography from the night by Lapsique Media.',
         );
         $image = self::absoluteImageUrl('/images/traumer-shonky/gallery/foto-157.webp');
 
@@ -211,8 +211,8 @@ class PageMeta
                 'Crowd in front of the booth during Traumer b2b Shonky',
             ),
             keywords: self::localized(
-                'Traumer b2b Shonky, DJ set Tulum, radio electrónica, Lapsique Media, tracklist Shazam',
-                'Traumer b2b Shonky, Tulum DJ set, electronic radio, Lapsique Media, Shazam tracklist',
+                'Traumer b2b Shonky, DJ set Tulum, radio electrónica, Lapsique Media, archivo musical',
+                'Traumer b2b Shonky, Tulum DJ set, electronic radio, Lapsique Media, music archive',
             ),
             jsonLd: [
                 '@context' => 'https://schema.org',
