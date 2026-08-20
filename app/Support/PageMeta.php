@@ -43,6 +43,7 @@ class PageMeta
             'trascendental.about' => self::forTrascendentalSection(__('trascendental.about.title'), __('trascendental.about.intro'), $canonicalUrl),
             'trascendental.contact' => self::forTrascendentalSection(__('trascendental.contact.title'), __('trascendental.contact.intro'), $canonicalUrl),
             'djset.show' => self::forDjSet($settings, $canonicalUrl),
+            'radio.traumer-shonky' => self::forTraumerShonkyRadio($canonicalUrl),
             'drone-sessions.show' => self::forDroneSession($canonicalUrl),
             'construction-progress.show' => self::forConstructionProgress($canonicalUrl),
             'food-reels.show' => self::forFoodReels($settings, $canonicalUrl),
@@ -180,6 +181,54 @@ class PageMeta
                     ],
                 ],
             ),
+        );
+    }
+
+    public static function forTraumerShonkyRadio(string $canonicalUrl): PageMetaData
+    {
+        $title = self::localized(
+            'Traumer b2b Shonky — radio y archivo de la noche',
+            'Traumer b2b Shonky — radio and night archive',
+        );
+        $description = self::localized(
+            'Escucha 2 horas y 25 minutos del set Traumer b2b Shonky con ecualizador web, timeline de tracks verificados y fotografía de la noche por Lapsique Media.',
+            'Listen to 2 hours and 25 minutes of Traumer b2b Shonky with a web equalizer, verified track timeline, and photography from the night by Lapsique Media.',
+        );
+        $image = self::absoluteImageUrl('/images/traumer-shonky/gallery/foto-157.webp');
+
+        return new PageMetaData(
+            title: $title,
+            metaTitle: self::localized(
+                'Traumer b2b Shonky Radio | Lapsique Media',
+                'Traumer b2b Shonky Radio | Lapsique Media',
+            ),
+            description: $description,
+            canonicalUrl: $canonicalUrl,
+            ogType: 'music.radio_station',
+            ogImage: $image,
+            ogImageAlt: self::localized(
+                'Público frente a la cabina durante Traumer b2b Shonky',
+                'Crowd in front of the booth during Traumer b2b Shonky',
+            ),
+            keywords: self::localized(
+                'Traumer b2b Shonky, DJ set Tulum, radio electrónica, Lapsique Media, tracklist Shazam',
+                'Traumer b2b Shonky, Tulum DJ set, electronic radio, Lapsique Media, Shazam tracklist',
+            ),
+            jsonLd: [
+                '@context' => 'https://schema.org',
+                '@type' => 'AudioObject',
+                'name' => $title,
+                'description' => $description,
+                'contentUrl' => url('/audio/traumer-shonky/session.m4a'),
+                'duration' => 'PT2H25M51S',
+                'encodingFormat' => 'audio/mp4',
+                'thumbnailUrl' => $image,
+                'publisher' => [
+                    '@type' => 'Organization',
+                    'name' => self::LAPSIQUE_SITE_NAME,
+                    'url' => url('/'),
+                ],
+            ],
         );
     }
 

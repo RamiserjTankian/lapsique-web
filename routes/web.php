@@ -41,6 +41,8 @@ if (config('trascendental.enabled_as_primary')) {
     Route::get('/contacto', [TrascendentalController::class, 'contact'])->name('trascendental.contact');
 } else {
     Route::get('/', [HomeController::class, 'index'])->name('home');
+    Route::get('/archivo/traumer-b2b-shonky', fn () => \Inertia\Inertia::render('Radio/TraumerShonky'))
+        ->name('radio.traumer-shonky');
     Route::prefix('trascendental')->name('trascendental.')->group(function (): void {
         Route::get('/', [TrascendentalController::class, 'home'])->name('home');
         Route::get('/servicios', [TrascendentalController::class, 'services'])->name('services');
