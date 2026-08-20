@@ -43,6 +43,7 @@ const GALLERY = [
 export default function TraumerShonkyRadio() {
     const audioRef = useRef<HTMLAudioElement>(null);
     const canvasRef = useRef<HTMLCanvasElement>(null);
+    const activeCanvasRef = useRef<HTMLCanvasElement>(null);
     const audioContextRef = useRef<AudioContext | null>(null);
     const filtersRef = useRef<BiquadFilterNode[]>([]);
     const gainRef = useRef<GainNode | null>(null);
@@ -69,23 +70,27 @@ export default function TraumerShonkyRadio() {
 
     useEffect(() => {
         const canvas = canvasRef.current;
-        if (!canvas || peaks.length === 0) return;
-        const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-        let animationFrame = 0;
+        const activeCanvas = activeCanvasRef.current;
+        if (!canvas || !activeCanvas || peaks.length === 0) return;
 
-        const draw = (timestamp = 0) => {
+        const draw = () => {
             const rect = canvas.getBoundingClientRect();
             const ratio = window.devicePixelRatio || 1;
             const width = Math.max(1, Math.floor(rect.width * ratio));
             const height = Math.max(1, Math.floor(rect.height * ratio));
-            if (canvas.width !== width || canvas.height !== height) {
-                canvas.width = width;
-                canvas.height = height;
-            }
-            const context = canvas.getContext('2d');
-            if (!context) return;
-            context.setTransform(ratio, 0, 0, ratio, 0, 0);
-            context.clearRect(0, 0, rect.width, rect.height);
+            [canvas, activeCanvas].forEach((target) => {
+                if (target.width !== width || target.height !== height) {
+                    target.width = width;
+                    target.height = height;
+                }
+            });
+            const baseContext = canvas.getContext('2d');
+            const activeContext = activeCanvas.getContext('2d');
+            if (!baseContext || !activeContext) return;
+            [baseContext, activeContext].forEach((context) => {
+                context.setTransform(ratio, 0, 0, ratio, 0, 0);
+                context.clearRect(0, 0, rect.width, rect.height);
+            });
             const center = rect.height / 2;
             const columns = Math.max(1, Math.floor(rect.width));
             const amplitudes = new Float32Array(columns);
@@ -97,34 +102,22 @@ export default function TraumerShonkyRadio() {
                 amplitudes[x] = Math.max(1, peak * rect.height * 0.44);
             }
 
-            context.fillStyle = 'rgb(255 255 255 / 0.24)';
+            baseContext.fillStyle = 'rgb(255 255 255 / 0.24)';
+            activeContext.fillStyle = 'rgb(231 112 45 / 0.92)';
+            activeContext.shadowColor = 'rgb(231 112 45 / 0.45)';
+            activeContext.shadowBlur = 4;
             for (let x = 0; x < columns; x += 1) {
                 const amplitude = amplitudes[x];
-                context.fillRect(x, center - amplitude, 1, amplitude * 2);
+                baseContext.fillRect(x, center - amplitude, 1, amplitude * 2);
+                activeContext.fillRect(x, center - amplitude, 1, amplitude * 2);
             }
-
-            const playedColumns = Math.min(columns, Math.ceil((currentTime / DURATION) * columns));
-            const pulse = playing && !reduceMotion ? 0.78 + Math.sin(timestamp / 220) * 0.16 : 0.9;
-            context.fillStyle = `rgb(231 112 45 / ${pulse})`;
-            context.shadowColor = 'rgb(231 112 45 / 0.65)';
-            context.shadowBlur = playing && !reduceMotion ? 10 + Math.sin(timestamp / 260) * 4 : 4;
-            for (let x = 0; x < playedColumns; x += 1) {
-                const amplitude = amplitudes[x];
-                context.fillRect(x, center - amplitude, 1, amplitude * 2);
-            }
-            context.shadowBlur = 0;
-
-            if (playing && !reduceMotion) animationFrame = window.requestAnimationFrame(draw);
         };
 
         draw();
-        const observer = new ResizeObserver(() => draw());
+        const observer = new ResizeObserver(draw);
         observer.observe(canvas);
-        return () => {
-            observer.disconnect();
-            window.cancelAnimationFrame(animationFrame);
-        };
-    }, [currentTime, peaks, playing]);
+        return () => observer.disconnect();
+    }, [peaks]);
 
     useEffect(() => {
         filtersRef.current.forEach((filter, index) => {
@@ -260,6 +253,7 @@ export default function TraumerShonkyRadio() {
                                 else seek(currentTime + (event.key === 'ArrowRight' ? 10 : -10));
                             }} className="relative h-52 cursor-crosshair overflow-hidden border-y border-white/12 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary">
                                 <canvas ref={canvasRef} className="block h-full w-full" aria-hidden="true" />
+                                <canvas ref={activeCanvasRef} className="pointer-events-none absolute inset-0 h-full w-full transition-[clip-path] duration-200 motion-reduce:transition-none" style={{ clipPath: `inset(0 ${100 - (currentTime / DURATION) * 100}% 0 0)` }} aria-hidden="true" />
                                 <div className="pointer-events-none absolute inset-y-0 left-0 bg-gradient-to-r from-primary/12 via-primary/5 to-transparent transition-[width] duration-200 motion-reduce:transition-none" style={{ width: `${(currentTime / DURATION) * 100}%` }} aria-hidden="true" />
                                 <div className="pointer-events-none absolute inset-y-0 -translate-x-1/2 transition-[left] duration-200 motion-reduce:transition-none" style={{ left: `${(currentTime / DURATION) * 100}%` }} aria-hidden="true">
                                     <span className="absolute inset-y-0 left-1/2 w-px -translate-x-1/2 bg-primary shadow-[0_0_18px_rgb(231_112_45/0.95)]" />

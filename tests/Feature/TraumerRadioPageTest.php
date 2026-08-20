@@ -25,6 +25,15 @@ class TraumerRadioPageTest extends TestCase
         $this->assertDirectoryDoesNotExist(public_path('images/traumer-shonky/tracks'));
     }
 
+    public function test_waveform_is_prerendered_without_a_continuous_canvas_loop(): void
+    {
+        $source = (string) file_get_contents(resource_path('js/pages/Radio/TraumerShonky.tsx'));
+
+        $this->assertStringContainsString('activeCanvasRef', $source);
+        $this->assertStringNotContainsString('requestAnimationFrame', $source);
+        $this->assertStringNotContainsString('[currentTime, peaks, playing]', $source);
+    }
+
     public function test_radio_has_specific_indexable_metadata(): void
     {
         $meta = PageMeta::forTraumerShonkyRadio('https://lapsique.media/archivo/traumer-b2b-shonky');
