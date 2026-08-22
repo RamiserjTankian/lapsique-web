@@ -2,6 +2,8 @@
 
 namespace Tests\Feature;
 
+use App\Jobs\SendCustomerPortalAccessEmailJob;
+use App\Jobs\SendTicketProspectEmailJob;
 use App\Models\Event;
 use App\Models\TicketOrder;
 use App\Models\TicketProduct;
@@ -110,6 +112,107 @@ class MercadoPagoEmbeddedPaymentTest extends TestCase
         // Reposting an accepted attempt is idempotent and does not call MP twice.
         $this->postJson($url, $payload)->assertOk();
         Http::assertSentCount(1);
+    }
+
+    public function test_safe_checkout_registers_the_buyer_and_returns_inline_payment_configuration(): void
+    {
+        $this->artisan('events:register-safe-by-varuna-draft', [
+            '--activate-testing' => true,
+            '--confirm' => 'ACTIVATE_TESTING',
+        ])->assertSuccessful();
+        $event = Event::where('slug', 'safe-by-varuna-1-edition')->firstOrFail();
+        $product = $event->ticketProducts()->firstOrFail();
+
+        $response = $this->postJson(route('tickets.checkout.store', $event), [
+            'buyer_name' => 'Inline Buyer',
+            'buyer_email' => 'inline@example.com',
+            'buyer_whatsapp' => '5512345678',
+            'items' => [$product->id => 1],
+            'payment_provider' => 'mercadopago',
+            'checkout_event_id' => 'inline-checkout-event',
+            'consent_terms' => true,
+        ]);
+
+        $response->assertOk()
+            ->assertJsonPath('status', 'payment_required')
+            ->assertJsonPath('amount', 105)
+            ->assertJsonPath('currency', 'MXN')
+            ->assertJson(fn ($json) => $json
+                ->whereType('order_id', 'string')
+                ->whereType('configuration_url', 'string')
+                ->whereType('result_url', 'string')
+                ->etc());
+
+        $order = TicketOrder::where('buyer_email', 'inline@example.com')->firstOrFail();
+        $this->assertSame('pending', $order->status);
+        $this->assertSame('inline-checkout-event', data_get($order->metadata, 'checkout_event_id'));
+        Queue::assertPushed(SendTicketProspectEmailJob::class);
+        Queue::assertPushed(SendCustomerPortalAccessEmailJob::class);
+        Http::assertNothingSent();
+    }
+
+    public function test_live_mode_accepts_only_non_test_credentials_and_live_catalog(): void
+    {
+        [$order, $product] = $this->safeOrder();
+        $product->update(['metadata' => array_merge($product->metadata ?? [], ['sales_mode' => 'live'])]);
+        config([
+            'mercadopago.access_token' => 'APP_USR-live-access-token',
+            'mercadopago.public_key' => 'APP_USR-live-public-key',
+            'mercadopago.sandbox' => false,
+            'mercadopago.embedded.testing' => false,
+        ]);
+
+        $configurationUrl = URL::temporarySignedRoute(
+            'tickets.mercadopago.embedded.configuration',
+            now()->addMinutes(10),
+            ['order' => $order],
+        );
+
+        $this->getJson($configurationUrl)
+            ->assertOk()
+            ->assertJsonPath('public_key', 'APP_USR-live-public-key')
+            ->assertJsonPath('test_mode', false)
+            ->assertJsonMissing(['access_token' => 'APP_USR-live-access-token']);
+
+        Http::fake([
+            'api.mercadopago.com/v1/payments' => Http::response([
+                'id' => 91001,
+                'status' => 'in_process',
+                'status_detail' => 'pending_contingency',
+            ]),
+        ]);
+        $paymentUrl = URL::temporarySignedRoute(
+            'tickets.mercadopago.embedded.payment',
+            now()->addMinutes(10),
+            ['order' => $order],
+        );
+
+        $this->postJson($paymentUrl, [
+            'token' => 'one-time-live-card-token',
+            'payment_method_id' => 'visa',
+            'installments' => 1,
+        ])->assertOk()->assertJsonPath('fulfilment', 'pending_webhook_verification');
+
+        Http::assertSent(fn ($request) => $request['metadata']['sales_mode'] === 'live'
+            && $request->hasHeader('X-Idempotency-Key'));
+        $this->assertSame('pending', $order->fresh()->status);
+    }
+
+    public function test_live_mode_fails_closed_with_test_credentials_or_testing_catalog(): void
+    {
+        [$order] = $this->safeOrder();
+        config([
+            'mercadopago.sandbox' => false,
+            'mercadopago.embedded.testing' => false,
+        ]);
+
+        $url = URL::temporarySignedRoute(
+            'tickets.mercadopago.embedded.configuration',
+            now()->addMinutes(10),
+            ['order' => $order],
+        );
+
+        $this->getJson($url)->assertNotFound();
     }
 
     public function test_pan_or_security_code_are_rejected_before_the_provider(): void

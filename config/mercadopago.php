@@ -10,9 +10,9 @@ return [
     'currency' => env('MERCADOPAGO_CURRENCY', 'MXN'),
     'sandbox' => env('MERCADOPAGO_SANDBOX', false),
     'embedded' => [
-        // The Card Payment Brick remains fail-closed until both flags are
-        // enabled and TEST credentials are present. Production credentials
-        // are explicitly rejected while testing mode is active.
+        // Testing requires sandbox + TEST credentials. Live mode requires
+        // sandbox=false + non-TEST credentials. Both modes also require the
+        // signed webhook secret and an exact event allow-list entry.
         'enabled' => env('MERCADOPAGO_EMBEDDED_ENABLED', false),
         'testing' => env('MERCADOPAGO_EMBEDDED_TESTING', true),
         'authorized_event_slugs' => array_values(array_filter(array_map(

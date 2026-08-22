@@ -9,6 +9,7 @@ use App\Services\Meta\MetaConversionsApiService;
 use App\Services\StripeService;
 use App\Services\TicketOrderService;
 use App\Support\MercadoPagoEmbeddedCheckout;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Arr;
@@ -21,12 +22,12 @@ class TicketCheckoutController extends Controller
     public function show(Request $request, Event $event): RedirectResponse
     {
         $query = $request->getQueryString();
-        $target = route('events.show', $event) . ($query ? ('?' . $query) : '') . '#tickets';
+        $target = route('events.show', $event).($query ? ('?'.$query) : '').'#tickets';
 
         return redirect()->to($target);
     }
 
-    public function checkout(Request $request, Event $event, TicketOrderService $orderService, MercadoPagoService $mercadoPago, StripeService $stripe): RedirectResponse
+    public function checkout(Request $request, Event $event, TicketOrderService $orderService, MercadoPagoService $mercadoPago, StripeService $stripe): RedirectResponse|JsonResponse
     {
         $validated = $request->validate([
             'buyer_name' => ['required', 'string', 'max:255'],
@@ -60,7 +61,7 @@ class TicketCheckoutController extends Controller
             && ($validated['payment_provider'] ?? 'mercadopago') === 'mercadopago'
             && ! MercadoPagoEmbeddedCheckout::configurationReady()) {
             return back()
-                ->withErrors(['checkout' => 'El checkout de prueba está en preparación. No se creó ninguna orden ni reservación.'])
+                ->withErrors(['checkout' => 'El pago con tarjeta todavía no está disponible. No se creó ninguna orden ni reservación.'])
                 ->withInput();
         }
 
@@ -187,11 +188,30 @@ class TicketCheckoutController extends Controller
             }
 
             if (MercadoPagoEmbeddedCheckout::isEligible($order)) {
+                if ($request->expectsJson() || $request->ajax()) {
+                    return response()->json([
+                        'status' => 'payment_required',
+                        'order_id' => $order->public_id,
+                        'amount' => (float) $order->total,
+                        'currency' => $order->currency,
+                        'configuration_url' => URL::temporarySignedRoute(
+                            'tickets.mercadopago.embedded.configuration',
+                            now()->addMinutes(30),
+                            ['order' => $order],
+                        ),
+                        'result_url' => route('tickets.success', $order),
+                    ]);
+                }
+
                 return redirect()->to(URL::temporarySignedRoute(
                     'tickets.mercadopago.embedded.show',
                     now()->addMinutes(30),
                     ['order' => $order],
                 ));
+            }
+
+            if ($event->slug === 'safe-by-varuna-1-edition') {
+                throw new \RuntimeException('El pago con tarjeta dentro de Lapsique no está disponible en este momento. No se realizó ningún cobro.');
             }
 
             $preference = $mercadoPago->createPreferenceForOrder($order->load('items'));
@@ -219,6 +239,13 @@ class TicketCheckoutController extends Controller
                 'event_id' => $event->id,
                 'error' => $exception->getMessage(),
             ]);
+
+            if ($request->expectsJson() || $request->ajax()) {
+                return response()->json([
+                    'message' => 'No fue posible preparar el pago.',
+                    'errors' => ['checkout' => [$exception->getMessage()]],
+                ], 422);
+            }
 
             return back()->withErrors(['checkout' => $exception->getMessage()])->withInput();
         }
@@ -324,6 +351,10 @@ class TicketCheckoutController extends Controller
                     now()->addMinutes(30),
                     ['order' => $order],
                 ));
+            }
+
+            if ($order->event?->slug === 'safe-by-varuna-1-edition') {
+                throw new \RuntimeException('El pago con tarjeta dentro de Lapsique no está disponible en este momento. No se realizó ningún cobro.');
             }
 
             $preference = $mercadoPago->createPreferenceForOrder($order);

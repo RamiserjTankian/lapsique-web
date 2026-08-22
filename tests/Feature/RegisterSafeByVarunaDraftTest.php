@@ -174,6 +174,42 @@ class RegisterSafeByVarunaDraftTest extends TestCase
         $this->assertDatabaseHas('ticket_products', ['name' => 'Producto ajeno', 'price' => 500]);
     }
 
+    public function test_live_activation_fails_closed_until_exact_live_preflight_passes(): void
+    {
+        $this->artisan('events:register-safe-by-varuna-draft', [
+            '--activate-testing' => true,
+            '--confirm' => 'ACTIVATE_TESTING',
+        ])->assertSuccessful();
+
+        $this->artisan('events:register-safe-by-varuna-draft', [
+            '--activate-live' => true,
+            '--confirm' => 'ACTIVATE_LIVE',
+        ])->expectsOutputToContain('Live activation refused')
+            ->assertFailed();
+
+        config([
+            'mercadopago.embedded.enabled' => true,
+            'mercadopago.embedded.testing' => false,
+            'mercadopago.sandbox' => false,
+            'mercadopago.public_key' => 'APP_USR-live-public-key',
+            'mercadopago.access_token' => 'APP_USR-live-access-token',
+            'mercadopago.webhook_secret' => 'signed-live-webhook-secret',
+        ]);
+
+        $this->artisan('events:register-safe-by-varuna-draft', [
+            '--activate-live' => true,
+            '--confirm' => 'ACTIVATE_LIVE',
+        ])->expectsOutput('Safe by Varuna live card sales activated.')
+            ->assertSuccessful();
+
+        $product = TicketProduct::whereHas('event', fn ($query) => $query->where('slug', self::SLUG))->firstOrFail();
+        $this->assertSame('Acceso general', $product->name);
+        $this->assertSame('safe_single_live_v1', data_get($product->metadata, 'catalog_contract'));
+        $this->assertSame('live', data_get($product->metadata, 'sales_mode'));
+        $this->assertSame('105.00', $product->price);
+        $this->assertSame(350, $product->stock);
+    }
+
     public function test_confirmed_announcement_can_be_safely_unpublished(): void
     {
         $this->artisan('events:register-safe-by-varuna-draft', [

@@ -15,6 +15,7 @@ class SafeByVarunaLandingTest extends TestCase
     public function test_safe_sales_landing_inherits_the_lapsique_layout_without_a_nested_viewport_microsite(): void
     {
         $landing = file_get_contents(resource_path('js/components/lapsique/SafeByVarunaLanding.tsx'));
+        $embeddedPayment = file_get_contents(resource_path('js/mercadopago-embedded.js'));
         $home = file_get_contents(resource_path('js/pages/Home.tsx'));
 
         $this->assertStringNotContainsString('<main id="main-content">', $landing);
@@ -27,11 +28,17 @@ class SafeByVarunaLandingTest extends TestCase
         $this->assertStringContainsString('safe-by-varuna-preregistration', $landing);
         $this->assertStringContainsString('Prerregistro gratuito · no requiere pago', $landing);
         $this->assertStringContainsString('Solo te inscribe para recibir el aviso de apertura de venta.', $landing);
+        $this->assertStringContainsString("Accept: 'application/json'", $landing);
+        $this->assertStringContainsString('data-mercadopago-configuration-url', $landing);
+        $this->assertStringContainsString('safe-mercadopago-card-form', $landing);
+        $this->assertStringContainsString('mercadopago:payment-submitted', $landing);
+        $this->assertStringNotContainsString("public_key?.startsWith('TEST-')", $embeddedPayment);
+        $this->assertStringContainsString('Lapsique nunca recibe ni almacena', $landing);
         $this->assertStringNotContainsString('Prerregistro · $105 MXN', $landing);
         $this->assertStringContainsString('VenueGallery', $landing);
         $this->assertStringContainsString('KapiSetCarousel', $landing);
         $this->assertStringContainsString('<FeaturedSafeEvent events={sceneEvents} />', $home);
-        $this->assertStringContainsString("safe-by-varuna-1-edition", $home);
+        $this->assertStringContainsString('safe-by-varuna-1-edition', $home);
     }
 
     public function test_lapsique_event_page_exposes_the_single_testing_catalog_and_shared_view_event_id(): void

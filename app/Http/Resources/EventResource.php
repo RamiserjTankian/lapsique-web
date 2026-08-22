@@ -66,7 +66,8 @@ class EventResource extends JsonResource
                     'max_per_order' => $product->max_per_order,
                     'sales_mode' => data_get($product->metadata, 'sales_mode'),
                     'embedded_checkout_ready' => $this->slug === 'safe-by-varuna-1-edition'
-                        && MercadoPagoEmbeddedCheckout::configurationReady(),
+                        && MercadoPagoEmbeddedCheckout::configurationReady()
+                        && data_get($product->metadata, 'sales_mode') === MercadoPagoEmbeddedCheckout::salesMode(),
                 ])
                 ->values()
                 ->all(),

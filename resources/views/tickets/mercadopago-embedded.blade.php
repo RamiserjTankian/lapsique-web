@@ -1,8 +1,9 @@
 @extends('layouts.site')
 
 @php($en = app()->getLocale() === 'en')
+@php($testing = (bool) config('mercadopago.embedded.testing', true))
 
-@section('title', ($en ? 'Test payment' : 'Pago de prueba').' · '.$event->title)
+@section('title', ($testing ? ($en ? 'Test payment' : 'Pago de prueba') : ($en ? 'Secure payment' : 'Pago seguro')).' · '.$event->title)
 @section('hide_navbar', '1')
 
 @section('content')
@@ -12,8 +13,10 @@
         </a>
 
         <header class="mt-8 max-w-2xl">
-            <p class="label-small text-[var(--marine-600)]">{{ $en ? 'TEST MODE · NO REAL CHARGE' : 'MODO TESTING · SIN CARGO REAL' }}</p>
-            <h1 class="display mt-3 text-4xl font-bold text-[var(--ink)] sm:text-5xl">{{ $en ? 'Secure test payment' : 'Pago seguro de prueba' }}</h1>
+            @if($testing)
+                <p class="label-small text-[var(--marine-600)]">{{ $en ? 'TEST MODE · NO REAL CHARGE' : 'MODO TESTING · SIN CARGO REAL' }}</p>
+            @endif
+            <h1 class="display mt-3 text-4xl font-bold text-[var(--ink)] sm:text-5xl">{{ $testing ? ($en ? 'Secure test payment' : 'Pago seguro de prueba') : ($en ? 'Secure payment' : 'Pago seguro') }}</h1>
             <p class="mt-4 max-w-xl text-base leading-7 text-[var(--muted)]">
                 {{ $en
                     ? 'Mercado Pago tokenizes the card inside its secure Brick. Lapsique never receives or stores the card number or CVV.'
@@ -42,10 +45,12 @@
                     </div>
                 </dl>
 
-                <div class="mt-6 rounded-2xl bg-amber-50 p-4 text-sm leading-6 text-amber-950" role="note">
-                    <strong>{{ $en ? 'Testing only.' : 'Sólo pruebas.' }}</strong>
-                    {{ $en ? 'Use a Mercado Pago test card. No real ticket will be valid for entry.' : 'Usa una tarjeta de prueba de Mercado Pago. Ningún boleto de prueba será válido para ingresar.' }}
-                </div>
+                @if($testing)
+                    <div class="mt-6 rounded-2xl bg-amber-50 p-4 text-sm leading-6 text-amber-950" role="note">
+                        <strong>{{ $en ? 'Testing only.' : 'Sólo pruebas.' }}</strong>
+                        {{ $en ? 'Use a Mercado Pago test card. No real ticket will be valid for entry.' : 'Usa una tarjeta de prueba de Mercado Pago. Ningún boleto de prueba será válido para ingresar.' }}
+                    </div>
+                @endif
                 <p class="mt-4 text-xs leading-5 text-[var(--muted)]">{{ $en ? '18+ · No refunds · Tickets are issued only after a verified webhook.' : '18+ · Sin reembolsos · Los accesos se emiten únicamente después del webhook verificado.' }}</p>
             </section>
 
@@ -53,7 +58,7 @@
                 <h2 id="payment-heading" class="text-2xl font-semibold text-[var(--ink)]">{{ $en ? 'Credit or debit card' : 'Tarjeta de crédito o débito' }}</h2>
                 <p class="mt-2 text-sm leading-6 text-[var(--muted)]">{{ $en ? 'The secure fields below are provided by Mercado Pago.' : 'Los campos seguros son proporcionados por Mercado Pago.' }}</p>
                 <div class="mt-5 min-h-80" id="mercadopago-card-form" aria-describedby="mercadopago-card-form-status" data-mercadopago-configuration-url="{{ $configurationUrl }}"></div>
-                <p id="mercadopago-card-form-status" class="mt-4 text-sm leading-6 text-[var(--muted)]" role="status" aria-live="polite">{{ $en ? 'Loading the secure form…' : 'Cargando el formulario seguro…' }}</p>
+                <p id="mercadopago-card-form-status" data-mercadopago-status class="mt-4 text-sm leading-6 text-[var(--muted)]" role="status" aria-live="polite">{{ $en ? 'Loading the secure form…' : 'Cargando el formulario seguro…' }}</p>
             </section>
         </div>
 

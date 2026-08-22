@@ -5,6 +5,13 @@ import { NewsletterCaptureModal } from '@/components/lapsique/NewsletterCaptureM
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from '@/components/ui/dialog';
 import { route } from '@/lib/route';
 import type { EventItem, EventTicketProduct, PageProps } from '@/types';
+import '@/mercadopago-embedded.js';
+
+declare global {
+    interface Window {
+        MercadoPagoEmbedded?: { mount: (element: HTMLElement) => Promise<void> };
+    }
+}
 
 interface SafeByVarunaLandingProps {
     event: EventItem;
@@ -23,7 +30,12 @@ export function SafeByVarunaLanding({ event, viewContentEventId }: SafeByVarunaL
     const [paymentUnavailable, setPaymentUnavailable] = useState(false);
     const [preregistered, setPreregistered] = useState(false);
     const [preregisterError, setPreregisterError] = useState('');
+    const [paymentConfigurationUrl, setPaymentConfigurationUrl] = useState('');
+    const [paymentState, setPaymentState] = useState('idle');
+    const [paymentMessage, setPaymentMessage] = useState('');
     const viewTracked = useRef(false);
+    const paymentContainer = useRef<HTMLDivElement | null>(null);
+    const checkoutTrigger = useRef<HTMLButtonElement | null>(null);
     const checkoutEventId = useRef(createCheckoutEventId());
 
     const totals = useMemo(() => commerceTotals(product, quantity), [product, quantity]);
@@ -55,6 +67,30 @@ export function SafeByVarunaLanding({ event, viewContentEventId }: SafeByVarunaL
             sales_mode: product.sales_mode,
         });
     }, [event.id, event.slug, event.title, product, viewContentEventId]);
+
+    useEffect(() => {
+        if (!paymentConfigurationUrl || !paymentContainer.current) return;
+        void window.MercadoPagoEmbedded?.mount(paymentContainer.current);
+    }, [paymentConfigurationUrl]);
+
+    useEffect(() => {
+        const onState = (stateEvent: Event) => {
+            const detail = (stateEvent as CustomEvent<{ state?: string; message?: string }>).detail;
+            setPaymentState(detail?.state ?? 'idle');
+            setPaymentMessage(detail?.message ?? '');
+        };
+        const onSubmitted = (submittedEvent: Event) => {
+            const detail = (submittedEvent as CustomEvent<{ resultUrl?: string }>).detail;
+            if (detail?.resultUrl) window.setTimeout(() => window.location.assign(detail.resultUrl as string), 900);
+        };
+
+        window.addEventListener('mercadopago:payment-state', onState);
+        window.addEventListener('mercadopago:payment-submitted', onSubmitted);
+        return () => {
+            window.removeEventListener('mercadopago:payment-state', onState);
+            window.removeEventListener('mercadopago:payment-submitted', onSubmitted);
+        };
+    }, []);
 
     const submit = async (submitEvent: FormEvent<HTMLFormElement>) => {
         if (!product || !contentPayload) {
@@ -124,10 +160,46 @@ export function SafeByVarunaLanding({ event, viewContentEventId }: SafeByVarunaL
             return;
         }
 
+        submitEvent.preventDefault();
         const form = submitEvent.currentTarget;
         const eventIdInput = form.elements.namedItem('checkout_event_id') as HTMLInputElement | null;
         if (eventIdInput) eventIdInput.value = checkoutEventId.current;
         setSubmitting(true);
+        setPaymentUnavailable(false);
+        setPreregisterError('');
+
+        try {
+            const response = await fetch(form.action, {
+                method: 'POST',
+                headers: {
+                    Accept: 'application/json',
+                    'X-CSRF-TOKEN': csrfToken(),
+                    'X-Requested-With': 'XMLHttpRequest',
+                },
+                credentials: 'same-origin',
+                body: new FormData(form),
+            });
+            const data = await response.json().catch(() => ({}));
+
+            if (!response.ok || data.status !== 'payment_required' || !data.configuration_url) {
+                throw new Error(formatCheckoutError(data, en));
+            }
+
+            setPaymentConfigurationUrl(data.configuration_url);
+            setPaymentState('loading');
+            window.SiteTracker?.track('checkout_buyer_registered', {
+                event_id: event.id,
+                event_slug: event.slug,
+                order_id: data.order_id,
+                value: data.amount,
+                currency: data.currency,
+            });
+        } catch (error) {
+            setPaymentUnavailable(true);
+            setPreregisterError(error instanceof Error ? error.message : (en ? 'Unable to prepare card payment. Try again.' : 'No fue posible preparar el pago con tarjeta. Inténtalo de nuevo.'));
+        } finally {
+            setSubmitting(false);
+        }
     };
 
     const openCheckout = () => {
@@ -157,7 +229,15 @@ export function SafeByVarunaLanding({ event, viewContentEventId }: SafeByVarunaL
         setPaymentUnavailable(false);
         setPreregisterError('');
         setPreregistered(false);
+        setPaymentConfigurationUrl('');
+        setPaymentState('idle');
+        setPaymentMessage('');
         setCheckoutOpen(true);
+    };
+
+    const handleCheckoutOpenChange = (open: boolean) => {
+        setCheckoutOpen(open);
+        if (!open) window.requestAnimationFrame(() => checkoutTrigger.current?.focus());
     };
 
     const whatsapp = `https://wa.me/${site.whatsapp}?text=${encodeURIComponent(en
@@ -185,6 +265,7 @@ export function SafeByVarunaLanding({ event, viewContentEventId }: SafeByVarunaL
                         </div>
 
                         <button
+                            ref={checkoutTrigger}
                             type="button"
                             onClick={openCheckout}
                             className="mt-8 inline-flex min-h-12 w-full items-center justify-center gap-3 bg-primary px-6 font-ui-display text-sm font-bold uppercase tracking-[0.1em] text-primary-foreground focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-primary motion-safe:transition-colors hover:bg-foreground hover:text-background sm:w-fit"
@@ -233,8 +314,8 @@ export function SafeByVarunaLanding({ event, viewContentEventId }: SafeByVarunaL
                 <KapiSetCarousel en={en} />
             </div>
 
-            <Dialog open={checkoutOpen} onOpenChange={setCheckoutOpen}>
-                <DialogContent className="max-h-[calc(100svh-1.5rem)] w-[min(calc(100vw-1.5rem),64rem)] max-w-none gap-0 rounded-none border-black/15 bg-[#efeadf] p-0 text-[#151713] sm:max-w-none">
+            <Dialog open={checkoutOpen} onOpenChange={handleCheckoutOpenChange}>
+                <DialogContent className="max-h-[calc(100svh-1.5rem)] w-[min(calc(100vw-1.5rem),64rem)] max-w-none gap-0 overflow-y-auto overscroll-contain rounded-none border-black/15 bg-[#efeadf] p-0 text-[#151713] sm:max-w-none">
                     <div className="grid lg:grid-cols-[0.72fr_1.28fr]">
                         <div className="border-b border-black/10 p-6 sm:p-8 lg:border-r lg:border-b-0">
                             <DialogTitle className="font-ui-display text-4xl font-bold uppercase leading-[0.92] tracking-[-0.035em] sm:text-5xl">
@@ -251,12 +332,39 @@ export function SafeByVarunaLanding({ event, viewContentEventId }: SafeByVarunaL
                         </div>
 
                         {product ? (
-                            preregistered ? (
+                            paymentConfigurationUrl ? (
+                                <section className="min-w-0 bg-white p-6 sm:p-8" aria-labelledby="safe-payment-title" data-payment-state={paymentState} aria-busy={['loading', 'submitting', 'submitted'].includes(paymentState)}>
+                                    <div className="flex flex-col gap-4 border-b border-black/10 pb-6 sm:flex-row sm:items-start sm:justify-between">
+                                        <div>
+                                            <p className="text-xs font-semibold uppercase tracking-[0.14em] text-primary">{en ? 'Step 2 of 2' : 'Paso 2 de 2'}</p>
+                                            <h3 id="safe-payment-title" className="mt-2 text-2xl font-semibold">{en ? 'Credit or debit card' : 'Tarjeta de crédito o débito'}</h3>
+                                            <p className="mt-2 text-sm leading-6 text-[#62645e]">{en ? 'Secure fields provided by Mercado Pago.' : 'Campos seguros proporcionados por Mercado Pago.'}</p>
+                                        </div>
+                                        <p className="text-3xl font-bold tabular-nums">${formatMoney(totals.total)} <span className="text-sm font-medium text-[#62645e]">MXN</span></p>
+                                    </div>
+                                    <dl className="mt-5 border border-black/10 bg-[#f4f0e7] p-5 text-sm">
+                                        <SummaryRow label={en ? 'Ticket subtotal' : 'Subtotal de boletos'} value={totals.subtotal} currency={product.currency} />
+                                        <SummaryRow label={`${en ? 'Service charge' : 'Cargo de servicio'} (${product.service_charge_pct}%)`} value={totals.fee} currency={product.currency} />
+                                        <SummaryRow label="Total" value={totals.total} currency={product.currency} strong />
+                                    </dl>
+                                    <div
+                                        ref={paymentContainer}
+                                        id="safe-mercadopago-card-form"
+                                        className="mt-6 min-h-80"
+                                        data-mercadopago-configuration-url={paymentConfigurationUrl}
+                                        aria-describedby="safe-mercadopago-status"
+                                    />
+                                    <p id="safe-mercadopago-status" data-mercadopago-status className="mt-4 min-h-6 text-sm leading-6 text-[#565852]" role="status" aria-live="polite">
+                                        {paymentMessage || (en ? 'Loading the secure form…' : 'Cargando el formulario seguro…')}
+                                    </p>
+                                    <p className="mt-4 text-xs leading-5 text-[#676963]">{en ? 'Lapsique never receives or stores your card number or security code. Tickets are issued only after verified payment.' : 'Lapsique nunca recibe ni almacena el número ni el código de seguridad de tu tarjeta. Los accesos se emiten únicamente después del pago verificado.'}</p>
+                                </section>
+                            ) : preregistered ? (
                                 <div className="flex min-h-[30rem] flex-col justify-center bg-white p-8" role="status" aria-live="polite">
                                     <Check aria-hidden="true" className="size-10 text-primary" />
                                     <h3 className="mt-6 font-ui-display text-3xl font-bold uppercase leading-none">{en ? 'You are preregistered.' : 'Tu prerregistro quedó listo.'}</h3>
                                     <p className="mt-4 max-w-md text-base leading-7 text-[#565852]">{en ? 'We will notify you when ticket sales open. Preregistration is free and does not reserve a ticket.' : 'Te avisaremos cuando se habilite la venta. El prerregistro es gratuito y no aparta un boleto.'}</p>
-                                    <button type="button" onClick={() => setCheckoutOpen(false)} className="mt-8 inline-flex min-h-12 w-fit items-center bg-black px-6 font-semibold text-white focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-black">{en ? 'Close' : 'Cerrar'}</button>
+                                    <button type="button" onClick={() => handleCheckoutOpenChange(false)} className="mt-8 inline-flex min-h-12 w-fit items-center bg-black px-6 font-semibold text-white focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-black">{en ? 'Close' : 'Cerrar'}</button>
                                 </div>
                             ) : <form
                                 method="POST"
@@ -302,6 +410,23 @@ export function SafeByVarunaLanding({ event, viewContentEventId }: SafeByVarunaL
                                     <Field label={en ? 'WhatsApp phone' : 'Teléfono con WhatsApp'} name="buyer_whatsapp" type="tel" autoComplete="tel" placeholder="+52 55 0000 0000" />
                                     <Field label={en ? 'Instagram (optional)' : 'Instagram (opcional)'} name="buyer_instagram" type="text" autoComplete="off" placeholder="@usuario" required={false} />
                                 </div>
+
+                                {checkoutReady && quantity > 1 ? (
+                                    <fieldset className="mt-7 border-t border-black/10 pt-6">
+                                        <legend className="text-lg font-semibold">{en ? 'Other attendees' : 'Otros asistentes'}</legend>
+                                        <p className="mt-2 text-sm leading-6 text-[#62645e]">{en ? 'Each ticket receives its own QR and PDF by email.' : 'Cada boleto recibe su propio QR y PDF por correo.'}</p>
+                                        <div className="mt-5 grid gap-6">
+                                            {Array.from({ length: quantity - 1 }, (_, index) => (
+                                                <div key={index} className="grid gap-5 border border-black/10 bg-[#f4f0e7] p-4 sm:grid-cols-2">
+                                                    <p className="text-sm font-bold sm:col-span-2">{en ? `Attendee ${index + 2}` : `Asistente ${index + 2}`}</p>
+                                                    <Field label={en ? 'Full name' : 'Nombre completo'} name={`attendees[${index}][name]`} type="text" autoComplete="name" placeholder={en ? 'Full name' : 'Nombre completo'} />
+                                                    <Field label="Email" name={`attendees[${index}][email]`} type="email" autoComplete="email" placeholder="nombre@correo.com" />
+                                                    <Field label="WhatsApp" name={`attendees[${index}][whatsapp]`} type="tel" autoComplete="tel" placeholder="+52 55 0000 0000" />
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </fieldset>
+                                ) : null}
 
                                 {checkoutReady ? <div className="mt-6 grid gap-5 sm:grid-cols-[0.55fr_1.45fr] sm:items-end">
                                     <label className="grid gap-2 text-sm font-semibold" htmlFor="safe-ticket-quantity">
@@ -434,7 +559,7 @@ function Policy({ icon, text }: { icon: React.ReactNode; text: string }) {
 }
 
 function Field({ label, name, type, autoComplete, placeholder, required = true }: { label: string; name: string; type: string; autoComplete: string; placeholder: string; required?: boolean }) {
-    const id = `safe-${name}`;
+    const id = `safe-${name.replace(/[^a-z0-9]+/gi, '-')}`;
     return <label className="grid gap-2 text-sm font-semibold" htmlFor={id}>
         {label}{required ? <span className="sr-only"> (required)</span> : null}
         <input id={id} name={name} type={type} autoComplete={autoComplete} placeholder={placeholder} required={required} className="min-h-12 rounded-xl border border-black/25 bg-white px-4 text-base font-normal focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black" />
@@ -492,4 +617,14 @@ function formatLeadError(data: { message?: string; errors?: Record<string, strin
     return validationError ?? data.message ?? (en
         ? 'We could not save your preregistration. Check your details and try again.'
         : 'No pudimos guardar tu prerregistro. Revisa tus datos e inténtalo de nuevo.');
+}
+
+function formatCheckoutError(data: { message?: string; errors?: Record<string, string[] | string> }, en: boolean) {
+    const validationError = data.errors
+        ? Object.values(data.errors).flatMap((value) => Array.isArray(value) ? value : [value]).find((value) => typeof value === 'string')
+        : null;
+
+    return validationError ?? data.message ?? (en
+        ? 'Unable to prepare card payment. Check your information and try again.'
+        : 'No fue posible preparar el pago con tarjeta. Revisa tus datos e inténtalo de nuevo.');
 }

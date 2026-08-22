@@ -4,6 +4,7 @@ namespace App\Console\Commands;
 
 use App\Models\Event;
 use App\Models\TicketProduct;
+use App\Support\MercadoPagoEmbeddedCheckout;
 use Carbon\CarbonImmutable;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
@@ -17,6 +18,7 @@ class RegisterSafeByVarunaDraft extends Command
         {--write-draft : Create or update the internal, unpublished draft}
         {--publish-announcement : Publish the confirmed event announcement without tickets or sales}
         {--activate-testing : Activate the exact, single-phase Safe test catalog}
+        {--activate-live : Promote the owned Safe catalog to real card sales after live credential preflight}
         {--confirm= : Confirmation token required by publication or testing activation}
         {--unpublish-announcement : Soft-delete only the non-selling Safe by Varuna announcement}
         {--publish : Refused: publication is outside this draft-only command}
@@ -36,6 +38,10 @@ class RegisterSafeByVarunaDraft extends Command
             return $this->activateTesting($draft);
         }
 
+        if ($this->option('activate-live')) {
+            return $this->activateLive($draft);
+        }
+
         if ($this->option('unpublish-announcement')) {
             return $this->unpublishAnnouncement($draft);
         }
@@ -46,8 +52,8 @@ class RegisterSafeByVarunaDraft extends Command
 
         if (! $this->option('write-draft')) {
             $this->info('Preview only. No database write was performed.');
-            $this->line('Slug: ' . self::SLUG);
-            $this->line('Existing draft: ' . ($draft?->trashed() ? 'soft-deleted draft' : ($draft ? 'active event (will be refused on write)' : 'none')));
+            $this->line('Slug: '.self::SLUG);
+            $this->line('Existing draft: '.($draft?->trashed() ? 'soft-deleted draft' : ($draft ? 'active event (will be refused on write)' : 'none')));
             $this->line('Confirmed: August 27, 2026; KAPI; Casa Luma Cultural Space; Tonalá 145, CDMX.');
             $this->line('Confirmed commercial facts: 22:00 CDMX; $100 MXN base; one phase; 350 tickets; 18+; no refunds.');
             $this->line('Testing catalog remains disabled unless --activate-testing --confirm=ACTIVATE_TESTING is used.');
@@ -63,7 +69,7 @@ class RegisterSafeByVarunaDraft extends Command
 
         $attributes = $this->draftAttributes();
         $created = ! $draft;
-        $draft ??= new Event();
+        $draft ??= new Event;
         $draft->fill($attributes);
         $draft->save();
 
@@ -183,7 +189,7 @@ class RegisterSafeByVarunaDraft extends Command
             return self::FAILURE;
         }
 
-        $event ??= new Event();
+        $event ??= new Event;
         $event->fill([
             ...$this->draftAttributes(),
             'starts_at' => CarbonImmutable::parse('2026-08-27 22:00:00', 'America/Mexico_City')
@@ -242,7 +248,7 @@ class RegisterSafeByVarunaDraft extends Command
             DB::transaction(function () use ($event): void {
                 $event = $event
                     ? Event::withTrashed()->lockForUpdate()->findOrFail($event->getKey())
-                    : new Event();
+                    : new Event;
 
                 $existingProducts = $event->exists
                     ? $event->ticketProducts()->withTrashed()->lockForUpdate()->get()
@@ -284,7 +290,7 @@ class RegisterSafeByVarunaDraft extends Command
                     $event->restore();
                 }
 
-                $product = $existingProducts->first() ?? new TicketProduct();
+                $product = $existingProducts->first() ?? new TicketProduct;
                 $product->fill([
                     'event_id' => $event->id,
                     'name' => 'Acceso general · Testing',
@@ -327,6 +333,70 @@ class RegisterSafeByVarunaDraft extends Command
         $this->info('Safe by Varuna testing catalog activated.');
         $this->line('One phase · 350 tickets · $100 base + $5 service · $105 test total.');
         $this->line('22:00 CDMX · 18+ · no refunds · no production charge enabled.');
+
+        return self::SUCCESS;
+    }
+
+    private function activateLive(?Event $event): int
+    {
+        if ($this->option('confirm') !== 'ACTIVATE_LIVE') {
+            $this->error('Live activation requires --confirm=ACTIVATE_LIVE.');
+
+            return self::FAILURE;
+        }
+
+        if (MercadoPagoEmbeddedCheckout::salesMode() !== 'live'
+            || ! MercadoPagoEmbeddedCheckout::configurationReady()) {
+            $this->error('Live activation refused: configure enabled embedded checkout, sandbox=false, non-TEST Lapsique credentials and the signed webhook secret first.');
+
+            return self::FAILURE;
+        }
+
+        if (! $event || $event->trashed()) {
+            $this->error('Live activation refused: the Safe event is not published.');
+
+            return self::FAILURE;
+        }
+
+        try {
+            DB::transaction(function () use ($event): void {
+                $event = Event::query()->lockForUpdate()->findOrFail($event->getKey());
+                $products = $event->ticketProducts()->withTrashed()->lockForUpdate()->get();
+                $product = $products->sole();
+
+                if ($product->orderItems()->exists()
+                    || data_get($product->metadata, 'catalog_contract') !== 'safe_single_testing_v1'
+                    || data_get($product->metadata, 'sales_mode') !== 'testing') {
+                    throw new RuntimeException('Safe has orders or an unowned catalog. Review it manually before live activation.');
+                }
+
+                $metadata = $product->metadata ?? [];
+                $metadata['catalog_contract'] = 'safe_single_live_v1';
+                $metadata['sales_mode'] = 'live';
+
+                $product->update([
+                    'name' => 'Acceso general',
+                    'description' => 'Acceso individual 18+ para Safe by Varuna. Sin reembolsos.',
+                    'metadata' => $metadata,
+                ]);
+
+                $event->update([
+                    'tags' => collect($event->tags ?? [])
+                        ->reject(fn (string $tag): bool => str_contains(strtolower($tag), 'testing') || $tag === 'sales_testing')
+                        ->push('Venta con tarjeta activa')
+                        ->values()
+                        ->all(),
+                ]);
+            });
+        } catch (\Throwable $exception) {
+            $this->error($exception->getMessage());
+
+            return self::FAILURE;
+        }
+
+        $this->info('Safe by Varuna live card sales activated.');
+        $this->line('One phase · 350 tickets · $100 base + $5 service · $105 MXN total.');
+        $this->line('Tickets remain pending until the signed Mercado Pago webhook verifies payment.');
 
         return self::SUCCESS;
     }

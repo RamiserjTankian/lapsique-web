@@ -119,7 +119,7 @@ class MercadoPagoService
             throw new RuntimeException('MERCADOPAGO_CLIENT_ID no configurado.');
         }
 
-        return config('mercadopago.oauth_authorize_url') . '?' . http_build_query([
+        return config('mercadopago.oauth_authorize_url').'?'.http_build_query([
             'client_id' => $clientId,
             'response_type' => 'code',
             'platform_id' => 'mp',
@@ -295,21 +295,17 @@ class MercadoPagoService
         $order = $this->assertEmbeddedOrder($order);
         $publicKey = trim((string) config('mercadopago.public_key', ''));
 
-        if (! str_starts_with($publicKey, 'TEST-')) {
-            throw new RuntimeException('El modo testing requiere una public key de Mercado Pago que comience con TEST-.');
-        }
-
         // Resolve the access token here as part of preflight. It is never
-        // returned to the browser, but a missing/live token must fail before
+        // returned to the browser, but a missing/mismatched token must fail before
         // the Brick becomes available.
-        $this->requireEmbeddedTestAccessToken();
+        $this->requireEmbeddedAccessToken();
 
         return [
             'public_key' => $publicKey,
             'amount' => round((float) $order->total, 2),
             'currency' => strtoupper((string) $order->currency),
             'sdk_url' => (string) config('mercadopago.embedded.sdk_url'),
-            'test_mode' => true,
+            'test_mode' => MercadoPagoEmbeddedCheckout::salesMode() === 'testing',
         ];
     }
 
@@ -345,7 +341,7 @@ class MercadoPagoService
                 'email' => (string) $order->buyer_email,
                 'identification' => array_filter($payerIdentification),
             ]),
-            'description' => Str::limit('Acceso de prueba · '.$order->event()->value('title'), 250, ''),
+            'description' => Str::limit('Acceso · '.$order->event()->value('title'), 250, ''),
             'external_reference' => (string) $order->public_id,
             'statement_descriptor' => config('mercadopago.statement_descriptor'),
             'notification_url' => route('webhooks.mercadopago'),
@@ -353,7 +349,7 @@ class MercadoPagoService
                 'ticket_order_id' => (string) $order->getKey(),
                 'ticket_order_public_id' => (string) $order->public_id,
                 'checkout' => 'card_payment_brick',
-                'sales_mode' => 'testing',
+                'sales_mode' => MercadoPagoEmbeddedCheckout::salesMode(),
             ],
         ], static fn (mixed $value): bool => $value !== null && $value !== '');
 
@@ -363,7 +359,7 @@ class MercadoPagoService
             ->post((string) config('mercadopago.embedded.payment_path', '/v1/payments'), $payload);
 
         if (! $response->successful()) {
-            throw new RuntimeException('No se pudo iniciar el pago de prueba con tarjeta.', $response->status());
+            throw new RuntimeException('No se pudo iniciar el pago con tarjeta.', $response->status());
         }
 
         $providerPayment = (array) $response->json();
@@ -405,14 +401,14 @@ class MercadoPagoService
     {
         $slot = $booking->slot;
         $dateLabel = $slot
-            ? $slot->date->translatedFormat('d \d\e F, Y') . ' a las ' . $slot->time_label
+            ? $slot->date->translatedFormat('d \d\e F, Y').' a las '.$slot->time_label
             : 'por confirmar';
 
         $payload = [
             'items' => [
                 [
                     'title' => $booking->service_stripe_name,
-                    'description' => 'Sesión profesional el ' . $dateLabel,
+                    'description' => 'Sesión profesional el '.$dateLabel,
                     'quantity' => 1,
                     'unit_price' => (float) $booking->amount,
                     'currency_id' => $booking->currency,
@@ -424,7 +420,7 @@ class MercadoPagoService
                 'email' => $booking->client_email,
                 'phone' => array_filter(['number' => $booking->client_phone]),
             ]),
-            'external_reference' => 'bkg_' . $booking->public_id,
+            'external_reference' => 'bkg_'.$booking->public_id,
             'statement_descriptor' => config('mercadopago.statement_descriptor', 'Lapsique'),
             'metadata' => [
                 'content_booking_id' => $booking->id,
@@ -457,7 +453,7 @@ class MercadoPagoService
     public function fetchPayment(string $paymentId): array
     {
         $response = $this->httpClient()
-            ->get('/v1/payments/' . $paymentId);
+            ->get('/v1/payments/'.$paymentId);
 
         if (! $response->successful()) {
             Log::warning('MercadoPago payment fetch failed', [
@@ -475,7 +471,7 @@ class MercadoPagoService
     public function fetchMerchantOrder(string $merchantOrderId): array
     {
         $response = $this->httpClient()
-            ->get('/merchant_orders/' . $merchantOrderId);
+            ->get('/merchant_orders/'.$merchantOrderId);
 
         if (! $response->successful()) {
             Log::warning('MercadoPago merchant order fetch failed', [
@@ -675,19 +671,21 @@ class MercadoPagoService
 
     protected function embeddedHttpClient()
     {
-        return Http::withToken($this->requireEmbeddedTestAccessToken())
+        return Http::withToken($this->requireEmbeddedAccessToken())
             ->acceptJson()
             ->baseUrl(rtrim((string) config('mercadopago.api_base_url'), '/'));
     }
 
-    protected function requireEmbeddedTestAccessToken(): string
+    protected function requireEmbeddedAccessToken(): string
     {
         $token = trim((string) config('mercadopago.access_token', ''));
+        $testing = (bool) config('mercadopago.embedded.testing', true);
+        $sandbox = (bool) config('mercadopago.sandbox', false);
 
-        if (! (bool) config('mercadopago.embedded.testing', true)
-            || ! (bool) config('mercadopago.sandbox', false)
-            || ! str_starts_with($token, 'TEST-')) {
-            throw new RuntimeException('El Brick de prueba requiere MERCADOPAGO_SANDBOX=true y un access token TEST-.');
+        if ($token === ''
+            || ($testing && (! $sandbox || ! str_starts_with($token, 'TEST-')))
+            || (! $testing && ($sandbox || str_starts_with($token, 'TEST-')))) {
+            throw new RuntimeException('Las credenciales de Mercado Pago no corresponden al modo de venta configurado.');
         }
 
         return $token;
@@ -698,7 +696,7 @@ class MercadoPagoService
         $order = TicketOrder::query()->with(['event', 'items.product'])->find($order->getKey());
 
         if (! $order || ! MercadoPagoEmbeddedCheckout::isEligible($order)) {
-            throw new RuntimeException('La orden no es elegible para pago embebido en testing.');
+            throw new RuntimeException('La orden no es elegible para pago embebido.');
         }
 
         return $order;
@@ -821,6 +819,6 @@ class MercadoPagoService
 
     protected function hasConnectionTable(): bool
     {
-        return Schema::hasTable((new PaymentGatewayConnection())->getTable());
+        return Schema::hasTable((new PaymentGatewayConnection)->getTable());
     }
 }

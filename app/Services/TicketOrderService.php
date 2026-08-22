@@ -134,6 +134,7 @@ class TicketOrderService
             }
 
             $this->markCustomerAsProspect($customer, $order, $context);
+            $this->sendCustomerPortalAccess($order);
             $this->sendProspectEmail($order);
             $customer?->incrementLeadScore(15);
             $customer?->updateLastInteraction();

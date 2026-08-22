@@ -9,14 +9,34 @@ use App\Models\TicketOrder;
  */
 final class MercadoPagoEmbeddedCheckout
 {
+    public static function salesMode(): string
+    {
+        return (bool) config('mercadopago.embedded.testing', true) ? 'testing' : 'live';
+    }
+
     public static function configurationReady(): bool
     {
-        return (bool) config('mercadopago.embedded.enabled', false)
-            && (bool) config('mercadopago.embedded.testing', true)
-            && (bool) config('mercadopago.sandbox', false)
-            && str_starts_with(trim((string) config('mercadopago.public_key')), 'TEST-')
-            && str_starts_with(trim((string) config('mercadopago.access_token')), 'TEST-')
-            && filled(config('mercadopago.webhook_secret'));
+        if (! (bool) config('mercadopago.embedded.enabled', false)
+            || ! filled(config('mercadopago.webhook_secret'))) {
+            return false;
+        }
+
+        $testing = (bool) config('mercadopago.embedded.testing', true);
+        $sandbox = (bool) config('mercadopago.sandbox', false);
+        $publicKey = trim((string) config('mercadopago.public_key'));
+        $accessToken = trim((string) config('mercadopago.access_token'));
+
+        if ($publicKey === '' || $accessToken === '') {
+            return false;
+        }
+
+        return $testing
+            ? $sandbox
+                && str_starts_with($publicKey, 'TEST-')
+                && str_starts_with($accessToken, 'TEST-')
+            : ! $sandbox
+                && ! str_starts_with($publicKey, 'TEST-')
+                && ! str_starts_with($accessToken, 'TEST-');
     }
 
     public static function isAuthorizedEventSlug(string $slug): bool
@@ -41,7 +61,7 @@ final class MercadoPagoEmbeddedCheckout
 
         return $order->items->isNotEmpty()
             && $order->items->every(
-                fn ($item): bool => data_get($item->product?->metadata, 'sales_mode') === 'testing',
+                fn ($item): bool => data_get($item->product?->metadata, 'sales_mode') === self::salesMode(),
             );
     }
 }
