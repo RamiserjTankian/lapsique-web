@@ -1,5 +1,5 @@
 import { Link, usePage } from '@inertiajs/react';
-import { CalendarDays, Check, Clock3, MapPin, ShieldCheck, Ticket, Users } from 'lucide-react';
+import { AtSign, CalendarDays, Check, Clock3, MapPin, ShieldCheck, Ticket, Users } from 'lucide-react';
 import { FormEvent, useEffect, useMemo, useRef, useState } from 'react';
 import { NewsletterCaptureModal } from '@/components/lapsique/NewsletterCaptureModal';
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from '@/components/ui/dialog';
@@ -497,6 +497,8 @@ function Fact({ icon, label, value }: { icon: React.ReactNode; label: string; va
 function VenueGallery({ en }: { en: boolean }) {
     const videoRef = useRef<HTMLVideoElement | null>(null);
     const [isPlaying, setIsPlaying] = useState(false);
+    const venueInstagram = 'https://www.instagram.com/casalumacdmx/';
+    const venueLocation = 'https://share.google/4v3VGFxSEjkpQ6rOL';
 
     useEffect(() => {
         const video = videoRef.current;
@@ -522,10 +524,22 @@ function VenueGallery({ en }: { en: boolean }) {
                         {en ? 'The room for this edition.' : 'La sala de esta edición.'}
                     </h2>
                 </div>
-                <p className="max-w-xl text-base leading-7 text-muted-foreground">{en ? 'Tonalá 145, an intimate cultural space prepared for a limited-capacity night.' : 'Tonalá 145, un espacio cultural íntimo preparado para una noche de cupo limitado.'}</p>
+                <div>
+                    <p className="max-w-xl text-base leading-7 text-muted-foreground">{en ? 'Tonalá 145, an intimate cultural space prepared for a limited-capacity night.' : 'Tonalá 145, un espacio cultural íntimo preparado para una noche de cupo limitado.'}</p>
+                    <div className="mt-5 flex flex-wrap gap-3">
+                        <a href={venueInstagram} target="_blank" rel="noopener noreferrer" className="inline-flex min-h-11 items-center gap-2 border border-foreground/20 px-4 font-ui-display text-xs font-bold uppercase tracking-[0.08em] text-foreground transition-colors hover:border-primary hover:text-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary">
+                            <AtSign className="size-4" aria-hidden="true" />
+                            {en ? 'Casa Luma on Instagram' : 'Casa Luma en Instagram'}
+                        </a>
+                        <a href={venueLocation} target="_blank" rel="noopener noreferrer" className="inline-flex min-h-11 items-center gap-2 border border-foreground/20 px-4 font-ui-display text-xs font-bold uppercase tracking-[0.08em] text-foreground transition-colors hover:border-primary hover:text-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary">
+                            <MapPin className="size-4" aria-hidden="true" />
+                            {en ? 'Open location' : 'Ver ubicación'}
+                        </a>
+                    </div>
+                </div>
             </div>
-            <div className="mx-auto mt-8 grid max-w-[42rem] items-start gap-3 sm:grid-cols-2">
-                <div className="relative mx-auto w-full max-w-[19rem] overflow-hidden bg-black sm:mx-0">
+            <div className="mt-8 flex justify-center">
+                <div className="relative w-full max-w-[20rem] overflow-hidden bg-black">
                     <video
                         ref={videoRef}
                         muted
@@ -549,12 +563,6 @@ function VenueGallery({ en }: { en: boolean }) {
                         {isPlaying ? (en ? 'Pause video' : 'Pausar video') : (en ? 'Play video' : 'Reproducir video')}
                     </button>
                 </div>
-                <img
-                    src="/images/events/safe-by-varuna/venue/tonala-145-entrance.webp"
-                    alt={en ? 'Entrance to Casa Luma at Tonalá 145' : 'Entrada de Casa Luma en Tonalá 145'}
-                    loading="lazy"
-                    className="mx-auto aspect-[9/16] w-full max-w-[19rem] object-cover sm:mx-0"
-                />
             </div>
         </section>
     );

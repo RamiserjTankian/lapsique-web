@@ -44,6 +44,9 @@ class SafeByVarunaLandingTest extends TestCase
         $this->assertStringContainsString('casa-luma-preview.mp4', $landing);
         $this->assertStringContainsString('aspect-[9/16]', $landing);
         $this->assertStringNotContainsString('casa-luma-stair.webp', $landing);
+        $this->assertStringNotContainsString('tonala-145-entrance.webp', $landing);
+        $this->assertStringContainsString('https://www.instagram.com/casalumacdmx/', $landing);
+        $this->assertStringContainsString('https://share.google/4v3VGFxSEjkpQ6rOL', $landing);
         $this->assertStringContainsString("prefers-reduced-motion: reduce", $landing);
         $this->assertStringContainsString('Pausar video', $landing);
         $this->assertStringContainsString('<FeaturedSafeEvent events={sceneEvents} />', $home);
