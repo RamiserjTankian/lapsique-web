@@ -39,8 +39,11 @@ class SafeByVarunaLandingTest extends TestCase
         $this->assertStringContainsString('KapiSetCarousel', $landing);
         $this->assertStringContainsString('bz6WRoPlRAc', $landing);
         $this->assertStringContainsString('Zvfnp5f0avs', $landing);
+        $this->assertStringNotContainsString('080-mac-proyectos-kapi-at-umi-reel.mp4', $landing);
         $this->assertStringNotContainsString('Cupo limitado · sin reembolsos', $landing);
         $this->assertStringContainsString('casa-luma-preview.mp4', $landing);
+        $this->assertStringContainsString('aspect-[9/16]', $landing);
+        $this->assertStringNotContainsString('casa-luma-stair.webp', $landing);
         $this->assertStringContainsString("prefers-reduced-motion: reduce", $landing);
         $this->assertStringContainsString('Pausar video', $landing);
         $this->assertStringContainsString('<FeaturedSafeEvent events={sceneEvents} />', $home);

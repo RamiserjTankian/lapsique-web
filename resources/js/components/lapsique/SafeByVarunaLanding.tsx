@@ -1,5 +1,5 @@
 import { Link, usePage } from '@inertiajs/react';
-import { CalendarDays, Check, Clock3, MapPin, Play, ShieldCheck, Ticket, Users } from 'lucide-react';
+import { CalendarDays, Check, Clock3, MapPin, ShieldCheck, Ticket, Users } from 'lucide-react';
 import { FormEvent, useEffect, useMemo, useRef, useState } from 'react';
 import { NewsletterCaptureModal } from '@/components/lapsique/NewsletterCaptureModal';
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from '@/components/ui/dialog';
@@ -497,10 +497,6 @@ function Fact({ icon, label, value }: { icon: React.ReactNode; label: string; va
 function VenueGallery({ en }: { en: boolean }) {
     const videoRef = useRef<HTMLVideoElement | null>(null);
     const [isPlaying, setIsPlaying] = useState(false);
-    const images = [
-        { src: '/images/events/safe-by-varuna/venue/tonala-145-entrance.webp', alt: en ? 'Entrance to Casa Luma at Tonalá 145' : 'Entrada de Casa Luma en Tonalá 145' },
-        { src: '/images/events/safe-by-varuna/venue/casa-luma-stair.webp', alt: en ? 'Interior stairway at Casa Luma' : 'Escalera interior de Casa Luma' },
-    ];
 
     useEffect(() => {
         const video = videoRef.current;
@@ -528,8 +524,8 @@ function VenueGallery({ en }: { en: boolean }) {
                 </div>
                 <p className="max-w-xl text-base leading-7 text-muted-foreground">{en ? 'Tonalá 145, an intimate cultural space prepared for a limited-capacity night.' : 'Tonalá 145, un espacio cultural íntimo preparado para una noche de cupo limitado.'}</p>
             </div>
-            <div className="mt-8 grid gap-2 lg:grid-cols-[1.6fr_0.4fr]">
-                <div className="relative overflow-hidden bg-black">
+            <div className="mx-auto mt-8 grid max-w-[42rem] items-start gap-3 sm:grid-cols-2">
+                <div className="relative mx-auto w-full max-w-[19rem] overflow-hidden bg-black sm:mx-0">
                     <video
                         ref={videoRef}
                         muted
@@ -540,11 +536,11 @@ function VenueGallery({ en }: { en: boolean }) {
                         aria-describedby="safe-venue-video-description"
                         onPlay={() => setIsPlaying(true)}
                         onPause={() => setIsPlaying(false)}
-                        className="aspect-video h-full w-full object-cover"
+                        className="aspect-[9/16] w-full object-cover"
                     >
                         <source src="/videos/events/safe-by-varuna/casa-luma-preview.mp4" type="video/mp4" />
                     </video>
-                    <p id="safe-venue-video-description" className="sr-only">{en ? 'Exterior, stairway, room, crowd and visuals at Casa Luma.' : 'Exterior, escaleras, sala, público y visuales en Casa Luma.'}</p>
+                    <p id="safe-venue-video-description" className="sr-only">{en ? 'Entrance, room, crowd and visuals at Casa Luma.' : 'Entrada, sala, público y visuales en Casa Luma.'}</p>
                     <button
                         type="button"
                         onClick={togglePlayback}
@@ -553,11 +549,12 @@ function VenueGallery({ en }: { en: boolean }) {
                         {isPlaying ? (en ? 'Pause video' : 'Pausar video') : (en ? 'Play video' : 'Reproducir video')}
                     </button>
                 </div>
-                <div className="grid grid-cols-2 gap-2 lg:grid-cols-1">
-                    {images.map((image) => (
-                        <img key={image.src} src={image.src} alt={image.alt} loading="lazy" className="aspect-video h-full w-full object-cover lg:aspect-auto" />
-                    ))}
-                </div>
+                <img
+                    src="/images/events/safe-by-varuna/venue/tonala-145-entrance.webp"
+                    alt={en ? 'Entrance to Casa Luma at Tonalá 145' : 'Entrada de Casa Luma en Tonalá 145'}
+                    loading="lazy"
+                    className="mx-auto aspect-[9/16] w-full max-w-[19rem] object-cover sm:mx-0"
+                />
             </div>
         </section>
     );
@@ -591,19 +588,6 @@ function KapiSetCarousel({ en }: { en: boolean }) {
                 </Link>
             </div>
             <div className="mt-8 flex snap-x snap-mandatory gap-4 overflow-x-auto pb-4 [scrollbar-width:thin]" aria-label={en ? 'KAPI DJ set carousel' : 'Carrusel de DJ sets de KAPI'}>
-                <article className="grid min-w-[min(88vw,48rem)] snap-start border border-foreground/20 bg-[#07090b] text-white md:grid-cols-[0.42fr_0.58fr]">
-                    <video controls preload="metadata" playsInline poster="/images/portfolio/video-posters/080-mac-proyectos-kapi-at-umi-reel.jpg" className="aspect-[4/5] h-full w-full bg-black object-cover">
-                        <source src="/videos/reels/080-mac-proyectos-kapi-at-umi-reel.mp4" type="video/mp4" />
-                    </video>
-                    <div className="flex flex-col justify-between p-6 sm:p-8">
-                        <div>
-                            <p className="alpha-kicker text-primary">Psique Session / UMI</p>
-                            <h3 className="mt-4 text-3xl font-semibold uppercase leading-none sm:text-4xl">KAPI</h3>
-                            <p className="mt-4 max-w-md text-sm leading-6 text-white/60">{en ? 'A reel from a previous session produced by Lapsique Media.' : 'Un reel de una sesión anterior producida por Lapsique Media.'}</p>
-                        </div>
-                        <span className="mt-8 inline-flex items-center gap-2 text-sm text-white/70"><Play className="size-4 text-primary" aria-hidden="true" /> {en ? 'Press play' : 'Reproducir'}</span>
-                    </div>
-                </article>
                 {youtubeSets.map((set) => (
                     <article key={set.id} className="min-w-[min(88vw,42rem)] snap-start border border-foreground/20 bg-[#07090b] text-white">
                         <iframe
