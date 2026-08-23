@@ -1,5 +1,5 @@
 import { Link, usePage } from '@inertiajs/react';
-import { CalendarDays, Check, Clock3, MapPin, Play, ShieldCheck, Ticket, Users } from 'lucide-react';
+import { CalendarDays, Check, Clock3, MapPin, Play, Ticket, Users } from 'lucide-react';
 import { FormEvent, useEffect, useMemo, useRef, useState } from 'react';
 import { NewsletterCaptureModal } from '@/components/lapsique/NewsletterCaptureModal';
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from '@/components/ui/dialog';
@@ -250,12 +250,13 @@ export function SafeByVarunaLanding({ event, viewContentEventId }: SafeByVarunaL
                 <div className="grid gap-8 lg:grid-cols-[minmax(0,0.9fr)_minmax(22rem,0.74fr)] lg:items-center lg:gap-12">
                     <div className="order-2 lg:order-1">
                         <h1 className="max-w-[9ch] text-balance font-ui-display text-[clamp(3.1rem,7vw,5.75rem)] font-bold uppercase leading-[0.88] tracking-[-0.045em]">
-                            Safe 1 edition
+                            KAPI
                         </h1>
+                        <p className="mt-3 font-ui-display text-base font-bold uppercase tracking-[0.2em] text-primary">Minimal house</p>
                         <p className="mt-6 max-w-xl text-pretty text-lg leading-8 text-muted-foreground">
                             {en
-                                ? 'A limited minimal-house night in Roma Norte. One artist, one room and 350 places.'
-                                : 'Una noche limitada de minimal house en Roma Norte. Un artista, una sala y 350 lugares.'}
+                                ? 'From Tulum, KAPI has spent a decade shaping the local scene. He has shared the booth with Traumer, Nu Zau and Zepp, among other names from the minimal circuit.'
+                                : 'Desde Tulum, KAPI lleva una década construyendo su lugar en la escena local. Ha compartido cabina con Traumer, Nu Zau y Zepp, entre otros nombres del circuito minimal.'}
                         </p>
 
                         <div className="mt-9 divide-y divide-foreground/20 border-y border-foreground/20 sm:grid sm:grid-cols-3 sm:divide-x sm:divide-y-0">
@@ -303,7 +304,6 @@ export function SafeByVarunaLanding({ event, viewContentEventId }: SafeByVarunaL
                             : 'KAPI lleva el sonido de Tulum a Ciudad de México para la primera edición de Safe by Varuna: una sesión enfocada en la sala, no en un escenario gigante.'}</p>
                         <div className="grid gap-3 text-sm sm:grid-cols-2">
                             <Policy icon={<Users />} text={en ? 'Admission strictly for ages 18+' : 'Acceso únicamente para mayores de 18 años'} />
-                            <Policy icon={<ShieldCheck />} text={en ? 'Limited capacity · no refunds' : 'Cupo limitado · sin reembolsos'} />
                             <Policy icon={<Check />} text={en ? 'Black dress code' : 'Dress code negro'} />
                             <Policy icon={<MapPin />} text="Casa Luma Cultural Space · Roma Norte" />
                         </div>
@@ -495,11 +495,27 @@ function Fact({ icon, label, value }: { icon: React.ReactNode; label: string; va
 }
 
 function VenueGallery({ en }: { en: boolean }) {
+    const videoRef = useRef<HTMLVideoElement | null>(null);
+    const [isPlaying, setIsPlaying] = useState(false);
     const images = [
         { src: '/images/events/safe-by-varuna/venue/tonala-145-entrance.webp', alt: en ? 'Entrance to Casa Luma at Tonalá 145' : 'Entrada de Casa Luma en Tonalá 145' },
         { src: '/images/events/safe-by-varuna/venue/casa-luma-stair.webp', alt: en ? 'Interior stairway at Casa Luma' : 'Escalera interior de Casa Luma' },
-        { src: '/images/events/safe-by-varuna/venue/casa-luma-room.webp', alt: en ? 'Casa Luma room during a music night' : 'Sala de Casa Luma durante una noche de música' },
     ];
+
+    useEffect(() => {
+        const video = videoRef.current;
+        if (!video || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+
+        void video.play().catch(() => setIsPlaying(false));
+    }, []);
+
+    const togglePlayback = () => {
+        const video = videoRef.current;
+        if (!video) return;
+
+        if (video.paused) void video.play();
+        else video.pause();
+    };
 
     return (
         <section className="border-b border-foreground/20 py-14 md:py-20" aria-labelledby="safe-venue-title">
@@ -512,16 +528,55 @@ function VenueGallery({ en }: { en: boolean }) {
                 </div>
                 <p className="max-w-xl text-base leading-7 text-muted-foreground">{en ? 'Tonalá 145, an intimate cultural space prepared for a limited-capacity night.' : 'Tonalá 145, un espacio cultural íntimo preparado para una noche de cupo limitado.'}</p>
             </div>
-            <div className="mt-8 grid gap-2 sm:grid-cols-3">
-                {images.map((image, index) => (
-                    <img key={image.src} src={image.src} alt={image.alt} loading="lazy" className={`w-full object-cover ${index === 1 ? 'aspect-[4/5]' : 'aspect-[4/5] sm:aspect-auto sm:h-full'}`} />
-                ))}
+            <div className="mt-8 grid gap-2 lg:grid-cols-[1.6fr_0.4fr]">
+                <div className="relative overflow-hidden bg-black">
+                    <video
+                        ref={videoRef}
+                        muted
+                        loop
+                        playsInline
+                        preload="metadata"
+                        poster="/images/events/safe-by-varuna/venue/casa-luma-video-poster.webp"
+                        aria-describedby="safe-venue-video-description"
+                        onPlay={() => setIsPlaying(true)}
+                        onPause={() => setIsPlaying(false)}
+                        className="aspect-video h-full w-full object-cover"
+                    >
+                        <source src="/videos/events/safe-by-varuna/casa-luma-preview.mp4" type="video/mp4" />
+                    </video>
+                    <p id="safe-venue-video-description" className="sr-only">{en ? 'Exterior, stairway, room, crowd and visuals at Casa Luma.' : 'Exterior, escaleras, sala, público y visuales en Casa Luma.'}</p>
+                    <button
+                        type="button"
+                        onClick={togglePlayback}
+                        className="absolute right-3 bottom-3 inline-flex min-h-11 items-center bg-black/80 px-4 text-xs font-bold uppercase tracking-[0.1em] text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
+                    >
+                        {isPlaying ? (en ? 'Pause video' : 'Pausar video') : (en ? 'Play video' : 'Reproducir video')}
+                    </button>
+                </div>
+                <div className="grid grid-cols-2 gap-2 lg:grid-cols-1">
+                    {images.map((image) => (
+                        <img key={image.src} src={image.src} alt={image.alt} loading="lazy" className="aspect-video h-full w-full object-cover lg:aspect-auto" />
+                    ))}
+                </div>
             </div>
         </section>
     );
 }
 
 function KapiSetCarousel({ en }: { en: boolean }) {
+    const youtubeSets = [
+        {
+            id: 'bz6WRoPlRAc',
+            title: 'KAPI at UMI Tulum',
+            description: en ? 'Minimal and deep house sunset set by La Psique Media.' : 'Set de minimal y deep house al atardecer por La Psique Media.',
+        },
+        {
+            id: 'Zvfnp5f0avs',
+            title: 'KAPI / Psique Session 001',
+            description: en ? 'Minimal and deep house mix recorded in Tulum.' : 'Mix de minimal y deep house grabado en Tulum.',
+        },
+    ];
+
     return (
         <section className="border-b border-foreground/20 py-14 md:py-20" aria-labelledby="kapi-set-title">
             <div className="flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
@@ -535,8 +590,8 @@ function KapiSetCarousel({ en }: { en: boolean }) {
                     {en ? 'Open KAPI profile' : 'Ver perfil de KAPI'}
                 </Link>
             </div>
-            <div className="mt-8 overflow-x-auto pb-3 [scrollbar-width:thin]" aria-label={en ? 'KAPI DJ set carousel' : 'Carrusel de DJ sets de KAPI'}>
-                <article className="grid min-w-[min(100%,52rem)] border border-foreground/20 bg-[#07090b] text-white md:grid-cols-[0.42fr_0.58fr]">
+            <div className="mt-8 flex snap-x snap-mandatory gap-4 overflow-x-auto pb-4 [scrollbar-width:thin]" aria-label={en ? 'KAPI DJ set carousel' : 'Carrusel de DJ sets de KAPI'}>
+                <article className="grid min-w-[min(88vw,48rem)] snap-start border border-foreground/20 bg-[#07090b] text-white md:grid-cols-[0.42fr_0.58fr]">
                     <video controls preload="metadata" playsInline poster="/images/portfolio/video-posters/080-mac-proyectos-kapi-at-umi-reel.jpg" className="aspect-[4/5] h-full w-full bg-black object-cover">
                         <source src="/videos/reels/080-mac-proyectos-kapi-at-umi-reel.mp4" type="video/mp4" />
                     </video>
@@ -549,6 +604,24 @@ function KapiSetCarousel({ en }: { en: boolean }) {
                         <span className="mt-8 inline-flex items-center gap-2 text-sm text-white/70"><Play className="size-4 text-primary" aria-hidden="true" /> {en ? 'Press play' : 'Reproducir'}</span>
                     </div>
                 </article>
+                {youtubeSets.map((set) => (
+                    <article key={set.id} className="min-w-[min(88vw,42rem)] snap-start border border-foreground/20 bg-[#07090b] text-white">
+                        <iframe
+                            src={`https://www.youtube-nocookie.com/embed/${set.id}?rel=0&playsinline=1`}
+                            title={set.title}
+                            loading="lazy"
+                            referrerPolicy="strict-origin-when-cross-origin"
+                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                            allowFullScreen
+                            className="aspect-video w-full border-0 bg-black"
+                        />
+                        <div className="p-6 sm:p-8">
+                            <p className="alpha-kicker text-primary">La Psique Media / YouTube</p>
+                            <h3 className="mt-4 font-ui-display text-2xl font-bold uppercase leading-none sm:text-3xl">{set.title}</h3>
+                            <p className="mt-4 max-w-lg text-sm leading-6 text-white/60">{set.description}</p>
+                        </div>
+                    </article>
+                ))}
             </div>
         </section>
     );

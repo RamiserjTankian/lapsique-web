@@ -3,7 +3,7 @@
 namespace App\Mail;
 
 use App\Models\TicketAttendee;
-use Barryvdh\DomPDF\Facade\Pdf;
+use App\Services\TicketPassPdfService;
 use Illuminate\Bus\Queueable;
 use Illuminate\Mail\Mailable;
 use Illuminate\Mail\Mailables\Attachment;
@@ -18,8 +18,7 @@ class TicketAccessEmail extends Mailable
     public function __construct(
         public TicketAttendee $attendee,
         public string $trackingToken
-    ) {
-    }
+    ) {}
 
     public function envelope(): Envelope
     {
@@ -61,18 +60,11 @@ class TicketAccessEmail extends Mailable
 
     public function attachments(): array
     {
-        $pdf = Pdf::loadView('pdfs.ticket-access', [
-            'attendee' => $this->attendee,
-            'event' => $this->attendee->event,
-            'product' => $this->attendee->product,
-            'order' => $this->attendee->order,
-            'checkInUrl' => $this->attendee->getCheckInUrl(),
-            'checkInQrUrl' => $this->attendee->getCheckInQrUrl(),
-            'checkInCode' => $this->attendee->getCheckInCode(),
-            'testMode' => data_get($this->attendee->product?->metadata, 'sales_mode') === 'testing',
-        ])->setOption('isRemoteEnabled', true);
+        $pdf = app(TicketPassPdfService::class)->buildForAttendee(
+            $this->attendee->loadMissing('event.djs', 'event.location', 'product', 'order.items.attendees')
+        );
 
-        $filename = 'pase-' . $this->attendee->id . '.pdf';
+        $filename = 'pase-'.$this->attendee->id.'.pdf';
 
         return [
             Attachment::fromData(fn () => $pdf->output(), $filename)

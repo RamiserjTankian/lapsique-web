@@ -56,12 +56,16 @@ class TicketPassPdfService
 
     public function filenameForEvent(?Event $event): string
     {
-        return 'pase-' . ($event ? Str::slug($event->title) : 'acceso') . '.pdf';
+        return 'pase-'.($event ? Str::slug($event->title) : 'acceso').'.pdf';
     }
 
     protected function makePdf(array $viewData)
     {
-        return Pdf::loadView('pdfs.ticket-pass', $viewData)
+        $view = data_get($viewData, 'event.slug') === 'safe-by-varuna-1-edition'
+            ? 'pdfs.ticket-pass-safe'
+            : 'pdfs.ticket-pass';
+
+        return Pdf::loadView($view, $viewData)
             ->setPaper('letter', 'portrait')
             ->setOptions([
                 'isRemoteEnabled' => true,
@@ -144,8 +148,8 @@ class TicketPassPdfService
                     'is_table' => $isTable,
                     'access_units' => $accessUnits,
                     'consumo_note' => $isTable
-                        ? 'Consumible total de la mesa: $' . $consumoBase . ' MXN para ' . $accessUnits . ' personas'
-                        : ($unitBasePrice > 0 ? 'Consumible incluido: $' . number_format($unitBasePrice, 0) . ' MXN' : null),
+                        ? 'Consumible total de la mesa: $'.$consumoBase.' MXN para '.$accessUnits.' personas'
+                        : ($unitBasePrice > 0 ? 'Consumible incluido: $'.number_format($unitBasePrice, 0).' MXN' : null),
                     'code' => strtoupper(substr($attendee->invite_token, -6)),
                     'qrUrl' => route('tickets.checkin.qr', ['token' => $attendee->invite_token]),
                     'index' => $index,
@@ -170,7 +174,7 @@ class TicketPassPdfService
                 'is_table' => false,
                 'access_units' => 1,
                 'consumo_note' => $attendee->product
-                    ? 'Consumible incluido: $' . number_format((float) $attendee->product->base_price, 0) . ' MXN'
+                    ? 'Consumible incluido: $'.number_format((float) $attendee->product->base_price, 0).' MXN'
                     : null,
                 'code' => strtoupper(substr($attendee->invite_token, -6)),
                 'qrUrl' => route('tickets.checkin.qr', ['token' => $attendee->invite_token]),
