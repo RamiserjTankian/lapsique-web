@@ -116,7 +116,7 @@ class MailDeliveryServiceTest extends TestCase
 
             $this->assertCount(1, $attachments);
             $this->assertSame('pase-' . $attendee->id . '.pdf', $attachments[0]['filename'] ?? null);
-            $this->assertSame('application/pdf', $attachments[0]['mimetype'] ?? null);
+            $this->assertSame('application/pdf', $attachments[0]['type'] ?? null);
             $this->assertSame('attachment', $attachments[0]['disposition'] ?? null);
             $this->assertNotEmpty($attachments[0]['content'] ?? null);
             $this->assertStringStartsWith('%PDF-', base64_decode($attachments[0]['content'], true) ?: '');

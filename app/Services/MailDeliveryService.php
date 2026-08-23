@@ -151,7 +151,7 @@ class MailDeliveryService
             $attachments[] = [
                 'filename' => $attachment['name'] ?? 'attachment.bin',
                 'content' => base64_encode($content),
-                'mimetype' => $attachment['options']['mime'] ?? 'application/octet-stream',
+                'type' => $attachment['options']['mime'] ?? 'application/octet-stream',
                 'disposition' => 'attachment',
             ];
         }
@@ -172,7 +172,7 @@ class MailDeliveryService
             $attachments[] = [
                 'filename' => $attachment['options']['as'] ?? basename($path),
                 'content' => base64_encode($content),
-                'mimetype' => $attachment['options']['mime'] ?? 'application/octet-stream',
+                'type' => $attachment['options']['mime'] ?? 'application/octet-stream',
                 'disposition' => 'attachment',
             ];
         }
@@ -200,7 +200,7 @@ class MailDeliveryService
             $attachments[] = [
                 'filename' => $attachment['name'] ?? basename($path),
                 'content' => base64_encode($content),
-                'mimetype' => $attachment['options']['mime'] ?? $storage->mimeType($path) ?? 'application/octet-stream',
+                'type' => $attachment['options']['mime'] ?? $storage->mimeType($path) ?? 'application/octet-stream',
                 'disposition' => 'attachment',
             ];
         }
