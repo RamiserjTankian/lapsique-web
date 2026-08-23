@@ -1,5 +1,5 @@
 import { Link, usePage } from '@inertiajs/react';
-import { CalendarDays, Check, Clock3, MapPin, Play, Ticket, Users } from 'lucide-react';
+import { CalendarDays, Check, Clock3, MapPin, Play, ShieldCheck, Ticket, Users } from 'lucide-react';
 import { FormEvent, useEffect, useMemo, useRef, useState } from 'react';
 import { NewsletterCaptureModal } from '@/components/lapsique/NewsletterCaptureModal';
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from '@/components/ui/dialog';
